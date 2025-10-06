@@ -34,7 +34,7 @@ const RegisterPage = () => {
         if (error) {
           setError(error.message || 'Invalid email or password');
         } else {
-          router.push('/dashboard');
+          router.push('/');
         }
       } else {
         if (!fullName.trim()) {
