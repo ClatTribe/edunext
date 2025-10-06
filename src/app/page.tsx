@@ -1,8 +1,8 @@
 "use client"; 
-import React, { useState } from 'react';
-import { Search, ChevronDown, Heart, User, BookOpen, DollarSign, Calendar, Users, Home, GraduationCap, Award, Trophy, Building2, Filter, LogOut, LogIn } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search, ChevronDown, Heart, User, BookOpen, DollarSign, Calendar, Users, Home, GraduationCap, Award, Trophy, Building2, Filter, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import AuthModal from '../../components/AuthModal';
 
 interface Course {
   id: number;
@@ -38,13 +38,20 @@ interface AdmitProfile {
   verified: boolean;
 }
 
-const StudyAbroadPortal = () => {
+const DashboardPage = () => {
+  const router = useRouter();
   const { user, signOut, loading } = useAuth();
   const [activeSection, setActiveSection] = useState<'course-finder' | 'admit-finder' | 'scholarship-finder'>('course-finder');
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [savedScholarships, setSavedScholarships] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/register');
+    }
+  }, [user, loading, router]);
 
   const coursesData: Course[] = [
     {
@@ -680,6 +687,10 @@ const StudyAbroadPortal = () => {
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -689,31 +700,20 @@ const StudyAbroadPortal = () => {
             <span className="text-sm text-gray-600">Postgraduate</span>
           </div>
           <div className="flex items-center gap-4">
-            {!user ? (
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-              >
-                <LogIn size={18} />
-                <span>Login / Register</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Welcome, {getUserName()}</span>
-                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {getUserInitial()}
-                </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Welcome, {getUserName()}</span>
+              <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
+                {getUserInitial()}
               </div>
-            )}
+            </div>
           </div>
         </div>
         {activeSection === 'course-finder' && <CourseFinder />}
         {activeSection === 'admit-finder' && <AdmitFinder />}
         {activeSection === 'scholarship-finder' && <ScholarshipFinder />}
       </div>
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 };
 
-export default StudyAbroadPortal;
+export default DashboardPage;
