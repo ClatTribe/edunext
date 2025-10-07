@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, user
 
   const handleNavClick = (action: string) => {
     if (['course-finder', 'admit-finder', 'scholarship-finder', 'shortlist-builder'].includes(action)) {
-      setActiveSection(action as any);
+      setActiveSection(action as 'course-finder' | 'admit-finder' | 'scholarship-finder' | 'shortlist-builder');
     }
     // Add other navigation logic here
   };
