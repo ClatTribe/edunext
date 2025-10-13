@@ -127,10 +127,17 @@ const CourseFinder: React.FC = () => {
           .from('courses')
           .select('university');
         
-        if (allUniversities) {
-          const uniqueUniversities = [...new Set(allUniversities.map((course: any) => course.university))];
-          setUniversities(uniqueUniversities.sort());
-        }
+        type Course = {
+  university: string;
+  // add other fields if needed
+};
+
+if (allUniversities) {
+  const uniqueUniversities = [
+    ...new Set(allUniversities.map((course: Course) => course.university))
+  ];
+  setUniversities(uniqueUniversities.sort());
+}
       }
     } catch (error) {
       console.error('Error fetching courses:', error); 
