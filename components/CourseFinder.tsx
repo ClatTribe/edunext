@@ -59,7 +59,7 @@ const CourseFinder: React.FC = () => {
       if (error) throw error;
       setCourses(data || []);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      console.error('Error fetching courses:', error); 
     } finally {
       setLoading(false);
     }
