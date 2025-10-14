@@ -1,213 +1,200 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, Heart, BookOpen, DollarSign, Calendar, Users, GraduationCap, Trophy, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { Search, ChevronDown, Heart, BookOpen, DollarSign, MapPin, Users, GraduationCap, Filter, X, ChevronLeft, ChevronRight, AlertCircle, Trophy } from 'lucide-react';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const API_KEY = 'SRI6Nb7vQxcpNFVnE5D02zzze7vIdfZUqmRPe93y';
+const API_BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json';
 
-interface Course {
+interface College {
   id: number;
-  university: string;
-  location: string;
-  program: string;
-  program_type: string;
-  specialization: string;
-  degree_level: string;
-  qs_rank: number;
-  tuition: string;
-  deadline: string;
-  verified: boolean;
-  logo: string;
-  country_code: string;
-  entrance_exam: string;
+  'school.name': string;
+  'school.city': string;
+  'school.state': string;
+  'latest.cost.tuition.in_state': number | null;
+  'latest.cost.tuition.out_of_state': number | null;
+  'latest.admissions.admission_rate.overall': number | null;
+  'school.school_url': string | null;
+  'school.locale': number | null;
+  'latest.student.size': number | null;
 }
 
 const CourseFinder: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('');
-  const [selectedUniversity, setSelectedUniversity] = useState('');
-  const [selectedDegreeLevel, setSelectedDegreeLevel] = useState('');
-  const [selectedProgramType, setSelectedProgramType] = useState('');
-  const [sortBy, setSortBy] = useState('qs_rank');
-  const [universities, setUniversities] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCourses, setTotalCourses] = useState(0);
-  const coursesPerPage = 15;
+  const [selectedState, setSelectedState] = useState('');
+  const [selectedLocale, setSelectedLocale] = useState('');
+  const [minTuition, setMinTuition] = useState('');
+  const [maxTuition, setMaxTuition] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalResults, setTotalResults] = useState(0);
+  const [savedColleges, setSavedColleges] = useState<Set<number>>(new Set());
+  const perPage = 15;
+
+  const US_STATES = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+  ];
+
+  const LOCALE_TYPES = {
+    '': 'All Locations',
+    '11': 'City - Large',
+    '12': 'City - Midsize',
+    '13': 'City - Small',
+    '21': 'Suburb - Large',
+    '22': 'Suburb - Midsize',
+    '23': 'Suburb - Small',
+    '31': 'Town - Fringe',
+    '32': 'Town - Distant',
+    '33': 'Town - Remote',
+    '41': 'Rural - Fringe',
+    '42': 'Rural - Distant',
+    '43': 'Rural - Remote'
+  };
 
   useEffect(() => {
-    fetchCourses();
-  }, [showVerifiedOnly, searchQuery, selectedCountry, selectedUniversity, selectedDegreeLevel, selectedProgramType, sortBy, currentPage]);
+    fetchColleges();
+  }, [currentPage]);
 
-  useEffect(() => {
-    // Reset to page 1 when filters change
-    setCurrentPage(1);
-  }, [showVerifiedOnly, searchQuery, selectedCountry, selectedUniversity, selectedDegreeLevel, selectedProgramType, sortBy]);
-
-  const fetchCourses = async () => {
+  const fetchColleges = async () => {
     try {
       setLoading(true);
-      
-      // Build base query for counting
-      let countQuery = supabase.from('courses').select('*', { count: 'exact', head: true });
+      setError(null);
 
-      if (showVerifiedOnly) {
-        countQuery = countQuery.eq('verified', true);
-      }
+      const params = new URLSearchParams({
+        api_key: API_KEY,
+        per_page: perPage.toString(),
+        page: currentPage.toString(),
+        fields: 'id,school.name,school.city,school.state,latest.cost.tuition.in_state,latest.cost.tuition.out_of_state,latest.admissions.admission_rate.overall,school.school_url,school.locale,latest.student.size'
+      });
 
+      // Add filters
       if (searchQuery) {
-        countQuery = countQuery.or(`university.ilike.%${searchQuery}%,program.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,specialization.ilike.%${searchQuery}%`);
+        params.append('school.name', searchQuery);
+      }
+      if (selectedState) {
+        params.append('school.state', selectedState);
+      }
+      if (selectedLocale) {
+        params.append('school.locale', selectedLocale);
+      }
+      if (minTuition) {
+        params.append('latest.cost.tuition.in_state__range', `${minTuition}..`);
+      }
+      if (maxTuition) {
+        params.append('latest.cost.tuition.in_state__range', `..${maxTuition}`);
+      }
+      if (minTuition && maxTuition) {
+        params.set('latest.cost.tuition.in_state__range', `${minTuition}..${maxTuition}`);
       }
 
-      if (selectedCountry) {
-        countQuery = countQuery.eq('country_code', selectedCountry);
-      }
-
-      if (selectedUniversity) {
-        countQuery = countQuery.eq('university', selectedUniversity);
-      }
-
-      if (selectedDegreeLevel) {
-        countQuery = countQuery.eq('degree_level', selectedDegreeLevel);
-      }
-
-      if (selectedProgramType) {
-        countQuery = countQuery.eq('program_type', selectedProgramType);
-      }
-
-      const { count } = await countQuery;
-      setTotalCourses(count || 0);
-
-      // Build query for fetching paginated data
-      let query = supabase.from('courses').select('*');
-
-      if (showVerifiedOnly) {
-        query = query.eq('verified', true);
-      }
-
-      if (searchQuery) {
-        query = query.or(`university.ilike.%${searchQuery}%,program.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,specialization.ilike.%${searchQuery}%`);
-      }
-
-      if (selectedCountry) {
-        query = query.eq('country_code', selectedCountry);
-      }
-
-      if (selectedUniversity) {
-        query = query.eq('university', selectedUniversity);
-      }
-
-      if (selectedDegreeLevel) {
-        query = query.eq('degree_level', selectedDegreeLevel);
-      }
-
-      if (selectedProgramType) {
-        query = query.eq('program_type', selectedProgramType);
-      }
-
-      const orderColumn = sortBy === 'tuition' ? 'tuition' : sortBy === 'deadline' ? 'deadline' : 'qs_rank';
-      const from = (currentPage - 1) * coursesPerPage;
-      const to = from + coursesPerPage - 1;
+      const response = await fetch(`${API_BASE_URL}?${params.toString()}`);
       
-      const { data, error } = await query
-        .order(orderColumn, { ascending: true })
-        .range(from, to);
-
-      if (error) throw error;
-      setCourses(data || []);
-
-      // Fetch all universities for the filter dropdown (only once)
-      if (universities.length === 0) {
-        const { data: allUniversities } = await supabase
-          .from('courses')
-          .select('university');
-        
-        type Course = {
-  university: string;
-  // add other fields if needed
-};
-
-if (allUniversities) {
-  const uniqueUniversities = [
-    ...new Set(allUniversities.map((course: Course) => course.university))
-  ];
-  setUniversities(uniqueUniversities.sort());
-}
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-    } catch (error) {
-      console.error('Error fetching courses:', error); 
+
+      const data = await response.json();
+      
+      setColleges(data.results || []);
+      setTotalResults(data.metadata?.total || 0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch colleges');
+      console.error('Error fetching colleges:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDeadline = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const handleSearch = () => {
+    setCurrentPage(0);
+    fetchColleges();
   };
 
   const resetFilters = () => {
     setSearchQuery('');
-    setSelectedCountry('');
-    setSelectedUniversity('');
-    setSelectedDegreeLevel('');
-    setSelectedProgramType('');
-    setShowVerifiedOnly(false);
-    setSortBy('qs_rank');
-    setCurrentPage(1);
+    setSelectedState('');
+    setSelectedLocale('');
+    setMinTuition('');
+    setMaxTuition('');
+    setCurrentPage(0);
   };
 
-  const totalPages = Math.ceil(totalCourses / coursesPerPage);
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const toggleSaved = (id: number) => {
+    const newSaved = new Set(savedColleges);
+    if (newSaved.has(id)) {
+      newSaved.delete(id);
+    } else {
+      newSaved.add(id);
     }
+    setSavedColleges(newSaved);
   };
+
+  const formatCurrency = (amount: number | null) => {
+    if (amount === null || amount === undefined) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatPercent = (rate: number | null) => {
+    if (rate === null || rate === undefined) return 'N/A';
+    return `${(rate * 100).toFixed(1)}%`;
+  };
+
+  const formatNumber = (num: number | null) => {
+    if (num === null || num === undefined) return 'N/A';
+    return new Intl.NumberFormat('en-US').format(num);
+  };
+
+  const getLocaleLabel = (locale: number | null) => {
+    if (locale === null) return 'Unknown';
+    const localeStr = locale.toString();
+    return LOCALE_TYPES[localeStr as keyof typeof LOCALE_TYPES] || 'Unknown';
+  };
+
+  const totalPages = Math.ceil(totalResults / perPage);
+  const activeFiltersCount = [searchQuery, selectedState, selectedLocale, minTuition, maxTuition].filter(Boolean).length;
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const maxVisiblePages = 5;
+    const maxVisible = 5;
     
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+    if (totalPages <= maxVisible) {
+      for (let i = 0; i < totalPages; i++) pages.push(i);
     } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pages.push(i);
+      if (currentPage <= 2) {
+        for (let i = 0; i < 4; i++) pages.push(i);
         pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
+        pages.push(totalPages - 1);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(0);
         pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+        for (let i = totalPages - 4; i < totalPages; i++) pages.push(i);
       } else {
-        pages.push(1);
+        pages.push(0);
         pages.push('...');
         for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
         pages.push('...');
-        pages.push(totalPages);
+        pages.push(totalPages - 1);
       }
     }
-    
     return pages;
   };
-
-  const activeFiltersCount = [selectedCountry, selectedUniversity, selectedDegreeLevel, selectedProgramType, showVerifiedOnly].filter(Boolean).length;
 
   return (
     <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-red-600 mb-2">Find Your Perfect Course</h1>
-          <p className="text-gray-600">Explore a world of opportunities with our comprehensive course database covering top universities worldwide.</p>
+          <h1 className="text-4xl font-bold text-red-600 mb-2">Find Your Perfect College</h1>
+          <p className="text-gray-600">Explore colleges and universities across the United States with real-time data from the U.S. Department of Education</p>
         </div>
 
         {/* Filters Section */}
@@ -215,7 +202,9 @@ if (allUniversities) {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Filter size={20} className="text-red-600" />
-              Filters {activeFiltersCount > 0 && <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">{activeFiltersCount}</span>}
+              Filters {activeFiltersCount > 0 && (
+                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">{activeFiltersCount}</span>
+              )}
             </h2>
             {activeFiltersCount > 0 && (
               <button onClick={resetFilters} className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1">
@@ -224,233 +213,187 @@ if (allUniversities) {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div className="relative">
               <select 
                 className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
               >
-                <option value="qs_rank">Sort by QS Rank</option>
-                <option value="tuition">Sort by Tuition Fee</option>
-                <option value="deadline">Sort by Deadline</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-            </div>
-
-            <div className="relative">
-              <select 
-                className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
-                value={selectedCountry}
-                onChange={(e) => setSelectedCountry(e.target.value)}
-              >
-                <option value="">All Countries</option>
-                <option value="US">🇺🇸 United States</option>
-                <option value="UK">🇬🇧 United Kingdom</option>
-                <option value="CA">🇨🇦 Canada</option>
-                <option value="AU">🇦🇺 Australia</option>
-                <option value="DE">🇩🇪 Germany</option>
-                <option value="FR">🇫🇷 France</option>
-                <option value="SG">🇸🇬 Singapore</option>
-                <option value="JP">🇯🇵 Japan</option>
-                <option value="IN">🇮🇳 India</option>
-                <option value="NL">🇳🇱 Netherlands</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-            </div>
-
-            <div className="relative">
-              <select 
-                className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
-                value={selectedDegreeLevel}
-                onChange={(e) => {
-                  setSelectedDegreeLevel(e.target.value);
-                  setSelectedProgramType('');
-                }}
-              >
-                <option value="">All Degree Levels</option>
-                <option value="UG">Undergraduate (UG)</option>
-                <option value="PG">Postgraduate (PG)</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-            </div>
-
-            <div className="relative">
-              <select 
-                className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
-                value={selectedProgramType}
-                onChange={(e) => setSelectedProgramType(e.target.value)}
-              >
-                <option value="">All Programs</option>
-                {selectedDegreeLevel === 'UG' && (
-                  <>
-                    <option value="B.Tech">B.Tech</option>
-                    <option value="BBA">BBA</option>
-                    <option value="BSc">BSc</option>
-                    <option value="BCA">BCA</option>
-                  </>
-                )}
-                {selectedDegreeLevel === 'PG' && (
-                  <>
-                    <option value="MBA">MBA</option>
-                    <option value="M.Tech">M.Tech</option>
-                    <option value="MCA">MCA</option>
-                    <option value="MSc">MSc</option>
-                  </>
-                )}
-                {!selectedDegreeLevel && (
-                  <>
-                    <optgroup label="Undergraduate">
-                      <option value="B.Tech">B.Tech</option>
-                      <option value="BBA">BBA</option>
-                      <option value="BSc">BSc</option>
-                      <option value="BCA">BCA</option>
-                    </optgroup>
-                    <optgroup label="Postgraduate">
-                      <option value="MBA">MBA</option>
-                      <option value="M.Tech">M.Tech</option>
-                      <option value="MCA">MCA</option>
-                      <option value="MSc">MSc</option>
-                    </optgroup>
-                  </>
-                )}
-              </select>
-              <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-            </div>
-
-            <div className="relative">
-              <select 
-                className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
-                value={selectedUniversity}
-                onChange={(e) => setSelectedUniversity(e.target.value)}
-              >
-                <option value="">All Universities</option>
-                {universities.map(uni => (
-                  <option key={uni} value={uni}>{uni}</option>
+                <option value="">All States</option>
+                {US_STATES.map(state => (
+                  <option key={state} value={state}>{state}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
             </div>
+
+            <div className="relative">
+              <select 
+                className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={selectedLocale}
+                onChange={(e) => setSelectedLocale(e.target.value)}
+              >
+                {Object.entries(LOCALE_TYPES).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
+            </div>
+
+            <div>
+              <input
+                type="number"
+                placeholder="Min Tuition ($)"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={minTuition}
+                onChange={(e) => setMinTuition(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <input
+                type="number"
+                placeholder="Max Tuition ($)"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={maxTuition}
+                onChange={(e) => setMaxTuition(e.target.value)}
+              />
+            </div>
           </div>
 
-          <div className="relative">
+          {/* Search Bar */}
+          <div className="relative mb-4">
             <input
               type="text"
-              placeholder="Search for courses, universities, or specializations..."
+              placeholder="Search for colleges by name..."
               className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
             <Search className="absolute right-3 top-3.5 h-5 w-5 text-gray-400" />
           </div>
+
+          <button
+            onClick={handleSearch}
+            className="w-full bg-red-600 text-white rounded-lg py-3 hover:bg-red-700 transition-colors font-medium"
+          >
+            Search Colleges
+          </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+            <AlertCircle className="text-red-600" size={24} />
+            <div>
+              <h3 className="font-semibold text-red-800">Error Loading Data</h3>
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          </div>
+        )}
 
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-4">
           <div className="flex items-center gap-2">
             <GraduationCap className="text-red-600" size={24} />
-            <span className="font-semibold text-lg">{totalCourses} courses found</span>
-            {totalCourses > 0 && (
+            <span className="font-semibold text-lg">
+              {totalResults.toLocaleString()} colleges found
+            </span>
+            {totalResults > 0 && (
               <span className="text-gray-500 text-sm">
-                (Page {currentPage} of {totalPages})
+                (Page {currentPage + 1} of {totalPages})
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">Show Verified only</span>
-            <button
-              onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                showVerifiedOnly ? 'bg-green-500' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                  showVerifiedOnly ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          <div className="flex items-center gap-2">
+            <Heart className="text-red-600" size={18} />
+            <span className="text-sm text-gray-600">{savedColleges.size} saved</span>
           </div>
         </div>
 
-        {/* Course Cards */}
+        {/* Loading State */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="text-gray-500 flex flex-col items-center gap-3">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-              <p>Loading courses...</p>
+              <p>Loading colleges...</p>
             </div>
           </div>
-        ) : courses.length === 0 ? (
+        ) : colleges.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-lg shadow-sm">
             <GraduationCap size={48} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No courses found</h3>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No colleges found</h3>
             <p className="text-gray-500">Try adjusting your filters or search query</p>
           </div>
         ) : (
           <>
+            {/* College Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {courses.map((course) => (
-                <div key={course.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+              {colleges.map((college) => (
+                <div key={college.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="text-4xl">{course.logo}</div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">{course.university}</h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <span>{course.location}</span>
-                        </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-gray-800 mb-1">
+                        {college['school.name'] || 'Unknown College'}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <MapPin size={14} />
+                        <span>{college['school.city']}, {college['school.state']}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {getLocaleLabel(college['school.locale'])}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {course.verified && (
-                        <div className="bg-green-500 text-white rounded-full p-1" title="Verified">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                      <button className="text-gray-400 hover:text-red-600 transition-colors">
-                        <Heart size={20} />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => toggleSaved(college.id)}
+                      className={`transition-colors ${
+                        savedColleges.has(college.id) ? 'text-red-600' : 'text-gray-400 hover:text-red-600'
+                      }`}
+                    >
+                      <Heart size={20} fill={savedColleges.has(college.id) ? 'currentColor' : 'none'} />
+                    </button>
                   </div>
 
                   <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <BookOpen className="text-red-600" size={16} />
-                        <span className="text-sm text-gray-600">Program</span>
-                      </div>
-                      <p className="font-semibold text-gray-800">{course.program}</p>
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{course.program_type}</span>
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">{course.specialization}</span>
-                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">{course.entrance_exam}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                       <div>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                          <Trophy size={14} />
-                          <span>QS Rank</span>
+                          <DollarSign size={14} />
+                          <span>In-State Tuition</span>
                         </div>
-                        <p className="font-semibold text-gray-800">#{course.qs_rank}</p>
+                        <p className="font-semibold text-gray-800 text-sm">
+                          {formatCurrency(college['latest.cost.tuition.in_state'])}
+                        </p>
                       </div>
                       <div>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
                           <DollarSign size={14} />
-                          <span>Tuition Fees</span>
+                          <span>Out-of-State</span>
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm">{course.tuition}</p>
+                        <p className="font-semibold text-gray-800 text-sm">
+                          {formatCurrency(college['latest.cost.tuition.out_of_state'])}
+                        </p>
                       </div>
                       <div>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                          <Calendar size={14} />
-                          <span>Deadline</span>
+                          <Trophy size={14} />
+                          <span>Admission Rate</span>
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm">{formatDeadline(course.deadline)}</p>
+                        <p className="font-semibold text-gray-800 text-sm">
+                          {formatPercent(college['latest.admissions.admission_rate.overall'])}
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                          <Users size={14} />
+                          <span>Students</span>
+                        </div>
+                        <p className="font-semibold text-gray-800 text-sm">
+                          {formatNumber(college['latest.student.size'])}
+                        </p>
                       </div>
                     </div>
 
@@ -459,10 +402,19 @@ if (allUniversities) {
                         <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
                         <span className="text-sm text-gray-600">Add to Compare</span>
                       </label>
-                      <button className="flex-1 bg-red-600 text-white rounded-lg py-2 px-4 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
-                        <Users size={16} />
-                        View Details
-                      </button>
+                      {college['school.school_url'] && (
+                        <a
+                          href={college['school.school_url'].startsWith('http') 
+                            ? college['school.school_url'] 
+                            : `https://${college['school.school_url']}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 bg-red-600 text-white rounded-lg py-2 px-4 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                        >
+                          <BookOpen size={16} />
+                          View Details
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -474,17 +426,20 @@ if (allUniversities) {
               <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-sm text-gray-600">
-                    Showing <span className="font-semibold">{((currentPage - 1) * coursesPerPage) + 1}</span> to{' '}
-                    <span className="font-semibold">{Math.min(currentPage * coursesPerPage, totalCourses)}</span> of{' '}
-                    <span className="font-semibold">{totalCourses}</span> courses
+                    Showing <span className="font-semibold">{currentPage * perPage + 1}</span> to{' '}
+                    <span className="font-semibold">{Math.min((currentPage + 1) * perPage, totalResults)}</span> of{' '}
+                    <span className="font-semibold">{totalResults.toLocaleString()}</span> colleges
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
+                      onClick={() => {
+                        setCurrentPage(currentPage - 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === 0}
                       className={`px-3 py-2 rounded-lg border flex items-center gap-1 ${
-                        currentPage === 1
+                        currentPage === 0
                           ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
@@ -500,14 +455,17 @@ if (allUniversities) {
                             <span className="px-3 py-2 text-gray-400">...</span>
                           ) : (
                             <button
-                              onClick={() => handlePageChange(page as number)}
+                              onClick={() => {
+                                setCurrentPage(page as number);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
                               className={`min-w-[40px] px-3 py-2 rounded-lg border transition-colors ${
                                 currentPage === page
                                   ? 'bg-red-600 text-white border-red-600'
                                   : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                               }`}
                             >
-                              {page}
+                              {(page as number) + 1}
                             </button>
                           )}
                         </React.Fragment>
@@ -515,10 +473,13 @@ if (allUniversities) {
                     </div>
                     
                     <button
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
+                      onClick={() => {
+                        setCurrentPage(currentPage + 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === totalPages - 1}
                       className={`px-3 py-2 rounded-lg border flex items-center gap-1 ${
-                        currentPage === totalPages
+                        currentPage === totalPages - 1
                           ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
