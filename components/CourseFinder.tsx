@@ -461,12 +461,12 @@ const CourseFinder: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                           {college['latest.academics.program_available.bachelors'] === 1 && (
                             <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">
-                              Bachelor's
+                              Bachelors
                             </span>
                           )}
                           {college['latest.academics.program_available.masters'] === 1 && (
                             <span className="bg-purple-100 text-purple-700 text-xs px-3 py-1 rounded-full font-medium">
-                              Master's
+                              Masters
                             </span>
                           )}
                         </div>
