@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, user
           <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
             E
           </div>
-          <div className="text-2xl font-bold text-red-600">EduPortal</div>
+          <div className="text-2xl font-bold text-red-600">EduAbroad</div>
         </div>
         <div className="h-1 w-16 bg-red-600 rounded-full"></div>
       </div>

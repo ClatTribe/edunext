@@ -73,6 +73,7 @@ const AdmitFinder: React.FC = () => {
         <p className="text-gray-600">Find folks at your dream school with the same background, interests, and stats as you</p>
       </div>
 
+      {/* Updated Filter Section */}
       <div className="flex gap-4 mb-6">
         <div className="relative">
           <select 
@@ -81,12 +82,20 @@ const AdmitFinder: React.FC = () => {
             onChange={(e) => setSelectedUniversity(e.target.value)}
           >
             <option value="">Target University</option>
-            <option>Rochester Institute of Technology</option>
-            <option>University of Wisconsin</option>
-            <option>New York University</option>
+            <option>University of Texas at Dallas</option>
+            <option>Northeastern University</option>
+            <option>Carnegie Mellon University</option>
+            <option>University of Florida</option>
+            <option>University of Southern California</option>
+            <option>Purdue University</option>
+            <option>Stanford University</option>
+            <option>Massachusetts Institute of Technology</option>
+            <option>Columbia University</option>
+            <option>Harvard University</option>
           </select>
           <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none" />
         </div>
+
         <div className="relative">
           <select className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8">
             <option>Application Status</option>
@@ -96,6 +105,7 @@ const AdmitFinder: React.FC = () => {
           </select>
           <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none" />
         </div>
+
         <div className="relative">
           <select 
             className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8"
@@ -104,14 +114,23 @@ const AdmitFinder: React.FC = () => {
           >
             <option value="">Intended Major</option>
             <option>Computer Science</option>
-            <option>Computer Engineering</option>
             <option>Data Science</option>
+            <option>Electrical Engineering</option>
+            <option>Mechanical Engineering</option>
+            <option>Bioinformatics</option>
+            <option>Finance</option>
+            <option>Public Health</option>
+            <option>Robotics</option>
+            <option>Machine Learning</option>
+            <option>Architecture</option>
           </select>
           <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none" />
         </div>
+
         <button className="border-2 border-red-600 text-red-600 rounded-lg px-4 py-2">
           <Filter size={20} />
         </button>
+
         <div className="flex-1 relative">
           <input
             type="text"
@@ -124,6 +143,7 @@ const AdmitFinder: React.FC = () => {
         </div>
       </div>
 
+      {/* Everything below remains unchanged */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Users className="text-red-600" size={20} />
