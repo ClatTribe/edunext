@@ -10,15 +10,20 @@ import ShortlistBuilder from '../../components/ShortlistBuilder';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { user, signOut, loading } = useAuth();
+  const { user, signOut, loading, userRole } = useAuth();
   const [activeSection, setActiveSection] = useState<'course-finder' | 'admit-finder' | 'scholarship-finder' | 'shortlist-builder'>('course-finder');
 
-  // Redirect if not logged in
+  // Redirect if not logged in or if mentor (mentors should have different dashboard)
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/register');
+    if (!loading) {
+      if (!user) {
+        router.push('/register');
+      } else if (userRole === 'mentor') {
+        // Redirect mentors to their dashboard (you'll create this later)
+        router.push('/mentor-dashboard');
+      }
     }
-  }, [user, loading, router]);
+  }, [user, loading, userRole, router]);
 
   const getUserName = () => {
     if (!user) return 'Guest';
@@ -38,7 +43,7 @@ const DashboardPage = () => {
     );
   }
 
-  if (!user) {
+  if (!user || userRole !== 'student') {
     return null;
   }
 
@@ -53,7 +58,7 @@ const DashboardPage = () => {
       <div className="flex-1 overflow-auto">
         <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Postgraduate</span>
+            <span className="text-sm text-gray-600">Student Dashboard</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">

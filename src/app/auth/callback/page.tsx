@@ -15,12 +15,73 @@ export default function AuthCallback() {
 
         if (code) {
           // Exchange the code for a session
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           
           if (error) {
             console.error('Error exchanging code for session:', error);
             router.push('/register?error=auth_failed');
             return;
+          }
+
+          if (data.session?.user) {
+            // Get the pending role from localStorage
+            const pendingRole = localStorage.getItem('pendingUserRole') as 'student' | 'mentor' | null;
+            
+            if (!pendingRole) {
+              console.error('No pending role found');
+              router.push('/register?error=no_role');
+              return;
+            }
+
+            // Check if profile already exists in either table
+            const { data: studentProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('id', data.session.user.id)
+              .single();
+
+            const { data: mentorProfile } = await supabase
+              .from('mentor_profiles')
+              .select('id')
+              .eq('id', data.session.user.id)
+              .single();
+
+            // If profile doesn't exist, create it based on pending role
+            if (!studentProfile && !mentorProfile) {
+              const profileData = {
+                id: data.session.user.id,
+                full_name: data.session.user.user_metadata?.full_name || 
+                          data.session.user.user_metadata?.name || '',
+                email: data.session.user.email,
+                avatar_url: data.session.user.user_metadata?.avatar_url || 
+                           data.session.user.user_metadata?.picture,
+              };
+
+              const table = pendingRole === 'student' ? 'profiles' : 'mentor_profiles';
+              const { error: insertError } = await supabase.from(table).insert(profileData);
+              
+              if (insertError) {
+                console.error('Error creating profile:', insertError);
+                // Continue anyway, profile might already exist
+              }
+            } else {
+              // If profile exists, verify it matches the selected role
+              if (pendingRole === 'student' && !studentProfile) {
+                localStorage.removeItem('pendingUserRole');
+                await supabase.auth.signOut();
+                router.push('/register?error=wrong_role');
+                return;
+              }
+              if (pendingRole === 'mentor' && !mentorProfile) {
+                localStorage.removeItem('pendingUserRole');
+                await supabase.auth.signOut();
+                router.push('/register?error=wrong_role');
+                return;
+              }
+            }
+
+            // Clear the pending role
+            localStorage.removeItem('pendingUserRole');
           }
         }
 
