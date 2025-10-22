@@ -137,7 +137,7 @@ const MentorDashboard = () => {
             Mentor Portal Coming Soon!
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-            We're building an amazing platform for mentors to connect with students, 
+            We are building an amazing platform for mentors to connect with students, 
             provide guidance, and help shape their educational journey. Features will include:
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -145,7 +145,7 @@ const MentorDashboard = () => {
               <Users className="text-blue-600 mx-auto mb-3" size={32} />
               <h3 className="font-semibold text-gray-800 mb-2">Student Management</h3>
               <p className="text-sm text-gray-600">
-                Track and manage your mentees' progress
+                Track and manage your mentees progress
               </p>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
