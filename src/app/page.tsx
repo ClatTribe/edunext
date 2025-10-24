@@ -13,15 +13,17 @@ const DashboardPage = () => {
   const { user, signOut, loading, userRole } = useAuth();
   const [activeSection, setActiveSection] = useState<'course-finder' | 'admit-finder' | 'scholarship-finder' | 'shortlist-builder'>('course-finder');
 
-  // Redirect if not logged in or if mentor (mentors should have different dashboard)
+  // Redirect logic - wait for loading to complete before checking role
   useEffect(() => {
     if (!loading) {
       if (!user) {
+        // No user at all - redirect to register
         router.push('/register');
       } else if (userRole === 'mentor') {
-        // Redirect mentors to their dashboard (you'll create this later)
+        // User is a mentor - redirect to mentor dashboard
         router.push('/mentor-dashboard');
       }
+      // If userRole is 'student' or still null (fetching), stay on page
     }
   }, [user, loading, userRole, router]);
 
@@ -35,15 +37,20 @@ const DashboardPage = () => {
     return name.charAt(0).toUpperCase();
   };
 
-  if (loading) {
+  // Show loading while auth is initializing OR while role is being fetched
+  if (loading || (user && userRole === null)) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-xl text-red-600">Loading...</div>
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+          <div className="text-xl text-red-600">Loading your dashboard...</div>
+        </div>
       </div>
     );
   }
 
-  if (!user || userRole !== 'student') {
+  // Don't render if no user or wrong role
+  if (!user || userRole === 'mentor') {
     return null;
   }
 

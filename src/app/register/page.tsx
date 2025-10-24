@@ -6,7 +6,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 const RegisterPage = () => {
   const router = useRouter();
-  const { user, signIn, signUp, signInWithGoogle, loading } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, loading, userRole } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -17,12 +17,33 @@ const RegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in
+  // Redirect if already logged in - with role-based routing
   useEffect(() => {
-    if (!loading && user) {
-      router.push('/');
+    if (!loading && user && userRole) {
+      if (userRole === 'mentor') {
+        router.push('/mentor-dashboard');
+      } else {
+        router.push('/');
+      }
     }
-  }, [user, loading, router]);
+  }, [user, loading, userRole, router]);
+
+  // Handle URL error parameters from OAuth callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlError = params.get('error');
+    const expected = params.get('expected');
+    
+    if (urlError === 'wrong_role') {
+      setError(`This account is already registered as a ${expected === 'mentor' ? 'student' : 'mentor'}. Please select the correct role.`);
+    } else if (urlError === 'auth_failed') {
+      setError('Authentication failed. Please try again.');
+    } else if (urlError === 'no_role') {
+      setError('Please select your role before signing in.');
+    } else if (urlError === 'profile_creation_failed') {
+      setError('Failed to create your profile. Please try again.');
+    }
+  }, []);
 
   const handleSubmit = async () => {
     setError('');
@@ -41,7 +62,12 @@ const RegisterPage = () => {
         if (error) {
           setError(error.message || 'Invalid email or password');
         } else {
-          router.push('/');
+          // Redirect based on role after successful login
+          if (selectedRole === 'mentor') {
+            router.push('/mentor-dashboard');
+          } else {
+            router.push('/');
+          }
         }
       } else {
         if (!fullName.trim()) {
@@ -86,6 +112,7 @@ const RegisterPage = () => {
         setError(error.message || 'Failed to sign in with Google');
         setIsSubmitting(false);
       }
+      // Don't set isSubmitting to false here - let the callback handle redirect
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
