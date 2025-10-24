@@ -1,73 +1,40 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Eye, EyeOff, GraduationCap, BookOpen, Users } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const RegisterPage = () => {
   const router = useRouter();
-  const { user, signIn, signUp, signInWithGoogle, loading, userRole } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'student' | 'mentor' | null>(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in - with role-based routing
+  // Redirect if already logged in
   useEffect(() => {
-    if (!loading && user && userRole) {
-      if (userRole === 'mentor') {
-        router.push('/mentor-dashboard');
-      } else {
-        router.push('/');
-      }
+    if (!loading && user) {
+      router.push('/');
     }
-  }, [user, loading, userRole, router]);
-
-  // Handle URL error parameters from OAuth callback
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlError = params.get('error');
-    const expected = params.get('expected');
-    
-    if (urlError === 'wrong_role') {
-      setError(`This account is already registered as a ${expected === 'mentor' ? 'student' : 'mentor'}. Please select the correct role.`);
-    } else if (urlError === 'auth_failed') {
-      setError('Authentication failed. Please try again.');
-    } else if (urlError === 'no_role') {
-      setError('Please select your role before signing in.');
-    } else if (urlError === 'profile_creation_failed') {
-      setError('Failed to create your profile. Please try again.');
-    }
-  }, []);
+  }, [user, loading, router]);
 
   const handleSubmit = async () => {
     setError('');
     setSuccessMessage('');
-
-    if (!selectedRole) {
-      setError('Please select whether you are a Student or Mentor');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password, selectedRole);
+        const { error } = await signIn(email, password);
         if (error) {
           setError(error.message || 'Invalid email or password');
         } else {
-          // Redirect based on role after successful login
-          if (selectedRole === 'mentor') {
-            router.push('/mentor-dashboard');
-          } else {
-            router.push('/');
-          }
+          router.push('/');
         }
       } else {
         if (!fullName.trim()) {
@@ -75,7 +42,7 @@ const RegisterPage = () => {
           setIsSubmitting(false);
           return;
         }
-        const { error } = await signUp(email, password, fullName, selectedRole);
+        const { error } = await signUp(email, password, fullName);
         if (error) {
           setError(error.message || 'Failed to create account');
         } else {
@@ -98,21 +65,16 @@ const RegisterPage = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!selectedRole) {
-      setError('Please select whether you are a Student or Mentor');
-      return;
-    }
-
     setError('');
     setIsSubmitting(true);
     
     try {
-      const { error } = await signInWithGoogle(selectedRole);
+      const { error } = await signInWithGoogle();
       if (error) {
         setError(error.message || 'Failed to sign in with Google');
         setIsSubmitting(false);
       }
-      // Don't set isSubmitting to false here - let the callback handle redirect
+      // Don't set isSubmitting to false here as user will be redirected
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
@@ -127,7 +89,6 @@ const RegisterPage = () => {
     setFullName('');
     setError('');
     setSuccessMessage('');
-    setSelectedRole(null);
   };
 
   if (loading) {
@@ -223,71 +184,12 @@ const RegisterPage = () => {
               </div>
             )}
 
-            {/* Role Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                I am a
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('student')}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                    selectedRole === 'student'
-                      ? 'border-red-600 bg-red-50'
-                      : 'border-gray-300 hover:border-red-300'
-                  }`}
-                >
-                  <BookOpen 
-                    className={`mx-auto mb-2 ${
-                      selectedRole === 'student' ? 'text-red-600' : 'text-gray-400'
-                    }`} 
-                    size={32} 
-                  />
-                  <div className={`font-semibold ${
-                    selectedRole === 'student' ? 'text-red-600' : 'text-gray-700'
-                  }`}>
-                    Student
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Find courses & apply
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('mentor')}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                    selectedRole === 'mentor'
-                      ? 'border-red-600 bg-red-50'
-                      : 'border-gray-300 hover:border-red-300'
-                  }`}
-                >
-                  <Users 
-                    className={`mx-auto mb-2 ${
-                      selectedRole === 'mentor' ? 'text-red-600' : 'text-gray-400'
-                    }`} 
-                    size={32} 
-                  />
-                  <div className={`font-semibold ${
-                    selectedRole === 'mentor' ? 'text-red-600' : 'text-gray-700'
-                  }`}>
-                    Mentor
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Guide students
-                  </div>
-                </button>
-              </div>
-            </div>
-
             {/* Google Sign In Button */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              disabled={isSubmitting || !selectedRole}
-              className={`w-full mb-6 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 ${
-                !selectedRole ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              disabled={isSubmitting}
+              className="w-full mb-6 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -389,9 +291,9 @@ const RegisterPage = () => {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={isSubmitting || !selectedRole}
+                disabled={isSubmitting}
                 className={`w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all duration-200 ${
-                  isSubmitting || !selectedRole ? 'opacity-70 cursor-not-allowed' : ''
+                  isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
                 {isSubmitting 

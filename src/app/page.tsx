@@ -10,22 +10,15 @@ import ShortlistBuilder from '../../components/ShortlistBuilder';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { user, signOut, loading, userRole } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [activeSection, setActiveSection] = useState<'course-finder' | 'admit-finder' | 'scholarship-finder' | 'shortlist-builder'>('course-finder');
 
-  // Redirect logic - wait for loading to complete before checking role
+  // Redirect if not logged in
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        // No user at all - redirect to register
-        router.push('/register');
-      } else if (userRole === 'mentor') {
-        // User is a mentor - redirect to mentor dashboard
-        router.push('/mentor-dashboard');
-      }
-      // If userRole is 'student' or still null (fetching), stay on page
+    if (!loading && !user) {
+      router.push('/register');
     }
-  }, [user, loading, userRole, router]);
+  }, [user, loading, router]);
 
   const getUserName = () => {
     if (!user) return 'Guest';
@@ -37,20 +30,15 @@ const DashboardPage = () => {
     return name.charAt(0).toUpperCase();
   };
 
-  // Show loading while auth is initializing OR while role is being fetched
-  if (loading || (user && userRole === null)) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
-          <div className="text-xl text-red-600">Loading your dashboard...</div>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl text-red-600">Loading...</div>
       </div>
     );
   }
 
-  // Don't render if no user or wrong role
-  if (!user || userRole === 'mentor') {
+  if (!user) {
     return null;
   }
 
@@ -65,7 +53,7 @@ const DashboardPage = () => {
       <div className="flex-1 overflow-auto">
         <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Student Dashboard</span>
+            <span className="text-sm text-gray-600">Postgraduate</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
