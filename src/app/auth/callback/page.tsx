@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../../lib/supabase';
-import type { User } from '@supabase/supabase-js'; // ✅ Added import for proper typing
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -67,13 +66,11 @@ export default function AuthCallback() {
       }
     };
 
-    // ✅ Fixed typing here
-    const processUserSession = async (user: User) => {
+    const processUserSession = async (user: any) => {
       addDebug(`👤 User: ${user.email}`);
-      addDebug(`🔍 Current metadata role: ${user.user_metadata?.role || 'NOT SET'}`);
 
       const pendingRole = localStorage.getItem('pendingUserRole') as 'student' | 'mentor' | null;
-      addDebug(`🎭 Pending Role from localStorage: ${pendingRole || 'NOT FOUND'}`);
+      addDebug(`🎭 Pending Role: ${pendingRole || 'NOT FOUND'}`);
       
       if (!pendingRole) {
         addDebug('❌ No role found');
@@ -86,10 +83,8 @@ export default function AuthCallback() {
       const wrongTable = pendingRole === 'mentor' ? 'profiles' : 'mentor_profiles';
 
       addDebug(`📊 Correct table: ${correctTable}`);
-      addDebug(`⚠️  Wrong table: ${wrongTable}`);
 
-      // Check if user already exists in wrong table
-      addDebug(`🔍 Checking ${wrongTable} for conflicts...`);
+      // Check wrong table first
       const { data: wrongProfile } = await supabase
         .from(wrongTable)
         .select('*')
@@ -97,8 +92,7 @@ export default function AuthCallback() {
         .maybeSingle();
 
       if (wrongProfile) {
-        addDebug(`❌ CONFLICT! User exists in ${wrongTable}`);
-        addDebug(`📄 Wrong profile data: ${JSON.stringify(wrongProfile)}`);
+        addDebug(`❌ User exists in ${wrongTable} (CONFLICT!)`);
         setShowDebug(true);
         localStorage.removeItem('pendingUserRole');
         await supabase.auth.signOut();
@@ -106,10 +100,7 @@ export default function AuthCallback() {
         return;
       }
 
-      addDebug(`✅ No conflict in ${wrongTable}`);
-
-      // Check if profile exists in correct table
-      addDebug(`🔍 Checking ${correctTable}...`);
+      // Check correct table
       const { data: correctProfile } = await supabase
         .from(correctTable)
         .select('*')
@@ -117,70 +108,35 @@ export default function AuthCallback() {
         .maybeSingle();
 
       if (correctProfile) {
-        addDebug(`✅ Profile already exists in ${correctTable}`);
-        addDebug(`📄 Profile: ${JSON.stringify(correctProfile)}`);
+        addDebug(`✅ Profile exists in ${correctTable}`);
       } else {
-        // Profile doesn't exist - need to create it manually for Google OAuth
-        addDebug(`⚠️  Profile NOT found in ${correctTable}`);
-        addDebug(`🔧 Creating profile manually for Google OAuth user...`);
+        addDebug(`⚠️ Profile NOT found in ${correctTable}`);
+        addDebug('💡 This should have been created by database trigger');
+        setShowDebug(true);
         
-        const profileData = {
-          id: user.id,
-          full_name: user.user_metadata?.full_name || 
-                    user.user_metadata?.name || 
-                    user.email?.split('@')[0] || 
-                    'User',
-          email: user.email,
-          avatar_url: user.user_metadata?.avatar_url || 
-                     user.user_metadata?.picture || 
-                     null,
-        };
-
-        addDebug(`📝 Profile data: ${JSON.stringify(profileData)}`);
-        addDebug(`💾 Inserting into ${correctTable}...`);
-
-        const { data: insertedProfile, error: insertError } = await supabase
+        // Wait a moment and check again (trigger might be delayed)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: retryProfile } = await supabase
           .from(correctTable)
-          .insert(profileData)
-          .select();
-        
-        if (insertError) {
-          addDebug(`❌ INSERT FAILED!`);
-          addDebug(`❌ Error: ${insertError.message}`);
-          addDebug(`❌ Code: ${insertError.code}`);
-          addDebug(`❌ Details: ${insertError.details}`);
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
           
-          if (insertError.code === '42501') {
-            addDebug(`🔒 RLS POLICY ERROR!`);
-          }
-          
-          setShowDebug(true);
+        if (!retryProfile) {
+          addDebug(`❌ Profile still not found after retry`);
           localStorage.removeItem('pendingUserRole');
           await supabase.auth.signOut();
           router.push('/register?error=profile_creation_failed');
           return;
         }
-
-        addDebug(`✅ Profile created successfully in ${correctTable}!`);
-        addDebug(`📄 Created profile: ${JSON.stringify(insertedProfile)}`);
-      }
-
-      // Update user metadata with role (for future reference)
-      addDebug(`🔄 Updating user metadata with role...`);
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { role: pendingRole }
-      });
-
-      if (updateError) {
-        addDebug(`⚠️  Metadata update warning: ${updateError.message}`);
-      } else {
-        addDebug(`✅ Metadata updated with role: ${pendingRole}`);
+        
+        addDebug(`✅ Profile found on retry!`);
       }
 
       localStorage.removeItem('pendingUserRole');
       const redirectUrl = pendingRole === 'mentor' ? '/mentor-dashboard' : '/';
       addDebug(`🚀 Redirecting to: ${redirectUrl}`);
-      addDebug(`🎉 ===== SUCCESS =====`);
       
       setTimeout(() => {
         router.push(redirectUrl);
@@ -216,19 +172,15 @@ export default function AuthCallback() {
                   <div 
                     key={idx} 
                     className={`text-xs font-mono mb-1 ${
-                      info.includes('❌') || info.includes('FAILED') || info.includes('CONFLICT') ? 'text-red-400' :
+                      info.includes('❌') || info.includes('FAILED') ? 'text-red-400' :
                       info.includes('✅') || info.includes('SUCCESS') ? 'text-green-400' :
-                      info.includes('⚠️') ? 'text-yellow-400' :
-                      info.includes('🎉') ? 'text-blue-400' :
+                      info.includes('⚠️') || info.includes('CONFLICT') ? 'text-yellow-400' :
                       'text-gray-300'
                     }`}
                   >
                     {info}
                   </div>
                 ))}
-              </div>
-              <div className="mt-4 text-xs text-gray-500 text-center">
-                💡 This debug log shows the complete OAuth flow
               </div>
             </div>
           )}
