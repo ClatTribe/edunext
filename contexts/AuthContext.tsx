@@ -23,18 +23,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<'student' | 'mentor' | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await fetchUserRole(session.user.id);
-      }
-      
-      setLoading(false);
-    });
+    // Initialize session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+        }
+      } catch (error) {
+        console.error('Session initialization error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    // Listen to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state changed:', event);
+      
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -47,17 +65,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserRole = async (userId: string) => {
     try {
       // Check mentor_profiles first
-      const { data: mentorProfile } = await supabase
+      const { data: mentorProfile, error: mentorError } = await supabase
         .from('mentor_profiles')
         .select('id')
         .eq('id', userId)
         .maybeSingle();
+
+      if (mentorError && mentorError.code !== 'PGRST116') {
+        console.error('Error checking mentor profile:', mentorError);
+      }
 
       if (mentorProfile) {
         setUserRole('mentor');
@@ -65,17 +89,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Check profiles (student)
-      const { data: studentProfile } = await supabase
+      const { data: studentProfile, error: studentError } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', userId)
         .maybeSingle();
+
+      if (studentError && studentError.code !== 'PGRST116') {
+        console.error('Error checking student profile:', studentError);
+      }
 
       if (studentProfile) {
         setUserRole('student');
         return;
       }
 
+      console.warn('No profile found for user:', userId);
       setUserRole(null);
     } catch (error) {
       console.error('Error fetching user role:', error);
@@ -84,91 +113,152 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: 'student' | 'mentor') => {
-    // The database trigger will handle profile creation automatically
-    // We just pass the role in metadata
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role, // This is used by the database trigger
+    try {
+      // The database trigger will handle profile creation automatically
+      // We just pass the role in metadata
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role, // This is used by the database trigger
+          },
+          emailRedirectTo: typeof window !== 'undefined' 
+            ? `${window.location.origin}/auth/callback`
+            : undefined,
         },
-      },
-    });
+      });
 
-    if (!error && data.user) {
-      setUserRole(role);
+      if (error) {
+        console.error('Sign up error:', error);
+        return { error };
+      }
+
+      if (data.user) {
+        setUserRole(role);
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('Sign up exception:', error);
+      return { error };
     }
-
-    return { error };
   };
 
   const signIn = async (email: string, password: string, role: 'student' | 'mentor') => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (!error && data.user) {
-      // Verify user has the correct role
-      const table = role === 'mentor' ? 'mentor_profiles' : 'profiles';
-      const { data: profile } = await supabase
-        .from(table)
-        .select('id')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      if (!profile) {
-        await supabase.auth.signOut();
-        return { 
-          error: { 
-            message: `This account is not registered as a ${role}. Please select the correct role.` 
-          } 
-        };
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error };
       }
 
-      setUserRole(role);
-    }
+      if (data.user) {
+        // Verify user has the correct role
+        const table = role === 'mentor' ? 'mentor_profiles' : 'profiles';
+        const { data: profile, error: profileError } = await supabase
+          .from(table)
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
-    return { error };
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error checking profile:', profileError);
+        }
+
+        if (!profile) {
+          await supabase.auth.signOut();
+          return { 
+            error: { 
+              message: `This account is not registered as a ${role}. Please select the correct role.` 
+            } 
+          };
+        }
+
+        setUserRole(role);
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('Sign in exception:', error);
+      return { error };
+    }
   };
 
   const signInWithGoogle = async (role: 'student' | 'mentor') => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('pendingUserRole', role);
-      console.log('✅ Stored role:', role);
-    }
+    try {
+      // Store the role in localStorage before redirect
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingUserRole', role);
+        console.log('✅ Stored role:', role);
+      }
 
-    const redirectURL = `${window.location.origin}/auth/callback`;
-    console.log('🔗 Redirect URL:', redirectURL);
+      // Get the redirect URL safely
+      const redirectURL = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+      
+      console.log('🔗 Redirect URL:', redirectURL);
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectURL,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectURL,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
-      },
-    });
-    
-    if (error) {
-      console.error('❌ Google sign-in error:', error);
-      localStorage.removeItem('pendingUserRole');
+      });
+      
+      if (error) {
+        console.error('❌ Google sign-in error:', error);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pendingUserRole');
+        }
+        return { error };
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Google sign-in exception:', error);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pendingUserRole');
+      }
+      return { error };
     }
-    
-    return { error };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUserRole(null);
+    try {
+      await supabase.auth.signOut();
+      setUserRole(null);
+      
+      // Clear any stored role
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pendingUserRole');
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, userRole, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      userRole, 
+      signUp, 
+      signIn, 
+      signInWithGoogle, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );
