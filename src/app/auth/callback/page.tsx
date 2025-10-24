@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../../lib/supabase';
+import type { User } from '@supabase/supabase-js'; // ✅ Added import for proper typing
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -66,7 +67,8 @@ export default function AuthCallback() {
       }
     };
 
-    const processUserSession = async (user: any) => {
+    // ✅ Fixed typing here
+    const processUserSession = async (user: User) => {
       addDebug(`👤 User: ${user.email}`);
       addDebug(`🔍 Current metadata role: ${user.user_metadata?.role || 'NOT SET'}`);
 
