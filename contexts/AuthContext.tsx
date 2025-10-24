@@ -1,6 +1,6 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
@@ -22,55 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<'student' | 'mentor' | null>(null);
 
-  useEffect(() => {
-    // Initialize session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          setLoading(false);
-          return;
-        }
-
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchUserRole(session.user.id);
-        }
-      } catch (error) {
-        console.error('Session initialization error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    // Listen to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔐 Auth state changed:', event);
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        await fetchUserRole(session.user.id);
-      } else {
-        setUserRole(null);
-      }
-      
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = useCallback(async (userId: string) => {
     try {
       // Check mentor_profiles first
       const { data: mentorProfile, error: mentorError } = await supabase
@@ -110,23 +62,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error fetching user role:', error);
       setUserRole(null);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Initialize session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+        }
+      } catch (error) {
+        console.error('Session initialization error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    // Listen to auth changes (with proper typings)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event: AuthChangeEvent, session: Session | null) => {
+        console.log('🔐 Auth state changed:', event);
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+        } else {
+          setUserRole(null);
+        }
+
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchUserRole]);
 
   const signUp = async (email: string, password: string, fullName: string, role: 'student' | 'mentor') => {
     try {
-      // The database trigger will handle profile creation automatically
-      // We just pass the role in metadata
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
-            role: role, // This is used by the database trigger
+            role: role,
           },
-          emailRedirectTo: typeof window !== 'undefined' 
-            ? `${window.location.origin}/auth/callback`
-            : undefined,
+          emailRedirectTo:
+            typeof window !== 'undefined'
+              ? `${window.location.origin}/auth/callback`
+              : undefined,
         },
       });
 
@@ -159,7 +160,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        // Verify user has the correct role
         const table = role === 'mentor' ? 'mentor_profiles' : 'profiles';
         const { data: profile, error: profileError } = await supabase
           .from(table)
@@ -173,10 +173,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (!profile) {
           await supabase.auth.signOut();
-          return { 
-            error: { 
-              message: `This account is not registered as a ${role}. Please select the correct role.` 
-            } 
+          return {
+            error: {
+              message: `This account is not registered as a ${role}. Please select the correct role.`,
+            },
           };
         }
 
@@ -192,18 +192,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async (role: 'student' | 'mentor') => {
     try {
-      // Store the role in localStorage before redirect
       if (typeof window !== 'undefined') {
         localStorage.setItem('pendingUserRole', role);
-        console.log('✅ Stored role:', role);
+        console.log('✅ Stored role in localStorage:', role);
       }
 
-      // Get the redirect URL safely
-      const redirectURL = typeof window !== 'undefined' 
-        ? `${window.location.origin}/auth/callback`
-        : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
-      
-      console.log('🔗 Redirect URL:', redirectURL);
+      const redirectURL =
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/auth/callback`
+          : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+
+      console.log('🔗 OAuth Redirect URL:', redirectURL);
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -215,7 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           },
         },
       });
-      
+
       if (error) {
         console.error('❌ Google sign-in error:', error);
         if (typeof window !== 'undefined') {
@@ -223,7 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return { error };
       }
-      
+
       return { error: null };
     } catch (error) {
       console.error('Google sign-in exception:', error);
@@ -238,27 +237,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
       setUserRole(null);
-      
-      // Clear any stored role
+      setUser(null);
+      setSession(null);
+
       if (typeof window !== 'undefined') {
         localStorage.removeItem('pendingUserRole');
       }
+
+      console.log('✅ Signed out successfully');
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      loading, 
-      userRole, 
-      signUp, 
-      signIn, 
-      signInWithGoogle, 
-      signOut 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        userRole,
+        signUp,
+        signIn,
+        signInWithGoogle,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
