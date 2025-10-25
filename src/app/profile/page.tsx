@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, BookOpen, Award, Trophy, Edit2, Save, X, CheckCircle, Trash2 } from 'lucide-react';
-import Sidebar from '../../../components/Sidebar';
+import DefaultLayout from '../defaultLayout';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
 const ProfilePage = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -17,9 +17,11 @@ const ProfilePage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [hasProfile, setHasProfile] = useState(false);
-  const [activeSection, setActiveSection] = useState<'course-finder' | 'admit-finder' | 'scholarship-finder' | 'shortlist-builder'>('course-finder');
 
-  // Form data
+  // Prevent re-fetching on tab switch
+  const hasFetchedRef = useRef(false);
+  const lastFetchTimeRef = useRef<number>(0);
+
   const [formData, setFormData] = useState({
     name: '',
     degree: '',
@@ -35,19 +37,18 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    let mounted = true;
-
-    const loadProfile = async () => {
-      if (user && mounted) {
-        await fetchUserProfile();
-      }
-    };
-
-    loadProfile();
-
-    return () => {
-      mounted = false;
-    };
+    // Only fetch if we haven't fetched recently (within last 5 minutes)
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+    
+    if (user && (!hasFetchedRef.current || (now - lastFetchTimeRef.current > fiveMinutes))) {
+      hasFetchedRef.current = true;
+      lastFetchTimeRef.current = now;
+      fetchUserProfile();
+    } else if (user && hasFetchedRef.current) {
+      // If we already have data, just stop loading
+      setLoading(false);
+    }
   }, [user]);
 
   const fetchUserProfile = async () => {
@@ -59,7 +60,6 @@ const ProfilePage = () => {
         return;
       }
 
-      // Fetch existing profile - use maybeSingle() instead of single()
       const { data, error: fetchError } = await supabase
         .from('admit_profiles')
         .select('*')
@@ -68,7 +68,6 @@ const ProfilePage = () => {
 
       if (fetchError) {
         console.error('Fetch error:', fetchError);
-        // Don't throw error, just handle it gracefully
         setHasProfile(false);
         setIsEditing(true);
         setFormData(prev => ({
@@ -97,7 +96,6 @@ const ProfilePage = () => {
       } else {
         setHasProfile(false);
         setIsEditing(true);
-        // Pre-fill name from user metadata if available
         setFormData(prev => ({
           ...prev,
           name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
@@ -105,7 +103,6 @@ const ProfilePage = () => {
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
-      // Don't show error if profile doesn't exist yet
       setHasProfile(false);
       setIsEditing(true);
       setFormData(prev => ({
@@ -178,7 +175,6 @@ const ProfilePage = () => {
       };
 
       if (hasProfile) {
-        // Update existing profile
         const { error: updateError } = await supabase
           .from('admit_profiles')
           .update(profileData)
@@ -187,7 +183,6 @@ const ProfilePage = () => {
         if (updateError) throw updateError;
         setSuccessMessage('Profile updated successfully!');
       } else {
-        // Insert new profile
         const { error: insertError } = await supabase
           .from('admit_profiles')
           .insert([{ ...profileData, created_at: new Date().toISOString() }]);
@@ -198,6 +193,8 @@ const ProfilePage = () => {
       }
 
       setIsEditing(false);
+      // Reset fetch timer to allow immediate refetch if needed
+      lastFetchTimeRef.current = 0;
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Error saving profile:', err);
@@ -221,7 +218,6 @@ const ProfilePage = () => {
 
       if (deleteError) throw deleteError;
 
-      // Reset form
       setFormData({
         name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
         degree: '',
@@ -239,6 +235,7 @@ const ProfilePage = () => {
       setHasProfile(false);
       setIsEditing(true);
       setShowDeleteConfirm(false);
+      lastFetchTimeRef.current = 0;
       setSuccessMessage('Profile deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
@@ -258,28 +255,21 @@ const ProfilePage = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/auth/register');
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-50 to-red-50">
-        <div className="text-xl text-red-600">Loading profile...</div>
-      </div>
+      <DefaultLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-xl text-red-600 flex items-center gap-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+            Loading profile...
+          </div>
+        </div>
+      </DefaultLayout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-pink-50 to-red-50">
-      <Sidebar 
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-        userName={formData.name || user?.email?.split('@')[0] || 'User'}
-        onSignOut={handleSignOut}
-      />
-      
+    <DefaultLayout>
       <div className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -594,7 +584,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </DefaultLayout>
   );
 };
 
