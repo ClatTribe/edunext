@@ -113,13 +113,27 @@ const DashboardPage = () => {
         .limit(100);
 
       if (!error && data) {
-        const similar = data.filter((p: any) => {
-          let matches = 0;
-          if (profile.gre && p.gre && Math.abs(profile.gre - p.gre) <= 10) matches++;
-          if (profile.program && p.program && p.program.toLowerCase().includes(profile.program.toLowerCase().split(' ')[0])) matches++;
-          if (profile.degree && p.degree && profile.degree === p.degree) matches++;
-          return matches >= 2;
-        });
+        interface Profile {
+  gre?: number;
+  program?: string;
+  degree?: string;
+}
+
+const similar = data.filter((p: Profile) => {
+  let matches = 0;
+
+  if (profile.gre && p.gre && Math.abs(profile.gre - p.gre) <= 10) matches++;
+  if (
+    profile.program &&
+    p.program &&
+    p.program.toLowerCase().includes(profile.program.toLowerCase().split(' ')[0])
+  )
+    matches++;
+  if (profile.degree && p.degree && profile.degree === p.degree) matches++;
+
+  return matches >= 2;
+});
+
         setSimilarProfilesCount(similar.length);
       }
     } catch (err) {
