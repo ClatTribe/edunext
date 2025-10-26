@@ -126,34 +126,32 @@ const DashboardPage = () => {
     
     try {
       setLoadingProfile(true);
-      console.log('🔄 Fetching profile data...');
       
       const { data, error } = await supabase
         .from('admit_profiles')
         .select('name, degree, last_course_cgpa, gre, toefl, ielts, term, university, program, extracurricular')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
-        profileCache.setProfile(null, false, 0);
+        cachedProfileData = null;
         setProfileData(null);
       } else if (data) {
-        console.log('✅ Profile data fetched successfully');
-        profileCache.setProfile(data, true, 0);
+        cachedProfileData = data;
+        cacheTimestamp = Date.now();
         setProfileData(data);
         
         if (data.gre || data.program || data.degree) {
           fetchSimilarProfilesCount(data);
         }
       } else {
-        console.log('📭 No profile found');
-        profileCache.setProfile(null, false, 0);
+        cachedProfileData = null;
         setProfileData(null);
       }
     } catch (err) {
       console.error('Error:', err);
-      profileCache.setProfile(null, false, 0);
+      cachedProfileData = null;
       setProfileData(null);
     } finally {
       setLoadingProfile(false);
@@ -164,7 +162,6 @@ const DashboardPage = () => {
     if (!user) return;
     
     try {
-      console.log('🔍 Fetching similar profiles count...');
       let query = supabase
         .from('admit_profiles')
         .select('id', { count: 'exact', head: true })
@@ -180,8 +177,7 @@ const DashboardPage = () => {
       const { count, error } = await query;
 
       if (!error && count !== null) {
-        console.log('✅ Similar profiles count:', count);
-        profileCache.setSimilarCount(count);
+        cachedSimilarCount = count;
         setSimilarProfilesCount(count);
       }
     } catch (err) {
