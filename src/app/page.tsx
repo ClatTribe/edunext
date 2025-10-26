@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import DefaultLayout from './defaultLayout';
 import { supabase } from '../../lib/supabase';
+import { profileCache } from '../../lib/profileCache';
 import { 
   TrendingUp, 
   CheckCircle, 
@@ -105,13 +106,17 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      const now = Date.now();
-      const isCacheValid = cachedProfileData && (now - cacheTimestamp < CACHE_DURATION);
+      // Check if cache is valid
+      const cachedData = profileCache.getAll();
       
-      if (!isCacheValid) {
-        fetchProfileData();
-      } else {
+      if (cachedData && profileCache.isCacheValid()) {
+        console.log('✅ Using cached data on Dashboard');
+        setProfileData(cachedData.profile);
+        setSimilarProfilesCount(cachedData.similarCount);
         setLoadingProfile(false);
+      } else {
+        console.log('🔄 Fetching fresh data on Dashboard');
+        fetchProfileData();
       }
     }
   }, [user, loading]);
