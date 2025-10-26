@@ -1,53 +1,76 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, BookOpen, Award, Trophy, Edit2, Save, X, CheckCircle, Trash2 } from 'lucide-react';
 import DefaultLayout from '../defaultLayout';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
+interface FormData {
+  name: string;
+  degree: string;
+  lastCourseCGPA: string;
+  gre: string;
+  toefl: string;
+  ielts: string;
+  term: string;
+  university: string;
+  program: string;
+  extracurricular: string;
+  verified: boolean;
+}
+
+// Global cache for profile data
+let cachedFormData: FormData | null = null;
+let cachedHasProfile = false;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Export function to invalidate cache (call after save/delete)
+export const invalidateProfileCache = () => {
+  cachedFormData = null;
+  cachedHasProfile = false;
+  cacheTimestamp = 0;
+};
+
 const ProfilePage = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedFormData);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
-  const [hasProfile, setHasProfile] = useState(false);
+  const [hasProfile, setHasProfile] = useState(cachedHasProfile);
 
-  // Prevent re-fetching on tab switch
-  const hasFetchedRef = useRef(false);
-  const lastFetchTimeRef = useRef<number>(0);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    degree: '',
-    lastCourseCGPA: '',
-    gre: '',
-    toefl: '',
-    ielts: '',
-    term: '',
-    university: '',
-    program: '',
-    extracurricular: '',
-    verified: false
-  });
+  const [formData, setFormData] = useState<FormData>(
+    cachedFormData || {
+      name: '',
+      degree: '',
+      lastCourseCGPA: '',
+      gre: '',
+      toefl: '',
+      ielts: '',
+      term: '',
+      university: '',
+      program: '',
+      extracurricular: '',
+      verified: false
+    }
+  );
 
   useEffect(() => {
-    // Only fetch if we haven't fetched recently (within last 5 minutes)
-    const now = Date.now();
-    const fiveMinutes = 5 * 60 * 1000;
-    
-    if (user && (!hasFetchedRef.current || (now - lastFetchTimeRef.current > fiveMinutes))) {
-      hasFetchedRef.current = true;
-      lastFetchTimeRef.current = now;
-      fetchUserProfile();
-    } else if (user && hasFetchedRef.current) {
-      // If we already have data, just stop loading
-      setLoading(false);
+    if (user) {
+      const now = Date.now();
+      const isCacheValid = cachedFormData && (now - cacheTimestamp < CACHE_DURATION);
+      
+      if (!isCacheValid) {
+        fetchUserProfile();
+      } else {
+        setLoading(false);
+      }
     }
   }, [user]);
 
@@ -62,64 +85,103 @@ const ProfilePage = () => {
 
       const { data, error: fetchError } = await supabase
         .from('admit_profiles')
-        .select('*')
+        .select('name, degree, last_course_cgpa, gre, toefl, ielts, term, university, program, extracurricular, verified')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
 
-      if (fetchError) {
+      if (fetchError && fetchError.code !== 'PGRST116') {
         console.error('Fetch error:', fetchError);
+        const defaultName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+        const defaultData = {
+          name: defaultName,
+          degree: '',
+          lastCourseCGPA: '',
+          gre: '',
+          toefl: '',
+          ielts: '',
+          term: '',
+          university: '',
+          program: '',
+          extracurricular: '',
+          verified: false
+        };
+        setFormData(defaultData);
+        cachedFormData = defaultData;
         setHasProfile(false);
+        cachedHasProfile = false;
         setIsEditing(true);
-        setFormData(prev => ({
-          ...prev,
-          name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
-        }));
-        setLoading(false);
-        return;
-      }
-
-      if (data) {
-        setHasProfile(true);
-        setFormData({
+      } else if (data) {
+        const profileData = {
           name: data.name || '',
           degree: data.degree || '',
           lastCourseCGPA: data.last_course_cgpa || '',
-          gre: data.gre || '',
-          toefl: data.toefl || '',
+          gre: data.gre?.toString() || '',
+          toefl: data.toefl?.toString() || '',
           ielts: data.ielts || '',
           term: data.term || '',
           university: data.university || '',
           program: data.program || '',
           extracurricular: data.extracurricular || '',
           verified: data.verified || false
-        });
+        };
+        setFormData(profileData);
+        cachedFormData = profileData;
+        setHasProfile(true);
+        cachedHasProfile = true;
+        cacheTimestamp = Date.now();
       } else {
+        const defaultName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+        const defaultData = {
+          name: defaultName,
+          degree: '',
+          lastCourseCGPA: '',
+          gre: '',
+          toefl: '',
+          ielts: '',
+          term: '',
+          university: '',
+          program: '',
+          extracurricular: '',
+          verified: false
+        };
+        setFormData(defaultData);
+        cachedFormData = defaultData;
         setHasProfile(false);
+        cachedHasProfile = false;
         setIsEditing(true);
-        setFormData(prev => ({
-          ...prev,
-          name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
-        }));
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
+      const defaultName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+      const defaultData = {
+        name: defaultName,
+        degree: '',
+        lastCourseCGPA: '',
+        gre: '',
+        toefl: '',
+        ielts: '',
+        term: '',
+        university: '',
+        program: '',
+        extracurricular: '',
+        verified: false
+      };
+      setFormData(defaultData);
+      cachedFormData = defaultData;
       setHasProfile(false);
+      cachedHasProfile = false;
       setIsEditing(true);
-      setFormData(prev => ({
-        ...prev,
-        name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
-      }));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
-  };
+  }, []);
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     if (!formData.name.trim()) {
       setError('Please enter your name');
       return false;
@@ -145,7 +207,7 @@ const ProfilePage = () => {
       return false;
     }
     return true;
-  };
+  }, [formData]);
 
   const handleSave = async () => {
     if (!validateForm()) return;
@@ -189,12 +251,16 @@ const ProfilePage = () => {
 
         if (insertError) throw insertError;
         setHasProfile(true);
+        cachedHasProfile = true;
         setSuccessMessage('Profile created successfully!');
       }
 
+      // Update cache
+      cachedFormData = formData;
+      cacheTimestamp = Date.now();
+      invalidateProfileCache(); // Clear dashboard cache too
+
       setIsEditing(false);
-      // Reset fetch timer to allow immediate refetch if needed
-      lastFetchTimeRef.current = 0;
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Error saving profile:', err);
@@ -218,7 +284,7 @@ const ProfilePage = () => {
 
       if (deleteError) throw deleteError;
 
-      setFormData({
+      const defaultData = {
         name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
         degree: '',
         lastCourseCGPA: '',
@@ -230,12 +296,15 @@ const ProfilePage = () => {
         program: '',
         extracurricular: '',
         verified: false
-      });
+      };
 
+      setFormData(defaultData);
+      cachedFormData = defaultData;
       setHasProfile(false);
+      cachedHasProfile = false;
+      invalidateProfileCache();
       setIsEditing(true);
       setShowDeleteConfirm(false);
-      lastFetchTimeRef.current = 0;
       setSuccessMessage('Profile deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
@@ -247,13 +316,17 @@ const ProfilePage = () => {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setIsEditing(false);
     setError('');
-    if (hasProfile) {
-      fetchUserProfile();
+    if (hasProfile && cachedFormData) {
+      setFormData(cachedFormData);
     }
-  };
+  }, [hasProfile]);
+
+  const userInitial = useMemo(() => {
+    return formData.name ? formData.name.charAt(0).toUpperCase() : 'U';
+  }, [formData.name]);
 
   if (loading) {
     return (
@@ -277,7 +350,7 @@ const ProfilePage = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-pink-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                  {formData.name ? formData.name.charAt(0).toUpperCase() : 'U'}
+                  {userInitial}
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800">

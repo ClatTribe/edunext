@@ -1,5 +1,5 @@
 "use client"; 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import DefaultLayout from './defaultLayout';
@@ -15,10 +15,6 @@ import {
   User
 } from 'lucide-react';
 
-interface MissingField {
-  name: string;
-}
-
 interface ProfileData {
   name?: string;
   degree?: string;
@@ -32,18 +28,74 @@ interface ProfileData {
   extracurricular?: string;
 }
 
+// Global cache to persist data across page navigations
+let cachedProfileData: ProfileData | null = null;
+let cachedSimilarCount = 0;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 const DashboardPage = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [profileCompletion, setProfileCompletion] = useState(0);
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [missingFields, setMissingFields] = useState<MissingField[]>([]);
-  const [similarProfilesCount, setSimilarProfilesCount] = useState(0);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  
-  // Prevent re-fetching on tab switch
-  const hasFetchedRef = useRef(false);
-  const lastFetchTimeRef = useRef<number>(0);
+  const [profileData, setProfileData] = useState<ProfileData | null>(cachedProfileData);
+  const [similarProfilesCount, setSimilarProfilesCount] = useState(cachedSimilarCount);
+  const [loadingProfile, setLoadingProfile] = useState(!cachedProfileData);
+
+  // Memoize calculations
+  const profileMetrics = useMemo(() => {
+    if (!profileData) {
+      return {
+        completion: 0,
+        missingFields: [
+          'Name', 'Degree Type', 'Last Course CGPA', 'GRE Score',
+          'TOEFL/IELTS', 'Target Term', 'Target University',
+          'Program/Major', 'Extracurricular'
+        ]
+      };
+    }
+
+    const fields = [
+      profileData.name,
+      profileData.degree,
+      profileData.last_course_cgpa,
+      profileData.gre,
+      profileData.toefl || profileData.ielts,
+      profileData.term,
+      profileData.university,
+      profileData.program,
+      profileData.extracurricular
+    ];
+
+    const filledCount = fields.filter(f => f && f.toString().trim() !== '').length;
+    const completion = Math.round((filledCount / fields.length) * 100);
+
+    const missing: string[] = [];
+    if (!profileData.name) missing.push('Name');
+    if (!profileData.degree) missing.push('Degree Type');
+    if (!profileData.last_course_cgpa) missing.push('CGPA');
+    if (!profileData.gre) missing.push('GRE');
+    if (!profileData.toefl && !profileData.ielts) missing.push('TOEFL/IELTS');
+    if (!profileData.term) missing.push('Target Term');
+    if (!profileData.university) missing.push('University');
+    if (!profileData.program) missing.push('Program');
+    if (!profileData.extracurricular) missing.push('Extracurricular');
+
+    return { completion, missingFields: missing };
+  }, [profileData]);
+
+  const userName = useMemo(() => {
+    return profileData?.name?.split(' ')[0] || 
+           user?.user_metadata?.full_name?.split(' ')[0] || 
+           user?.email?.split('@')[0] || 
+           'User';
+  }, [profileData?.name, user]);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -52,17 +104,15 @@ const DashboardPage = () => {
   }, [user, loading, router]);
 
   useEffect(() => {
-    // Only fetch if we haven't fetched recently (within last 5 minutes)
-    const now = Date.now();
-    const fiveMinutes = 5 * 60 * 1000;
-    
-    if (user && !loading && (!hasFetchedRef.current || (now - lastFetchTimeRef.current > fiveMinutes))) {
-      hasFetchedRef.current = true;
-      lastFetchTimeRef.current = now;
-      fetchProfileData();
-    } else if (user && hasFetchedRef.current) {
-      // If we already have data, just stop loading
-      setLoadingProfile(false);
+    if (user && !loading) {
+      const now = Date.now();
+      const isCacheValid = cachedProfileData && (now - cacheTimestamp < CACHE_DURATION);
+      
+      if (!isCacheValid) {
+        fetchProfileData();
+      } else {
+        setLoadingProfile(false);
+      }
     }
   }, [user, loading]);
 
@@ -74,29 +124,30 @@ const DashboardPage = () => {
       
       const { data, error } = await supabase
         .from('admit_profiles')
-        .select('*')
+        .select('name, degree, last_course_cgpa, gre, toefl, ielts, term, university, program, extracurricular')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
+        cachedProfileData = null;
         setProfileData(null);
-        setProfileCompletion(0);
-        setMissingFields(getAllFields());
       } else if (data) {
+        cachedProfileData = data;
+        cacheTimestamp = Date.now();
         setProfileData(data);
-        calculateProfileCompletion(data);
-        fetchSimilarProfilesCount(data);
+        
+        if (data.gre || data.program || data.degree) {
+          fetchSimilarProfilesCount(data);
+        }
       } else {
+        cachedProfileData = null;
         setProfileData(null);
-        setProfileCompletion(0);
-        setMissingFields(getAllFields());
       }
     } catch (err) {
       console.error('Error:', err);
+      cachedProfileData = null;
       setProfileData(null);
-      setProfileCompletion(0);
-      setMissingFields(getAllFields());
     } finally {
       setLoadingProfile(false);
     }
@@ -106,103 +157,47 @@ const DashboardPage = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('admit_profiles')
-        .select('gre, program, degree')
-        .neq('user_id', user.id)
-        .limit(100);
+        .select('id', { count: 'exact', head: true })
+        .neq('user_id', user.id);
 
-      if (!error && data) {
-        interface Profile {
-  gre?: number;
-  program?: string;
-  degree?: string;
-}
+      if (profile.gre) {
+        query = query.gte('gre', profile.gre - 10).lte('gre', profile.gre + 10);
+      }
+      if (profile.degree) {
+        query = query.eq('degree', profile.degree);
+      }
 
-const similar = data.filter((p: Profile) => {
-  let matches = 0;
+      const { count, error } = await query;
 
-  if (profile.gre && p.gre && Math.abs(profile.gre - p.gre) <= 10) matches++;
-  if (
-    profile.program &&
-    p.program &&
-    p.program.toLowerCase().includes(profile.program.toLowerCase().split(' ')[0])
-  )
-    matches++;
-  if (profile.degree && p.degree && profile.degree === p.degree) matches++;
-
-  return matches >= 2;
-});
-
-        setSimilarProfilesCount(similar.length);
+      if (!error && count !== null) {
+        cachedSimilarCount = count;
+        setSimilarProfilesCount(count);
       }
     } catch (err) {
       console.error('Error:', err);
     }
   };
 
-  const getAllFields = (): MissingField[] => [
-    { name: 'Name' },
-    { name: 'Degree Type' },
-    { name: 'Last Course CGPA' },
-    { name: 'GRE Score' },
-    { name: 'TOEFL/IELTS' },
-    { name: 'Target Term' },
-    { name: 'Target University' },
-    { name: 'Program/Major' },
-    { name: 'Extracurricular' }
-  ];
-
-  const calculateProfileCompletion = (data: ProfileData) => {
-    const fields = [
-      data.name,
-      data.degree,
-      data.last_course_cgpa,
-      data.gre,
-      data.toefl || data.ielts,
-      data.term,
-      data.university,
-      data.program,
-      data.extracurricular
-    ];
-
-    const filledFields = fields.filter(field => field && field.toString().trim() !== '').length;
-    const completion = Math.round((filledFields / fields.length) * 100);
-    setProfileCompletion(completion);
-
-    const missing: MissingField[] = [];
-    if (!data.name) missing.push({ name: 'Name' });
-    if (!data.degree) missing.push({ name: 'Degree Type' });
-    if (!data.last_course_cgpa) missing.push({ name: 'CGPA' });
-    if (!data.gre) missing.push({ name: 'GRE' });
-    if (!data.toefl && !data.ielts) missing.push({ name: 'TOEFL/IELTS' });
-    if (!data.term) missing.push({ name: 'Target Term' });
-    if (!data.university) missing.push({ name: 'University' });
-    if (!data.program) missing.push({ name: 'Program' });
-    if (!data.extracurricular) missing.push({ name: 'Extracurricular' });
-
-    setMissingFields(missing);
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
-  const getProgressColor = () => {
-    if (profileCompletion >= 80) return 'from-red-500 to-pink-500';
-    if (profileCompletion >= 50) return 'from-red-400 to-pink-400';
+  const getProgressColor = useCallback(() => {
+    if (profileMetrics.completion >= 80) return 'from-red-500 to-pink-500';
+    if (profileMetrics.completion >= 50) return 'from-red-400 to-pink-400';
     return 'from-red-600 to-pink-600';
-  };
+  }, [profileMetrics.completion]);
 
-  const getProgressMessage = () => {
-    if (profileCompletion === 100) return '🎉 Your profile is complete!';
-    if (profileCompletion >= 80) return '🌟 Almost there! Complete your profile';
-    if (profileCompletion >= 50) return '⚡ You\'re halfway there!';
+  const getProgressMessage = useCallback(() => {
+    if (profileMetrics.completion === 100) return '🎉 Your profile is complete!';
+    if (profileMetrics.completion >= 80) return '🌟 Almost there! Complete your profile';
+    if (profileMetrics.completion >= 50) return '⚡ You\'re halfway there!';
     return '🚀 Let\'s get started!';
-  };
+  }, [profileMetrics.completion]);
+
+  const handleProfileClick = useCallback(() => router.push('/dashboard/profile'), [router]);
+  const handleAdmitFinderClick = useCallback(() => router.push('/admit-finder'), [router]);
+  const handleCourseFinderClick = useCallback(() => router.push('/course-finder'), [router]);
+  const handleScholarshipClick = useCallback(() => router.push('/scholarship-finder'), [router]);
+  const handleShortlistClick = useCallback(() => router.push('/shortlist-builder'), [router]);
 
   if (loading || loadingProfile) {
     return (
@@ -225,7 +220,7 @@ const similar = data.filter((p: Profile) => {
         <div className="p-6 max-w-7xl mx-auto">
           <div className="mb-6">
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              {getGreeting()}, {profileData?.name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}! 👋
+              {greeting}, {userName}! 👋
             </h1>
             <p className="text-gray-600">Ready to take the next step in your academic journey?</p>
           </div>
@@ -243,7 +238,7 @@ const similar = data.filter((p: Profile) => {
               </div>
               <div className="text-right">
                 <div className="text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                  {profileCompletion}%
+                  {profileMetrics.completion}%
                 </div>
                 <p className="text-sm text-gray-500">Complete</p>
               </div>
@@ -252,32 +247,32 @@ const similar = data.filter((p: Profile) => {
             <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
               <div 
                 className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getProgressColor()} transition-all duration-700 ease-out rounded-full`}
-                style={{ width: `${profileCompletion}%` }}
+                style={{ width: `${profileMetrics.completion}%` }}
               >
                 <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
               </div>
             </div>
 
-            {missingFields.length > 0 && (
+            {profileMetrics.missingFields.length > 0 && (
               <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-xl p-4 border border-red-200">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="text-red-600 mt-0.5 flex-shrink-0" size={20} />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 mb-2">Complete these fields to unlock full features:</h3>
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {missingFields.slice(0, 5).map((field, idx) => (
+                      {profileMetrics.missingFields.slice(0, 5).map((field, idx) => (
                         <span key={idx} className="text-xs bg-white text-red-600 px-3 py-1 rounded-full border border-red-200 font-medium">
-                          {field.name}
+                          {field}
                         </span>
                       ))}
-                      {missingFields.length > 5 && (
+                      {profileMetrics.missingFields.length > 5 && (
                         <span className="text-xs bg-white text-gray-600 px-3 py-1 rounded-full border border-gray-200 font-medium">
-                          +{missingFields.length - 5} more
+                          +{profileMetrics.missingFields.length - 5} more
                         </span>
                       )}
                     </div>
                     <button
-                      onClick={() => router.push('/dashboard/profile')}
+                      onClick={handleProfileClick}
                       className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-red-700 hover:to-pink-700 transition-all text-sm font-semibold shadow-lg"
                     >
                       <User size={16} />
@@ -289,7 +284,7 @@ const similar = data.filter((p: Profile) => {
               </div>
             )}
 
-            {profileCompletion === 100 && (
+            {profileMetrics.completion === 100 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                 <div className="flex items-center gap-3">
                   <CheckCircle className="text-green-600" size={24} />
@@ -302,9 +297,9 @@ const similar = data.filter((p: Profile) => {
             )}
           </div>
 
-          {profileCompletion >= 50 && (
+          {profileMetrics.completion >= 50 && (
             <div 
-              onClick={() => router.push('/admit-finder')}
+              onClick={handleAdmitFinderClick}
               className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-red-100 cursor-pointer hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center justify-between">
@@ -387,7 +382,7 @@ const similar = data.filter((p: Profile) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <button 
-                onClick={() => router.push('/course-finder')}
+                onClick={handleCourseFinderClick}
                 className="group p-6 border-2 border-red-200 rounded-xl hover:bg-red-50 transition-all text-left hover:shadow-lg"
               >
                 <div className="text-4xl mb-3">🔍</div>
@@ -397,7 +392,7 @@ const similar = data.filter((p: Profile) => {
               </button>
 
               <button 
-                onClick={() => router.push('/admit-finder')}
+                onClick={handleAdmitFinderClick}
                 className="group p-6 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-all text-left hover:shadow-lg"
               >
                 <div className="text-4xl mb-3">👥</div>
@@ -407,7 +402,7 @@ const similar = data.filter((p: Profile) => {
               </button>
 
               <button 
-                onClick={() => router.push('/scholarship-finder')}
+                onClick={handleScholarshipClick}
                 className="group p-6 border-2 border-green-200 rounded-xl hover:bg-green-50 transition-all text-left hover:shadow-lg"
               >
                 <div className="text-4xl mb-3">💵</div>
@@ -417,7 +412,7 @@ const similar = data.filter((p: Profile) => {
               </button>
 
               <button 
-                onClick={() => router.push('/shortlist-builder')}
+                onClick={handleShortlistClick}
                 className="group p-6 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all text-left hover:shadow-lg"
               >
                 <div className="text-4xl mb-3">⭐</div>
@@ -428,7 +423,7 @@ const similar = data.filter((p: Profile) => {
             </div>
           </div>
 
-          {profileCompletion < 100 && (
+          {profileMetrics.completion < 100 && (
             <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-yellow-200">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
