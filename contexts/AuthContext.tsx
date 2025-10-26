@@ -2,11 +2,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { log } from 'console';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  username: string | null;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
@@ -19,23 +21,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState<string>("User");
 
+  // Load initial user and username only after first sign in
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const fetchSessionAndUsername = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Create profile for new Google users
-      if (session?.user && _event === 'SIGNED_IN') {
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', session.user.id)
+          .single();
+        setUsername(profile?.full_name ?? null);
+      } else {
+        setUsername('User');
+      }
+    };
+    fetchSessionAndUsername();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+/*  useEffect(() => {
+  const handleAuthChange = async (_event: string, session: Session | null) => {
+    setSession(session ?? null);
+    setUser(session?.user ?? null);
+    setLoading(false);
+
+   
+    if (session?.user && _event === 'SIGNED_IN') {
+      try {
         const { data: existingProfile } = await supabase
           .from('profiles')
           .select('id')
@@ -45,16 +64,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!existingProfile) {
           await supabase.from('profiles').insert({
             id: session.user.id,
-            full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+            full_name:
+              session.user.user_metadata?.full_name ||
+              session.user.user_metadata?.name ||
+              '',
             email: session.user.email,
-            avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+            avatar_url:
+              session.user.user_metadata?.avatar_url ||
+              session.user.user_metadata?.picture,
           });
         }
+      } catch (err) {
+        console.error('Error creating profile:', err);
       }
-    });
+    }
+  };
 
-    return () => subscription.unsubscribe();
-  }, []);
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
+
+  return () => subscription.unsubscribe();
+}, []); */
+
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const { data, error } = await supabase.auth.signUp({
@@ -106,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session,username, loading, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
