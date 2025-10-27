@@ -40,6 +40,7 @@ const DashboardPage = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(cachedProfileData);
   const [similarProfilesCount, setSimilarProfilesCount] = useState(cachedSimilarCount);
   const [loadingProfile, setLoadingProfile] = useState(!cachedProfileData);
+  const [shortlistedCount, setShortlistedCount] = useState(0);
 
   // Memoize calculations
   const profileMetrics = useMemo(() => {
@@ -115,6 +116,37 @@ const DashboardPage = () => {
       }
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    // Load initial shortlist count
+    loadShortlistCount();
+
+    // Listen for updates from Course Finder or Shortlist Builder
+    const handleShortlistUpdate = () => {
+      loadShortlistCount();
+    };
+
+    window.addEventListener('shortlist-updated', handleShortlistUpdate);
+
+    return () => {
+      window.removeEventListener('shortlist-updated', handleShortlistUpdate);
+    };
+  }, []);
+
+  const loadShortlistCount = () => {
+    try {
+      const saved = localStorage.getItem('shortlisted-colleges');
+      if (saved) {
+        const data = JSON.parse(saved);
+        setShortlistedCount(data.ids?.length || 0);
+      } else {
+        setShortlistedCount(0);
+      }
+    } catch (error) {
+      console.log('No saved colleges found:', error);
+      setShortlistedCount(0);
+    }
+  };
 
   const fetchProfileData = async () => {
     if (!user) return;
@@ -326,7 +358,7 @@ const DashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 font-medium">Shortlisted</p>
-                  <p className="text-3xl font-bold text-red-600">0</p>
+                  <p className="text-3xl font-bold text-red-600">{shortlistedCount}</p>
                   <p className="text-xs text-gray-500 mt-1">Programs saved</p>
                 </div>
                 <div className="w-14 h-14 bg-gradient-to-br from-red-100 to-pink-100 rounded-full flex items-center justify-center">

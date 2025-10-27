@@ -43,8 +43,8 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: Building2, label: "Shortlist Builder", path: "/shortlist-builder" },
     ],
     applications: [
+      { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
       { icon: GraduationCap, label: "Manage Shortlist", path: "/manage-shortlist" },
-      { icon: BookOpen, label: "Application Builder", path: "/app-builder" },
       { icon: Award, label: "Manage Applications", path: "/manage-apps" },
       { icon: Trophy, label: "Guidance", path: "/guidance" },
     ],
@@ -62,6 +62,13 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     router.push("/profile");
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    // First redirect to register page
+    router.replace("/register");
+    // Then sign out (this will clear the auth state)
+    await onSignOut();
   };
 
   // Check if current path is active
@@ -345,10 +352,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         {/* Logout Button */}
         <div className="pt-4 mt-4 border-t border-pink-200">
           <button
-            onClick={onSignOut}
+            onClick={handleLogout}
             onMouseEnter={() => setIsLogoutHovered(true)}
             onMouseLeave={() => setIsLogoutHovered(false)}
-            className="flex items-center justify-between gap-3 p-3 w-full text-left bg-white hover:bg-red-50 rounded-lg text-red-600 transition-all duration-200 shadow-sm hover:shadow-md group"
+            className="flex items-center justify-between gap-3 p-3 w-full text-left bg-white hover:bg-red-50 rounded-lg text-red-600 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <LogOut size={18} className="group-hover:scale-110 transition-transform" />

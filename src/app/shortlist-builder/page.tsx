@@ -1,263 +1,355 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Trash2, BookOpen, DollarSign, Users } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-import { useAuth } from '../../../contexts/AuthContext';
+import { Trash2, BookOpen, DollarSign, MapPin, Users, GraduationCap, Heart, Trophy, Award } from 'lucide-react';
 import DefaultLayout from '../defaultLayout';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-interface ShortlistItem {
+interface College {
   id: number;
-  course_id?: number;
-  scholarship_id?: number;
-  admit_profile_id?: number;
-  notes?: string;
-  created_at: string;
-  courses?: {
-    university: string;
-    program: string;
-    location: string;
-    tuition: string;
-    deadline: string;
-  };
-  scholarships?: {
-    name: string;
-    amount: string;
-    deadline: string;
-  };
-  admit_profiles?: {
-    name: string;
-    university: string;
-    program: string;
-  };
+  'school.name': string;
+  'school.city': string;
+  'school.state': string;
+  'latest.cost.tuition.in_state': number | null;
+  'latest.cost.tuition.out_of_state': number | null;
+  'latest.admissions.admission_rate.overall': number | null;
+  'school.school_url': string | null;
+  'school.locale': number | null;
+  'latest.student.size': number | null;
+  'latest.admissions.sat_scores.average.overall': number | null;
+  'latest.admissions.sat_scores.midpoint.math': number | null;
+  'latest.admissions.sat_scores.midpoint.critical_reading': number | null;
+  'latest.admissions.act_scores.midpoint.cumulative': number | null;
+  'latest.admissions.act_scores.midpoint.math': number | null;
+  'latest.admissions.act_scores.midpoint.english': number | null;
+  'latest.academics.program_available.bachelors': number | null;
+  'latest.academics.program_available.masters': number | null;
+  'latest.academics.program_percentage.business_marketing': number | null;
+  'latest.academics.program_percentage.computer': number | null;
+  'latest.academics.program_percentage.health': number | null;
+  'latest.academics.program_percentage.education': number | null;
+  'latest.academics.program_percentage.engineering': number | null;
 }
 
 const ShortlistBuilder: React.FC = () => {
-  const { user } = useAuth();
-  const [shortlistItems, setShortlistItems] = useState<ShortlistItem[]>([]);
+  const [shortlistColleges, setShortlistColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'courses' | 'scholarships' | 'profiles'>('courses');
+
+  const US_STATES = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'
+  };
+
+  const LOCALE_TYPES = {
+    '': 'All Locations', '11': 'City - Large', '12': 'City - Midsize', '13': 'City - Small',
+    '21': 'Suburb - Large', '22': 'Suburb - Midsize', '23': 'Suburb - Small',
+    '31': 'Town - Fringe', '32': 'Town - Distant', '33': 'Town - Remote',
+    '41': 'Rural - Fringe', '42': 'Rural - Distant', '43': 'Rural - Remote'
+  };
 
   useEffect(() => {
-    if (user) {
-      fetchShortlist();
-    }
-  }, [user, activeTab]);
+    loadShortlist();
 
-  const fetchShortlist = async () => {
-    if (!user) return;
+    // Listen for updates from Course Finder
+    const handleShortlistUpdate = () => {
+      loadShortlist();
+    };
 
+    window.addEventListener('shortlist-updated', handleShortlistUpdate);
+
+    return () => {
+      window.removeEventListener('shortlist-updated', handleShortlistUpdate);
+    };
+  }, []);
+
+  const loadShortlist = () => {
     try {
       setLoading(true);
-      let query = supabase.from('shortlists').select(`
-        *,
-        courses (*),
-        scholarships (*),
-        admit_profiles (*)
-      `).eq('user_id', user.id);
-
-      if (activeTab === 'courses') {
-        query = query.not('course_id', 'is', null);
-      } else if (activeTab === 'scholarships') {
-        query = query.not('scholarship_id', 'is', null);
-      } else if (activeTab === 'profiles') {
-        query = query.not('admit_profile_id', 'is', null);
+      const saved = localStorage.getItem('shortlisted-colleges');
+      if (saved) {
+        const data = JSON.parse(saved);
+        setShortlistColleges(data.colleges || []);
       }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setShortlistItems(data || []);
     } catch (error) {
-      console.error('Error fetching shortlist:', error);
+      console.log('No saved colleges found:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const removeFromShortlist = async (itemId: number) => {
-    if (!user) return;
-
+  const removeFromShortlist = (collegeId: number) => {
     try {
-      const { error } = await supabase
-        .from('shortlists')
-        .delete()
-        .eq('id', itemId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setShortlistItems(prev => prev.filter(item => item.id !== itemId));
+      const newShortlist = shortlistColleges.filter(c => c.id !== collegeId);
+      const newIds = newShortlist.map(c => c.id);
+      
+      setShortlistColleges(newShortlist);
+      localStorage.setItem('shortlisted-colleges', JSON.stringify({ 
+        ids: newIds, 
+        colleges: newShortlist 
+      }));
+      
+      // Notify other components
+      window.dispatchEvent(new Event('shortlist-updated'));
     } catch (error) {
       console.error('Error removing from shortlist:', error);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const clearAllShortlist = () => {
+    if (window.confirm('Are you sure you want to clear your entire shortlist?')) {
+      try {
+        setShortlistColleges([]);
+        localStorage.setItem('shortlisted-colleges', JSON.stringify({ 
+          ids: [], 
+          colleges: [] 
+        }));
+        
+        // Notify other components
+        window.dispatchEvent(new Event('shortlist-updated'));
+      } catch (error) {
+        console.error('Error clearing shortlist:', error);
+      }
+    }
   };
 
-  if (!user) {
-    
-    return (
-      <div className="flex-1 bg-white p-6">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Please login to access your shortlist</p>
-        </div>
-      </div>
-    );
-  }
+  const formatCurrency = (amount: number | null) => {
+    if (amount === null || amount === undefined) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatPercent = (rate: number | null) => {
+    if (rate === null || rate === undefined) return 'N/A';
+    return `${(rate * 100).toFixed(1)}%`;
+  };
+
+  const formatNumber = (num: number | null) => {
+    if (num === null || num === undefined) return 'N/A';
+    return new Intl.NumberFormat('en-US').format(num);
+  };
+
+  const getLocaleLabel = (locale: number | null) => {
+    if (locale === null) return 'Unknown';
+    const localeStr = locale.toString();
+    return LOCALE_TYPES[localeStr as keyof typeof LOCALE_TYPES] || 'Unknown';
+  };
+
+  const getStateName = (stateCode: string) => {
+    return US_STATES[stateCode as keyof typeof US_STATES] || stateCode;
+  };
 
   return (
     <DefaultLayout>
-    <div className="flex-1 bg-white p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-red-600 mb-2">Your Shortlist</h1>
-        <p className="text-gray-600">Manage your saved courses, scholarships, and profiles in one place</p>
+      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-red-600 mb-2">My Shortlist</h1>
+            <p className="text-gray-600">Manage your saved colleges in one place</p>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="text-gray-500 flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                <p>Loading your shortlist...</p>
+              </div>
+            </div>
+          ) : shortlistColleges.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-lg shadow-sm">
+              <Heart size={48} className="mx-auto text-gray-300 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">Your shortlist is empty</h3>
+              <p className="text-gray-500 mb-4">Start exploring colleges and click the heart icon to save them here</p>
+            </div>
+          ) : (
+            <>
+              {/* Stats Bar */}
+              <div className="mb-6 bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Heart className="text-red-600" size={20} fill="currentColor" />
+                    <span className="font-semibold text-lg">
+                      {shortlistColleges.length} {shortlistColleges.length === 1 ? 'college' : 'colleges'} saved
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={clearAllShortlist}
+                  className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 size={16} />
+                  Clear All
+                </button>
+              </div>
+
+              {/* College Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {shortlistColleges.map((college) => (
+                  <div key={college.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg text-gray-800 mb-1">
+                          {college['school.name'] || 'Unknown College'}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <MapPin size={14} />
+                          <span>{college['school.city']}, {getStateName(college['school.state'])}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {getLocaleLabel(college['school.locale'])}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeFromShortlist(college.id)}
+                        className="text-red-600 hover:text-red-700 transition-colors"
+                        title="Remove from shortlist"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Basic Info Grid */}
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                        <div>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                            <DollarSign size={14} />
+                            <span>In-State Tuition</span>
+                          </div>
+                          <p className="font-semibold text-gray-800 text-sm">
+                            {formatCurrency(college['latest.cost.tuition.in_state'])}
+                          </p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                            <DollarSign size={14} />
+                            <span>Out-of-State</span>
+                          </div>
+                          <p className="font-semibold text-gray-800 text-sm">
+                            {formatCurrency(college['latest.cost.tuition.out_of_state'])}
+                          </p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                            <Trophy size={14} />
+                            <span>Admission Rate</span>
+                          </div>
+                          <p className="font-semibold text-gray-800 text-sm">
+                            {formatPercent(college['latest.admissions.admission_rate.overall'])}
+                          </p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                            <Users size={14} />
+                            <span>Students</span>
+                          </div>
+                          <p className="font-semibold text-gray-800 text-sm">
+                            {formatNumber(college['latest.student.size'])}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Test Scores Section */}
+                      {(college['latest.admissions.sat_scores.average.overall'] || 
+                        college['latest.admissions.act_scores.midpoint.cumulative']) && (
+                        <div className="pt-4 border-t border-gray-100">
+                          <h4 className="text-xs font-semibold text-gray-700 mb-3 flex items-center gap-1">
+                            <Award size={14} className="text-red-600" />
+                            Test Scores
+                          </h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            {college['latest.admissions.sat_scores.average.overall'] && (
+                              <div className="bg-blue-50 rounded-lg p-2">
+                                <div className="text-xs text-blue-600 mb-1">SAT Average</div>
+                                <p className="font-bold text-lg text-blue-700">
+                                  {Math.round(college['latest.admissions.sat_scores.average.overall'])}
+                                </p>
+                              </div>
+                            )}
+                            {college['latest.admissions.act_scores.midpoint.cumulative'] && (
+                              <div className="bg-green-50 rounded-lg p-2">
+                                <div className="text-xs text-green-600 mb-1">ACT Midpoint</div>
+                                <p className="font-bold text-lg text-green-700">
+                                  {Math.round(college['latest.admissions.act_scores.midpoint.cumulative'])}
+                                </p>
+                              </div>
+                            )}
+                            {college['latest.admissions.sat_scores.midpoint.math'] && (
+                              <div className="bg-purple-50 rounded-lg p-2">
+                                <div className="text-xs text-purple-600 mb-1">SAT Math</div>
+                                <p className="font-bold text-sm text-purple-700">
+                                  {Math.round(college['latest.admissions.sat_scores.midpoint.math'])}
+                                </p>
+                              </div>
+                            )}
+                            {college['latest.admissions.sat_scores.midpoint.critical_reading'] && (
+                              <div className="bg-orange-50 rounded-lg p-2">
+                                <div className="text-xs text-orange-600 mb-1">SAT Reading</div>
+                                <p className="font-bold text-sm text-orange-700">
+                                  {Math.round(college['latest.admissions.sat_scores.midpoint.critical_reading'])}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Programs Section */}
+                      {(college['latest.academics.program_available.bachelors'] === 1 || 
+                        college['latest.academics.program_available.masters'] === 1) && (
+                        <div className="pt-4 border-t border-gray-100">
+                          <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                            <GraduationCap size={14} className="text-red-600" />
+                            Programs Offered
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {college['latest.academics.program_available.bachelors'] === 1 && (
+                              <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">
+                                Bachelors
+                              </span>
+                            )}
+                            {college['latest.academics.program_available.masters'] === 1 && (
+                              <span className="bg-purple-100 text-purple-700 text-xs px-3 py-1 rounded-full font-medium">
+                                Masters
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-4 pt-4">
+                        {college['school.school_url'] && (
+                          <a
+                            href={college['school.school_url'].startsWith('http') 
+                              ? college['school.school_url'] 
+                              : `https://${college['school.school_url']}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 bg-red-600 text-white rounded-lg py-2 px-4 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                          >
+                            <BookOpen size={16} />
+                            View Details
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
-
-      <div className="flex gap-4 mb-6 border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab('courses')}
-          className={`pb-2 px-4 ${
-            activeTab === 'courses'
-              ? 'border-b-2 border-red-600 text-red-600 font-semibold'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <BookOpen size={18} />
-            <span>Courses</span>
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('scholarships')}
-          className={`pb-2 px-4 ${
-            activeTab === 'scholarships'
-              ? 'border-b-2 border-red-600 text-red-600 font-semibold'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <DollarSign size={18} />
-            <span>Scholarships</span>
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('profiles')}
-          className={`pb-2 px-4 ${
-            activeTab === 'profiles'
-              ? 'border-b-2 border-red-600 text-red-600 font-semibold'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Users size={18} />
-            <span>Profiles</span>
-          </div>
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="text-gray-500">Loading your shortlist...</div>
-        </div>
-      ) : shortlistItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-          <p className="text-lg mb-2">Your shortlist is empty</p>
-          <p className="text-sm">Start exploring and save items to your shortlist!</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {activeTab === 'courses' && shortlistItems.map((item) => (
-            item.courses && (
-              <div key={item.id} className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">{item.courses.university}</h3>
-                    <p className="text-gray-600 mb-2">{item.courses.program}</p>
-                    <div className="flex gap-6 text-sm text-gray-500">
-                      <span>📍 {item.courses.location}</span>
-                      <span>💰 {item.courses.tuition}</span>
-                      <span>📅 Deadline: {formatDate(item.courses.deadline)}</span>
-                    </div>
-                    {item.notes && (
-                      <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        <strong>Notes:</strong> {item.notes}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeFromShortlist(item.id)}
-                    className="text-red-600 hover:text-red-700 ml-4"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </div>
-            )
-          ))}
-
-          {activeTab === 'scholarships' && shortlistItems.map((item) => (
-            item.scholarships && (
-              <div key={item.id} className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">{item.scholarships.name}</h3>
-                    <div className="flex gap-6 text-sm text-gray-500 mt-2">
-                      <span>💰 {item.scholarships.amount}</span>
-                      <span>📅 Deadline: {formatDate(item.scholarships.deadline)}</span>
-                    </div>
-                    {item.notes && (
-                      <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        <strong>Notes:</strong> {item.notes}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeFromShortlist(item.id)}
-                    className="text-red-600 hover:text-red-700 ml-4"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </div>
-            )
-          ))}
-
-          {activeTab === 'profiles' && shortlistItems.map((item) => (
-            item.admit_profiles && (
-              <div key={item.id} className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">{item.admit_profiles.name}</h3>
-                    <p className="text-gray-600 mb-2">{item.admit_profiles.program}</p>
-                    <div className="flex gap-6 text-sm text-gray-500">
-                      <span>🎓 {item.admit_profiles.university}</span>
-                    </div>
-                    {item.notes && (
-                      <p className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        <strong>Notes:</strong> {item.notes}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeFromShortlist(item.id)}
-                    className="text-red-600 hover:text-red-700 ml-4"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </div>
-            )
-          ))}
-        </div>
-      )}
-    </div>
     </DefaultLayout>
   );
 };
