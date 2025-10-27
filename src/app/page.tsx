@@ -225,7 +225,7 @@ const DashboardPage = () => {
     return '🚀 Let\'s get started!';
   }, [profileMetrics.completion]);
 
-  const handleProfileClick = useCallback(() => router.push('/dashboard/profile'), [router]);
+  const handleProfileClick = useCallback(() => router.push('/profile'), [router]);
   const handleAdmitFinderClick = useCallback(() => router.push('/admit-finder'), [router]);
   const handleCourseFinderClick = useCallback(() => router.push('/course-finder'), [router]);
   const handleScholarshipClick = useCallback(() => router.push('/scholarship-finder'), [router]);
