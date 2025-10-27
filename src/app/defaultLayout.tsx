@@ -11,14 +11,9 @@ export default function DefaultLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, loading: authLoading, username, signOut } = useAuth();
+  const { user, loading: authLoading,username,signOut } = useAuth(); // ✅ include loading from AuthContext
   
-  // Redirect to register page if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/register");
-    }
-  }, [user, authLoading, router]);
+ 
 
   if (authLoading) {
     return (
@@ -32,11 +27,6 @@ export default function DefaultLayout({
         </div>
       </div>
     );
-  }
-
-  // Don't render anything if user is not authenticated
-  if (!user) {
-    return null;
   }
 
   return (

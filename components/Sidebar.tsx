@@ -27,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -65,10 +66,17 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   };
 
   const handleLogout = async () => {
-    // First redirect to register page
-    router.replace("/register");
-    // Then sign out (this will clear the auth state)
-    await onSignOut();
+    try {
+      setIsLoggingOut(true);
+      // Await the sign out function in case it returns a promise
+      await onSignOut();
+      // Then redirect to register page
+      router.push("/register");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   // Check if current path is active
@@ -352,21 +360,33 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         {/* Logout Button */}
         <div className="pt-4 mt-4 border-t border-pink-200">
           <button
-            onClick={handleLogout}
+            onClick={async (e) => {
+              e.preventDefault();
+              await handleLogout();
+            }}
+            disabled={isLoggingOut}
             onMouseEnter={() => setIsLogoutHovered(true)}
             onMouseLeave={() => setIsLogoutHovered(false)}
-            className="flex items-center justify-between gap-3 p-3 w-full text-left bg-white hover:bg-red-50 rounded-lg text-red-600 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer"
+            className="flex items-center justify-between gap-3 p-3 w-full text-left bg-white hover:bg-red-50 rounded-lg text-red-600 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-center gap-3">
-              <LogOut size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="font-semibold">Logout</span>
+              {isLoggingOut ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+              ) : (
+                <LogOut size={18} className="group-hover:scale-110 transition-transform" />
+              )}
+              <span className="font-semibold">
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </span>
             </div>
-            <ThumbsUp
-              size={16}
-              className={`transition-all duration-300 ${
-                isLogoutHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
-              }`}
-            />
+            {!isLoggingOut && (
+              <ThumbsUp
+                size={16}
+                className={`transition-all duration-300 ${
+                  isLogoutHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
+                }`}
+              />
+            )}
           </button>
         </div>
 
