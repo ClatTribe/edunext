@@ -5,7 +5,7 @@ import DefaultLayout from '../defaultLayout';
 
 const API_KEY = 'SRI6Nb7vQxcpNFVnE5D02zzze7vIdfZUqmRPe93y';
 const API_BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json';
-
+ 
 interface College {
   id: number;
   'school.name': string;
