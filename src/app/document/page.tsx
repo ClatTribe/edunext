@@ -498,7 +498,7 @@ const DocumentUploadPage = () => {
             <div className="text-sm">
               <p className="font-semibold text-blue-900 mb-1">Important:</p>
               <p className="text-blue-700">
-                Both documents are required to proceed. Make sure your files are in PDF, DOC, or DOCX format and don't exceed 2MB.
+                Both documents are required to proceed. Make sure your files are in PDF, DOC, or DOCX format and do not exceed 2MB.
               </p>
             </div>
           </div>
@@ -565,7 +565,7 @@ const DocumentUploadPage = () => {
 
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800">
-              <span className="font-semibold">Note:</span> Uploaded documents will be reviewed by our team. You'll be notified once the verification is complete.
+              <span className="font-semibold">Note:</span> Uploaded documents will be reviewed by our team. You will be notified once the verification is complete.
             </p>
           </div>
         </div>
