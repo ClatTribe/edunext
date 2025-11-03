@@ -10,10 +10,8 @@ interface FormData {
   name: string;
   degree: string;
   lastCourseCGPA: string;
-  gre: string;
-  toefl: string;
-  ielts: string;
-  term: string;
+  cat: string;
+  session: string;
   university: string;
   program: string;
   extracurricular: string;
@@ -50,10 +48,8 @@ const ProfilePage = () => {
       name: '',
       degree: '',
       lastCourseCGPA: '',
-      gre: '',
-      toefl: '',
-      ielts: '',
-      term: '',
+      cat: '',
+      session: '',
       university: '',
       program: '',
       extracurricular: '',
@@ -85,7 +81,7 @@ const ProfilePage = () => {
 
       const { data, error: fetchError } = await supabase
         .from('admit_profiles')
-        .select('name, degree, last_course_cgpa, gre, toefl, ielts, term, university, program, extracurricular, verified')
+        .select('name, degree, last_course_cgpa, cat, session, university, program, extracurricular, verified')
         .eq('user_id', user.id)
         .single();
 
@@ -96,10 +92,8 @@ const ProfilePage = () => {
           name: defaultName,
           degree: '',
           lastCourseCGPA: '',
-          gre: '',
-          toefl: '',
-          ielts: '',
-          term: '',
+          cat: '',
+          session: '',
           university: '',
           program: '',
           extracurricular: '',
@@ -115,10 +109,8 @@ const ProfilePage = () => {
           name: data.name || '',
           degree: data.degree || '',
           lastCourseCGPA: data.last_course_cgpa || '',
-          gre: data.gre?.toString() || '',
-          toefl: data.toefl?.toString() || '',
-          ielts: data.ielts || '',
-          term: data.term || '',
+          cat: data.cat?.toString() || '',
+          session: data.session || '',
           university: data.university || '',
           program: data.program || '',
           extracurricular: data.extracurricular || '',
@@ -135,10 +127,8 @@ const ProfilePage = () => {
           name: defaultName,
           degree: '',
           lastCourseCGPA: '',
-          gre: '',
-          toefl: '',
-          ielts: '',
-          term: '',
+          cat: '',
+          session: '',
           university: '',
           program: '',
           extracurricular: '',
@@ -157,10 +147,8 @@ const ProfilePage = () => {
         name: defaultName,
         degree: '',
         lastCourseCGPA: '',
-        gre: '',
-        toefl: '',
-        ielts: '',
-        term: '',
+        cat: '',
+        session: '',
         university: '',
         program: '',
         extracurricular: '',
@@ -194,16 +182,8 @@ const ProfilePage = () => {
       setError('Please enter your last course CGPA/Percentage');
       return false;
     }
-    if (formData.gre && (parseInt(formData.gre) < 0 || parseInt(formData.gre) > 340)) {
-      setError('GRE score must be between 0 and 340');
-      return false;
-    }
-    if (formData.toefl && (parseInt(formData.toefl) < 0 || parseInt(formData.toefl) > 120)) {
-      setError('TOEFL score must be between 0 and 120');
-      return false;
-    }
-    if (formData.ielts && (parseFloat(formData.ielts) < 0 || parseFloat(formData.ielts) > 9.0)) {
-      setError('IELTS score must be between 0 and 9.0');
+    if (formData.cat && (parseInt(formData.cat) < 0 || parseInt(formData.cat) > 204)) {
+      setError('CAT score must be between 0 and 204');
       return false;
     }
     return true;
@@ -223,10 +203,8 @@ const ProfilePage = () => {
         name: formData.name,
         degree: formData.degree,
         last_course_cgpa: formData.lastCourseCGPA,
-        gre: formData.gre ? parseInt(formData.gre) : null,
-        toefl: formData.toefl ? parseInt(formData.toefl) : null,
-        ielts: formData.ielts || null,
-        term: formData.term,
+        cat: formData.cat ? parseInt(formData.cat) : null,
+        session: formData.session,
         university: formData.university,
         program: formData.program,
         extracurricular: formData.extracurricular,
@@ -288,10 +266,8 @@ const ProfilePage = () => {
         name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
         degree: '',
         lastCourseCGPA: '',
-        gre: '',
-        toefl: '',
-        ielts: '',
-        term: '',
+        cat: '',
+        session: '',
         university: '',
         program: '',
         extracurricular: '',
@@ -497,58 +473,21 @@ const ProfilePage = () => {
                 <h2 className="text-2xl font-bold text-gray-800">Test Scores</h2>
               </div>
 
-              <div className="grid grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    GRE Score
-                    <span className="text-xs text-gray-500 ml-2">(Max: 340)</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="340"
-                    value={formData.gre}
-                    onChange={(e) => handleInputChange('gre', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                    placeholder="0-340"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    TOEFL Score
-                    <span className="text-xs text-gray-500 ml-2">(Max: 120)</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="120"
-                    value={formData.toefl}
-                    onChange={(e) => handleInputChange('toefl', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                    placeholder="0-120"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    IELTS Score
-                    <span className="text-xs text-gray-500 ml-2">(Max: 9.0)</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    max="9"
-                    value={formData.ielts}
-                    onChange={(e) => handleInputChange('ielts', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                    placeholder="0-9.0"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  CAT Score
+                  <span className="text-xs text-gray-500 ml-2">(Max: 204)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="204"
+                  value={formData.cat}
+                  onChange={(e) => handleInputChange('cat', e.target.value)}
+                  disabled={!isEditing}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
+                  placeholder="0-204"
+                />
               </div>
             </div>
 
@@ -563,19 +502,18 @@ const ProfilePage = () => {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target Term
+                      Target Session
                     </label>
                     <select
-                      value={formData.term}
-                      onChange={(e) => handleInputChange('term', e.target.value)}
+                      value={formData.session}
+                      onChange={(e) => handleInputChange('session', e.target.value)}
                       disabled={!isEditing}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
                     >
-                      <option value="">Select Term</option>
-                      <option value="Fall 2025">Fall 2025</option>
-                      <option value="Spring 2026">Spring 2026</option>
-                      <option value="Fall 2026">Fall 2026</option>
-                      <option value="Spring 2027">Spring 2027</option>
+                      <option value="">Select Session</option>
+                      <option value="2025">2025</option>
+                      <option value="2026">2026</option>
+                      <option value="2027">2027</option>
                     </select>
                   </div>
 
