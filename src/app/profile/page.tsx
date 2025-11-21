@@ -1,19 +1,64 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { User, BookOpen, Award, Trophy, Edit2, Save, X, CheckCircle, Trash2 } from 'lucide-react';
+import { User, BookOpen, Award, Trophy, Edit2, Save, X, CheckCircle, Trash2, Plus, Minus, Globe, GraduationCap, Target, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
 import DefaultLayout from '../defaultLayout';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
+interface TestScore {
+  exam: string;
+  score: string;
+}
+
 interface FormData {
+  // Personal Information
   name: string;
-  degree: string;
-  lastCourseCGPA: string;
-  cat: string;
-  session: string;
-  university: string;
-  program: string;
+  email: string;
+  phone: string;
+  city: string;
+  state: string;
+  
+  // Target Program
+  target_countries: string[];
+  target_degree: string;
+  target_field: string;
+  budget: string;
+  term: string;
+  
+  // 10th Grade
+  tenth_board: string;
+  tenth_year: string;
+  tenth_score: string;
+  
+  // 12th Grade
+  twelfth_board: string;
+  twelfth_year: string;
+  twelfth_score: string;
+  twelfth_stream: string;
+  
+  // Undergraduate
+  ug_degree: string;
+  ug_university: string;
+  ug_year: string;
+  ug_score: string;
+  ug_field: string;
+  
+  // Postgraduate
+  pg_degree: string;
+  pg_university: string;
+  pg_year: string;
+  pg_score: string;
+  pg_field: string;
+  
+  // Test Scores
+  testScores: TestScore[];
+  
+  // Work Experience
+  has_experience: string;
+  experience_years: string;
+  experience_field: string;
+  
+  // Other
   extracurricular: string;
   verified: boolean;
 }
@@ -22,18 +67,166 @@ interface FormData {
 let cachedFormData: FormData | null = null;
 let cachedHasProfile = false;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
-// Export function to invalidate cache (call after save/delete)
 export const invalidateProfileCache = () => {
   cachedFormData = null;
   cachedHasProfile = false;
   cacheTimestamp = 0;
 };
 
+const COMMON_EXAMS = [
+  'GRE',
+  'GMAT',
+  'TOEFL',
+  'IELTS',
+  'Duolingo English Test',
+  'PTE Academic',
+  'TestDaF',
+  'Goethe Certificate',
+  'DELF/DALF',
+  'SAT',
+  'ACT',
+  'Other'
+];
+
+const COUNTRIES = ['United States of America', 'United Kingdom', 'Italy', 'Australia', 'Germany', 'Europe (Other)'];
+
+const DEGREE_OPTIONS = [
+  { value: 'Bachelors', label: 'Bachelors (Undergraduate)' },
+  { value: 'Masters', label: 'Masters' },
+  { value: 'MBA', label: 'MBA' },
+  { value: 'PhD', label: 'PhD / Doctorate' },
+  { value: 'Diploma', label: 'Diploma/Certificate' }
+];
+
+const TERM_OPTIONS = [
+  // { value: 'Fall 2025', label: 'Fall 2025' },
+  { value: 'Spring 2026', label: 'Spring 2026' },
+  { value: 'Fall 2026', label: 'Fall 2026' },
+  { value: '2027', label: '2027 or later' }
+];
+
+// Type definitions for component props
+interface InputFieldProps {
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (field: string, value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  field: string;
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  onChange: (field: string, value: string) => void;
+  options: SelectOption[];
+  required?: boolean;
+  disabled?: boolean;
+  field: string;
+}
+
+interface SectionProps {
+  id: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+  visible?: boolean;
+  isExpanded: boolean;
+  isComplete: boolean;
+  onToggle: (id: string) => void;
+}
+
+// Move these components outside to prevent recreation - FIXED INPUT FOCUS ISSUE
+const InputField = React.memo(({ label, type = "text", value, onChange, placeholder, required = false, disabled, field }: InputFieldProps) => {
+  return (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(field, e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
+      />
+    </div>
+  );
+});
+
+InputField.displayName = 'InputField';
+
+const SelectField = React.memo(({ label, value, onChange, options, required = false, disabled, field }: SelectFieldProps) => {
+  return (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(field, e.target.value)}
+        disabled={disabled}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
+      >
+        <option value="">Select...</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+});
+
+SelectField.displayName = 'SelectField';
+
+// FIXED: Section component moved outside and properly memoized
+const Section = React.memo(({ id, title, icon: Icon, children, visible = true, isExpanded, isComplete, onToggle }: SectionProps) => {
+  if (!visible) return null;
+
+  return (
+    <div className="mb-4 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all">
+      <button
+        type="button"
+        onClick={() => onToggle(id)}
+        className="w-full px-6 py-4 flex items-center justify-between bg-gradient-to-r from-red-50 to-white hover:from-red-100 hover:to-red-50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="w-5 h-5 text-red-600" />
+          <span className="font-semibold text-gray-800">{title}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {isComplete && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5 text-red-600" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-red-600" />
+          )}
+        </div>
+      </button>
+      
+      {isExpanded && (
+        <div className="px-6 py-5 bg-white">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+});
+
+Section.displayName = 'Section';
+
 const ProfilePage = () => {
   const { user } = useAuth();
-  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(!cachedFormData);
   const [saving, setSaving] = useState(false);
@@ -42,20 +235,166 @@ const ProfilePage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [hasProfile, setHasProfile] = useState(cachedHasProfile);
+  const [expandedSection, setExpandedSection] = useState('target');
 
   const [formData, setFormData] = useState<FormData>(
     cachedFormData || {
       name: '',
-      degree: '',
-      lastCourseCGPA: '',
-      cat: '',
-      session: '',
-      university: '',
-      program: '',
+      email: '',
+      phone: '',
+      city: '',
+      state: '',
+      target_countries: [],
+      target_degree: '',
+      target_field: '',
+      budget: '',
+      term: '',
+      tenth_board: '',
+      tenth_year: '',
+      tenth_score: '',
+      twelfth_board: '',
+      twelfth_year: '',
+      twelfth_score: '',
+      twelfth_stream: '',
+      ug_degree: '',
+      ug_university: '',
+      ug_year: '',
+      ug_score: '',
+      ug_field: '',
+      pg_degree: '',
+      pg_university: '',
+      pg_year: '',
+      pg_score: '',
+      pg_field: '',
+      testScores: [],
+      has_experience: '',
+      experience_years: '',
+      experience_field: '',
       extracurricular: '',
       verified: false
     }
   );
+
+  const getDefaultFormData = useCallback((): FormData => ({
+    name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
+    email: user?.email || '',
+    phone: '',
+    city: '',
+    state: '',
+    target_countries: [],
+    target_degree: '',
+    target_field: '',
+    budget: '',
+    term: '',
+    tenth_board: '',
+    tenth_year: '',
+    tenth_score: '',
+    twelfth_board: '',
+    twelfth_year: '',
+    twelfth_score: '',
+    twelfth_stream: '',
+    ug_degree: '',
+    ug_university: '',
+    ug_year: '',
+    ug_score: '',
+    ug_field: '',
+    pg_degree: '',
+    pg_university: '',
+    pg_year: '',
+    pg_score: '',
+    pg_field: '',
+    testScores: [],
+    has_experience: '',
+    experience_years: '',
+    experience_field: '',
+    extracurricular: '',
+    verified: false
+  }), [user]);
+
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data, error: fetchError } = await supabase
+        .from('admit_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Fetch error:', fetchError);
+        const defaultData = getDefaultFormData();
+        setFormData(defaultData);
+        cachedFormData = defaultData;
+        setHasProfile(false);
+        cachedHasProfile = false;
+        setIsEditing(true);
+      } else if (data) {
+        const profileData: FormData = {
+          name: data.name || '',
+          email: data.email || user?.email || '',
+          phone: data.phone || '',
+          city: data.city || '',
+          state: data.state || '',
+          target_countries: data.target_countries || [],
+          target_degree: data.degree || '',
+          target_field: data.program || '',
+          budget: data.budget || '',
+          term: data.term || data.intake_year || '',
+          tenth_board: data.tenth_board || '',
+          tenth_year: data.tenth_year || '',
+          tenth_score: data.tenth_score || '',
+          twelfth_board: data.twelfth_board || '',
+          twelfth_year: data.twelfth_year || '',
+          twelfth_score: data.twelfth_score || '',
+          twelfth_stream: data.twelfth_stream || '',
+          ug_degree: data.ug_degree || '',
+          ug_university: data.ug_university || '',
+          ug_year: data.ug_year || '',
+          ug_score: data.ug_score || '',
+          ug_field: data.ug_field || '',
+          pg_degree: data.pg_degree || '',
+          pg_university: data.pg_university || '',
+          pg_year: data.pg_year || '',
+          pg_score: data.pg_score || '',
+          pg_field: data.pg_field || '',
+          testScores: data.test_scores || [],
+          has_experience: data.has_experience || '',
+          experience_years: data.experience_years || '',
+          experience_field: data.experience_field || '',
+          extracurricular: data.extracurricular || '',
+          verified: data.verified || false
+        };
+        setFormData(profileData);
+        cachedFormData = profileData;
+        setHasProfile(true);
+        cachedHasProfile = true;
+        cacheTimestamp = Date.now();
+      } else {
+        const defaultData = getDefaultFormData();
+        setFormData(defaultData);
+        cachedFormData = defaultData;
+        setHasProfile(false);
+        cachedHasProfile = false;
+        setIsEditing(true);
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      const defaultData = getDefaultFormData();
+      setFormData(defaultData);
+      cachedFormData = defaultData;
+      setHasProfile(false);
+      cachedHasProfile = false;
+      setIsEditing(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, getDefaultFormData]);
 
   useEffect(() => {
     if (user) {
@@ -68,124 +407,113 @@ const ProfilePage = () => {
         setLoading(false);
       }
     }
-  }, [user]);
+  }, [user, fetchUserProfile]);
 
-  const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      const { data, error: fetchError } = await supabase
-        .from('admit_profiles')
-        .select('name, degree, last_course_cgpa, cat, session, university, program, extracurricular, verified')
-        .eq('user_id', user.id)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Fetch error:', fetchError);
-        const defaultName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
-        const defaultData = {
-          name: defaultName,
-          degree: '',
-          lastCourseCGPA: '',
-          cat: '',
-          session: '',
-          university: '',
-          program: '',
-          extracurricular: '',
-          verified: false
-        };
-        setFormData(defaultData);
-        cachedFormData = defaultData;
-        setHasProfile(false);
-        cachedHasProfile = false;
-        setIsEditing(true);
-      } else if (data) {
-        const profileData = {
-          name: data.name || '',
-          degree: data.degree || '',
-          lastCourseCGPA: data.last_course_cgpa || '',
-          cat: data.cat?.toString() || '',
-          session: data.session || '',
-          university: data.university || '',
-          program: data.program || '',
-          extracurricular: data.extracurricular || '',
-          verified: data.verified || false
-        };
-        setFormData(profileData);
-        cachedFormData = profileData;
-        setHasProfile(true);
-        cachedHasProfile = true;
-        cacheTimestamp = Date.now();
-      } else {
-        const defaultName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
-        const defaultData = {
-          name: defaultName,
-          degree: '',
-          lastCourseCGPA: '',
-          cat: '',
-          session: '',
-          university: '',
-          program: '',
-          extracurricular: '',
-          verified: false
-        };
-        setFormData(defaultData);
-        cachedFormData = defaultData;
-        setHasProfile(false);
-        cachedHasProfile = false;
-        setIsEditing(true);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      const defaultName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
-      const defaultData = {
-        name: defaultName,
-        degree: '',
-        lastCourseCGPA: '',
-        cat: '',
-        session: '',
-        university: '',
-        program: '',
-        extracurricular: '',
-        verified: false
-      };
-      setFormData(defaultData);
-      cachedFormData = defaultData;
-      setHasProfile(false);
-      cachedHasProfile = false;
-      setIsEditing(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fixed: Properly memoized input change handler with field parameter
   const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
   }, []);
+
+  const handleMultiSelect = useCallback((value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      target_countries: prev.target_countries.includes(value)
+        ? prev.target_countries.filter(c => c !== value)
+        : [...prev.target_countries, value]
+    }));
+    setError('');
+  }, []);
+
+  const handleTestScoreChange = useCallback((index: number, field: 'exam' | 'score', value: string) => {
+    setFormData(prev => {
+      const newTestScores = [...prev.testScores];
+      newTestScores[index] = { ...newTestScores[index], [field]: value };
+      return { ...prev, testScores: newTestScores };
+    });
+    setError('');
+  }, []);
+
+  const addTestScore = useCallback(() => {
+    setFormData(prev => ({
+      ...prev,
+      testScores: [...prev.testScores, { exam: '', score: '' }]
+    }));
+  }, []);
+
+  const removeTestScore = useCallback((index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      testScores: prev.testScores.filter((_, i) => i !== index)
+    }));
+  }, []);
+
+  const toggleSection = useCallback((section: string) => {
+    setExpandedSection(prev => prev === section ? '' : section);
+  }, []);
+
+  const shouldShowUG = useMemo(() => ['Masters', 'MBA', 'PhD'].includes(formData.target_degree), [formData.target_degree]);
+  const shouldShowPG = useMemo(() => formData.target_degree === 'PhD', [formData.target_degree]);
+  const shouldShowWorkExp = useMemo(() => ['Masters', 'MBA', 'PhD'].includes(formData.target_degree), [formData.target_degree]);
+
+  const isSectionComplete = useCallback((section: string): boolean => {
+    switch(section) {
+      case 'target':
+        return !!(formData.target_countries.length > 0 && formData.target_degree && formData.target_field);
+      case 'personal':
+        return !!(formData.name && formData.email && formData.phone && formData.city);
+      case 'tenth':
+        return !!(formData.tenth_board && formData.tenth_year && formData.tenth_score);
+      case 'twelfth':
+        return !!(formData.twelfth_board && formData.twelfth_year && formData.twelfth_score && formData.twelfth_stream);
+      case 'ug':
+        return !shouldShowUG || !!(formData.ug_degree && formData.ug_university && formData.ug_year && formData.ug_score);
+      case 'pg':
+        return !shouldShowPG || !!(formData.pg_degree && formData.pg_university && formData.pg_year);
+      case 'tests':
+        return formData.testScores.length > 0;
+      case 'experience':
+        return !shouldShowWorkExp || !!formData.has_experience;
+      default:
+        return false;
+    }
+  }, [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp]);
 
   const validateForm = useCallback(() => {
     if (!formData.name.trim()) {
       setError('Please enter your name');
       return false;
     }
-    if (!formData.degree) {
-      setError('Please select your degree type');
+    if (!formData.email.trim()) {
+      setError('Please enter your email');
       return false;
     }
-    if (!formData.lastCourseCGPA) {
-      setError('Please enter your last course CGPA/Percentage');
+    if (!formData.phone.trim()) {
+      setError('Please enter your phone number');
       return false;
     }
-    if (formData.cat && (parseInt(formData.cat) < 0 || parseInt(formData.cat) > 204)) {
-      setError('CAT score must be between 0 and 204');
+    if (formData.target_countries.length === 0) {
+      setError('Please select at least one preferred country');
       return false;
     }
+    if (!formData.target_degree) {
+      setError('Please select your target degree');
+      return false;
+    }
+    if (!formData.target_field) {
+      setError('Please enter your field of interest');
+      return false;
+    }
+    
+    // Validate test scores
+    for (let i = 0; i < formData.testScores.length; i++) {
+      const test = formData.testScores[i];
+      if (!test.exam || !test.score) {
+        setError(`Please complete test score #${i + 1} or remove it`);
+        return false;
+      }
+    }
+    
     return true;
   }, [formData]);
 
@@ -198,16 +526,46 @@ const ProfilePage = () => {
 
       if (!user) throw new Error('User not authenticated');
 
+      // Filter out empty test scores
+      const validTestScores = formData.testScores.filter(
+        test => test.exam && test.score
+      );
+
       const profileData = {
         user_id: user.id,
         name: formData.name,
-        degree: formData.degree,
-        last_course_cgpa: formData.lastCourseCGPA,
-        cat: formData.cat ? parseInt(formData.cat) : null,
-        session: formData.session,
-        university: formData.university,
-        program: formData.program,
-        extracurricular: formData.extracurricular,
+        email: formData.email,
+        phone: formData.phone,
+        city: formData.city || null,
+        state: formData.state || null,
+        target_countries: formData.target_countries,
+        degree: formData.target_degree,
+        program: formData.target_field,
+        budget: formData.budget || null,
+        term: formData.term || null,
+        intake_year: formData.term || null,
+        tenth_board: formData.tenth_board || null,
+        tenth_year: formData.tenth_year || null,
+        tenth_score: formData.tenth_score || null,
+        twelfth_board: formData.twelfth_board || null,
+        twelfth_year: formData.twelfth_year || null,
+        twelfth_score: formData.twelfth_score || null,
+        twelfth_stream: formData.twelfth_stream || null,
+        ug_degree: formData.ug_degree || null,
+        ug_university: formData.ug_university || null,
+        ug_year: formData.ug_year || null,
+        ug_score: formData.ug_score || null,
+        ug_field: formData.ug_field || null,
+        pg_degree: formData.pg_degree || null,
+        pg_university: formData.pg_university || null,
+        pg_year: formData.pg_year || null,
+        pg_score: formData.pg_score || null,
+        pg_field: formData.pg_field || null,
+        test_scores: validTestScores,
+        has_experience: formData.has_experience || null,
+        experience_years: formData.experience_years || null,
+        experience_field: formData.experience_field || null,
+        extracurricular: formData.extracurricular || null,
         applications_count: 1,
         avatar_type: 'S',
         verified: formData.verified,
@@ -233,10 +591,9 @@ const ProfilePage = () => {
         setSuccessMessage('Profile created successfully!');
       }
 
-      // Update cache
       cachedFormData = formData;
       cacheTimestamp = Date.now();
-      invalidateProfileCache(); // Clear dashboard cache too
+      invalidateProfileCache();
 
       setIsEditing(false);
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -262,18 +619,7 @@ const ProfilePage = () => {
 
       if (deleteError) throw deleteError;
 
-      const defaultData = {
-        name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
-        degree: '',
-        lastCourseCGPA: '',
-        cat: '',
-        session: '',
-        university: '',
-        program: '',
-        extracurricular: '',
-        verified: false
-      };
-
+      const defaultData = getDefaultFormData();
       setFormData(defaultData);
       cachedFormData = defaultData;
       setHasProfile(false);
@@ -304,6 +650,88 @@ const ProfilePage = () => {
     return formData.name ? formData.name.charAt(0).toUpperCase() : 'U';
   }, [formData.name]);
 
+  // Calculate EduScore
+  const eduScore = useMemo(() => {
+    let score = 0;
+    
+    // Target Program (15 points)
+    if (formData.target_countries.length > 0) score += 3;
+    if (formData.target_degree) score += 4;
+    if (formData.target_field) score += 4;
+    if (formData.term) score += 2;
+    if (formData.budget) score += 2;
+    
+    // Personal Information (10 points)
+    if (formData.name) score += 2;
+    if (formData.email) score += 2;
+    if (formData.phone) score += 2;
+    if (formData.city) score += 2;
+    if (formData.state) score += 2;
+    
+    // 10th Grade (10 points)
+    if (formData.tenth_board) score += 3;
+    if (formData.tenth_year) score += 3;
+    if (formData.tenth_score) score += 4;
+    
+    // 12th Grade (10 points)
+    if (formData.twelfth_board) score += 3;
+    if (formData.twelfth_year) score += 2;
+    if (formData.twelfth_score) score += 3;
+    if (formData.twelfth_stream) score += 2;
+    
+    // Undergraduate (15 points if applicable)
+    if (shouldShowUG) {
+      if (formData.ug_degree) score += 3;
+      if (formData.ug_university) score += 3;
+      if (formData.ug_year) score += 3;
+      if (formData.ug_score) score += 3;
+      if (formData.ug_field) score += 3;
+    }
+    
+    // Postgraduate (15 points if applicable)
+    if (shouldShowPG) {
+      if (formData.pg_degree) score += 3;
+      if (formData.pg_university) score += 3;
+      if (formData.pg_year) score += 3;
+      if (formData.pg_score) score += 3;
+      if (formData.pg_field) score += 3;
+    }
+    
+    // Test Scores (10 points)
+    if (formData.testScores.length > 0) {
+      const validTests = formData.testScores.filter(t => t.exam && t.score);
+      score += Math.min(validTests.length * 3, 10);
+    }
+    
+    // Work Experience (5 points if applicable)
+    if (shouldShowWorkExp) {
+      if (formData.has_experience === 'Yes') {
+        score += 2;
+        if (formData.experience_years) score += 2;
+        if (formData.experience_field) score += 1;
+      }
+    }
+    
+    // Extracurricular (5 points)
+    if (formData.extracurricular && formData.extracurricular.trim().length > 20) {
+      score += 5;
+    }
+    
+    // Normalize score to 45-90 range
+    const maxPossibleScore = 90;
+    const normalizedScore = Math.max(45, Math.min(90, Math.round((score / maxPossibleScore) * 90)));
+    
+    return normalizedScore;
+  }, [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp]);
+
+  const getScoreColor = useCallback((score: number) => {
+    if (score >= 75) return { color: '#10b981', label: 'Excellent' }; // green
+    if (score >= 60) return { color: '#f59e0b', label: 'Good' }; // orange
+    return { color: '#ef4444', label: 'Needs Improvement' }; // red
+  }, []);
+
+  const scoreInfo = useMemo(() => getScoreColor(eduScore), [eduScore, getScoreColor]);
+
   if (loading) {
     return (
       <DefaultLayout>
@@ -319,15 +747,59 @@ const ProfilePage = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 p-8 overflow-y-auto">
+      <div className="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-red-50 via-white to-red-50">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
+                {/* Avatar */}
                 <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-pink-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
                   {userInitial}
                 </div>
+                
+                {/* EduScore Circle */}
+                <div className="flex flex-col items-center">
+                  <div className="relative w-24 h-24">
+                    <svg className="w-24 h-24 transform -rotate-90">
+                      {/* Background circle */}
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="40"
+                        stroke="#e5e7eb"
+                        strokeWidth="8"
+                        fill="none"
+                      />
+                      {/* Progress circle */}
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="40"
+                        stroke={scoreInfo.color}
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={`${(eduScore / 90) * 251.2} 251.2`}
+                        strokeLinecap="round"
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold" style={{ color: scoreInfo.color }}>
+                        {eduScore}
+                      </span>
+                      <span className="text-xs text-gray-500">/ 90</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-center">
+                    <div className="text-xs font-semibold text-gray-600">EduScore</div>
+                    <div className="text-xs" style={{ color: scoreInfo.color }}>
+                      {scoreInfo.label}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title */}
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800">
                     {hasProfile ? 'My Profile' : 'Create Your Profile'}
@@ -407,154 +879,500 @@ const ProfilePage = () => {
           )}
 
           {/* Form Sections */}
-          <div className="space-y-6">
-            {/* Personal Information */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <User className="text-red-600" size={24} />
-                <h2 className="text-2xl font-bold text-gray-800">Personal Information</h2>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Degree Type *
-                  </label>
-                  <select
-                    value={formData.degree}
-                    onChange={(e) => handleInputChange('degree', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                  >
-                    <option value="">Select Degree</option>
-                    <option value="UG">Undergraduate (UG)</option>
-                    <option value="PG">Postgraduate (PG)</option>
-                    <option value="PhD">Doctor of Philosophy (PhD)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Course CGPA/Percentage *
-                    <span className="text-xs text-gray-500 ml-2">
-                      (12th for UG, UG for PG, PG for PhD)
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.lastCourseCGPA}
-                    onChange={(e) => handleInputChange('lastCourseCGPA', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                    placeholder="e.g., 8.5 or 85%"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Test Scores */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <BookOpen className="text-red-600" size={24} />
-                <h2 className="text-2xl font-bold text-gray-800">Test Scores</h2>
-              </div>
-
-              <div>
+          <div className="space-y-4">
+            {/* Target Program */}
+            <Section 
+              id="target" 
+              title="What are you looking to study?" 
+              icon={Target}
+              isExpanded={expandedSection === 'target'}
+              isComplete={isSectionComplete('target')}
+              onToggle={toggleSection}
+            >
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  CAT Score
-                  <span className="text-xs text-gray-500 ml-2">(Max: 204)</span>
+                  Preferred Countries <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="204"
-                  value={formData.cat}
-                  onChange={(e) => handleInputChange('cat', e.target.value)}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {COUNTRIES.map(country => (
+                    <button
+                      key={country}
+                      type="button"
+                      onClick={() => isEditing && handleMultiSelect(country)}
+                      disabled={!isEditing}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        formData.target_countries.includes(country)
+                          ? 'border-red-600 bg-red-50 text-red-700 font-medium'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400'
+                      } ${!isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    >
+                      {country}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <SelectField
+                  label="What degree are you applying for?"
+                  value={formData.target_degree}
+                  onChange={handleInputChange}
+                  field="target_degree"
+                  options={DEGREE_OPTIONS}
+                  required
                   disabled={!isEditing}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                  placeholder="0-204"
+                />
+                <InputField
+                  label="Field of Interest"
+                  value={formData.target_field}
+                  onChange={handleInputChange}
+                  field="target_field"
+                  placeholder="Computer Science, MBA, Medicine, etc."
+                  required
+                  disabled={!isEditing}
+                />
+                <SelectField
+                  label="When do you plan to start?"
+                  value={formData.term}
+                  onChange={handleInputChange}
+                  field="term"
+                  options={TERM_OPTIONS}
+                  disabled={!isEditing}
+                />
+                <SelectField
+                  label="Budget Range (Annual)"
+                  value={formData.budget}
+                  onChange={handleInputChange}
+                  field="budget"
+                  options={[
+                    { value: 'Under 10L', label: 'Under ₹10 Lakhs' },
+                    { value: '10-20L', label: '₹10-20 Lakhs' },
+                    { value: '20-30L', label: '₹20-30 Lakhs' },
+                    { value: 'Above 30L', label: 'Above ₹30 Lakhs' }
+                  ]}
+                  disabled={!isEditing}
                 />
               </div>
-            </div>
+            </Section>
 
-            {/* Academic Goals */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <Award className="text-red-600" size={24} />
-                <h2 className="text-2xl font-bold text-gray-800">Academic Goals</h2>
+            {/* Personal Information */}
+            <Section 
+              id="personal" 
+              title="Personal Information" 
+              icon={User}
+              isExpanded={expandedSection === 'personal'}
+              isComplete={isSectionComplete('personal')}
+              onToggle={toggleSection}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Full Name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  field="name"
+                  placeholder="Enter your full name"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Email Address"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  field="email"
+                  placeholder="your.email@example.com"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Phone Number"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  field="phone"
+                  placeholder="+91 XXXXX XXXXX"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="City"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  field="city"
+                  placeholder="Your city"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="State"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                  field="state"
+                  placeholder="Your state"
+                  disabled={!isEditing}
+                />
+              </div>
+            </Section>
+
+            {/* 10th Grade */}
+            <Section 
+              id="tenth" 
+              title="10th Grade Details" 
+              icon={GraduationCap}
+              isExpanded={expandedSection === 'tenth'}
+              isComplete={isSectionComplete('tenth')}
+              onToggle={toggleSection}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <SelectField
+                  label="Board"
+                  value={formData.tenth_board}
+                  onChange={handleInputChange}
+                  field="tenth_board"
+                  options={[
+                    { value: 'CBSE', label: 'CBSE' },
+                    { value: 'ICSE', label: 'ICSE' },
+                    { value: 'State Board', label: 'State Board' },
+                    { value: 'Other', label: 'Other' }
+                  ]}
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Year of Passing"
+                  type="number"
+                  value={formData.tenth_year}
+                  onChange={handleInputChange}
+                  field="tenth_year"
+                  placeholder="2019"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Percentage/CGPA"
+                  value={formData.tenth_score}
+                  onChange={handleInputChange}
+                  field="tenth_score"
+                  placeholder="85% or 9.5 CGPA"
+                  required
+                  disabled={!isEditing}
+                />
+              </div>
+            </Section>
+
+            {/* 12th Grade */}
+            <Section 
+              id="twelfth" 
+              title="12th Grade Details" 
+              icon={GraduationCap}
+              isExpanded={expandedSection === 'twelfth'}
+              isComplete={isSectionComplete('twelfth')}
+              onToggle={toggleSection}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <SelectField
+                  label="Board"
+                  value={formData.twelfth_board}
+                  onChange={handleInputChange}
+                  field="twelfth_board"
+                  options={[
+                    { value: 'CBSE', label: 'CBSE' },
+                    { value: 'ICSE', label: 'ICSE' },
+                    { value: 'State Board', label: 'State Board' },
+                    { value: 'Other', label: 'Other' }
+                  ]}
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Year of Passing"
+                  type="number"
+                  value={formData.twelfth_year}
+                  onChange={handleInputChange}
+                  field="twelfth_year"
+                  placeholder="2021"
+                  required
+                  disabled={!isEditing}
+                />
+                <SelectField
+                  label="Stream"
+                  value={formData.twelfth_stream}
+                  onChange={handleInputChange}
+                  field="twelfth_stream"
+                  options={[
+                    { value: 'Science', label: 'Science' },
+                    { value: 'Commerce', label: 'Commerce' },
+                    { value: 'Arts', label: 'Arts' },
+                    { value: 'Other', label: 'Other' }
+                  ]}
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Percentage/CGPA"
+                  value={formData.twelfth_score}
+                  onChange={handleInputChange}
+                  field="twelfth_score"
+                  placeholder="88% or 9.2 CGPA"
+                  required
+                  disabled={!isEditing}
+                />
+              </div>
+            </Section>
+
+            {/* Undergraduate */}
+            <Section 
+              id="ug" 
+              title="Undergraduate Details" 
+              icon={GraduationCap} 
+              visible={shouldShowUG}
+              isExpanded={expandedSection === 'ug'}
+              isComplete={isSectionComplete('ug')}
+              onToggle={toggleSection}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Degree"
+                  value={formData.ug_degree}
+                  onChange={handleInputChange}
+                  field="ug_degree"
+                  placeholder="B.Tech, B.Sc, B.Com, etc."
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="University/College"
+                  value={formData.ug_university}
+                  onChange={handleInputChange}
+                  field="ug_university"
+                  placeholder="Name of institution"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Field of Study"
+                  value={formData.ug_field}
+                  onChange={handleInputChange}
+                  field="ug_field"
+                  placeholder="Computer Science, Mechanical, etc."
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Year of Graduation"
+                  type="number"
+                  value={formData.ug_year}
+                  onChange={handleInputChange}
+                  field="ug_year"
+                  placeholder="2024"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="CGPA/Percentage"
+                  value={formData.ug_score}
+                  onChange={handleInputChange}
+                  field="ug_score"
+                  placeholder="8.5 CGPA or 85%"
+                  required
+                  disabled={!isEditing}
+                />
+              </div>
+            </Section>
+
+            {/* Postgraduate */}
+            <Section 
+              id="pg" 
+              title="Postgraduate/Masters Details" 
+              icon={GraduationCap} 
+              visible={shouldShowPG}
+              isExpanded={expandedSection === 'pg'}
+              isComplete={isSectionComplete('pg')}
+              onToggle={toggleSection}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Degree"
+                  value={formData.pg_degree}
+                  onChange={handleInputChange}
+                  field="pg_degree"
+                  placeholder="M.Tech, M.Sc, MBA, etc."
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="University"
+                  value={formData.pg_university}
+                  onChange={handleInputChange}
+                  field="pg_university"
+                  placeholder="Name of institution"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Field of Study"
+                  value={formData.pg_field}
+                  onChange={handleInputChange}
+                  field="pg_field"
+                  placeholder="Specialization"
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="Year of Graduation"
+                  type="number"
+                  value={formData.pg_year}
+                  onChange={handleInputChange}
+                  field="pg_year"
+                  placeholder="2024"
+                  required
+                  disabled={!isEditing}
+                />
+                <InputField
+                  label="CGPA/Percentage"
+                  value={formData.pg_score}
+                  onChange={handleInputChange}
+                  field="pg_score"
+                  placeholder="8.5 CGPA or 85%"
+                  disabled={!isEditing}
+                />
+              </div>
+            </Section>
+
+            {/* Test Scores */}
+            <Section 
+              id="tests" 
+              title="Test Scores" 
+              icon={BookOpen}
+              isExpanded={expandedSection === 'tests'}
+              isComplete={isSectionComplete('tests')}
+              onToggle={toggleSection}
+            >
+              <div className="flex items-center justify-between mb-4">
+                {isEditing && (
+                  <button
+                    onClick={addTestScore}
+                    className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all ml-auto"
+                  >
+                    <Plus size={18} />
+                    Add Test
+                  </button>
+                )}
               </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target Session
-                    </label>
-                    <select
-                      value={formData.session}
-                      onChange={(e) => handleInputChange('session', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                    >
-                      <option value="">Select Session</option>
-                      <option value="2025">2025</option>
-                      <option value="2026">2026</option>
-                      <option value="2027">2027</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target University
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.university}
-                      onChange={(e) => handleInputChange('university', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                      placeholder="e.g., Stanford University"
-                    />
-                  </div>
+              {formData.testScores.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  {isEditing ? (
+                    <p>No test scores added yet. Click &quot;Add Test&quot; to add your scores.</p>
+                  ) : (
+                    <p>No test scores available.</p>
+                  )}
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  {formData.testScores.map((test, index) => (
+                    <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Exam Type
+                        </label>
+                        {isEditing ? (
+                          <select
+                            value={test.exam}
+                            onChange={(e) => handleTestScoreChange(index, 'exam', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          >
+                            <option value="">Select Exam</option>
+                            {COMMON_EXAMS.map(exam => (
+                              <option key={exam} value={exam}>{exam}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <p className="px-4 py-3 bg-gray-100 rounded-lg">{test.exam}</p>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Score
+                        </label>
+                        <input
+                          type="text"
+                          value={test.score}
+                          onChange={(e) => handleTestScoreChange(index, 'score', e.target.value)}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
+                          placeholder="e.g., 325, 7.5, 110"
+                        />
+                      </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Program/Major
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.program}
-                    onChange={(e) => handleInputChange('program', e.target.value)}
+                      {isEditing && (
+                        <button
+                          onClick={() => removeTestScore(index)}
+                          className="mt-8 p-3 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Remove test"
+                        >
+                          <Minus size={20} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Section>
+
+            {/* Work Experience */}
+            <Section 
+              id="experience" 
+              title="Work Experience" 
+              icon={Award} 
+              visible={shouldShowWorkExp}
+              isExpanded={expandedSection === 'experience'}
+              isComplete={isSectionComplete('experience')}
+              onToggle={toggleSection}
+            >
+              <SelectField
+                label="Do you have work experience?"
+                value={formData.has_experience}
+                onChange={handleInputChange}
+                field="has_experience"
+                options={[
+                  { value: 'Yes', label: 'Yes' },
+                  { value: 'No', label: 'No' }
+                ]}
+                required
+                disabled={!isEditing}
+              />
+              {formData.has_experience === 'Yes' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <InputField
+                    label="Years of Experience"
+                    type="number"
+                    value={formData.experience_years}
+                    onChange={handleInputChange}
+                    field="experience_years"
+                    placeholder="2"
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                    placeholder="e.g., Computer Science"
+                  />
+                  <InputField
+                    label="Field/Industry"
+                    value={formData.experience_field}
+                    onChange={handleInputChange}
+                    field="experience_field"
+                    placeholder="IT, Finance, Healthcare, etc."
+                    disabled={!isEditing}
                   />
                 </div>
-              </div>
-            </div>
+              )}
+            </Section>
 
             {/* Extracurricular Activities */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <Trophy className="text-red-600" size={24} />
-                <h2 className="text-2xl font-bold text-gray-800">Extracurricular Activities</h2>
-              </div>
-
+            <Section 
+              id="extra" 
+              title="Extracurricular Activities" 
+              icon={Trophy}
+              isExpanded={expandedSection === 'extra'}
+              isComplete={false}
+              onToggle={toggleSection}
+            >
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Describe your achievements, activities, and experiences
@@ -568,14 +1386,14 @@ const ProfilePage = () => {
                   placeholder="Include sports, volunteer work, leadership roles, competitions, research projects, internships, etc."
                 />
               </div>
-            </div>
+            </Section>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Centered at Bottom */}
             {isEditing && (
-              <div className="flex items-center justify-end gap-4">
+              <div className="flex items-center justify-center gap-4 mt-8 pb-4">
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                  className="flex items-center gap-2 px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
                 >
                   <X size={18} />
                   Cancel
@@ -583,7 +1401,7 @@ const ProfilePage = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all ${
+                  className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all ${
                     saving ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
                 >

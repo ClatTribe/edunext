@@ -16,10 +16,10 @@ const RegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in
+  // ✅ Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.push('/');
+      router.replace('/'); // Use replace to prevent back button issues
     }
   }, [user, loading, router]);
 
@@ -33,9 +33,10 @@ const RegisterPage = () => {
         const { error } = await signIn(email, password);
         if (error) {
           setError(error.message || 'Invalid email or password');
-        } else {
-          router.push('/');
+          setIsSubmitting(false); // ✅ Only stop submitting on error
         }
+        // ✅ REMOVED router.push('/') - let the useEffect handle redirect
+        // When signIn succeeds, AuthContext updates user state → useEffect redirects
       } else {
         if (!fullName.trim()) {
           setError('Please enter your full name');
@@ -45,8 +46,10 @@ const RegisterPage = () => {
         const { error } = await signUp(email, password, fullName);
         if (error) {
           setError(error.message || 'Failed to create account');
+          setIsSubmitting(false);
         } else {
           setSuccessMessage('Account created successfully! Please check your email to verify your account.');
+          setIsSubmitting(false);
           setTimeout(() => {
             setIsLogin(true);
             setEmail('');
@@ -59,7 +62,6 @@ const RegisterPage = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -74,7 +76,7 @@ const RegisterPage = () => {
         setError(error.message || 'Failed to sign in with Google');
         setIsSubmitting(false);
       }
-      // Don't set isSubmitting to false here as user will be redirected
+      // Don't set isSubmitting to false on success - user will be redirected
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
@@ -100,7 +102,7 @@ const RegisterPage = () => {
   }
 
   if (user) {
-    return null;
+    return null; // Will redirect via useEffect
   }
 
   return (
@@ -189,7 +191,7 @@ const RegisterPage = () => {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isSubmitting}
-              className="w-full mb-6 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3"
+              className="w-full mb-6 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

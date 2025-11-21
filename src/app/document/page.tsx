@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Upload, FileText, CheckCircle, X, AlertCircle, Download, RefreshCw, ArrowLeft, Info } from 'lucide-react';
+import { Upload, FileText, CheckCircle, X, AlertCircle, Download, RefreshCw, ArrowLeft, Info, MessageSquare, Clock, Check } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import DefaultLayout from '../defaultLayout';
 
-type DocumentType = 'resume' | 'sop';
+type DocumentType = 'lor' | 'sop' | 'resume';
 
 interface UploadedDocument {
   name: string;
@@ -15,36 +15,60 @@ interface UploadedDocument {
 }
 
 interface DocumentState {
-  resume: UploadedDocument | null;
+  lor: UploadedDocument | null;
   sop: UploadedDocument | null;
+  resume: UploadedDocument | null;
 }
 
 interface UploadingState {
-  resume: boolean;
+  lor: boolean;
   sop: boolean;
+  resume: boolean;
 }
 
 interface ErrorState {
-  resume: string | null;
+  lor: string | null;
   sop: string | null;
+  resume: string | null;
+}
+
+interface DocumentFeedback {
+  text: string | null;
+  updatedAt: string | null;
+  commentBy: string | null;
+  status: boolean;
+}
+
+interface FeedbackState {
+  lor: DocumentFeedback;
+  sop: DocumentFeedback;
+  resume: DocumentFeedback;
 }
 
 const DocumentUploadPage = () => {
   const { user } = useAuth();
   const [documents, setDocuments] = useState<DocumentState>({
-    resume: null,
-    sop: null
+    lor: null,
+    sop: null,
+    resume: null
   });
   const [uploading, setUploading] = useState<UploadingState>({
-    resume: false,
-    sop: false
+    lor: false,
+    sop: false,
+    resume: false
   });
   const [errors, setErrors] = useState<ErrorState>({
-    resume: null,
-    sop: null
+    lor: null,
+    sop: null,
+    resume: null
   });
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState('');
+  const [feedback, setFeedback] = useState<FeedbackState>({
+    lor: { text: null, updatedAt: null, commentBy: null, status: false },
+    sop: { text: null, updatedAt: null, commentBy: null, status: false },
+    resume: { text: null, updatedAt: null, commentBy: null, status: false }
+  });
 
   useEffect(() => {
     if (user) {
@@ -58,48 +82,87 @@ const DocumentUploadPage = () => {
       
       if (!user) return;
 
-      // Get username from user metadata or email
       const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
       setUsername(userName);
 
-      // Fetch documents from database
+      console.log('Fetching documents for user:', user.id);
+
       const { data, error: fetchError } = await supabase
         .from('student_documents')
         .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         console.error('Fetch error:', fetchError);
         return;
       }
 
-      if (data) {
-        // Set resume if exists
-        if (data.resume_url) {
+      if (data && data.length > 0) {
+        const studentData = data[0];
+        console.log('Student data found:', studentData);
+
+        // Set LOR if exists
+        if (studentData.lor_url) {
           setDocuments(prev => ({
             ...prev,
-            resume: {
-              name: data.resume_name,
-              size: data.resume_size,
-              uploadDate: data.resume_uploaded_at,
-              url: data.resume_url
+            lor: {
+              name: studentData.lor_name,
+              size: studentData.lor_size,
+              uploadDate: studentData.lor_uploaded_at,
+              url: studentData.lor_url
             }
           }));
         }
 
         // Set SOP if exists
-        if (data.sop_url) {
+        if (studentData.sop_url) {
           setDocuments(prev => ({
             ...prev,
             sop: {
-              name: data.sop_name,
-              size: data.sop_size,
-              uploadDate: data.sop_uploaded_at,
-              url: data.sop_url
+              name: studentData.sop_name,
+              size: studentData.sop_size,
+              uploadDate: studentData.sop_uploaded_at,
+              url: studentData.sop_url
             }
           }));
         }
+
+        // Set resume if exists
+        if (studentData.resume_url) {
+          setDocuments(prev => ({
+            ...prev,
+            resume: {
+              name: studentData.resume_name,
+              size: studentData.resume_size,
+              uploadDate: studentData.resume_uploaded_at,
+              url: studentData.resume_url
+            }
+          }));
+        }
+
+        // Set feedback for each document
+        setFeedback({
+          lor: {
+            text: studentData.lor_feedback,
+            updatedAt: studentData.lor_feedback_updated_at,
+            commentBy: studentData.lor_feedback_by,
+            status: studentData.lor_status || false
+          },
+          sop: {
+            text: studentData.sop_feedback,
+            updatedAt: studentData.sop_feedback_updated_at,
+            commentBy: studentData.sop_feedback_by,
+            status: studentData.sop_status || false
+          },
+          resume: {
+            text: studentData.resume_feedback,
+            updatedAt: studentData.resume_feedback_updated_at,
+            commentBy: studentData.resume_feedback_by,
+            status: studentData.resume_status || false
+          }
+        });
+      } else {
+        console.log('No existing documents found for user');
       }
     } catch (err) {
       console.error('Error fetching documents:', err);
@@ -109,7 +172,7 @@ const DocumentUploadPage = () => {
   };
 
   const validateFile = (file: File): string | null => {
-    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    const maxSize = 2 * 1024 * 1024;
     const allowedTypes = [
       'application/pdf',
       'application/msword',
@@ -135,6 +198,8 @@ const DocumentUploadPage = () => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}/${type}_${Date.now()}.${fileExt}`;
 
+    console.log('Uploading file to storage:', fileName);
+
     const { data, error } = await supabase.storage
       .from('student-documents')
       .upload(fileName, file, {
@@ -142,12 +207,16 @@ const DocumentUploadPage = () => {
         upsert: true
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw error;
+    }
 
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('student-documents')
       .getPublicUrl(fileName);
+
+    console.log('File uploaded successfully. Public URL:', publicUrl);
 
     return { path: data.path, url: publicUrl };
   };
@@ -169,34 +238,44 @@ const DocumentUploadPage = () => {
       updated_at: new Date().toISOString()
     };
 
-    // Check if record exists
+    console.log('Saving document to database:', documentData);
+
     const { data: existingData } = await supabase
       .from('student_documents')
       .select('id')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
 
-    if (existingData) {
-      // Update existing record
+    if (existingData && existingData.length > 0) {
+      console.log('Updating existing record');
       const { error } = await supabase
         .from('student_documents')
         .update(documentData)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database update error:', error);
+        throw error;
+      }
     } else {
-      // Insert new record
+      console.log('Inserting new record');
       const { error } = await supabase
         .from('student_documents')
         .insert([{ ...documentData, created_at: new Date().toISOString() }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw error;
+      }
     }
+
+    console.log('Document saved to database successfully');
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, type: DocumentType) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    console.log('File selected:', file.name, 'Type:', type);
 
     const error = validateFile(file);
     if (error) {
@@ -208,13 +287,9 @@ const DocumentUploadPage = () => {
     setUploading(prev => ({ ...prev, [type]: true }));
 
     try {
-      // Upload file to storage
       const { url } = await uploadFileToStorage(file, type);
-
-      // Save document info to database
       await saveDocumentToDatabase(type, file, url);
 
-      // Update local state
       setDocuments(prev => ({
         ...prev,
         [type]: {
@@ -226,6 +301,7 @@ const DocumentUploadPage = () => {
       }));
 
       setErrors(prev => ({ ...prev, [type]: null }));
+      console.log('Upload complete for', type);
     } catch (err) {
       console.error('Upload error:', err);
       setErrors(prev => ({ 
@@ -264,16 +340,15 @@ const DocumentUploadPage = () => {
     try {
       setUploading(prev => ({ ...prev, [type]: true }));
 
-      // Delete from storage
       const doc = documents[type];
       if (doc && doc.url) {
         const path = doc.url.split('/').slice(-2).join('/');
+        console.log('Deleting file from storage:', path);
         await supabase.storage
           .from('student-documents')
           .remove([path]);
       }
 
-      // Update database
       const updateData = {
         [`${type}_name`]: null,
         [`${type}_url`]: null,
@@ -282,6 +357,7 @@ const DocumentUploadPage = () => {
         updated_at: new Date().toISOString()
       };
 
+      console.log('Updating database to remove document');
       await supabase
         .from('student_documents')
         .update(updateData)
@@ -289,6 +365,7 @@ const DocumentUploadPage = () => {
 
       setDocuments(prev => ({ ...prev, [type]: null }));
       setErrors(prev => ({ ...prev, [type]: null }));
+      console.log('Document deleted successfully');
     } catch (err) {
       console.error('Delete error:', err);
       setErrors(prev => ({ 
@@ -337,12 +414,13 @@ const DocumentUploadPage = () => {
     });
   };
 
-  const allDocumentsUploaded = documents.resume && documents.sop;
+  const allDocumentsUploaded = documents.lor && documents.sop && documents.resume;
 
   const DocumentCard = ({ type, title, description }: { type: DocumentType; title: string; description: string }) => {
     const doc = documents[type];
     const isUploading = uploading[type];
     const error = errors[type];
+    const docFeedback = feedback[type];
 
     return (
       <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-100 hover:border-red-200 transition-all">
@@ -351,9 +429,17 @@ const DocumentUploadPage = () => {
             <h3 className="text-xl font-bold text-gray-800 mb-1">{title}</h3>
             <p className="text-sm text-gray-600">{description}</p>
           </div>
-          {doc && (
-            <CheckCircle className="text-green-500 flex-shrink-0" size={28} />
-          )}
+          <div className="flex items-center gap-2">
+            {doc && (
+              <CheckCircle className="text-green-500 flex-shrink-0" size={28} />
+            )}
+            {docFeedback.status && (
+              <div className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                <Check size={16} />
+                Verified
+              </div>
+            )}
+          </div>
         </div>
 
         {!doc && !isUploading && (
@@ -458,119 +544,173 @@ const DocumentUploadPage = () => {
             </div>
           </div>
         )}
+
+        {/* Feedback Section for Student (Read-only) */}
+        {docFeedback.text && (
+          <div className="mt-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <MessageSquare className="text-white" size={20} />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-gray-800 mb-1">Agency Feedback</h4>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <Clock size={14} />
+                  <span>{docFeedback.updatedAt ? formatDate(docFeedback.updatedAt) : 'N/A'}</span>
+                  <span>•</span>
+                  <span>By: {docFeedback.commentBy || 'Agency'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white border border-orange-200 rounded-lg p-3">
+              <p className="text-gray-800 text-sm whitespace-pre-wrap leading-relaxed">
+                {docFeedback.text}
+              </p>
+            </div>
+            <div className="mt-3 flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={16} />
+              <p className="text-xs text-yellow-800">
+                <span className="font-semibold">Action Required:</span> Please review the feedback and update your document if needed.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 flex items-center justify-center">
-        <div className="text-xl text-red-600 flex items-center gap-2">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
-          Loading documents...
+      <DefaultLayout>
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 flex items-center justify-center">
+          <div className="text-xl text-red-600 flex items-center gap-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+            Loading documents...
+          </div>
         </div>
-      </div>
+      </DefaultLayout>
     );
   }
 
   return (
     <DefaultLayout>
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
-          <button
-            onClick={() => window.history.back()}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 font-semibold"
-          >
-            <ArrowLeft size={20} />
-            Back to Dashboard
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 p-4 md:p-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 font-semibold"
+            >
+              <ArrowLeft size={20} />
+              Back to Dashboard
+            </button>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-            Document Upload
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Upload your Resume/CV and Statement of Purpose to continue your application
-          </p>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+              Document Upload
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Upload your Letter of Recommendation, Statement of Purpose, and Resume/CV to continue your application
+            </p>
 
-          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <Info className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
-            <div className="text-sm">
-              <p className="font-semibold text-blue-900 mb-1">Important:</p>
-              <p className="text-blue-700">
-                Both documents are required to proceed. Make sure your files are in PDF, DOC, or DOCX format and do not exceed 2MB.
+            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <Info className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+              <div className="text-sm">
+                <p className="font-semibold text-blue-900 mb-1">Important:</p>
+                <p className="text-blue-700">
+                  All three documents are required to proceed. Make sure your files are in PDF, DOC, or DOCX format and do not exceed 2MB each.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6 mb-6">
+            <DocumentCard
+              type="lor"
+              title="Letter of Recommendation (LOR)"
+              description="Upload your letter of recommendation from a professor or employer"
+            />
+
+            <DocumentCard
+              type="sop"
+              title="Statement of Purpose (SOP)"
+              description="Upload your statement of purpose document"
+            />
+
+            <DocumentCard
+              type="resume"
+              title="Resume / CV"
+              description="Upload your latest resume or curriculum vitae"
+            />
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-6">
+            <button
+              disabled={!allDocumentsUploaded}
+              onClick={() => window.history.back()}
+              className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
+                allDocumentsUploaded
+                  ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700 shadow-lg'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {allDocumentsUploaded ? 'Continue to Next Step' : 'Upload All Documents to Continue'}
+            </button>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mt-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Document Guidelines</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <FileText className="text-red-600" size={20} />
+                  LOR Requirements
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Must be from a professor, employer, or mentor</li>
+                  <li>• Should be on official letterhead</li>
+                  <li>• Include contact details of recommender</li>
+                  <li>• Highlight your strengths and achievements</li>
+                  <li>• Maximum 2MB file size</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <FileText className="text-red-600" size={20} />
+                  SOP Requirements
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Explain your motivation for applying</li>
+                  <li>• Highlight your career goals and aspirations</li>
+                  <li>• Describe relevant achievements</li>
+                  <li>• Keep it between 500-1000 words</li>
+                  <li>• Maximum 2MB file size</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <FileText className="text-red-600" size={20} />
+                  Resume / CV Requirements
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Include your personal details and contact information</li>
+                  <li>• List your educational qualifications</li>
+                  <li>• Mention relevant work experience and skills</li>
+                  <li>• Keep it concise and well-formatted</li>
+                  <li>• Maximum 2MB file size</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <span className="font-semibold">Note:</span> Uploaded documents will be reviewed by our team. You will be notified once the verification is complete.
               </p>
             </div>
           </div>
         </div>
-
-        <div className="space-y-6 mb-6">
-          <DocumentCard
-            type="resume"
-            title="Resume / CV"
-            description="Upload your latest resume or curriculum vitae"
-          />
-
-          <DocumentCard
-            type="sop"
-            title="Statement of Purpose (SOP)"
-            description="Upload your statement of purpose document"
-          />
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-xl p-6">
-          <button
-            disabled={!allDocumentsUploaded}
-            onClick={() => window.history.back()}
-            className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
-              allDocumentsUploaded
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700 shadow-lg'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            {allDocumentsUploaded ? 'Continue to Next Step' : 'Upload Both Documents to Continue'}
-          </button>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mt-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Document Guidelines</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <FileText className="text-red-600" size={20} />
-                Resume / CV Requirements
-              </h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• Include your personal details and contact information</li>
-                <li>• List your educational qualifications</li>
-                <li>• Mention relevant work experience and skills</li>
-                <li>• Keep it concise and well-formatted</li>
-                <li>• Maximum 2MB file size</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <FileText className="text-red-600" size={20} />
-                SOP Requirements
-              </h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• Explain your motivation for applying</li>
-                <li>• Highlight your career goals and aspirations</li>
-                <li>• Describe relevant achievements</li>
-                <li>• Keep it between 500-1000 words</li>
-                <li>• Maximum 2MB file size</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              <span className="font-semibold">Note:</span> Uploaded documents will be reviewed by our team. You will be notified once the verification is complete.
-            </p>
-          </div>
-        </div>
       </div>
-    </div>
     </DefaultLayout>
   );
 };

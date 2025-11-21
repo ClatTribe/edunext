@@ -15,17 +15,25 @@ import {
   User
 } from 'lucide-react';
 
+interface TestScore {
+  exam: string;
+  score: string;
+}
+
 interface ProfileData {
   name?: string;
   degree?: string;
-  last_course_cgpa?: string;
-  gre?: number;
-  toefl?: number;
-  ielts?: string;
-  term?: string;
-  university?: string;
   program?: string;
+  term?: string;
+  test_scores?: TestScore[];
+  email?: string;
+  phone?: string;
+  target_countries?: string[];
+  tenth_score?: string;
+  twelfth_score?: string;
+  university?: string;
   extracurricular?: string;
+  last_course_cgpa?: string;
 }
 
 // Global cache to persist data across page navigations
@@ -42,44 +50,47 @@ const DashboardPage = () => {
   const [loadingProfile, setLoadingProfile] = useState(!cachedProfileData);
   const [shortlistedCount, setShortlistedCount] = useState(0);
 
-  // Memoize calculations
+  // Memoize calculations with new required fields
   const profileMetrics = useMemo(() => {
     if (!profileData) {
       return {
         completion: 0,
         missingFields: [
-          'Name', 'Degree Type', 'Last Course CGPA', 'GRE Score',
-          'TOEFL/IELTS', 'Target Term', 'Target University',
-          'Program/Major', 'Extracurricular'
+          'Degree', 'Program/Field', 'Target Term', 'Test Scores',
+          'Email', 'Phone', 'Target Countries', '10th Score', '12th Score'
         ]
       };
     }
 
+    const hasTestScores = profileData.test_scores && profileData.test_scores.length > 0;
+    const hasTargetCountries = profileData.target_countries && profileData.target_countries.length > 0;
+    
+    // Required fields only
     const fields = [
-      profileData.name,
-      profileData.degree,
-      profileData.last_course_cgpa,
-      profileData.gre,
-      profileData.toefl || profileData.ielts,
-      profileData.term,
-      profileData.university,
-      profileData.program,
-      profileData.extracurricular
+      profileData.degree,              // 1. Degree
+      profileData.program,             // 2. Program
+      profileData.term,                // 3. Term
+      hasTestScores,                   // 4. Test Scores
+      profileData.email,               // 5. Email
+      profileData.phone,               // 6. Phone
+      hasTargetCountries,              // 7. Target Countries
+      profileData.tenth_score,         // 8. 10th Score
+      profileData.twelfth_score        // 9. 12th Score
     ];
 
-    const filledCount = fields.filter(f => f && f.toString().trim() !== '').length;
+    const filledCount = fields.filter(f => f && (typeof f === 'boolean' ? f : f.toString().trim() !== '')).length;
     const completion = Math.round((filledCount / fields.length) * 100);
 
     const missing: string[] = [];
-    if (!profileData.name) missing.push('Name');
-    if (!profileData.degree) missing.push('Degree Type');
-    if (!profileData.last_course_cgpa) missing.push('CGPA');
-    if (!profileData.gre) missing.push('GRE');
-    if (!profileData.toefl && !profileData.ielts) missing.push('TOEFL/IELTS');
+    if (!profileData.degree) missing.push('Degree');
+    if (!profileData.program) missing.push('Program/Field');
     if (!profileData.term) missing.push('Target Term');
-    if (!profileData.university) missing.push('University');
-    if (!profileData.program) missing.push('Program');
-    if (!profileData.extracurricular) missing.push('Extracurricular');
+    if (!hasTestScores) missing.push('Test Scores');
+    if (!profileData.email) missing.push('Email');
+    if (!profileData.phone) missing.push('Phone');
+    if (!hasTargetCountries) missing.push('Target Countries');
+    if (!profileData.tenth_score) missing.push('10th Score');
+    if (!profileData.twelfth_score) missing.push('12th Score');
 
     return { completion, missingFields: missing };
   }, [profileData]);
@@ -156,7 +167,7 @@ const DashboardPage = () => {
       
       const { data, error } = await supabase
         .from('admit_profiles')
-        .select('name, degree, last_course_cgpa, gre, toefl, ielts, term, university, program, extracurricular')
+        .select('name, degree, program, term, test_scores, email, phone, target_countries, tenth_score, twelfth_score, university, extracurricular, last_course_cgpa')
         .eq('user_id', user.id)
         .single();
 
@@ -169,7 +180,7 @@ const DashboardPage = () => {
         cacheTimestamp = Date.now();
         setProfileData(data);
         
-        if (data.gre || data.program || data.degree) {
+        if (data.test_scores?.length > 0 || data.program || data.degree) {
           fetchSimilarProfilesCount(data);
         }
       } else {
@@ -194,8 +205,12 @@ const DashboardPage = () => {
         .select('id', { count: 'exact', head: true })
         .neq('user_id', user.id);
 
-      if (profile.gre) {
-        query = query.gte('gre', profile.gre - 10).lte('gre', profile.gre + 10);
+      // Extract GRE score from test_scores array
+      const greScore = profile.test_scores?.find(t => t.exam === 'GRE')?.score;
+      const greNum = greScore ? parseFloat(greScore) : null;
+      
+      if (greNum) {
+        query = query.gte('gre', greNum - 10).lte('gre', greNum + 10);
       }
       if (profile.degree) {
         query = query.eq('degree', profile.degree);
@@ -290,7 +305,7 @@ const DashboardPage = () => {
                 <div className="flex items-start gap-3">
                   <AlertCircle className="text-red-600 mt-0.5 flex-shrink-0" size={20} />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 mb-2">Complete these fields to unlock full features:</h3>
+                    <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {profileMetrics.missingFields.slice(0, 5).map((field, idx) => (
                         <span key={idx} className="text-xs bg-white text-red-600 px-3 py-1 rounded-full border border-red-200 font-medium">
@@ -464,7 +479,7 @@ const DashboardPage = () => {
                 <div>
                   <h3 className="font-bold text-gray-800 mb-2 text-lg">💡 Pro Tip</h3>
                   <p className="text-gray-700">
-                    Complete your profile to unlock personalized recommendations and connect with students who have similar academic backgrounds!
+                    Complete all 9 required fields in your profile to unlock personalized recommendations and connect with students who have similar academic backgrounds!
                   </p>
                 </div>
               </div>
