@@ -31,10 +31,8 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
 
   const navItems = {
     main: [
-      { icon: Home, label: "Home", path: "/" },
+      { icon: Home, label: "Home", path: "/home" },
       { icon: User, label: "Profile", path: "/profile" },
-      // { icon: User, label: "Ask AI", path: "/ask-ai" },
-      // { icon: User, label: "Profile Analyzer", path: "/profile-analyzer" },
     ],
     explore: [
       { icon: BookOpen, label: "Course Finder", path: "/course-finder" },
@@ -45,8 +43,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     applications: [
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
       { icon: GraduationCap, label: "Document Upload", path: "/document" },
-      // { icon: Award, label: "Manage Applications", path: "/manage-apps" },
-      // { icon: Trophy, label: "Guidance", path: "/guidance" },
     ],
     postAdmit: [
       { icon: GraduationCap, label: "Finalise Admits", path: "/finalise-admits" },
@@ -99,13 +95,13 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-pink-50 to-red-50 border-b border-pink-200 shadow-md z-40">
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-50 to-sky-50 border-b border-blue-200 shadow-md z-40">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+            <div className="w-8 h-8 bg-[#005de6] rounded-lg flex items-center justify-center text-white font-bold text-lg">
               E
             </div>
-            <div className="text-xl font-bold text-red-600">EduAbroad</div>
+            <div className="text-xl font-bold text-[#005de6]">EduAbroad</div>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -113,9 +109,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
-              <X size={24} className="text-red-600" />
+              <X size={24} className="text-[#005de6]" />
             ) : (
-              <Menu size={24} className="text-red-600" />
+              <Menu size={24} className="text-[#005de6]" />
             )}
           </button>
         </div>
@@ -133,8 +129,8 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       <div
         className={`
           fixed md:sticky top-0 h-screen
-          w-64 bg-gradient-to-b from-pink-50 to-red-50 
-          p-4 border-r border-pink-200 flex flex-col shadow-lg 
+          w-64 bg-gradient-to-b from-blue-50 to-sky-50 
+          p-4 border-r border-blue-200 flex flex-col shadow-lg 
           transition-transform duration-300 ease-in-out z-50
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
@@ -143,12 +139,12 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         {/* Header - Hidden on mobile */}
         <div className="mb-8 hidden md:block">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+            <div className="w-8 h-8 bg-[#005de6] rounded-lg flex items-center justify-center text-white font-bold text-lg">
               E
             </div>
-            <div className="text-2xl font-bold text-red-600">EduAbroad</div>
+            <div className="text-2xl font-bold text-[#005de6]">EduAbroad</div>
           </div>
-          <div className="h-1 w-16 bg-red-600 rounded-full"></div>
+          <div className="h-1 w-16 bg-[#005de6] rounded-full"></div>
         </div>
 
         {/* Mobile: Add padding top */}
@@ -160,19 +156,19 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           className="md:hidden absolute top-4 right-4 p-2 hover:bg-white rounded-lg transition-colors"
           aria-label="Close menu"
         >
-          <X size={20} className="text-red-600" />
+          <X size={20} className="text-[#005de6]" />
         </button>
 
-        {/* Welcome Message - No Dropdown */}
-        <div className="bg-white rounded-lg p-3 mb-6 shadow-sm border border-pink-100">
+        {/* Welcome Message */}
+        <div className="bg-white rounded-lg p-3 mb-6 shadow-sm border border-blue-100">
           <div className="flex items-center gap-2 min-w-0">
             <div className="text-sm text-gray-600 flex-shrink-0">Welcome,</div>
-            <div className="text-red-600 font-semibold truncate">{userName}</div>
+            <div className="text-[#005de6] font-semibold truncate">{userName}</div>
           </div>
         </div>
 
         {/* Scrollable Navigation */}
-        <nav className="space-y-2 flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-red-300 scrollbar-track-transparent">
+        <nav className="space-y-2 flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
           {/* Main Navigation */}
           {navItems.main.map((item) => (
             <button
@@ -180,23 +176,23 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
               onClick={() => handleNavClick(item.path)}
               className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
                 isActive(item.path)
-                  ? "bg-white shadow-md border-l-4 border-red-600 text-red-600"
-                  : "hover:bg-white hover:shadow-sm"
+                  ? "bg-white shadow-md border-l-4 border-[#005de6] text-[#005de6]"
+                  : "hover:bg-white hover:shadow-sm text-gray-700"
               }`}
             >
               <item.icon
                 size={18}
                 className={`transition-colors ${
                   isActive(item.path)
-                    ? "text-red-600"
-                    : "text-gray-600 group-hover:text-red-600"
+                    ? "text-[#005de6]"
+                    : "text-gray-600 group-hover:text-[#005de6]"
                 }`}
               />
               <span
                 className={`text-sm transition-colors ${
                   isActive(item.path)
-                    ? "font-semibold"
-                    : "group-hover:text-red-600"
+                    ? "font-semibold text-[#005de6]"
+                    : "text-gray-700 group-hover:text-[#005de6]"
                 }`}
               >
                 {item.label}
@@ -207,10 +203,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           {/* Explore Section */}
           <div className="pt-4">
             <div className="flex items-center gap-2 mb-2 px-2">
-              <div className="text-xs font-bold text-red-600 uppercase tracking-wider">
+              <div className="text-xs font-bold text-[#005de6] uppercase tracking-wider">
                 Explore
               </div>
-              <div className="flex-1 h-px bg-red-200"></div>
+              <div className="flex-1 h-px bg-blue-200"></div>
             </div>
             {navItems.explore.map((item) => (
               <button
@@ -218,23 +214,23 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 onClick={() => handleNavClick(item.path)}
                 className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
                   isActive(item.path)
-                    ? "bg-white shadow-md border-l-4 border-red-600 text-red-600"
-                    : "hover:bg-white hover:shadow-sm"
+                    ? "bg-white shadow-md border-l-4 border-[#005de6] text-[#005de6]"
+                    : "hover:bg-white hover:shadow-sm text-gray-700"
                 }`}
               >
                 <item.icon
                   size={18}
                   className={`transition-colors ${
                     isActive(item.path)
-                      ? "text-red-600"
-                      : "text-gray-600 group-hover:text-red-600"
+                      ? "text-[#005de6]"
+                      : "text-gray-600 group-hover:text-[#005de6]"
                   }`}
                 />
                 <span
                   className={`text-sm transition-colors ${
                     isActive(item.path)
-                      ? "font-semibold"
-                      : "group-hover:text-red-600"
+                      ? "font-semibold text-[#005de6]"
+                      : "text-gray-700 group-hover:text-[#005de6]"
                   }`}
                 >
                   {item.label}
@@ -246,10 +242,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           {/* Applications Section */}
           <div className="pt-4">
             <div className="flex items-center gap-2 mb-2 px-2">
-              <div className="text-xs font-bold text-red-600 uppercase tracking-wider">
+              <div className="text-xs font-bold text-[#005de6] uppercase tracking-wider">
                 Applications
               </div>
-              <div className="flex-1 h-px bg-red-200"></div>
+              <div className="flex-1 h-px bg-blue-200"></div>
             </div>
             {navItems.applications.map((item) => (
               <button
@@ -257,23 +253,23 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 onClick={() => handleNavClick(item.path)}
                 className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
                   isActive(item.path)
-                    ? "bg-white shadow-md border-l-4 border-red-600 text-red-600"
-                    : "hover:bg-white hover:shadow-sm"
+                    ? "bg-white shadow-md border-l-4 border-[#005de6] text-[#005de6]"
+                    : "hover:bg-white hover:shadow-sm text-gray-700"
                 }`}
               >
                 <item.icon
                   size={18}
                   className={`transition-colors ${
                     isActive(item.path)
-                      ? "text-red-600"
-                      : "text-gray-600 group-hover:text-red-600"
+                      ? "text-[#005de6]"
+                      : "text-gray-600 group-hover:text-[#005de6]"
                   }`}
                 />
                 <span
                   className={`text-sm transition-colors ${
                     isActive(item.path)
-                      ? "font-semibold"
-                      : "group-hover:text-red-600"
+                      ? "font-semibold text-[#005de6]"
+                      : "text-gray-700 group-hover:text-[#005de6]"
                   }`}
                 >
                   {item.label}
@@ -283,12 +279,12 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           </div>
 
           {/* Post Admit Section */}
-          {/* <div className="pt-4">
+          <div className="pt-4">
             <div className="flex items-center gap-2 mb-2 px-2">
-              <div className="text-xs font-bold text-red-600 uppercase tracking-wider">
+              <div className="text-xs font-bold text-[#005de6] uppercase tracking-wider">
                 Post Admit
               </div>
-              <div className="flex-1 h-px bg-red-200"></div>
+              <div className="flex-1 h-px bg-blue-200"></div>
             </div>
             {navItems.postAdmit.map((item) => (
               <button
@@ -296,34 +292,34 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 onClick={() => handleNavClick(item.path)}
                 className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
                   isActive(item.path)
-                    ? "bg-white shadow-md border-l-4 border-red-600 text-red-600"
-                    : "hover:bg-white hover:shadow-sm"
+                    ? "bg-white shadow-md border-l-4 border-[#005de6] text-[#005de6]"
+                    : "hover:bg-white hover:shadow-sm text-gray-700"
                 }`}
               >
                 <item.icon
                   size={18}
                   className={`transition-colors ${
                     isActive(item.path)
-                      ? "text-red-600"
-                      : "text-gray-600 group-hover:text-red-600"
+                      ? "text-[#005de6]"
+                      : "text-gray-600 group-hover:text-[#005de6]"
                   }`}
                 />
                 <span
                   className={`text-sm transition-colors ${
                     isActive(item.path)
-                      ? "font-semibold"
-                      : "group-hover:text-red-600"
+                      ? "font-semibold text-[#005de6]"
+                      : "text-gray-700 group-hover:text-[#005de6]"
                   }`}
                 >
                   {item.label}
                 </span>
               </button>
             ))}
-          </div> */}
+          </div>
         </nav>
 
         {/* Logout Button */}
-        <div className="pt-4 mt-4 border-t border-pink-200">
+        <div className="pt-4 mt-4 border-t border-blue-200">
           <button
             onClick={async (e) => {
               e.preventDefault();
@@ -332,11 +328,11 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
             disabled={isLoggingOut}
             onMouseEnter={() => setIsLogoutHovered(true)}
             onMouseLeave={() => setIsLogoutHovered(false)}
-            className="flex items-center justify-between gap-3 p-3 w-full text-left bg-white hover:bg-red-50 rounded-lg text-red-600 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-between gap-3 p-3 w-full text-left bg-white hover:bg-blue-50 rounded-lg text-[#005de6] transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-center gap-3">
               {isLoggingOut ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#005de6]"></div>
               ) : (
                 <LogOut size={18} className="group-hover:scale-110 transition-transform" />
               )}
@@ -355,7 +351,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           </button>
         </div>
       </div>
-    </>
+    </> 
   );
 };
 

@@ -153,14 +153,14 @@ const ShortlistBuilder: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-red-600 mb-2">My Shortlist</h1>
+            <h1 className="text-4xl font-bold text-[#005de6] mb-2">My Shortlist</h1>
             <p className="text-gray-600">Manage your saved colleges in one place</p>
           </div>
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="text-gray-500 flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005de6]"></div>
                 <p>Loading your shortlist...</p>
               </div>
             </div>
@@ -176,7 +176,7 @@ const ShortlistBuilder: React.FC = () => {
               <div className="mb-6 bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <Heart className="text-red-600" size={20} fill="currentColor" />
+                    <Heart className="text-[#005de6]" size={20} fill="currentColor" />
                     <span className="font-semibold text-lg">
                       {shortlistColleges.length} {shortlistColleges.length === 1 ? 'college' : 'colleges'} saved
                     </span>
@@ -184,7 +184,7 @@ const ShortlistBuilder: React.FC = () => {
                 </div>
                 <button
                   onClick={clearAllShortlist}
-                  className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-2 transition-colors"
+                  className="text-[#005de6] hover:text-[#005de6] text-sm font-medium flex items-center gap-2 transition-colors"
                 >
                   <Trash2 size={16} />
                   Clear All
@@ -210,7 +210,7 @@ const ShortlistBuilder: React.FC = () => {
                       </div>
                       <button
                         onClick={() => removeFromShortlist(college.id)}
-                        className="text-red-600 hover:text-red-700 transition-colors"
+                        className="text-[#005de6] hover:text-[#005de6] transition-colors"
                         title="Remove from shortlist"
                       >
                         <Trash2 size={20} />
@@ -263,7 +263,7 @@ const ShortlistBuilder: React.FC = () => {
                         college['latest.admissions.act_scores.midpoint.cumulative']) && (
                         <div className="pt-4 border-t border-gray-100">
                           <h4 className="text-xs font-semibold text-gray-700 mb-3 flex items-center gap-1">
-                            <Award size={14} className="text-red-600" />
+                            <Award size={14} className="text-[#005de6]" />
                             Test Scores
                           </h4>
                           <div className="grid grid-cols-2 gap-3">
@@ -308,7 +308,7 @@ const ShortlistBuilder: React.FC = () => {
                         college['latest.academics.program_available.masters'] === 1) && (
                         <div className="pt-4 border-t border-gray-100">
                           <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                            <GraduationCap size={14} className="text-red-600" />
+                            <GraduationCap size={14} className="text-[#005de6]" />
                             Programs Offered
                           </h4>
                           <div className="flex flex-wrap gap-2">
@@ -335,7 +335,7 @@ const ShortlistBuilder: React.FC = () => {
                               : `https://${college['school.school_url']}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex-1 bg-red-600 text-white rounded-lg py-2 px-4 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                            className="flex-1 bg-[#005de6] text-white rounded-lg py-2 px-4 hover:bg-[#005de6] transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                           >
                             <BookOpen size={16} />
                             View Details

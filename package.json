@@ -9,26 +9,30 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fontsource/lato": "^5.2.7",
+    "@fontsource/montserrat": "^5.2.8",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/supabase-js": "^2.58.0",
+    "@tailwindcss/node": "^4.1.13",
+    "@tailwindcss/postcss": "^4.1.13",
+    "framer-motion": "^12.23.24",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.0.1",
+    "autoprefixer": "^10.4.22",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
-    "postcss": "^8",
-    "tailwindcss": "^4",
+    "postcss": "^8.5.6",
     "typescript": "^5"
   }
 }

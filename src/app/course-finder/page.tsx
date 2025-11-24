@@ -570,7 +570,7 @@ const CourseFinder: React.FC = () => {
       <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-red-600 mb-2">Find Your Perfect Course</h1>
+            <h1 className="text-4xl font-bold text-[#005de6] mb-2">Find Your Perfect Course</h1>
             <p className="text-gray-600">Explore programs and institutes across India</p>
           </div>
 
@@ -582,7 +582,7 @@ const CourseFinder: React.FC = () => {
               }}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 viewMode === 'all'
-                  ? 'bg-red-600 text-white shadow-lg'
+                  ? 'bg-[#005de6] text-white shadow-lg'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
               }`}
             >
@@ -599,7 +599,7 @@ const CourseFinder: React.FC = () => {
               disabled={!canShowRecommendations}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 viewMode === 'recommended'
-                  ? 'bg-red-600 text-white shadow-lg'
+                  ? 'bg-[#005de6] text-white shadow-lg'
                   : canShowRecommendations
                     ? 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
@@ -643,12 +643,12 @@ const CourseFinder: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#005de6] text-white rounded-lg font-medium hover:bg-#003d99 transition"
                   >
                     <Filter size={20} />
                     Filters
                     {activeFiltersCount > 0 && (
-                      <span className="bg-white text-red-600 px-2 py-0.5 rounded-full text-sm font-bold">
+                      <span className="bg-white text-[#005de6] px-2 py-0.5 rounded-full text-sm font-bold">
                         {activeFiltersCount}
                       </span>
                     )}
@@ -658,7 +658,7 @@ const CourseFinder: React.FC = () => {
                 {activeFiltersCount > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {searchQuery && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                      <div className="bg-red-100 text-#003d99 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                         <span className="font-medium">Search: {searchQuery}</span>
                         <button onClick={() => clearFilter('search')} className="hover:bg-red-200 rounded-full p-0.5">
                           <X size={14} />
@@ -666,7 +666,7 @@ const CourseFinder: React.FC = () => {
                       </div>
                     )}
                     {selectedState && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                      <div className="bg-red-100 text-#003d99 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                         <span className="font-medium">{selectedState}</span>
                         <button onClick={() => clearFilter('state')} className="hover:bg-red-200 rounded-full p-0.5">
                           <X size={14} />
@@ -674,7 +674,7 @@ const CourseFinder: React.FC = () => {
                       </div>
                     )}
                     {selectedUniversity && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                      <div className="bg-red-100 text-#003d99 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                         <span className="font-medium">{selectedUniversity}</span>
                         <button onClick={() => clearFilter('university')} className="hover:bg-red-200 rounded-full p-0.5">
                           <X size={14} />
@@ -682,7 +682,7 @@ const CourseFinder: React.FC = () => {
                       </div>
                     )}
                     {selectedDeadline && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                      <div className="bg-red-100 text-#003d99 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                         <span className="font-medium">{selectedDeadline}</span>
                         <button onClick={() => clearFilter('deadline')} className="hover:bg-red-200 rounded-full p-0.5">
                           <X size={14} />
@@ -690,7 +690,7 @@ const CourseFinder: React.FC = () => {
                       </div>
                     )}
                     {selectedEntrance && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                      <div className="bg-red-100 text-#003d99 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                         <span className="font-medium">{selectedEntrance}</span>
                         <button onClick={() => clearFilter('entrance')} className="hover:bg-red-200 rounded-full p-0.5">
                           <X size={14} />
@@ -698,14 +698,14 @@ const CourseFinder: React.FC = () => {
                       </div>
                     )}
                     {scholarshipOnly && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                      <div className="bg-red-100 text-#003d99 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                         <span className="font-medium">Scholarship Available</span>
                         <button onClick={() => clearFilter('scholarship')} className="hover:bg-red-200 rounded-full p-0.5">
                           <X size={14} />
                         </button>
                       </div>
                     )}
-                    <button onClick={resetFilters} className="text-sm text-red-600 hover:text-red-700 font-medium px-2">
+                    <button onClick={resetFilters} className="text-sm text-[#005de6] hover:text-#003d99 font-medium px-2">
                       Clear All
                     </button>
                   </div>
@@ -715,14 +715,14 @@ const CourseFinder: React.FC = () => {
               {showFilters && (
                 <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                   <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <Filter size={20} className="text-red-600" />
+                    <Filter size={20} className="text-[#005de6]" />
                     Refine Your Search
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     <div>
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <MapPin size={16} className="text-red-600" />
+                        <MapPin size={16} className="text-[#005de6]" />
                         State
                       </label>
                       <div className="relative">
@@ -742,7 +742,7 @@ const CourseFinder: React.FC = () => {
 
                     <div className={selectedState ? 'animate-fadeIn' : ''}>
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <GraduationCap size={16} className="text-red-600" />
+                        <GraduationCap size={16} className="text-[#005de6]" />
                         University / College
                       </label>
                       <div className="relative">
@@ -762,7 +762,7 @@ const CourseFinder: React.FC = () => {
 
                     <div>
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <Calendar size={16} className="text-red-600" />
+                        <Calendar size={16} className="text-[#005de6]" />
                         Entrance Exam
                       </label>
                       <div className="relative">
@@ -782,7 +782,7 @@ const CourseFinder: React.FC = () => {
 
                     <div>
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <Calendar size={16} className="text-red-600" />
+                        <Calendar size={16} className="text-[#005de6]" />
                         Application Deadline
                       </label>
                       <div className="relative">
@@ -803,7 +803,7 @@ const CourseFinder: React.FC = () => {
                         type="checkbox"
                         checked={scholarshipOnly}
                         onChange={(e) => setScholarshipOnly(e.target.checked)}
-                        className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+                        className="w-5 h-5 text-[#005de6] rounded focus:ring-2 focus:ring-red-500"
                       />
                       <span className="text-sm font-medium text-gray-700">
                         Show only programs with scholarship opportunities
@@ -817,23 +817,23 @@ const CourseFinder: React.FC = () => {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-              <AlertCircle className="text-red-600 flex-shrink-0" size={24} />
+              <AlertCircle className="text-[#005de6] flex-shrink-0" size={24} />
               <div>
                 <h3 className="font-semibold text-red-800">Notice</h3>
-                <p className="text-red-600 text-sm">{error}</p>
+                <p className="text-[#005de6] text-sm">{error}</p>
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center gap-2">
-              <GraduationCap className="text-red-600" size={24} />
+              <GraduationCap className="text-[#005de6]" size={24} />
               <span className="font-semibold text-lg">
                 {filteredCourses.length.toLocaleString()} {viewMode === 'recommended' ? 'recommended ' : ''}courses found
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Heart className="text-red-600" size={18} />
+              <Heart className="text-[#005de6]" size={18} />
               <span className="text-sm text-gray-600">{savedCourses.size} saved</span>
             </div>
           </div>
@@ -841,7 +841,7 @@ const CourseFinder: React.FC = () => {
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="text-gray-500 flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005de6]"></div>
                 <p>Loading courses...</p>
               </div>
             </div>
@@ -873,10 +873,10 @@ const CourseFinder: React.FC = () => {
                     >
                       {isBlurred && (
                         <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 rounded-xl">
-                          <div className="bg-white shadow-2xl rounded-2xl p-8 text-center max-w-sm border-2 border-red-100">
+                          <div className="bg-white shadow-2xl rounded-2xl p-8 text-center max-w-sm border-2 border-blue-100">
                             <div className="mb-4 flex justify-center">
-                              <div className="bg-red-100 rounded-full p-4">
-                                <AlertCircle className="text-red-600" size={32} />
+                              <div className="bg-blue-100 rounded-full p-4">
+                                <AlertCircle className="text-[#005de6]" size={32} />
                               </div>
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -885,7 +885,7 @@ const CourseFinder: React.FC = () => {
                             <p className="text-gray-600 mb-6">
                               Talk to our experts to view detailed information about this and {10 - courseIndex - 1} more personalized course recommendations
                             </p>
-                            <button className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors w-full flex items-center justify-center gap-2">
+                            <button className="bg-[#005de6] text-white px-6 py-3 rounded-lg font-semibold hover:bg-#003d99 transition-colors w-full flex items-center justify-center gap-2">
                               <Sparkles size={18} />
                               Contact Our Experts
                             </button>
@@ -919,7 +919,7 @@ const CourseFinder: React.FC = () => {
                           disabled={isBlurred}
                           className={`transition-colors ${
                             isBlurred ? 'opacity-50 cursor-not-allowed' :
-                            savedCourses.has(course.id) ? 'text-red-600' : 'text-gray-400 hover:text-red-600'
+                            savedCourses.has(course.id) ? 'text-[#005de6]' : 'text-gray-400 hover:text-[#005de6]'
                           }`}
                           title={isBlurred ? 'Contact experts to unlock' : savedCourses.has(course.id) ? 'Remove from shortlist' : 'Add to shortlist'}
                         >
@@ -970,7 +970,7 @@ const CourseFinder: React.FC = () => {
                         {course['Eligibility summary'] && (
                           <div className="pt-4 border-t border-gray-100">
                             <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                              <BookOpen size={14} className="text-red-600" />
+                              <BookOpen size={14} className="text-[#005de6]" />
                               Eligibility Summary
                             </h4>
                             <div className="bg-gray-50 rounded-lg p-2">
@@ -984,7 +984,7 @@ const CourseFinder: React.FC = () => {
                         {course['Scholarships available'] && (
                           <div className="pt-4 border-t border-gray-100">
                             <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                              <Award size={14} className="text-red-600" />
+                              <Award size={14} className="text-[#005de6]" />
                               Scholarships
                             </h4>
                             <div className="bg-green-50 rounded-lg p-2">
@@ -1016,7 +1016,7 @@ const CourseFinder: React.FC = () => {
                                 : `https://${course['Official website']}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex-1 bg-red-600 text-white rounded-lg py-2 px-4 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                              className="flex-1 bg-[#005de6] text-white rounded-lg py-2 px-4 hover:bg-#003d99 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                             >
                               <Globe size={16} />
                               Visit Website
@@ -1068,7 +1068,7 @@ const CourseFinder: React.FC = () => {
                                 }}
                                 className={`min-w-[40px] px-3 py-2 rounded-lg border transition-colors ${
                                   currentPage === page
-                                    ? 'bg-red-600 text-white border-red-600'
+                                    ? 'bg-[#005de6] text-white border-[#005de6]'
                                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                                 }`}
                               >

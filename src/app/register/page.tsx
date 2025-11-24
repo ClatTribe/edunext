@@ -19,7 +19,7 @@ const RegisterPage = () => {
   // ✅ Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/'); // Use replace to prevent back button issues
+      router.replace('/home'); // Redirect to /home
     }
   }, [user, loading, router]);
 
@@ -35,7 +35,7 @@ const RegisterPage = () => {
           setError(error.message || 'Invalid email or password');
           setIsSubmitting(false); // ✅ Only stop submitting on error
         }
-        // ✅ REMOVED router.push('/') - let the useEffect handle redirect
+        // ✅ REMOVED router.push('/home') - let the useEffect handle redirect
         // When signIn succeeds, AuthContext updates user state → useEffect redirects
       } else {
         if (!fullName.trim()) {
@@ -95,8 +95,8 @@ const RegisterPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-50 to-red-50">
-        <div className="text-xl text-red-600">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen" style={{ background: 'linear-gradient(to bottom right, #f0f4ff, #e6eeff)' }}>
+        <div className="text-xl" style={{ color: '#005de6' }}>Loading...</div>
       </div>
     );
   }
@@ -106,18 +106,18 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-pink-50 to-red-50">
+    <div className="flex min-h-screen" style={{ background: 'linear-gradient(to bottom right, #f0f4ff, #e6eeff)' }}>
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-red-600 to-pink-600 p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between" style={{ background: 'linear-gradient(to bottom right, #005de6, #003d99)' }}>
         <div>
           <div className="flex items-center gap-3 mb-8">
             <GraduationCap className="text-white" size={40} />
-            <div className="text-4xl font-bold text-white">EduPortal</div>
+            <div className="text-4xl font-bold text-white">EduNext</div>
           </div>
           <h1 className="text-5xl font-bold text-white mb-6">
             Your Gateway to Global Education
           </h1>
-          <p className="text-xl text-pink-100 mb-8">
+          <p className="text-xl mb-8" style={{ color: '#b3d1ff' }}>
             Discover courses, connect with admits, and find scholarships to fuel your dreams.
           </p>
         </div>
@@ -129,7 +129,7 @@ const RegisterPage = () => {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">2000+ Universities</h3>
-              <p className="text-pink-100">Access comprehensive course information</p>
+              <p style={{ color: '#b3d1ff' }}>Access comprehensive course information</p>
             </div>
           </div>
           <div className="flex items-start gap-4">
@@ -138,7 +138,7 @@ const RegisterPage = () => {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">375K+ Admit Profiles</h3>
-              <p className="text-pink-100">Learn from successful applicants</p>
+              <p style={{ color: '#b3d1ff' }}>Learn from successful applicants</p>
             </div>
           </div>
           <div className="flex items-start gap-4">
@@ -149,7 +149,7 @@ const RegisterPage = () => {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">3500+ Scholarships</h3>
-              <p className="text-pink-100">Find funding opportunities</p>
+              <p style={{ color: '#b3d1ff' }}>Find funding opportunities</p>
             </div>
           </div>
         </div>
@@ -161,11 +161,11 @@ const RegisterPage = () => {
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center mb-8">
               <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-                <GraduationCap className="text-red-600" size={32} />
-                <div className="text-3xl font-bold text-red-600">EduPortal</div>
+                <GraduationCap style={{ color: '#005de6' }} size={32} />
+                <div className="text-3xl font-bold" style={{ color: '#005de6' }}>EduNext</div>
               </div>
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                {isLogin ? 'Welcome Back!' : 'Join EduPortal'}
+                {isLogin ? 'Welcome Back!' : 'Join EduNext'}
               </h2>
               <p className="text-gray-600">
                 {isLogin 
@@ -223,7 +223,8 @@ const RegisterPage = () => {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': '#005de6' } as React.CSSProperties}
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -240,7 +241,8 @@ const RegisterPage = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ '--tw-ring-color': '#005de6' } as React.CSSProperties}
                     placeholder="Enter your email"
                   />
                 </div>
@@ -256,7 +258,8 @@ const RegisterPage = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ '--tw-ring-color': '#005de6' } as React.CSSProperties}
                     placeholder="Enter your password"
                   />
                   <button
@@ -277,13 +280,15 @@ const RegisterPage = () => {
                   <label className="flex items-center">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                      className="w-4 h-4 border-gray-300 rounded"
+                      style={{ accentColor: '#005de6' }}
                     />
                     <span className="ml-2 text-sm text-gray-600">Remember me</span>
                   </label>
                   <button
                     type="button"
-                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    className="text-sm font-medium hover:opacity-80"
+                    style={{ color: '#005de6' }}
                   >
                     Forgot Password?
                   </button>
@@ -294,9 +299,12 @@ const RegisterPage = () => {
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className={`w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all duration-200 ${
-                  isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                className={`w-full text-white py-3 rounded-lg font-semibold transition-all duration-200 ${
+                  isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'
                 }`}
+                style={{ 
+                  background: isSubmitting ? '#005de6' : 'linear-gradient(to right, #005de6, #0047b3)'
+                }}
               >
                 {isSubmitting 
                   ? 'Processing...' 
@@ -312,7 +320,8 @@ const RegisterPage = () => {
                 <button
                   type="button"
                   onClick={toggleMode}
-                  className="text-red-600 hover:text-red-700 font-semibold"
+                  className="font-semibold hover:opacity-80"
+                  style={{ color: '#005de6' }}
                 >
                   {isLogin ? 'Sign Up' : 'Sign In'}
                 </button>
@@ -322,9 +331,9 @@ const RegisterPage = () => {
 
           <p className="text-center text-sm text-gray-600 mt-6">
             By continuing, you agree to our{' '}
-            <a href="#" className="text-red-600 hover:text-red-700">Terms of Service</a>
+            <a href="#" className="hover:opacity-80" style={{ color: '#005de6' }}>Terms of Service</a>
             {' '}and{' '}
-            <a href="#" className="text-red-600 hover:text-red-700">Privacy Policy</a>
+            <a href="#" className="hover:opacity-80" style={{ color: '#005de6' }}>Privacy Policy</a>
           </p>
         </div>
       </div>
