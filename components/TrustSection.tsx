@@ -24,7 +24,7 @@ export const TrustSection: React.FC = () => {
                     transition={{ delay: 0.1 }}
                     className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight"
                 >
-                    We fixed what's broken in education search.
+                    We fixed what is broken in education search.
                 </motion.h2>
             </div>
             <div className="md:mb-2">
