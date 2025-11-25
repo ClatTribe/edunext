@@ -240,7 +240,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           </div>
 
           {/* Applications Section */}
-          <div className="pt-4">
+          {/* <div className="pt-4">
             <div className="flex items-center gap-2 mb-2 px-2">
               <div className="text-xs font-bold text-[#005de6] uppercase tracking-wider">
                 Applications
@@ -276,10 +276,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 </span>
               </button>
             ))}
-          </div>
+          </div> */}
 
           {/* Post Admit Section */}
-          <div className="pt-4">
+          {/* <div className="pt-4">
             <div className="flex items-center gap-2 mb-2 px-2">
               <div className="text-xs font-bold text-[#005de6] uppercase tracking-wider">
                 Post Admit
@@ -315,7 +315,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 </span>
               </button>
             ))}
-          </div>
+          </div> */}
         </nav>
 
         {/* Logout Button */}
