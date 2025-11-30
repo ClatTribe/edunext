@@ -228,9 +228,9 @@ const DashboardPage = () => {
   };
 
   const getProgressColor = useCallback(() => {
-    if (profileMetrics.completion >= 80) return 'from-blue-500 to-sky-500';
-    if (profileMetrics.completion >= 50) return 'from-blue-400 to-sky-400';
-    return 'from-blue-600 to-sky-600';
+    if (profileMetrics.completion >= 80) return 'from-[#2f61ce] to-blue-400';
+    if (profileMetrics.completion >= 50) return 'from-[#2f61ce] to-blue-300';
+    return 'from-[#2f61ce] to-blue-500';
   }, [profileMetrics.completion]);
 
   const getProgressMessage = useCallback(() => {
@@ -241,17 +241,17 @@ const DashboardPage = () => {
   }, [profileMetrics.completion]);
 
   const handleProfileClick = useCallback(() => router.push('/profile'), [router]);
-  const handleAdmitFinderClick = useCallback(() => router.push('/admit-finder'), [router]);
-  const handleCourseFinderClick = useCallback(() => router.push('/course-finder'), [router]);
-  const handleScholarshipClick = useCallback(() => router.push('/scholarship-finder'), [router]);
-  const handleShortlistClick = useCallback(() => router.push('/shortlist-builder'), [router]);
+  const handleAdmitFinderClick = useCallback(() => router.push('/similar-students'), [router]);
+  const handleCourseFinderClick = useCallback(() => router.push('/find-colleges'), [router]);
+  const handleScholarshipClick = useCallback(() => router.push('/find-scholarships'), [router]);
+  const handleShortlistClick = useCallback(() => router.push('/your-shortlist'), [router]);
 
   if (loading || loadingProfile) {
     return (
       <DefaultLayout>
         <div className="flex items-center justify-center h-full">
-          <div className="text-xl text-blue-600 flex items-center gap-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <div className="text-xl text-[#2f61ce] flex items-center gap-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#2f61ce]"></div>
             Loading...
           </div>
         </div>
@@ -284,7 +284,7 @@ const DashboardPage = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-transparent">
+                <div className="text-4xl font-bold bg-gradient-to-r from-[#2f61ce] to-blue-500 bg-clip-text text-transparent">
                   {profileMetrics.completion}%
                 </div>
                 <p className="text-sm text-gray-500">Complete</p>
@@ -303,12 +303,12 @@ const DashboardPage = () => {
             {profileMetrics.missingFields.length > 0 && (
               <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="text-blue-600 mt-0.5 flex-shrink-0" size={20} />
+                  <AlertCircle className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={20} />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {profileMetrics.missingFields.slice(0, 5).map((field, idx) => (
-                        <span key={idx} className="text-xs bg-white text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-medium">
+                        <span key={idx} className="text-xs bg-white text-[#2f61ce] px-3 py-1 rounded-full border border-blue-200 font-medium">
                           {field}
                         </span>
                       ))}
@@ -320,7 +320,7 @@ const DashboardPage = () => {
                     </div>
                     <button
                       onClick={handleProfileClick}
-                      className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-sky-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-sky-700 transition-all text-sm font-semibold shadow-lg"
+                      className="flex items-center gap-2 bg-gradient-to-r from-[#2f61ce] to-blue-500 text-white px-4 py-2 rounded-lg hover:from-[#2451a8] hover:to-blue-600 transition-all text-sm font-semibold shadow-lg"
                     >
                       <User size={16} />
                       Complete Your Profile
@@ -352,7 +352,7 @@ const DashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Users className="text-blue-600" size={32} />
+                    <Users className="text-[#2f61ce]" size={32} />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-1">Find Similar Profiles</h2>
@@ -363,7 +363,7 @@ const DashboardPage = () => {
                     </p>
                   </div>
                 </div>
-                <ArrowRight className="text-blue-600" size={28} />
+                <ArrowRight className="text-[#2f61ce]" size={28} />
               </div>
             </div>
           )}
@@ -373,7 +373,7 @@ const DashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 font-medium">Shortlisted</p>
-                  <p className="text-3xl font-bold text-blue-600">{shortlistedCount}</p>
+                  <p className="text-3xl font-bold text-[#2f61ce]">{shortlistedCount}</p>
                   <p className="text-xs text-gray-500 mt-1">Programs saved</p>
                 </div>
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-sky-100 rounded-full flex items-center justify-center">
@@ -424,7 +424,7 @@ const DashboardPage = () => {
 
           <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-blue-100">
             <div className="flex items-center gap-2 mb-6">
-              <Target className="text-blue-600" size={24} />
+              <Target className="text-[#2f61ce]" size={24} />
               <h2 className="text-2xl font-semibold text-gray-800">Quick Actions</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -435,7 +435,7 @@ const DashboardPage = () => {
                 <div className="text-4xl mb-3">🔍</div>
                 <div className="font-bold text-gray-800 mb-1 text-lg">Find Courses</div>
                 <div className="text-sm text-gray-600">Explore programs worldwide</div>
-                <ArrowRight className="text-blue-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <ArrowRight className="text-[#2f61ce] mt-2 group-hover:translate-x-1 transition-transform" size={20} />
               </button>
 
               <button 
@@ -471,9 +471,9 @@ const DashboardPage = () => {
           </div>
 
           {profileMetrics.completion < 100 && (
-            <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-yellow-200">
+            <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-[#fac300]">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-[#fac300] rounded-full flex items-center justify-center flex-shrink-0">
                   <Sparkles className="text-white" size={20} />
                 </div>
                 <div>

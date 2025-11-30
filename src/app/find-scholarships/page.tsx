@@ -7,7 +7,6 @@ import {
   Calendar,
   Award,
   ExternalLink,
-  MapPin,
   Filter,
   X,
   AlertCircle,
@@ -16,6 +15,7 @@ import {
   Target,
   Globe,
   GraduationCap,
+  IndianRupee,
 } from "lucide-react";
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -23,12 +23,11 @@ import DefaultLayout from '../defaultLayout';
 
 interface Scholarship {
   id: number;
-  country_region: string;
   scholarship_name: string;
-  provider: string;
-  degree_level: string;
+  organisation: string;
+  eligibility: string;
+  benefit: string;
   deadline: string;
-  detailed_eligibility: string;
   link: string;
   created_at?: string;
   matchScore?: number;
@@ -50,19 +49,9 @@ const ScholarshipFinder: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [savedScholarships, setSavedScholarships] = useState<Set<number>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedOrganisation, setSelectedOrganisation] = useState("");
   const [viewMode, setViewMode] = useState<'all' | 'recommended'>('all');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-
-  const degreeLevels = [
-    "Undergraduate",
-    "Graduate", 
-    "Master",
-    "Postgraduate",
-    "PhD",
-    "Postdoc"
-  ];
 
   useEffect(() => {
     fetchUserProfile();
@@ -85,7 +74,7 @@ const ScholarshipFinder: React.FC = () => {
     if (viewMode === 'all') {
       applyFilters();
     }
-  }, [searchQuery, selectedCountry, selectedLevel, scholarships, viewMode]);
+  }, [searchQuery, selectedOrganisation, scholarships, viewMode]);
 
   const fetchUserProfile = async () => {
     try {
@@ -190,29 +179,10 @@ const ScholarshipFinder: React.FC = () => {
 
     let score = 0;
 
-    if (userProfile.target_countries && userProfile.target_countries.length > 0) {
-      if (userProfile.target_countries.includes(scholarship.country_region || '')) {
-        score += 50;
-      }
-    }
-
-    if (userProfile.degree) {
-      const userDegree = userProfile.degree.toLowerCase();
-      const scholarshipLevel = (scholarship.degree_level || '').toLowerCase();
-      
-      if (userDegree === 'bachelors' && (scholarshipLevel.includes('undergraduate') || scholarshipLevel.includes('bachelor'))) {
-        score += 30;
-      } else if ((userDegree === 'masters' || userDegree === 'master') && (scholarshipLevel.includes('master') || scholarshipLevel.includes('postgraduate') || scholarshipLevel.includes('graduate'))) {
-        score += 30;
-      } else if (userDegree === 'phd' && scholarshipLevel.includes('phd')) {
-        score += 30;
-      }
-    }
-
     if (userProfile.program && scholarship.scholarship_name) {
       const userProgram = userProfile.program.toLowerCase();
       const scholarshipName = (scholarship.scholarship_name || '').toLowerCase();
-      const eligibility = (scholarship.detailed_eligibility || '').toLowerCase();
+      const eligibility = (scholarship.eligibility || '').toLowerCase();
       
       const programKeywords = userProgram.split(/[\s,\-/]+/).filter(k => k.length > 2);
       let keywordMatches = 0;
@@ -224,12 +194,17 @@ const ScholarshipFinder: React.FC = () => {
       }
       
       const matchPercentage = keywordMatches / (programKeywords.length || 1);
-      if (matchPercentage >= 0.5) score += 20;
-      else if (matchPercentage >= 0.3) score += 15;
-      else if (keywordMatches > 0) score += 10;
+      if (matchPercentage >= 0.5) score += 60;
+      else if (matchPercentage >= 0.3) score += 40;
+      else if (keywordMatches > 0) score += 20;
     }
 
-    return score;
+    if (scholarship.eligibility) {
+      const eligibility = scholarship.eligibility.toLowerCase();
+      score += Math.min(40, eligibility.length / 10);
+    }
+
+    return Math.min(100, score);
   };
 
   const fetchRecommendedScholarships = async () => {
@@ -239,13 +214,6 @@ const ScholarshipFinder: React.FC = () => {
 
       if (!userProfile) {
         setError('Please complete your profile to see personalized recommendations');
-        setFilteredScholarships([]);
-        setLoading(false);
-        return;
-      }
-
-      if (!userProfile.target_countries || userProfile.target_countries.length === 0) {
-        setError('Please select at least one target country in your profile');
         setFilteredScholarships([]);
         setLoading(false);
         return;
@@ -267,7 +235,6 @@ const ScholarshipFinder: React.FC = () => {
 
       const filtered = (data || []).filter(scholarship => {
         if (!scholarship.scholarship_name) return false;
-        if (!userProfile.target_countries.includes(scholarship.country_region || '')) return false;
         return true;
       });
 
@@ -330,17 +297,13 @@ const ScholarshipFinder: React.FC = () => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(scholarship =>
         scholarship.scholarship_name?.toLowerCase().includes(query) ||
-        scholarship.provider?.toLowerCase().includes(query) ||
-        scholarship.country_region?.toLowerCase().includes(query)
+        scholarship.organisation?.toLowerCase().includes(query) ||
+        scholarship.eligibility?.toLowerCase().includes(query)
       );
     }
 
-    if (selectedCountry) {
-      filtered = filtered.filter(s => s.country_region === selectedCountry);
-    }
-
-    if (selectedLevel) {
-      filtered = filtered.filter(s => s.degree_level?.includes(selectedLevel));
+    if (selectedOrganisation) {
+      filtered = filtered.filter(s => s.organisation === selectedOrganisation);
     }
 
     setFilteredScholarships(filtered);
@@ -348,14 +311,12 @@ const ScholarshipFinder: React.FC = () => {
 
   const resetFilters = () => {
     setSearchQuery('');
-    setSelectedCountry('');
-    setSelectedLevel('');
+    setSelectedOrganisation('');
   };
 
   const clearFilter = (filterName: string) => {
     switch(filterName) {
-      case 'country': setSelectedCountry(''); break;
-      case 'level': setSelectedLevel(''); break;
+      case 'organisation': setSelectedOrganisation(''); break;
       case 'search': setSearchQuery(''); break;
     }
   };
@@ -367,35 +328,35 @@ const ScholarshipFinder: React.FC = () => {
     
     if (score >= 90) {
       return (
-        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <span className="text-xs bg-gradient-to-r from-[#fac300] to-yellow-400 text-gray-900 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
           <Trophy size={14} />
-          Perfect Match ({score}%)
+          Perfect Match ({score.toFixed(0)}%)
         </span>
       );
     } else if (score >= 75) {
       return (
-        <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <span className="text-xs bg-blue-100 text-[#2f61ce] px-3 py-1 rounded-full font-semibold flex items-center gap-1">
           <Award size={14} />
-          Excellent Match ({score}%)
+          Excellent Match ({score.toFixed(0)}%)
         </span>
       );
     } else if (score >= 60) {
       return (
         <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
           <Target size={14} />
-          Great Match ({score}%)
+          Great Match ({score.toFixed(0)}%)
         </span>
       );
     } else if (score >= 40) {
       return (
         <span className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">
-          Good Match ({score}%)
+          Good Match ({score.toFixed(0)}%)
         </span>
       );
     }
     return (
       <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">
-        Relevant ({score}%)
+        Relevant ({score.toFixed(0)}%)
       </span>
     );
   };
@@ -424,19 +385,13 @@ const ScholarshipFinder: React.FC = () => {
     }
   };
 
-  const getUniqueCountries = () => {
-    const countries = scholarships.map((s) => s.country_region);
-    return [...new Set(countries)].filter(Boolean).sort();
+  const getUniqueOrganisations = () => {
+    const organisations = scholarships.map((s) => s.organisation);
+    return [...new Set(organisations)].filter(Boolean).sort();
   };
 
-  const truncateText = (text: string, maxLength: number) => {
-    if (!text) return "";
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + "...";
-  };
-
-  const activeFiltersCount = [searchQuery, selectedCountry, selectedLevel].filter(Boolean).length;
-  const hasProfileData = userProfile && userProfile.target_countries && userProfile.target_countries.length > 0 && userProfile.degree && userProfile.program;
+  const activeFiltersCount = [searchQuery, selectedOrganisation].filter(Boolean).length;
+  const hasProfileData = userProfile && userProfile.degree && userProfile.program;
   const canShowRecommendations = hasProfileData && !loadingProfile;
 
   return (
@@ -444,7 +399,7 @@ const ScholarshipFinder: React.FC = () => {
       <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-[#005de6] mb-2">
+            <h1 className="text-4xl font-bold text-[#2f61ce] mb-2">
               Find Scholarships to Fuel Your Dreams
             </h1>
             <p className="text-gray-600">
@@ -460,7 +415,7 @@ const ScholarshipFinder: React.FC = () => {
               }}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 viewMode === 'all'
-                  ? 'bg-[#005de6] text-white shadow-lg'
+                  ? 'bg-[#2f61ce] text-white shadow-lg'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
               }`}
             >
@@ -477,7 +432,7 @@ const ScholarshipFinder: React.FC = () => {
               disabled={!canShowRecommendations}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 viewMode === 'recommended'
-                  ? 'bg-[#005de6] text-white shadow-lg'
+                  ? 'bg-[#2f61ce] text-white shadow-lg'
                   : canShowRecommendations
                     ? 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
@@ -491,14 +446,13 @@ const ScholarshipFinder: React.FC = () => {
           </div>
 
           {viewMode === 'recommended' && userProfile && hasProfileData && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-yellow-50 border-2 border-[#fac300] rounded-lg">
               <div className="flex items-start gap-2">
-                <Sparkles className="text-blue-600 mt-0.5 flex-shrink-0" size={20} />
+                <Sparkles className="text-[#fac300] mt-0.5 flex-shrink-0" size={20} />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-blue-900">Showing your top 10 personalized recommendations</p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Based on: <strong>{userProfile.degree}</strong> degree | 
-                    Countries: <strong>{userProfile.target_countries.join(', ')}</strong>
+                  <p className="text-sm font-semibold text-gray-900">Showing your top 10 personalized recommendations</p>
+                  <p className="text-xs text-gray-700 mt-1">
+                    Based on: <strong>{userProfile.degree}</strong> degree 
                     {userProfile.program && <> | Program: <strong>{userProfile.program}</strong></>}
                   </p>
                 </div>
@@ -513,8 +467,8 @@ const ScholarshipFinder: React.FC = () => {
                   <div className="flex-1 relative">
                     <input
                       type="text"
-                      placeholder="Search for scholarships by name, provider, or country..."
-                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      placeholder="Search for scholarships by name, organisation, or eligibility..."
+                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -522,12 +476,12 @@ const ScholarshipFinder: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#005de6] text-white rounded-lg font-medium hover:bg-red-700 transition"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#2f61ce] text-white rounded-lg font-medium hover:bg-[#2451a8] transition"
                   >
                     <Filter size={20} />
                     Filters
                     {activeFiltersCount > 0 && (
-                      <span className="bg-white text-[#005de6] px-2 py-0.5 rounded-full text-sm font-bold">
+                      <span className="bg-[#fac300] text-gray-900 px-2 py-0.5 rounded-full text-sm font-bold">
                         {activeFiltersCount}
                       </span>
                     )}
@@ -537,30 +491,22 @@ const ScholarshipFinder: React.FC = () => {
                 {activeFiltersCount > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {searchQuery && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                      <div className="bg-blue-100 text-[#2f61ce] px-3 py-1 rounded-full text-sm flex items-center gap-2">
                         <span className="font-medium">Search: {searchQuery}</span>
-                        <button onClick={() => clearFilter('search')} className="hover:bg-red-200 rounded-full p-0.5">
+                        <button onClick={() => clearFilter('search')} className="hover:bg-blue-200 rounded-full p-0.5">
                           <X size={14} />
                         </button>
                       </div>
                     )}
-                    {selectedCountry && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">{selectedCountry}</span>
-                        <button onClick={() => clearFilter('country')} className="hover:bg-red-200 rounded-full p-0.5">
+                    {selectedOrganisation && (
+                      <div className="bg-blue-100 text-[#2f61ce] px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                        <span className="font-medium">{selectedOrganisation}</span>
+                        <button onClick={() => clearFilter('organisation')} className="hover:bg-blue-200 rounded-full p-0.5">
                           <X size={14} />
                         </button>
                       </div>
                     )}
-                    {selectedLevel && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">{selectedLevel}</span>
-                        <button onClick={() => clearFilter('level')} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    <button onClick={resetFilters} className="text-sm text-[#005de6] hover:text-red-700 font-medium px-2">
+                    <button onClick={resetFilters} className="text-sm text-[#2f61ce] hover:text-[#2451a8] font-medium px-2">
                       Clear All
                     </button>
                   </div>
@@ -570,45 +516,25 @@ const ScholarshipFinder: React.FC = () => {
               {showFilters && (
                 <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                   <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <Filter size={20} className="text-[#005de6]" />
+                    <Filter size={20} className="text-[#2f61ce]" />
                     Refine Your Search
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <Globe size={16} className="text-[#005de6]" />
-                        Country
+                        <Globe size={16} className="text-[#2f61ce]" />
+                        Organisation
                       </label>
                       <div className="relative">
                         <select 
-                          className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
-                          value={selectedCountry}
-                          onChange={(e) => setSelectedCountry(e.target.value)}
+                          className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                          value={selectedOrganisation}
+                          onChange={(e) => setSelectedOrganisation(e.target.value)}
                         >
-                          <option value="">All Countries</option>
-                          {getUniqueCountries().map((country) => (
-                            <option key={country} value={country}>{country}</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <GraduationCap size={16} className="text-[#005de6]" />
-                        Degree Level
-                      </label>
-                      <div className="relative">
-                        <select 
-                          className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
-                          value={selectedLevel}
-                          onChange={(e) => setSelectedLevel(e.target.value)}
-                        >
-                          <option value="">All Levels</option>
-                          {degreeLevels.map((level) => (
-                            <option key={level} value={level}>{level}</option>
+                          <option value="">All Organisations</option>
+                          {getUniqueOrganisations().map((organisation) => (
+                            <option key={organisation} value={organisation}>{organisation}</option>
                           ))}
                         </select>
                         <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
@@ -622,23 +548,23 @@ const ScholarshipFinder: React.FC = () => {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-              <AlertCircle className="text-[#005de6] flex-shrink-0" size={24} />
+              <AlertCircle className="text-[#2f61ce] flex-shrink-0" size={24} />
               <div>
                 <h3 className="font-semibold text-red-800">Notice</h3>
-                <p className="text-[#005de6] text-sm">{error}</p>
+                <p className="text-[#2f61ce] text-sm">{error}</p>
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center gap-2">
-              <Award className="text-[#005de6]" size={24} />
+              <Award className="text-[#2f61ce]" size={24} />
               <span className="font-semibold text-lg">
                 {filteredScholarships.length.toLocaleString()} {viewMode === 'recommended' ? 'recommended ' : ''}scholarships found
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Heart className="text-[#005de6]" size={18} />
+              <Heart className="text-[#2f61ce]" size={18} />
               <span className="text-sm text-gray-600">{savedScholarships.size} saved</span>
             </div>
           </div>
@@ -646,7 +572,7 @@ const ScholarshipFinder: React.FC = () => {
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="text-gray-500 flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005de6]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2f61ce]"></div>
                 <p>Loading scholarships...</p>
               </div>
             </div>
@@ -670,16 +596,18 @@ const ScholarshipFinder: React.FC = () => {
                 return (
                   <div
                     key={s.id}
-                    className={`bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow relative ${
+                    className={`bg-white border-2 ${
+                      viewMode === 'recommended' && index < 2 ? 'border-[#fac300]' : 'border-gray-200'
+                    } rounded-xl p-6 hover:shadow-lg transition-shadow relative ${
                       isBlurred ? 'overflow-hidden' : ''
                     }`}
                   >
                     {isBlurred && (
                       <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 rounded-xl">
-                        <div className="bg-white shadow-2xl rounded-2xl p-8 text-center max-w-sm border-2 border-red-100">
+                        <div className="bg-white shadow-2xl rounded-2xl p-8 text-center max-w-sm border-2 border-[#fac300]">
                           <div className="mb-4 flex justify-center">
-                            <div className="bg-red-100 rounded-full p-4">
-                              <AlertCircle className="text-[#005de6]" size={32} />
+                            <div className="bg-gradient-to-br from-[#2f61ce] to-[#fac300] rounded-full p-4">
+                              <AlertCircle className="text-white" size={32} />
                             </div>
                           </div>
                           <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -688,7 +616,7 @@ const ScholarshipFinder: React.FC = () => {
                           <p className="text-gray-600 mb-6">
                             Talk to our experts to view detailed information about this and {10 - index - 1} more personalized scholarship recommendations
                           </p>
-                          <button className="bg-[#005de6] text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors w-full flex items-center justify-center gap-2">
+                          <button className="bg-[#fac300] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all w-full flex items-center justify-center gap-2">
                             <Sparkles size={18} />
                             Contact Our Experts
                           </button>
@@ -698,19 +626,17 @@ const ScholarshipFinder: React.FC = () => {
 
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg text-gray-900 leading-tight mb-2">
-                          {s.scholarship_name}
+                        <h3 className="font-bold text-xl text-gray-900 leading-tight mb-3">
+                          {s.scholarship_name || 'Scholarship'}
                         </h3>
                         
-                        <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
-                          <MapPin size={14} />
-                          <span>{s.country_region}</span>
-                        </div>
-
-                        {s.provider && (
-                          <p className="text-gray-700 font-medium text-sm mb-2">
-                            {s.provider}
-                          </p>
+                        {s.organisation && (
+                          <div className="flex items-center gap-2 mb-3 bg-gray-50 px-3 py-2 rounded-lg">
+                            <Globe size={16} className="text-[#2f61ce] flex-shrink-0" />
+                            <p className="text-gray-700 font-medium text-sm">
+                              {s.organisation}
+                            </p>
+                          </div>
                         )}
 
                         {viewMode === 'recommended' && (
@@ -723,37 +649,51 @@ const ScholarshipFinder: React.FC = () => {
                       <button
                         onClick={() => toggleSaveScholarship(s.id)}
                         disabled={isBlurred}
-                        className={`transition-colors ${
+                        className={`transition-colors ml-3 ${
                           isBlurred ? 'opacity-50 cursor-not-allowed' :
-                          savedScholarships.has(s.id) ? 'text-[#005de6]' : 'text-gray-400 hover:text-[#005de6]'
+                          savedScholarships.has(s.id) ? 'text-[#2f61ce]' : 'text-gray-400 hover:text-[#2f61ce]'
                         }`}
                         title={isBlurred ? 'Contact experts to unlock' : savedScholarships.has(s.id) ? 'Remove from saved' : 'Save scholarship'}
                       >
                         <Heart
-                          size={20}
+                          size={24}
                           fill={savedScholarships.has(s.id) ? "currentColor" : "none"}
                         />
                       </button>
                     </div>
 
-                    {s.detailed_eligibility && (
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                        {truncateText(s.detailed_eligibility, 180)}
-                      </p>
+                    {s.eligibility && (
+                      <div className="mb-4 bg-blue-50 border border-blue-100 rounded-lg p-4">
+                        <div className="flex items-start gap-2">
+                          <GraduationCap size={18} className="text-[#2f61ce] flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-xs font-bold text-[#2f61ce] mb-1.5 uppercase tracking-wide">Eligibility</p>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                              {s.eligibility}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     )}
 
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {s.degree_level && (
-                        <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium">
-                          {s.degree_level}
-                        </span>
-                      )}
-                    </div>
+                    {s.benefit && (
+                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-[#fac300] rounded-lg p-4 mb-4">
+                        <div className="flex items-start gap-2">
+                          <IndianRupee size={18} className="text-[#fac300] flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-xs font-bold text-gray-900 mb-1.5 uppercase tracking-wide">Benefits</p>
+                            <p className="text-sm text-gray-800 leading-relaxed">
+                              {s.benefit}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 text-gray-700 mb-4 pt-4 border-t border-gray-100">
-                      <Calendar size={16} className="text-[#005de6]" />
+                      <Calendar size={18} className="text-[#2f61ce] flex-shrink-0" />
                       <span className="text-sm">
-                        <strong>Deadline:</strong> {formatDeadline(s.deadline)}
+                        <strong className="font-semibold">Deadline:</strong> <span className="text-gray-600">{formatDeadline(s.deadline)}</span>
                       </span>
                     </div>
 
@@ -762,8 +702,8 @@ const ScholarshipFinder: React.FC = () => {
                         href={s.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center justify-center gap-2 bg-[#005de6] text-white py-2 rounded-lg font-medium transition-colors ${
-                          isBlurred ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'hover:bg-red-700'
+                        className={`flex items-center justify-center gap-2 bg-[#2f61ce] text-white py-3 rounded-lg font-semibold transition-colors ${
+                          isBlurred ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'hover:bg-[#2451a8]'
                         }`}
                       >
                         Apply Now

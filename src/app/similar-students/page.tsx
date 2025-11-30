@@ -328,17 +328,17 @@ const AdmitFinder: React.FC = () => {
     <DefaultLayout>
       <div className="flex-1 bg-white p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#005de6] mb-2">Access 375K+ Admits & Rejects!</h1>
+          <h1 className="text-3xl font-bold text-[#2f61ce] mb-2">Access 375K+ Admits & Rejects!</h1>
           <p className="text-gray-600">Find folks at your dream school with the same background, interests, and stats as you</p>
         </div>
 
         {viewMode === 'similar' && userProfile && (
-          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-4 p-4 bg-blue-50 border-l-4 border-[#2f61ce] rounded-lg">
             <div className="flex items-start gap-2">
-              <AlertCircle className="text-blue-600 mt-0.5 flex-shrink-0" size={20} />
+              <AlertCircle className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={20} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-blue-900">Matching based on your profile:</p>
-                <p className="text-xs text-blue-700 break-words">
+                <p className="text-sm font-semibold text-[#2f61ce]">Matching based on your profile:</p>
+                <p className="text-xs text-gray-700 break-words">
                   Tests: {formatTestScoresForDisplay(userProfile.test_scores)} | 
                   Program: {userProfile.program || 'N/A'} | Degree: {userProfile.degree || 'N/A'} | CGPA: {userProfile.last_course_cgpa || 'N/A'}
                 </p>
@@ -352,7 +352,7 @@ const AdmitFinder: React.FC = () => {
             onClick={() => setViewMode('all')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
               viewMode === 'all'
-                ? 'bg-[#005de6] text-white shadow-lg'
+                ? 'bg-[#2f61ce] text-white shadow-lg'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -368,7 +368,7 @@ const AdmitFinder: React.FC = () => {
             disabled={!hasProfileData || loadingProfile}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
               viewMode === 'similar'
-                ? 'bg-[#005de6] text-white shadow-lg'
+                ? 'bg-[#2f61ce] text-white shadow-lg'
                 : hasProfileData && !loadingProfile
                   ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -384,7 +384,7 @@ const AdmitFinder: React.FC = () => {
         <div className="flex gap-4 mb-6">
           <div className="relative">
             <select 
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
               value={selectedUniversity}
               onChange={(e) => setSelectedUniversity(e.target.value)}
             >
@@ -405,7 +405,7 @@ const AdmitFinder: React.FC = () => {
 
           <div className="relative">
             <select 
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
               value={selectedMajor}
               onChange={(e) => setSelectedMajor(e.target.value)}
             >
@@ -425,7 +425,7 @@ const AdmitFinder: React.FC = () => {
             <input
               type="text"
               placeholder="Search by name, university, or program"
-              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -435,8 +435,8 @@ const AdmitFinder: React.FC = () => {
 
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Users className="text-[#005de6]" size={20} />
-            <span className="font-semibold">
+            <Users className="text-[#2f61ce]" size={20} />
+            <span className="font-semibold text-gray-800">
               {profiles.length} {viewMode === 'similar' ? 'similar ' : ''}profile{profiles.length !== 1 ? 's' : ''} found
             </span>
           </div>
@@ -445,7 +445,7 @@ const AdmitFinder: React.FC = () => {
             <button
               onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                showVerifiedOnly ? 'bg-[#005de6]' : 'bg-gray-300'
+                showVerifiedOnly ? 'bg-[#2f61ce]' : 'bg-gray-300'
               }`}
             >
               <span
@@ -489,10 +489,10 @@ const AdmitFinder: React.FC = () => {
                 >
                   {isBlurred && (
                     <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 rounded-lg">
-                      <div className="bg-white shadow-2xl rounded-2xl p-6 text-center max-w-sm border-2 border-red-100">
+                      <div className="bg-white shadow-2xl rounded-2xl p-6 text-center max-w-sm border-2 border-[#fac300]">
                         <div className="mb-4 flex justify-center">
-                          <div className="bg-red-100 rounded-full p-3">
-                            <AlertCircle className="text-[#005de6]" size={28} />
+                          <div className="bg-[#fac300] bg-opacity-20 rounded-full p-3">
+                            <AlertCircle className="text-[#2f61ce]" size={28} />
                           </div>
                         </div>
                         <h3 className="text-lg font-bold text-gray-900 mb-2">
@@ -501,7 +501,7 @@ const AdmitFinder: React.FC = () => {
                         <p className="text-gray-600 text-sm mb-5">
                           Talk to our experts to view detailed information about this and {profiles.length - index - 1} more similar profiles
                         </p>
-                        <button className="bg-[#005de6] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-red-700 transition-colors w-full flex items-center justify-center gap-2 text-sm">
+                        <button className="bg-[#2f61ce] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#264a9f] transition-colors w-full flex items-center justify-center gap-2 text-sm">
                           <Sparkles size={16} />
                           Contact Our Experts
                         </button>
@@ -512,7 +512,7 @@ const AdmitFinder: React.FC = () => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-full ${
-                        profile.avatar_type === 'S' ? 'bg-purple-600' : 'bg-green-600'
+                        profile.avatar_type === 'S' ? 'bg-[#2f61ce]' : 'bg-[#fac300]'
                       } text-white flex items-center justify-center font-bold text-lg flex-shrink-0`}>
                         {profile.name ? profile.name.charAt(0).toUpperCase() : profile.avatar_type}
                       </div>
@@ -520,7 +520,7 @@ const AdmitFinder: React.FC = () => {
                         <h3 className="font-semibold flex items-center gap-1 text-gray-800">
                           {profile.name}
                           {profile.verified && (
-                            <span className="text-[#005de6] text-sm">👑</span>
+                            <span className="text-[#fac300] text-sm">★</span>
                           )}
                         </h3>
                         {getSimilarityBadge(profile)}
@@ -553,7 +553,7 @@ const AdmitFinder: React.FC = () => {
 
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2">
-                      <Building2 size={14} className="text-gray-400 flex-shrink-0" />
+                      <Building2 size={14} className="text-[#2f61ce] flex-shrink-0" />
                       <span className="text-sm font-semibold text-gray-800 line-clamp-1">{profile.university}</span>
                     </div>
                     <div className="text-sm text-gray-600 line-clamp-2">{profile.program}</div>
@@ -570,10 +570,10 @@ const AdmitFinder: React.FC = () => {
 
                   <button 
                     disabled={isBlurred}
-                    className={`w-full border border-gray-300 rounded-lg py-2 px-4 flex items-center justify-center gap-2 transition-all ${
+                    className={`w-full border rounded-lg py-2 px-4 flex items-center justify-center gap-2 transition-all ${
                       isBlurred 
-                        ? 'opacity-50 cursor-not-allowed text-gray-400' 
-                        : 'hover:bg-gray-50 hover:border-[#005de6] text-gray-700 hover:text-[#005de6]'
+                        ? 'opacity-50 cursor-not-allowed text-gray-400 border-gray-300' 
+                        : 'hover:bg-[#2f61ce] hover:text-white text-[#2f61ce] border-[#2f61ce]'
                     }`}
                   >
                     <User size={16} />

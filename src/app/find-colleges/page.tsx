@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, Heart, BookOpen, DollarSign, MapPin, GraduationCap, Filter, X, ChevronLeft, ChevronRight, AlertCircle, Calendar, Globe, Award, Sparkles, Trophy, Target } from 'lucide-react';
+import { Search, ChevronDown, Heart, BookOpen, IndianRupee, MapPin, GraduationCap, Filter, X, ChevronLeft, ChevronRight, AlertCircle, Calendar, Globe, Award, Sparkles, Trophy, Target } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
 import DefaultLayout from '../defaultLayout';
@@ -940,7 +940,7 @@ const CourseFinder: React.FC = () => {
                           </div>
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <DollarSign size={14} />
+                              <IndianRupee size={14} />
                               <span>Tuition Fee</span>
                             </div>
                             <p className="font-semibold text-gray-800 text-sm">
@@ -949,7 +949,7 @@ const CourseFinder: React.FC = () => {
                           </div>
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <DollarSign size={14} />
+                              <IndianRupee size={14} />
                               <span>Application Fee</span>
                             </div>
                             <p className="font-semibold text-gray-800 text-sm">

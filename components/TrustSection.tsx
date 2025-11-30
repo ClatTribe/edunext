@@ -14,7 +14,7 @@ export const TrustSection: React.FC = () => {
                     viewport={{ once: true }}
                     className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider mb-4"
                 >
-                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#2f61ce]"></span>
                     The New Standard
                 </motion.div>
                 <motion.h2 
@@ -42,7 +42,7 @@ export const TrustSection: React.FC = () => {
             >
                 <div className="relative z-10 h-full flex flex-col justify-between">
                     <div>
-                        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 text-blue-600">
+                        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 text-[#2f61ce]">
                             <UserX size={32} />
                         </div>
                         <h3 className="text-3xl font-bold text-slate-900 mb-4">Zero Unsolicited Calls. Period.</h3>
@@ -86,7 +86,7 @@ export const TrustSection: React.FC = () => {
                 className="md:col-span-2 bg-blue-50 rounded-3xl p-8 relative overflow-hidden group border border-blue-100 hover:shadow-xl transition-all duration-500"
             >
                 <div className="relative z-10">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6 text-blue-600">
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6 text-[#2f61ce]">
                         <Zap size={24} />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-3">Real-Time Sync</h3>
@@ -100,13 +100,13 @@ export const TrustSection: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="md:col-span-4 bg-blue-600 rounded-3xl p-8 md:px-12 md:py-10 flex flex-col md:flex-row items-center justify-between gap-8 hover:bg-[#be123c] transition-colors group cursor-pointer shadow-xl shadow-red-900/20"
+                className="md:col-span-4 bg-[#2f61ce] rounded-3xl p-8 md:px-12 md:py-10 flex flex-col md:flex-row items-center justify-between gap-8 hover:bg-[#2f61ce] transition-colors group cursor-pointer shadow-xl shadow-red-900/20"
             >
                 <div className="text-white">
                     <h3 className="text-3xl font-bold mb-2">Ready to find your dream university?</h3>
                     <p className="text-red-100 text-lg">Join 10,000+ students who switched to EduNext today.</p>
                 </div>
-                <button className="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg flex items-center gap-2 group-hover:gap-4 transition-all shadow-lg">
+                <button className="px-8 py-4 bg-white text-[#2f61ce] rounded-xl font-bold text-lg flex items-center gap-2 group-hover:gap-4 transition-all shadow-lg">
                     Get Started Free <ArrowRight size={20} />
                 </button>
             </motion.div>

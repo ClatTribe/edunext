@@ -111,8 +111,8 @@ const RegisterPage = () => {
       <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between" style={{ background: 'linear-gradient(to bottom right, #005de6, #003d99)' }}>
         <div>
           <div className="flex items-center gap-3 mb-8">
-            <GraduationCap className="text-white" size={40} />
-            <div className="text-4xl font-bold text-white">EduNext</div>
+            <GraduationCap className="text-[#fac300]" size={40} />
+            <div className="text-4xl font-bold text-[#fac300]">EduNext</div>
           </div>
           <h1 className="text-5xl font-bold text-white mb-6">
             Your Gateway to Global Education
@@ -125,7 +125,7 @@ const RegisterPage = () => {
         <div className="space-y-6">
           <div className="flex items-start gap-4">
             <div className="bg-white/20 rounded-full p-3">
-              <GraduationCap className="text-white" size={24} />
+              <GraduationCap className="text-[#fac300]" size={24} />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">2000+ Universities</h3>
@@ -134,7 +134,7 @@ const RegisterPage = () => {
           </div>
           <div className="flex items-start gap-4">
             <div className="bg-white/20 rounded-full p-3">
-              <User className="text-white" size={24} />
+              <User className="text-[#fac300]" size={24} />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">375K+ Admit Profiles</h3>

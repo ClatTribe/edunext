@@ -1,535 +1,565 @@
-"use client";
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { User, BookOpen, Award, Trophy, Edit2, Save, X, CheckCircle, Trash2, Plus, Minus, Globe, GraduationCap, Target, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
-import DefaultLayout from '../defaultLayout';
-import { useAuth } from '../../../contexts/AuthContext';
-import { supabase } from '../../../lib/supabase';
+"use client"
+
+import React, { useState, useEffect, useCallback, useMemo } from "react"
+import {
+  User,
+  BookOpen,
+  Award,
+  Trophy,
+  Edit2,
+  Save,
+  X,
+  CheckCircle,
+  Trash2,
+  Plus,
+  Minus,
+  GraduationCap,
+  Target,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+} from "lucide-react"
+import DefaultLayout from "../defaultLayout"
+import { useAuth } from "../../../contexts/AuthContext"
+import { supabase } from "../../../lib/supabase"
 
 interface TestScore {
-  exam: string;
-  score: string;
+  exam: string
+  score: string
 }
 
 interface FormData {
   // Personal Information
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  state: string;
-  
+  name: string
+  email: string
+  phone: string
+  city: string
+  state: string
+
   // Target Program
-  target_countries: string[];
-  target_degree: string;
-  target_field: string;
-  budget: string;
-  term: string;
-  
+  target_countries: string[]
+  target_degree: string
+  target_field: string
+  budget: string
+  term: string
+
   // 10th Grade
-  tenth_board: string;
-  tenth_year: string;
-  tenth_score: string;
-  
+  tenth_board: string
+  tenth_year: string
+  tenth_score: string
+
   // 12th Grade
-  twelfth_board: string;
-  twelfth_year: string;
-  twelfth_score: string;
-  twelfth_stream: string;
-  
+  twelfth_board: string
+  twelfth_year: string
+  twelfth_score: string
+  twelfth_stream: string
+
   // Undergraduate
-  ug_degree: string;
-  ug_university: string;
-  ug_year: string;
-  ug_score: string;
-  ug_field: string;
-  
+  ug_degree: string
+  ug_university: string
+  ug_year: string
+  ug_score: string
+  ug_field: string
+
   // Postgraduate
-  pg_degree: string;
-  pg_university: string;
-  pg_year: string;
-  pg_score: string;
-  pg_field: string;
-  
+  pg_degree: string
+  pg_university: string
+  pg_year: string
+  pg_score: string
+  pg_field: string
+
   // Test Scores
-  testScores: TestScore[];
-  
+  testScores: TestScore[]
+
   // Work Experience
-  has_experience: string;
-  experience_years: string;
-  experience_field: string;
-  
+  has_experience: string
+  experience_years: string
+  experience_field: string
+
   // Other
-  extracurricular: string;
-  verified: boolean;
+  extracurricular: string
+  verified: boolean
 }
 
 // Global cache for profile data
-let cachedFormData: FormData | null = null;
-let cachedHasProfile = false;
-let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000;
+let cachedFormData: FormData | null = null
+let cachedHasProfile = false
+let cacheTimestamp = 0
+const CACHE_DURATION = 5 * 60 * 1000
 
 export const invalidateProfileCache = () => {
-  cachedFormData = null;
-  cachedHasProfile = false;
-  cacheTimestamp = 0;
-};
+  cachedFormData = null
+  cachedHasProfile = false
+  cacheTimestamp = 0
+}
 
 const COMMON_EXAMS = [
-  'GRE',
-  'GMAT',
-  'TOEFL',
-  'IELTS',
-  'Duolingo English Test',
-  'PTE Academic',
-  'TestDaF',
-  'Goethe Certificate',
-  'DELF/DALF',
-  'SAT',
-  'ACT',
-  'Other'
-];
+  "GRE",
+  "GMAT",
+  "TOEFL",
+  "IELTS",
+  "Duolingo English Test",
+  "PTE Academic",
+  "TestDaF",
+  "Goethe Certificate",
+  "DELF/DALF",
+  "SAT",
+  "ACT",
+  "Other",
+]
 
-const COUNTRIES = ['United States of America', 'United Kingdom', 'Italy', 'Australia', 'Germany', 'Europe (Other)'];
+const COUNTRIES = ["United States of America", "United Kingdom", "Italy", "Australia", "Germany", "Europe (Other)"]
 
 const DEGREE_OPTIONS = [
-  { value: 'Bachelors', label: 'Bachelors (Undergraduate)' },
-  { value: 'Masters', label: 'Masters' },
-  { value: 'MBA', label: 'MBA' },
-  { value: 'PhD', label: 'PhD / Doctorate' },
-  { value: 'Diploma', label: 'Diploma/Certificate' }
-];
+  { value: "Bachelors", label: "Bachelors (Undergraduate)" },
+  { value: "Masters", label: "Masters" },
+  { value: "MBA", label: "MBA" },
+  { value: "PhD", label: "PhD / Doctorate" },
+  { value: "Diploma", label: "Diploma/Certificate" },
+]
 
 const TERM_OPTIONS = [
-  // { value: 'Fall 2025', label: 'Fall 2025' },
-  { value: 'Spring 2026', label: 'Spring 2026' },
-  { value: 'Fall 2026', label: 'Fall 2026' },
-  { value: '2027', label: '2027 or later' }
-];
+  { value: "Spring 2026", label: "Spring 2026" },
+  { value: "Fall 2026", label: "Fall 2026" },
+  { value: "2027", label: "2027 or later" },
+]
 
 // Type definitions for component props
 interface InputFieldProps {
-  label: string;
-  type?: string;
-  value: string;
-  onChange: (field: string, value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-  disabled?: boolean;
-  field: string;
+  label: string
+  type?: string
+  value: string
+  onChange: (field: string, value: string) => void
+  placeholder?: string
+  required?: boolean
+  disabled?: boolean
+  field: string
 }
 
 interface SelectOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 interface SelectFieldProps {
-  label: string;
-  value: string;
-  onChange: (field: string, value: string) => void;
-  options: SelectOption[];
-  required?: boolean;
-  disabled?: boolean;
-  field: string;
+  label: string
+  value: string
+  onChange: (field: string, value: string) => void
+  options: SelectOption[]
+  required?: boolean
+  disabled?: boolean
+  field: string
 }
 
 interface SectionProps {
-  id: string;
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-  visible?: boolean;
-  isExpanded: boolean;
-  isComplete: boolean;
-  onToggle: (id: string) => void;
+  id: string
+  title: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  visible?: boolean
+  isExpanded: boolean
+  isComplete: boolean
+  onToggle: (id: string) => void
 }
 
-// Move these components outside to prevent recreation - FIXED INPUT FOCUS ISSUE
-const InputField = React.memo(({ label, type = "text", value, onChange, placeholder, required = false, disabled, field }: InputFieldProps) => {
-  return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(field, e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-      />
-    </div>
-  );
-});
+const InputField = React.memo(
+  ({ label, type = "text", value, onChange, placeholder, required = false, disabled, field }: InputFieldProps) => {
+    return (
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {label} {required && <span className="text-[#2f61ce]">*</span>}
+        </label>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(field, e.target.value)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
+        />
+      </div>
+    )
+  },
+)
+InputField.displayName = "InputField"
 
-InputField.displayName = 'InputField';
+const SelectField = React.memo(
+  ({ label, value, onChange, options, required = false, disabled, field }: SelectFieldProps) => {
+    return (
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {label} {required && <span className="text-[#2f61ce]">*</span>}
+        </label>
+        <select
+          value={value}
+          onChange={(e) => onChange(field, e.target.value)}
+          disabled={disabled}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
+        >
+          <option value="">Select...</option>
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    )
+  },
+)
+SelectField.displayName = "SelectField"
 
-const SelectField = React.memo(({ label, value, onChange, options, required = false, disabled, field }: SelectFieldProps) => {
-  return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(field, e.target.value)}
-        disabled={disabled}
-        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-      >
-        <option value="">Select...</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-    </div>
-  );
-});
+const Section = React.memo(
+  ({ id, title, icon: Icon, children, visible = true, isExpanded, isComplete, onToggle }: SectionProps) => {
+    if (!visible) return null
 
-SelectField.displayName = 'SelectField';
+    return (
+      <div className="mb-4 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all">
+        <button
+          type="button"
+          onClick={() => onToggle(id)}
+          className="w-full px-6 py-4 flex items-center justify-between bg-[#f8fafc] hover:bg-[#eef3fc] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Icon className="w-5 h-5 text-[#2f61ce]" />
+            <span className="font-semibold text-gray-800">{title}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {isComplete && <CheckCircle2 className="w-5 h-5 text-[#fac300]" />}
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5 text-[#2f61ce]" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-[#2f61ce]" />
+            )}
+          </div>
+        </button>
 
-// FIXED: Section component moved outside and properly memoized
-const Section = React.memo(({ id, title, icon: Icon, children, visible = true, isExpanded, isComplete, onToggle }: SectionProps) => {
-  if (!visible) return null;
-
-  return (
-    <div className="mb-4 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all">
-      <button
-        type="button"
-        onClick={() => onToggle(id)}
-        className="w-full px-6 py-4 flex items-center justify-between bg-gradient-to-r from-red-50 to-white hover:from-red-100 hover:to-red-50 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 text-red-600" />
-          <span className="font-semibold text-gray-800">{title}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {isComplete && <CheckCircle2 className="w-5 h-5 text-green-500" />}
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-red-600" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-red-600" />
-          )}
-        </div>
-      </button>
-      
-      {isExpanded && (
-        <div className="px-6 py-5 bg-white">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-});
-
-Section.displayName = 'Section';
+        {isExpanded && <div className="px-6 py-5 bg-white">{children}</div>}
+      </div>
+    )
+  },
+)
+Section.displayName = "Section"
 
 const ProfilePage = () => {
-  const { user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(!cachedFormData);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [error, setError] = useState('');
-  const [hasProfile, setHasProfile] = useState(cachedHasProfile);
-  const [expandedSection, setExpandedSection] = useState('target');
+  const { user } = useAuth()
+  const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(!cachedFormData)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+  const [error, setError] = useState("")
+  const [hasProfile, setHasProfile] = useState(cachedHasProfile)
+  const [expandedSection, setExpandedSection] = useState("target")
 
   const [formData, setFormData] = useState<FormData>(
     cachedFormData || {
-      name: '',
-      email: '',
-      phone: '',
-      city: '',
-      state: '',
+      name: "",
+      email: "",
+      phone: "",
+      city: "",
+      state: "",
       target_countries: [],
-      target_degree: '',
-      target_field: '',
-      budget: '',
-      term: '',
-      tenth_board: '',
-      tenth_year: '',
-      tenth_score: '',
-      twelfth_board: '',
-      twelfth_year: '',
-      twelfth_score: '',
-      twelfth_stream: '',
-      ug_degree: '',
-      ug_university: '',
-      ug_year: '',
-      ug_score: '',
-      ug_field: '',
-      pg_degree: '',
-      pg_university: '',
-      pg_year: '',
-      pg_score: '',
-      pg_field: '',
+      target_degree: "",
+      target_field: "",
+      budget: "",
+      term: "",
+      tenth_board: "",
+      tenth_year: "",
+      tenth_score: "",
+      twelfth_board: "",
+      twelfth_year: "",
+      twelfth_score: "",
+      twelfth_stream: "",
+      ug_degree: "",
+      ug_university: "",
+      ug_year: "",
+      ug_score: "",
+      ug_field: "",
+      pg_degree: "",
+      pg_university: "",
+      pg_year: "",
+      pg_score: "",
+      pg_field: "",
       testScores: [],
-      has_experience: '',
-      experience_years: '',
-      experience_field: '',
-      extracurricular: '',
-      verified: false
-    }
-  );
+      has_experience: "",
+      experience_years: "",
+      experience_field: "",
+      extracurricular: "",
+      verified: false,
+    },
+  )
 
-  const getDefaultFormData = useCallback((): FormData => ({
-    name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
-    email: user?.email || '',
-    phone: '',
-    city: '',
-    state: '',
-    target_countries: [],
-    target_degree: '',
-    target_field: '',
-    budget: '',
-    term: '',
-    tenth_board: '',
-    tenth_year: '',
-    tenth_score: '',
-    twelfth_board: '',
-    twelfth_year: '',
-    twelfth_score: '',
-    twelfth_stream: '',
-    ug_degree: '',
-    ug_university: '',
-    ug_year: '',
-    ug_score: '',
-    ug_field: '',
-    pg_degree: '',
-    pg_university: '',
-    pg_year: '',
-    pg_score: '',
-    pg_field: '',
-    testScores: [],
-    has_experience: '',
-    experience_years: '',
-    experience_field: '',
-    extracurricular: '',
-    verified: false
-  }), [user]);
+  const getDefaultFormData = useCallback(
+    (): FormData => ({
+      name: user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
+      email: user?.email || "",
+      phone: "",
+      city: "",
+      state: "",
+      target_countries: [],
+      target_degree: "",
+      target_field: "",
+      budget: "",
+      term: "",
+      tenth_board: "",
+      tenth_year: "",
+      tenth_score: "",
+      twelfth_board: "",
+      twelfth_year: "",
+      twelfth_score: "",
+      twelfth_stream: "",
+      ug_degree: "",
+      ug_university: "",
+      ug_year: "",
+      ug_score: "",
+      ug_field: "",
+      pg_degree: "",
+      pg_university: "",
+      pg_year: "",
+      pg_score: "",
+      pg_field: "",
+      testScores: [],
+      has_experience: "",
+      experience_years: "",
+      experience_field: "",
+      extracurricular: "",
+      verified: false,
+    }),
+    [user],
+  )
 
   const fetchUserProfile = useCallback(async () => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       if (!user) {
-        setLoading(false);
-        return;
+        setLoading(false)
+        return
       }
 
       const { data, error: fetchError } = await supabase
-        .from('admit_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .from("admit_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single()
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Fetch error:', fetchError);
-        const defaultData = getDefaultFormData();
-        setFormData(defaultData);
-        cachedFormData = defaultData;
-        setHasProfile(false);
-        cachedHasProfile = false;
-        setIsEditing(true);
+      if (fetchError && fetchError.code !== "PGRST116") {
+        console.error("Fetch error:", fetchError)
+        const defaultData = getDefaultFormData()
+        setFormData(defaultData)
+        cachedFormData = defaultData
+        setHasProfile(false)
+        cachedHasProfile = false
+        setIsEditing(true)
       } else if (data) {
         const profileData: FormData = {
-          name: data.name || '',
-          email: data.email || user?.email || '',
-          phone: data.phone || '',
-          city: data.city || '',
-          state: data.state || '',
+          name: data.name || "",
+          email: data.email || user?.email || "",
+          phone: data.phone || "",
+          city: data.city || "",
+          state: data.state || "",
           target_countries: data.target_countries || [],
-          target_degree: data.degree || '',
-          target_field: data.program || '',
-          budget: data.budget || '',
-          term: data.term || data.intake_year || '',
-          tenth_board: data.tenth_board || '',
-          tenth_year: data.tenth_year || '',
-          tenth_score: data.tenth_score || '',
-          twelfth_board: data.twelfth_board || '',
-          twelfth_year: data.twelfth_year || '',
-          twelfth_score: data.twelfth_score || '',
-          twelfth_stream: data.twelfth_stream || '',
-          ug_degree: data.ug_degree || '',
-          ug_university: data.ug_university || '',
-          ug_year: data.ug_year || '',
-          ug_score: data.ug_score || '',
-          ug_field: data.ug_field || '',
-          pg_degree: data.pg_degree || '',
-          pg_university: data.pg_university || '',
-          pg_year: data.pg_year || '',
-          pg_score: data.pg_score || '',
-          pg_field: data.pg_field || '',
+          target_degree: data.degree || "",
+          target_field: data.program || "",
+          budget: data.budget || "",
+          term: data.term || data.intake_year || "",
+          tenth_board: data.tenth_board || "",
+          tenth_year: data.tenth_year || "",
+          tenth_score: data.tenth_score || "",
+          twelfth_board: data.twelfth_board || "",
+          twelfth_year: data.twelfth_year || "",
+          twelfth_score: data.twelfth_score || "",
+          twelfth_stream: data.twelfth_stream || "",
+          ug_degree: data.ug_degree || "",
+          ug_university: data.ug_university || "",
+          ug_year: data.ug_year || "",
+          ug_score: data.ug_score || "",
+          ug_field: data.ug_field || "",
+          pg_degree: data.pg_degree || "",
+          pg_university: data.pg_university || "",
+          pg_year: data.pg_year || "",
+          pg_score: data.pg_score || "",
+          pg_field: data.pg_field || "",
           testScores: data.test_scores || [],
-          has_experience: data.has_experience || '',
-          experience_years: data.experience_years || '',
-          experience_field: data.experience_field || '',
-          extracurricular: data.extracurricular || '',
-          verified: data.verified || false
-        };
-        setFormData(profileData);
-        cachedFormData = profileData;
-        setHasProfile(true);
-        cachedHasProfile = true;
-        cacheTimestamp = Date.now();
+          has_experience: data.has_experience || "",
+          experience_years: data.experience_years || "",
+          experience_field: data.experience_field || "",
+          extracurricular: data.extracurricular || "",
+          verified: data.verified || false,
+        }
+        setFormData(profileData)
+        cachedFormData = profileData
+        setHasProfile(true)
+        cachedHasProfile = true
+        cacheTimestamp = Date.now()
       } else {
-        const defaultData = getDefaultFormData();
-        setFormData(defaultData);
-        cachedFormData = defaultData;
-        setHasProfile(false);
-        cachedHasProfile = false;
-        setIsEditing(true);
+        const defaultData = getDefaultFormData()
+        setFormData(defaultData)
+        cachedFormData = defaultData
+        setHasProfile(false)
+        cachedHasProfile = false
+        setIsEditing(true)
       }
     } catch (err) {
-      console.error('Error fetching profile:', err);
-      const defaultData = getDefaultFormData();
-      setFormData(defaultData);
-      cachedFormData = defaultData;
-      setHasProfile(false);
-      cachedHasProfile = false;
-      setIsEditing(true);
+      console.error("Error fetching profile:", err)
+      const defaultData = getDefaultFormData()
+      setFormData(defaultData)
+      cachedFormData = defaultData
+      setHasProfile(false)
+      cachedHasProfile = false
+      setIsEditing(true)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [user, getDefaultFormData]);
+  }, [user, getDefaultFormData])
 
   useEffect(() => {
     if (user) {
-      const now = Date.now();
-      const isCacheValid = cachedFormData && (now - cacheTimestamp < CACHE_DURATION);
-      
+      const now = Date.now()
+      const isCacheValid = cachedFormData && now - cacheTimestamp < CACHE_DURATION
+
       if (!isCacheValid) {
-        fetchUserProfile();
+        fetchUserProfile()
       } else {
-        setLoading(false);
+        setLoading(false)
       }
     }
-  }, [user, fetchUserProfile]);
+  }, [user, fetchUserProfile])
 
-  // Fixed: Properly memoized input change handler with field parameter
   const handleInputChange = useCallback((field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setError('');
-  }, []);
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    setError("")
+  }, [])
 
   const handleMultiSelect = useCallback((value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       target_countries: prev.target_countries.includes(value)
-        ? prev.target_countries.filter(c => c !== value)
-        : [...prev.target_countries, value]
-    }));
-    setError('');
-  }, []);
+        ? prev.target_countries.filter((c) => c !== value)
+        : [...prev.target_countries, value],
+    }))
+    setError("")
+  }, [])
 
-  const handleTestScoreChange = useCallback((index: number, field: 'exam' | 'score', value: string) => {
-    setFormData(prev => {
-      const newTestScores = [...prev.testScores];
-      newTestScores[index] = { ...newTestScores[index], [field]: value };
-      return { ...prev, testScores: newTestScores };
-    });
-    setError('');
-  }, []);
+  const handleTestScoreChange = useCallback((index: number, field: "exam" | "score", value: string) => {
+    setFormData((prev) => {
+      const newTestScores = [...prev.testScores]
+      newTestScores[index] = { ...newTestScores[index], [field]: value }
+      return { ...prev, testScores: newTestScores }
+    })
+    setError("")
+  }, [])
 
   const addTestScore = useCallback(() => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      testScores: [...prev.testScores, { exam: '', score: '' }]
-    }));
-  }, []);
+      testScores: [...prev.testScores, { exam: "", score: "" }],
+    }))
+  }, [])
 
   const removeTestScore = useCallback((index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      testScores: prev.testScores.filter((_, i) => i !== index)
-    }));
-  }, []);
+      testScores: prev.testScores.filter((_, i) => i !== index),
+    }))
+  }, [])
 
   const toggleSection = useCallback((section: string) => {
-    setExpandedSection(prev => prev === section ? '' : section);
-  }, []);
+    setExpandedSection((prev) => (prev === section ? "" : section))
+  }, [])
 
-  const shouldShowUG = useMemo(() => ['Masters', 'MBA', 'PhD'].includes(formData.target_degree), [formData.target_degree]);
-  const shouldShowPG = useMemo(() => formData.target_degree === 'PhD', [formData.target_degree]);
-  const shouldShowWorkExp = useMemo(() => ['Masters', 'MBA', 'PhD'].includes(formData.target_degree), [formData.target_degree]);
+  const shouldShowUG = useMemo(
+    () => ["Masters", "MBA", "PhD"].includes(formData.target_degree),
+    [formData.target_degree],
+  )
+  const shouldShowPG = useMemo(() => formData.target_degree === "PhD", [formData.target_degree])
+  const shouldShowWorkExp = useMemo(
+    () => ["Masters", "MBA", "PhD"].includes(formData.target_degree),
+    [formData.target_degree],
+  )
 
-  const isSectionComplete = useCallback((section: string): boolean => {
-    switch(section) {
-      case 'target':
-        return !!(formData.target_countries.length > 0 && formData.target_degree && formData.target_field);
-      case 'personal':
-        return !!(formData.name && formData.email && formData.phone && formData.city);
-      case 'tenth':
-        return !!(formData.tenth_board && formData.tenth_year && formData.tenth_score);
-      case 'twelfth':
-        return !!(formData.twelfth_board && formData.twelfth_year && formData.twelfth_score && formData.twelfth_stream);
-      case 'ug':
-        return !shouldShowUG || !!(formData.ug_degree && formData.ug_university && formData.ug_year && formData.ug_score);
-      case 'pg':
-        return !shouldShowPG || !!(formData.pg_degree && formData.pg_university && formData.pg_year);
-      case 'tests':
-        return formData.testScores.length > 0;
-      case 'experience':
-        return !shouldShowWorkExp || !!formData.has_experience;
-      default:
-        return false;
-    }
-  }, [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp]);
+  const isSectionComplete = useCallback(
+    (section: string): boolean => {
+      switch (section) {
+        case "target":
+          return !!(formData.target_countries.length > 0 && formData.target_degree && formData.target_field)
+        case "personal":
+          return !!(formData.name && formData.email && formData.phone && formData.city)
+        case "tenth":
+          return !!(formData.tenth_board && formData.tenth_year && formData.tenth_score)
+        case "twelfth":
+          return !!(
+            formData.twelfth_board &&
+            formData.twelfth_year &&
+            formData.twelfth_score &&
+            formData.twelfth_stream
+          )
+        case "ug":
+          return (
+            !shouldShowUG || !!(formData.ug_degree && formData.ug_university && formData.ug_year && formData.ug_score)
+          )
+        case "pg":
+          return !shouldShowPG || !!(formData.pg_degree && formData.pg_university && formData.pg_year)
+        case "tests":
+          return formData.testScores.length > 0
+        case "experience":
+          return !shouldShowWorkExp || !!formData.has_experience
+        default:
+          return false
+      }
+    },
+    [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp],
+  )
 
   const validateForm = useCallback(() => {
     if (!formData.name.trim()) {
-      setError('Please enter your name');
-      return false;
+      setError("Please enter your name")
+      return false
     }
     if (!formData.email.trim()) {
-      setError('Please enter your email');
-      return false;
+      setError("Please enter your email")
+      return false
     }
     if (!formData.phone.trim()) {
-      setError('Please enter your phone number');
-      return false;
+      setError("Please enter your phone number")
+      return false
     }
     if (formData.target_countries.length === 0) {
-      setError('Please select at least one preferred country');
-      return false;
+      setError("Please select at least one preferred country")
+      return false
     }
     if (!formData.target_degree) {
-      setError('Please select your target degree');
-      return false;
+      setError("Please select your target degree")
+      return false
     }
     if (!formData.target_field) {
-      setError('Please enter your field of interest');
-      return false;
+      setError("Please enter your field of interest")
+      return false
     }
-    
-    // Validate test scores
+
     for (let i = 0; i < formData.testScores.length; i++) {
-      const test = formData.testScores[i];
+      const test = formData.testScores[i]
       if (!test.exam || !test.score) {
-        setError(`Please complete test score #${i + 1} or remove it`);
-        return false;
+        setError(`Please complete test score #${i + 1} or remove it`)
+        return false
       }
     }
-    
-    return true;
-  }, [formData]);
+
+    return true
+  }, [formData])
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) return
 
     try {
-      setSaving(true);
-      setError('');
+      setSaving(true)
+      setError("")
 
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error("User not authenticated")
 
-      // Filter out empty test scores
-      const validTestScores = formData.testScores.filter(
-        test => test.exam && test.score
-      );
+      const validTestScores = formData.testScores.filter((test) => test.exam && test.score)
 
       const profileData = {
         user_id: user.id,
@@ -567,211 +597,183 @@ const ProfilePage = () => {
         experience_field: formData.experience_field || null,
         extracurricular: formData.extracurricular || null,
         applications_count: 1,
-        avatar_type: 'S',
+        avatar_type: "S",
         verified: formData.verified,
-        updated_at: new Date().toISOString()
-      };
+        updated_at: new Date().toISOString(),
+      }
 
       if (hasProfile) {
-        const { error: updateError } = await supabase
-          .from('admit_profiles')
-          .update(profileData)
-          .eq('user_id', user.id);
+        const { error: updateError } = await supabase.from("admit_profiles").update(profileData).eq("user_id", user.id)
 
-        if (updateError) throw updateError;
-        setSuccessMessage('Profile updated successfully!');
+        if (updateError) throw updateError
+        setSuccessMessage("Profile updated successfully!")
       } else {
         const { error: insertError } = await supabase
-          .from('admit_profiles')
-          .insert([{ ...profileData, created_at: new Date().toISOString() }]);
+          .from("admit_profiles")
+          .insert([{ ...profileData, created_at: new Date().toISOString() }])
 
-        if (insertError) throw insertError;
-        setHasProfile(true);
-        cachedHasProfile = true;
-        setSuccessMessage('Profile created successfully!');
+        if (insertError) throw insertError
+        setHasProfile(true)
+        cachedHasProfile = true
+        setSuccessMessage("Profile created successfully!")
       }
 
-      cachedFormData = formData;
-      cacheTimestamp = Date.now();
-      invalidateProfileCache();
-
-      setIsEditing(false);
-      setTimeout(() => setSuccessMessage(''), 3000);
+      cachedFormData = formData
+      cacheTimestamp = Date.now()
+      invalidateProfileCache()
+      setIsEditing(false)
+      setTimeout(() => setSuccessMessage(""), 3000)
     } catch (err) {
-      console.error('Error saving profile:', err);
-      setError('Failed to save profile. Please try again.');
+      console.error("Error saving profile:", err)
+      setError("Failed to save profile. Please try again.")
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!user) return;
+    if (!user) return
 
     try {
-      setDeleting(true);
-      setError('');
+      setDeleting(true)
+      setError("")
 
-      const { error: deleteError } = await supabase
-        .from('admit_profiles')
-        .delete()
-        .eq('user_id', user.id);
+      const { error: deleteError } = await supabase.from("admit_profiles").delete().eq("user_id", user.id)
 
-      if (deleteError) throw deleteError;
+      if (deleteError) throw deleteError
 
-      const defaultData = getDefaultFormData();
-      setFormData(defaultData);
-      cachedFormData = defaultData;
-      setHasProfile(false);
-      cachedHasProfile = false;
-      invalidateProfileCache();
-      setIsEditing(true);
-      setShowDeleteConfirm(false);
-      setSuccessMessage('Profile deleted successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      const defaultData = getDefaultFormData()
+      setFormData(defaultData)
+      cachedFormData = defaultData
+      setHasProfile(false)
+      cachedHasProfile = false
+      invalidateProfileCache()
+      setIsEditing(true)
+      setShowDeleteConfirm(false)
+      setSuccessMessage("Profile deleted successfully!")
+      setTimeout(() => setSuccessMessage(""), 3000)
     } catch (err) {
-      console.error('Error deleting profile:', err);
-      setError('Failed to delete profile. Please try again.');
-      setShowDeleteConfirm(false);
+      console.error("Error deleting profile:", err)
+      setError("Failed to delete profile. Please try again.")
+      setShowDeleteConfirm(false)
     } finally {
-      setDeleting(false);
+      setDeleting(false)
     }
-  };
+  }
 
   const handleCancel = useCallback(() => {
-    setIsEditing(false);
-    setError('');
+    setIsEditing(false)
+    setError("")
     if (hasProfile && cachedFormData) {
-      setFormData(cachedFormData);
+      setFormData(cachedFormData)
     }
-  }, [hasProfile]);
+  }, [hasProfile])
 
   const userInitial = useMemo(() => {
-    return formData.name ? formData.name.charAt(0).toUpperCase() : 'U';
-  }, [formData.name]);
+    return formData.name ? formData.name.charAt(0).toUpperCase() : "U"
+  }, [formData.name])
 
-  // Calculate EduScore
   const eduScore = useMemo(() => {
-    let score = 0;
-    
-    // Target Program (15 points)
-    if (formData.target_countries.length > 0) score += 3;
-    if (formData.target_degree) score += 4;
-    if (formData.target_field) score += 4;
-    if (formData.term) score += 2;
-    if (formData.budget) score += 2;
-    
-    // Personal Information (10 points)
-    if (formData.name) score += 2;
-    if (formData.email) score += 2;
-    if (formData.phone) score += 2;
-    if (formData.city) score += 2;
-    if (formData.state) score += 2;
-    
-    // 10th Grade (10 points)
-    if (formData.tenth_board) score += 3;
-    if (formData.tenth_year) score += 3;
-    if (formData.tenth_score) score += 4;
-    
-    // 12th Grade (10 points)
-    if (formData.twelfth_board) score += 3;
-    if (formData.twelfth_year) score += 2;
-    if (formData.twelfth_score) score += 3;
-    if (formData.twelfth_stream) score += 2;
-    
-    // Undergraduate (15 points if applicable)
+    let score = 0
+
+    if (formData.target_countries.length > 0) score += 3
+    if (formData.target_degree) score += 4
+    if (formData.target_field) score += 4
+    if (formData.term) score += 2
+    if (formData.budget) score += 2
+
+    if (formData.name) score += 2
+    if (formData.email) score += 2
+    if (formData.phone) score += 2
+    if (formData.city) score += 2
+    if (formData.state) score += 2
+
+    if (formData.tenth_board) score += 3
+    if (formData.tenth_year) score += 3
+    if (formData.tenth_score) score += 4
+
+    if (formData.twelfth_board) score += 3
+    if (formData.twelfth_year) score += 2
+    if (formData.twelfth_score) score += 3
+    if (formData.twelfth_stream) score += 2
+
     if (shouldShowUG) {
-      if (formData.ug_degree) score += 3;
-      if (formData.ug_university) score += 3;
-      if (formData.ug_year) score += 3;
-      if (formData.ug_score) score += 3;
-      if (formData.ug_field) score += 3;
+      if (formData.ug_degree) score += 3
+      if (formData.ug_university) score += 3
+      if (formData.ug_year) score += 3
+      if (formData.ug_score) score += 3
+      if (formData.ug_field) score += 3
     }
-    
-    // Postgraduate (15 points if applicable)
+
     if (shouldShowPG) {
-      if (formData.pg_degree) score += 3;
-      if (formData.pg_university) score += 3;
-      if (formData.pg_year) score += 3;
-      if (formData.pg_score) score += 3;
-      if (formData.pg_field) score += 3;
+      if (formData.pg_degree) score += 3
+      if (formData.pg_university) score += 3
+      if (formData.pg_year) score += 3
+      if (formData.pg_score) score += 3
+      if (formData.pg_field) score += 3
     }
-    
-    // Test Scores (10 points)
+
     if (formData.testScores.length > 0) {
-      const validTests = formData.testScores.filter(t => t.exam && t.score);
-      score += Math.min(validTests.length * 3, 10);
+      const validTests = formData.testScores.filter((t) => t.exam && t.score)
+      score += Math.min(validTests.length * 3, 10)
     }
-    
-    // Work Experience (5 points if applicable)
+
     if (shouldShowWorkExp) {
-      if (formData.has_experience === 'Yes') {
-        score += 2;
-        if (formData.experience_years) score += 2;
-        if (formData.experience_field) score += 1;
+      if (formData.has_experience === "Yes") {
+        score += 2
+        if (formData.experience_years) score += 2
+        if (formData.experience_field) score += 1
       }
     }
-    
-    // Extracurricular (5 points)
+
     if (formData.extracurricular && formData.extracurricular.trim().length > 20) {
-      score += 5;
+      score += 5
     }
-    
-    // Normalize score to 45-90 range
-    const maxPossibleScore = 90;
-    const normalizedScore = Math.max(45, Math.min(90, Math.round((score / maxPossibleScore) * 90)));
-    
-    return normalizedScore;
-  }, [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp]);
+
+    const maxPossibleScore = 90
+    const normalizedScore = Math.max(45, Math.min(90, Math.round((score / maxPossibleScore) * 90)))
+
+    return normalizedScore
+  }, [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp])
 
   const getScoreColor = useCallback((score: number) => {
-    if (score >= 75) return { color: '#10b981', label: 'Excellent' }; // green
-    if (score >= 60) return { color: '#f59e0b', label: 'Good' }; // orange
-    return { color: '#ef4444', label: 'Needs Improvement' }; // red
-  }, []);
+    if (score >= 75) return { color: "#10b981", label: "Excellent" }
+    if (score >= 60) return { color: "#fac300", label: "Good" }
+    return { color: "#2f61ce", label: "Needs Improvement" }
+  }, [])
 
-  const scoreInfo = useMemo(() => getScoreColor(eduScore), [eduScore, getScoreColor]);
+  const scoreInfo = useMemo(() => getScoreColor(eduScore), [eduScore, getScoreColor])
 
   if (loading) {
     return (
       <DefaultLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-xl text-red-600 flex items-center gap-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+          <div className="text-xl text-[#2f61ce] flex items-center gap-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#2f61ce]"></div>
             Loading profile...
           </div>
         </div>
       </DefaultLayout>
-    );
+    )
   }
 
   return (
     <DefaultLayout>
-      <div className="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-red-50 via-white to-red-50">
+      <div className="flex-1 p-8 overflow-y-auto bg-[#f8fafc]">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-6">
-                {/* Avatar */}
-                <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-pink-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                <div className="w-20 h-20 bg-[#2f61ce] rounded-full flex items-center justify-center text-white text-3xl font-bold">
                   {userInitial}
                 </div>
-                
+
                 {/* EduScore Circle */}
                 <div className="flex flex-col items-center">
                   <div className="relative w-24 h-24">
                     <svg className="w-24 h-24 transform -rotate-90">
-                      {/* Background circle */}
-                      <circle
-                        cx="48"
-                        cy="48"
-                        r="40"
-                        stroke="#e5e7eb"
-                        strokeWidth="8"
-                        fill="none"
-                      />
-                      {/* Progress circle */}
+                      <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
                       <circle
                         cx="48"
                         cy="48"
@@ -802,25 +804,26 @@ const ProfilePage = () => {
                 {/* Title */}
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800">
-                    {hasProfile ? 'My Profile' : 'Create Your Profile'}
+                    {hasProfile ? "My Profile" : "Create Your Profile"}
                   </h1>
                   <p className="text-gray-600">
-                    {hasProfile ? 'Manage your academic information' : 'Tell us about yourself'}
+                    {hasProfile ? "Manage your academic information" : "Tell us about yourself"}
                   </p>
                 </div>
               </div>
+
               {hasProfile && !isEditing && (
                 <div className="flex gap-3">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-all"
+                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-6 py-3 rounded-lg hover:bg-[#254da6] transition-all"
                   >
                     <Edit2 size={18} />
                     Edit Profile
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-2 bg-white border-2 border-red-600 text-red-600 px-6 py-3 rounded-lg hover:bg-red-50 transition-all"
+                    className="flex items-center gap-2 bg-white border-2 border-[#2f61ce] text-[#2f61ce] px-6 py-3 rounded-lg hover:bg-[#eef3fc] transition-all"
                   >
                     <Trash2 size={18} />
                     Delete
@@ -848,13 +851,14 @@ const ProfilePage = () => {
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                    <Trash2 className="text-red-600" size={24} />
+                  <div className="w-12 h-12 bg-[#eef3fc] rounded-full flex items-center justify-center">
+                    <Trash2 className="text-[#2f61ce]" size={24} />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-800">Delete Profile</h3>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  Are you sure you want to delete your profile? This action cannot be undone and will remove all your academic information.
+                  Are you sure you want to delete your profile? This action cannot be undone and will remove all your
+                  academic information.
                 </p>
                 <div className="flex gap-3">
                   <button
@@ -867,11 +871,11 @@ const ProfilePage = () => {
                   <button
                     onClick={handleDelete}
                     disabled={deleting}
-                    className={`flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all ${
-                      deleting ? 'opacity-70 cursor-not-allowed' : ''
+                    className={`flex-1 px-6 py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all ${
+                      deleting ? "opacity-70 cursor-not-allowed" : ""
                     }`}
                   >
-                    {deleting ? 'Deleting...' : 'Delete'}
+                    {deleting ? "Deleting..." : "Delete"}
                   </button>
                 </div>
               </div>
@@ -881,20 +885,20 @@ const ProfilePage = () => {
           {/* Form Sections */}
           <div className="space-y-4">
             {/* Target Program */}
-            <Section 
-              id="target" 
-              title="What are you looking to study?" 
+            <Section
+              id="target"
+              title="What are you looking to study?"
               icon={Target}
-              isExpanded={expandedSection === 'target'}
-              isComplete={isSectionComplete('target')}
+              isExpanded={expandedSection === "target"}
+              isComplete={isSectionComplete("target")}
               onToggle={toggleSection}
             >
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preferred Countries <span className="text-red-500">*</span>
+                  Preferred Countries <span className="text-[#2f61ce]">*</span>
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {COUNTRIES.map(country => (
+                  {COUNTRIES.map((country) => (
                     <button
                       key={country}
                       type="button"
@@ -902,16 +906,15 @@ const ProfilePage = () => {
                       disabled={!isEditing}
                       className={`px-4 py-2 rounded-lg border-2 transition-all ${
                         formData.target_countries.includes(country)
-                          ? 'border-red-600 bg-red-50 text-red-700 font-medium'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400'
-                      } ${!isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          ? "border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce] font-medium"
+                          : "border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]"
+                      } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
                     >
                       {country}
                     </button>
                   ))}
                 </div>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectField
                   label="What degree are you applying for?"
@@ -945,10 +948,10 @@ const ProfilePage = () => {
                   onChange={handleInputChange}
                   field="budget"
                   options={[
-                    { value: 'Under 10L', label: 'Under ₹10 Lakhs' },
-                    { value: '10-20L', label: '₹10-20 Lakhs' },
-                    { value: '20-30L', label: '₹20-30 Lakhs' },
-                    { value: 'Above 30L', label: 'Above ₹30 Lakhs' }
+                    { value: "Under 10L", label: "Under ₹10 Lakhs" },
+                    { value: "10-20L", label: "₹10-20 Lakhs" },
+                    { value: "20-30L", label: "₹20-30 Lakhs" },
+                    { value: "Above 30L", label: "Above ₹30 Lakhs" },
                   ]}
                   disabled={!isEditing}
                 />
@@ -956,12 +959,12 @@ const ProfilePage = () => {
             </Section>
 
             {/* Personal Information */}
-            <Section 
-              id="personal" 
-              title="Personal Information" 
+            <Section
+              id="personal"
+              title="Personal Information"
               icon={User}
-              isExpanded={expandedSection === 'personal'}
-              isComplete={isSectionComplete('personal')}
+              isExpanded={expandedSection === "personal"}
+              isComplete={isSectionComplete("personal")}
               onToggle={toggleSection}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1015,12 +1018,12 @@ const ProfilePage = () => {
             </Section>
 
             {/* 10th Grade */}
-            <Section 
-              id="tenth" 
-              title="10th Grade Details" 
+            <Section
+              id="tenth"
+              title="10th Grade Details"
               icon={GraduationCap}
-              isExpanded={expandedSection === 'tenth'}
-              isComplete={isSectionComplete('tenth')}
+              isExpanded={expandedSection === "tenth"}
+              isComplete={isSectionComplete("tenth")}
               onToggle={toggleSection}
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1030,10 +1033,10 @@ const ProfilePage = () => {
                   onChange={handleInputChange}
                   field="tenth_board"
                   options={[
-                    { value: 'CBSE', label: 'CBSE' },
-                    { value: 'ICSE', label: 'ICSE' },
-                    { value: 'State Board', label: 'State Board' },
-                    { value: 'Other', label: 'Other' }
+                    { value: "CBSE", label: "CBSE" },
+                    { value: "ICSE", label: "ICSE" },
+                    { value: "State Board", label: "State Board" },
+                    { value: "Other", label: "Other" },
                   ]}
                   required
                   disabled={!isEditing}
@@ -1061,12 +1064,12 @@ const ProfilePage = () => {
             </Section>
 
             {/* 12th Grade */}
-            <Section 
-              id="twelfth" 
-              title="12th Grade Details" 
+            <Section
+              id="twelfth"
+              title="12th Grade Details"
               icon={GraduationCap}
-              isExpanded={expandedSection === 'twelfth'}
-              isComplete={isSectionComplete('twelfth')}
+              isExpanded={expandedSection === "twelfth"}
+              isComplete={isSectionComplete("twelfth")}
               onToggle={toggleSection}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1076,10 +1079,10 @@ const ProfilePage = () => {
                   onChange={handleInputChange}
                   field="twelfth_board"
                   options={[
-                    { value: 'CBSE', label: 'CBSE' },
-                    { value: 'ICSE', label: 'ICSE' },
-                    { value: 'State Board', label: 'State Board' },
-                    { value: 'Other', label: 'Other' }
+                    { value: "CBSE", label: "CBSE" },
+                    { value: "ICSE", label: "ICSE" },
+                    { value: "State Board", label: "State Board" },
+                    { value: "Other", label: "Other" },
                   ]}
                   required
                   disabled={!isEditing}
@@ -1100,10 +1103,10 @@ const ProfilePage = () => {
                   onChange={handleInputChange}
                   field="twelfth_stream"
                   options={[
-                    { value: 'Science', label: 'Science' },
-                    { value: 'Commerce', label: 'Commerce' },
-                    { value: 'Arts', label: 'Arts' },
-                    { value: 'Other', label: 'Other' }
+                    { value: "Science", label: "Science" },
+                    { value: "Commerce", label: "Commerce" },
+                    { value: "Arts", label: "Arts" },
+                    { value: "Other", label: "Other" },
                   ]}
                   required
                   disabled={!isEditing}
@@ -1121,13 +1124,13 @@ const ProfilePage = () => {
             </Section>
 
             {/* Undergraduate */}
-            <Section 
-              id="ug" 
-              title="Undergraduate Details" 
-              icon={GraduationCap} 
+            <Section
+              id="ug"
+              title="Undergraduate Details"
+              icon={GraduationCap}
               visible={shouldShowUG}
-              isExpanded={expandedSection === 'ug'}
-              isComplete={isSectionComplete('ug')}
+              isExpanded={expandedSection === "ug"}
+              isComplete={isSectionComplete("ug")}
               onToggle={toggleSection}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1180,13 +1183,13 @@ const ProfilePage = () => {
             </Section>
 
             {/* Postgraduate */}
-            <Section 
-              id="pg" 
-              title="Postgraduate/Masters Details" 
-              icon={GraduationCap} 
+            <Section
+              id="pg"
+              title="Postgraduate/Masters Details"
+              icon={GraduationCap}
               visible={shouldShowPG}
-              isExpanded={expandedSection === 'pg'}
-              isComplete={isSectionComplete('pg')}
+              isExpanded={expandedSection === "pg"}
+              isComplete={isSectionComplete("pg")}
               onToggle={toggleSection}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1238,26 +1241,25 @@ const ProfilePage = () => {
             </Section>
 
             {/* Test Scores */}
-            <Section 
-              id="tests" 
-              title="Test Scores" 
+            <Section
+              id="tests"
+              title="Test Scores"
               icon={BookOpen}
-              isExpanded={expandedSection === 'tests'}
-              isComplete={isSectionComplete('tests')}
+              isExpanded={expandedSection === "tests"}
+              isComplete={isSectionComplete("tests")}
               onToggle={toggleSection}
             >
               <div className="flex items-center justify-between mb-4">
                 {isEditing && (
                   <button
                     onClick={addTestScore}
-                    className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all ml-auto"
+                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-4 py-2 rounded-lg hover:bg-[#254da6] transition-all ml-auto"
                   >
                     <Plus size={18} />
                     Add Test
                   </button>
                 )}
               </div>
-
               {formData.testScores.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {isEditing ? (
@@ -1271,43 +1273,40 @@ const ProfilePage = () => {
                   {formData.testScores.map((test, index) => (
                     <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Exam Type
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Exam Type</label>
                         {isEditing ? (
                           <select
                             value={test.exam}
-                            onChange={(e) => handleTestScoreChange(index, 'exam', e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                            onChange={(e) => handleTestScoreChange(index, "exam", e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
                           >
                             <option value="">Select Exam</option>
-                            {COMMON_EXAMS.map(exam => (
-                              <option key={exam} value={exam}>{exam}</option>
+                            {COMMON_EXAMS.map((exam) => (
+                              <option key={exam} value={exam}>
+                                {exam}
+                              </option>
                             ))}
                           </select>
                         ) : (
                           <p className="px-4 py-3 bg-gray-100 rounded-lg">{test.exam}</p>
                         )}
                       </div>
-                      
+
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Score
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Score</label>
                         <input
                           type="text"
                           value={test.score}
-                          onChange={(e) => handleTestScoreChange(index, 'score', e.target.value)}
+                          onChange={(e) => handleTestScoreChange(index, "score", e.target.value)}
                           disabled={!isEditing}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
                           placeholder="e.g., 325, 7.5, 110"
                         />
                       </div>
-
                       {isEditing && (
                         <button
                           onClick={() => removeTestScore(index)}
-                          className="mt-8 p-3 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          className="mt-8 p-3 text-[#2f61ce] hover:bg-[#eef3fc] rounded-lg transition-all"
                           title="Remove test"
                         >
                           <Minus size={20} />
@@ -1320,13 +1319,13 @@ const ProfilePage = () => {
             </Section>
 
             {/* Work Experience */}
-            <Section 
-              id="experience" 
-              title="Work Experience" 
-              icon={Award} 
+            <Section
+              id="experience"
+              title="Work Experience"
+              icon={Award}
               visible={shouldShowWorkExp}
-              isExpanded={expandedSection === 'experience'}
-              isComplete={isSectionComplete('experience')}
+              isExpanded={expandedSection === "experience"}
+              isComplete={isSectionComplete("experience")}
               onToggle={toggleSection}
             >
               <SelectField
@@ -1335,13 +1334,13 @@ const ProfilePage = () => {
                 onChange={handleInputChange}
                 field="has_experience"
                 options={[
-                  { value: 'Yes', label: 'Yes' },
-                  { value: 'No', label: 'No' }
+                  { value: "Yes", label: "Yes" },
+                  { value: "No", label: "No" },
                 ]}
                 required
                 disabled={!isEditing}
               />
-              {formData.has_experience === 'Yes' && (
+              {formData.has_experience === "Yes" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <InputField
                     label="Years of Experience"
@@ -1365,11 +1364,11 @@ const ProfilePage = () => {
             </Section>
 
             {/* Extracurricular Activities */}
-            <Section 
-              id="extra" 
-              title="Extracurricular Activities" 
+            <Section
+              id="extra"
+              title="Extracurricular Activities"
               icon={Trophy}
-              isExpanded={expandedSection === 'extra'}
+              isExpanded={expandedSection === "extra"}
               isComplete={false}
               onToggle={toggleSection}
             >
@@ -1379,16 +1378,16 @@ const ProfilePage = () => {
                 </label>
                 <textarea
                   value={formData.extracurricular}
-                  onChange={(e) => handleInputChange('extracurricular', e.target.value)}
+                  onChange={(e) => handleInputChange("extracurricular", e.target.value)}
                   disabled={!isEditing}
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100 resize-none"
                   placeholder="Include sports, volunteer work, leadership roles, competitions, research projects, internships, etc."
                 />
               </div>
             </Section>
 
-            {/* Action Buttons - Centered at Bottom */}
+            {/* Action Buttons */}
             {isEditing && (
               <div className="flex items-center justify-center gap-4 mt-8 pb-4">
                 <button
@@ -1401,12 +1400,12 @@ const ProfilePage = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className={`flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all ${
-                    saving ? 'opacity-70 cursor-not-allowed' : ''
+                  className={`flex items-center gap-2 px-8 py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all ${
+                    saving ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                 >
                   <Save size={18} />
-                  {saving ? 'Saving...' : 'Save Profile'}
+                  {saving ? "Saving..." : "Save Profile"}
                 </button>
               </div>
             )}
@@ -1414,7 +1413,7 @@ const ProfilePage = () => {
         </div>
       </div>
     </DefaultLayout>
-  );
-};
+  )
+}
 
-export default ProfilePage;
+export default ProfilePage
