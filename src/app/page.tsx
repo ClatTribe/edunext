@@ -27,7 +27,7 @@ const secondary = "#fac300"; // 10–15% yellow usage
 const features = [
   {
     id: "courses",
-    title: "Course Matcher",
+    title: "Find Colleges",
     description:
       "Find your perfect stream based on your actual grades and interests.",
     icon: BookOpen,
@@ -36,7 +36,7 @@ const features = [
   },
   {
     id: "scholarships",
-    title: "Scholarship Finder",
+    title: "Find Scholarships",
     description: "Match with thousands of financial aid opportunities instantly.",
     icon: GraduationCap,
     component: ScholarshipVisual,
@@ -44,7 +44,7 @@ const features = [
   },
   {
     id: "admits",
-    title: "Admit Finder",
+    title: "Similar Student",
     description: "See real profiles of students who got into your dream colleges.",
     icon: Target,
     component: AdmitFinderVisual,
