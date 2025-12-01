@@ -8,12 +8,18 @@ import {
   Users,
   Building2,
   GraduationCap,
-  Award,
-  Trophy,
   LogOut,
   ThumbsUp,
   Menu,
   X,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Download,
+  BookMarked,
+  Newspaper,
+  Calculator,
+  FileCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -27,9 +33,12 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isToolsExpanded, setIsToolsExpanded] = useState(false);
+  const [isStudyMaterialExpanded, setIsStudyMaterialExpanded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
+  
   const navItems = {
     main: [
       { icon: Home, label: "Home", path: "/home" },
@@ -45,14 +54,54 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
       { icon: GraduationCap, label: "Document Upload", path: "/document" },
     ],
-    postAdmit: [
-      { icon: GraduationCap, label: "Dashboard", path: "/" },
-    ],
   };
+  const toolOptions = [
+  {
+    icon: Calculator,
+    label: "Call Predictor",
+    path: "/call-predictor",
+  },
+  {
+    icon: FileCheck,
+    label: "Answer Key Tool",
+    path: "/answer-key-tool",
+  },
+];
+  const studyMaterials = [
+    {
+      icon: FileText,
+      label: "PI Kit",
+      file: "/PI Kit 2024.pdf",
+    },
+    {
+      icon: BookMarked,
+      label: "Formula Book",
+      file: "/Formula Book.pdf",
+    },
+    {
+      icon: Newspaper,
+      label: "Daily GK",
+      file: "/Daily GK.pdf",
+    },
+  ];
 
   const handleNavClick = (path: string) => {
     router.push(path);
     setIsMobileMenuOpen(false);
+  };
+
+  const handlePDFOpen = (file: string) => {
+    window.open(file, '_blank');
+    setIsMobileMenuOpen(false);
+  };
+
+  const handlePDFDownload = (file: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = file;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleLogout = async () => {
@@ -151,7 +200,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
               height={32}
               className="h-12 w-32 object-contain"
             />
-            {/* <div className="text-2xl font-bold text-[#2f61ce]">EduNext</div> */}
           </Link>
           <div className="h-1 w-16 bg-[#fac300] rounded-full"></div>
         </div>
@@ -248,44 +296,104 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
             ))}
           </div>
 
-          {/* Post Admit Section */}
+          {/* Tools Section */}
+          
           <div className="pt-4">
-            <div className="flex items-center gap-2 mb-2 px-2">
-              <div className="text-xs font-bold text-[#2f61ce] uppercase tracking-wider">
-                Dashboard
-              </div>
-              <div className="flex-1 h-px bg-blue-200"></div>
-            </div>
-            {navItems.postAdmit.map((item) => (
-              <button
-                key={item.path}
-                onClick={() => handleNavClick(item.path)}
-                className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
-                  isActive(item.path)
-                    ? "bg-white shadow-md border-l-4 border-[#2f61ce] text-[#2f61ce]"
-                    : "hover:bg-white hover:shadow-sm text-gray-700"
-                }`}
-              >
-                <item.icon
-                  size={18}
-                  className={`transition-colors ${
-                    isActive(item.path)
-                      ? "text-[#2f61ce]"
-                      : "text-gray-600 group-hover:text-[#2f61ce]"
-                  }`}
-                />
-                <span
-                  className={`text-sm transition-colors ${
-                    isActive(item.path)
-                      ? "font-semibold text-[#2f61ce]"
-                      : "text-gray-700 group-hover:text-[#2f61ce]"
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </button>
-            ))}
+  <div className="flex items-center gap-2 mb-2 px-2">
+    <div className="text-xs font-bold text-[#2f61ce] uppercase tracking-wider">
+      Tools
+    </div>
+    <div className="flex-1 h-px bg-blue-200"></div>
+  </div>
+  {/* Other Tool Options (Call Predictor, Answer Key Tool) */}
+  {toolOptions.map((tool) => (
+    <button
+      key={tool.path}
+      onClick={() => handleNavClick(tool.path)}
+      className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
+        isActive(tool.path)
+          ? "bg-white shadow-md border-l-4 border-[#2f61ce] text-[#2f61ce]"
+          : "hover:bg-white hover:shadow-sm text-gray-700"
+      }`}
+    >
+      <tool.icon
+        size={18}
+        className={`transition-colors ${
+          isActive(tool.path)
+            ? "text-[#2f61ce]"
+            : "text-gray-600 group-hover:text-[#2f61ce]"
+        }`}
+      />
+      <span
+        className={`text-sm transition-colors ${
+          isActive(tool.path)
+            ? "font-semibold text-[#2f61ce]"
+            : "text-gray-700 group-hover:text-[#2f61ce]"
+        }`}
+      >
+        {tool.label}
+      </span>
+    </button>
+  ))}
+  
+  {/* Study Material Dropdown */}
+  <div className="space-y-1">
+    <button
+      onClick={() => setIsStudyMaterialExpanded(!isStudyMaterialExpanded)}
+      className="flex items-center justify-between gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group hover:bg-white hover:shadow-sm text-gray-700"
+    >
+      <div className="flex items-center gap-3">
+        <GraduationCap
+          size={18}
+          className="text-gray-600 group-hover:text-[#2f61ce] transition-colors"
+        />
+        <span className="text-sm text-gray-700 group-hover:text-[#2f61ce] transition-colors">
+          Study Material
+        </span>
+      </div>
+      {isStudyMaterialExpanded ? (
+        <ChevronDown size={16} className="text-gray-600 group-hover:text-[#2f61ce] transition-all" />
+      ) : (
+        <ChevronRight size={16} className="text-gray-600 group-hover:text-[#2f61ce] transition-all" />
+      )}
+    </button>
+
+    {/* Study Material Dropdown Items */}
+    {isStudyMaterialExpanded && (
+      <div className="ml-4 space-y-1 animate-in slide-in-from-top-2 duration-200">
+        {studyMaterials.map((material) => (
+          <div
+            key={material.label}
+            className="flex items-center gap-2 p-2 rounded-lg hover:bg-white group transition-all duration-200"
+          >
+            <button
+              onClick={() => handlePDFOpen(material.file)}
+              className="flex items-center gap-2 flex-1 text-left"
+            >
+              <material.icon
+                size={16}
+                className="text-gray-500 group-hover:text-[#2f61ce] transition-colors"
+              />
+              <span className="text-xs text-gray-600 group-hover:text-[#2f61ce] transition-colors">
+                {material.label}
+              </span>
+            </button>
+            <button
+              onClick={() => handlePDFDownload(material.file, material.label + '.pdf')}
+              className="p-1 hover:bg-blue-100 rounded transition-colors"
+              title="Download"
+            >
+              <Download
+                size={14}
+                className="text-gray-500 hover:text-[#2f61ce] transition-colors"
+              />
+            </button>
           </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
         </nav>
 
         {/* Logout Button */}
