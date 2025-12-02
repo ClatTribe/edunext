@@ -3,10 +3,30 @@ import { supabase } from "../../lib/supabase"
 
 interface Course {
   id: number
-  [key: string]: any
+  Rank?: string | null
+  "College Name": string | null
+  Location?: string | null
+  City?: string | null
+  State?: string | null
+  Approvals?: string | null
+  "CD Score"?: string | null
+  "Course Fees"?: string | null
+  "Average Package"?: string | null
+  "Highest Package"?: string | null
+  "Placement %"?: string | null
+  "Placement Score"?: string | null
+  "User Rating"?: string | null
+  "User Reviews"?: string | null
+  Ranking?: string | null
+  Specialization?: string | null
+  "Application Link"?: string | null
+  scholarship?: string | null
+  entrance_exam?: string | null
+  is_priority?: boolean
+  matchScore?: number
 }
 
-export const useSavedCourses = (user: any) => {
+export const useSavedCourses = (user: unknown) => {
   const [savedCourses, setSavedCourses] = useState<Set<number>>(new Set())
 
   useEffect(() => {
@@ -16,12 +36,13 @@ export const useSavedCourses = (user: any) => {
   }, [user])
 
   const loadSavedCourses = async () => {
-    if (!user) return
+    if (!user || typeof user !== 'object' || !('id' in user)) return
+    
     try {
       const { data, error } = await supabase
         .from("shortlist_builder")
         .select("course_id")
-        .eq("user_id", user.id)
+        .eq("user_id", (user as { id: string }).id)
         .eq("item_type", "course")
 
       if (error) {
@@ -39,10 +60,12 @@ export const useSavedCourses = (user: any) => {
   }
 
   const toggleSaved = async (course: Course) => {
-    if (!user) {
+    if (!user || typeof user !== 'object' || !('id' in user)) {
       alert("Please login to save courses")
       return
     }
+
+    const userId = (user as { id: string }).id
 
     try {
       const isSaved = savedCourses.has(course.id)
@@ -50,7 +73,7 @@ export const useSavedCourses = (user: any) => {
         const { error } = await supabase
           .from("shortlist_builder")
           .delete()
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .eq("course_id", course.id)
           .eq("item_type", "course")
 
@@ -63,7 +86,7 @@ export const useSavedCourses = (user: any) => {
         })
       } else {
         const { error } = await supabase.from("shortlist_builder").insert({
-          user_id: user.id,
+          user_id: userId,
           item_type: "course",
           course_id: course.id,
           status: "interested",

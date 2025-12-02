@@ -37,7 +37,7 @@ interface UserProfile {
 }
 
 interface ClgsRecommendProps {
-  user: any
+  user: unknown
   viewMode: "all" | "recommended"
   onRecommendedCoursesChange: (courses: Course[]) => void
   onLoadingChange: (loading: boolean) => void
@@ -67,7 +67,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
   const fetchUserProfile = async () => {
     try {
       setLoadingProfile(true)
-      if (!user) {
+      if (!user || typeof user !== 'object' || !('id' in user)) {
         setUserProfile(null)
         setLoadingProfile(false)
         return
@@ -78,7 +78,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         .select(
           "target_state, degree, program, budget, twelfth_score, ug_score, pg_score, test_scores, has_experience, experience_years"
         )
-        .eq("user_id", user.id)
+        .eq("user_id", (user as { id: string }).id)
         .single()
 
       if (profileError) {
