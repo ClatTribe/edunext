@@ -239,7 +239,7 @@ const DashboardPage = () => {
   }, [profileMetrics.completion]);
 
   const handleProfileClick = useCallback(() => router.push('/profile'), [router]);
-  const handleAdmitFinderClick = useCallback(() => router.push('/similar-students'), [router]);
+  const handleAdmitFinderClick = useCallback(() => router.push('/previous-year-students'), [router]);
   const handleCourseFinderClick = useCallback(() => router.push('/find-colleges'), [router]);
   const handleScholarshipClick = useCallback(() => router.push('/find-scholarships'), [router]);
   const handleShortlistClick = useCallback(() => router.push('/your-shortlist'), [router]);
@@ -361,7 +361,7 @@ const DashboardPage = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-blue-100 hover:shadow-xl transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
@@ -413,7 +413,7 @@ const DashboardPage = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-blue-100">
             <div className="flex items-center gap-2 mb-6">
@@ -426,7 +426,7 @@ const DashboardPage = () => {
                 className="group p-6 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-all text-left hover:shadow-lg"
               >
                 <div className="text-4xl mb-3">🔍</div>
-                <div className="font-bold text-gray-800 mb-1 text-lg">Find Courses</div>
+                <div className="font-bold text-gray-800 mb-1 text-lg">Find Colleges</div>
                 <div className="text-sm text-gray-600">Explore programs Nationwide</div>
                 <ArrowRight className="text-[#2f61ce] mt-2 group-hover:translate-x-1 transition-transform" size={20} />
               </button>
@@ -436,7 +436,7 @@ const DashboardPage = () => {
                 className="group p-6 border-2 border-sky-200 rounded-xl hover:bg-sky-50 transition-all text-left hover:shadow-lg"
               >
                 <div className="text-4xl mb-3">👥</div>
-                <div className="font-bold text-gray-800 mb-1 text-lg">Admit Finder</div>
+                <div className="font-bold text-gray-800 mb-1 text-lg">Previous Year Students</div>
                 <div className="text-sm text-gray-600">Connect with admits</div>
                 <ArrowRight className="text-sky-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
               </button>
@@ -456,7 +456,7 @@ const DashboardPage = () => {
                 className="group p-6 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all text-left hover:shadow-lg"
               >
                 <div className="text-4xl mb-3">⭐</div>
-                <div className="font-bold text-gray-800 mb-1 text-lg">Shortlist Builder</div>
+                <div className="font-bold text-gray-800 mb-1 text-lg">Your Shortlist</div>
                 <div className="text-sm text-gray-600">Build your dream list</div>
                 <ArrowRight className="text-purple-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
               </button>

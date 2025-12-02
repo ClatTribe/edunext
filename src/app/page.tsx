@@ -284,72 +284,88 @@ export default function Hero() {
         <div className="absolute inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#f3f4f6_1px,transparent_1px),linear-gradient(to_bottom,#f3f4f6_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-50" />
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
-          <div className="flex flex-col items-center text-center mb-12 sm:mb-20">
-            {/* LABEL */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border shadow-sm mb-6"
-              style={{
-                backgroundColor: "#fff8e5", // Soft yellow tint (part of 10–15%)
-                borderColor: secondary,
-              }}
-            >
-              <span className="relative flex h-2 w-2">
-                <span
-                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style={{ background: secondary }}
-                ></span>
-                <span
-                  className="relative inline-flex rounded-full h-2 w-2"
-                  style={{ background: secondary }}
-                ></span>
-              </span>
+          <div 
+  className="flex flex-col items-center text-center mb-12 sm:mb-20 relative px-4 py-20"
+  style={{
+    backgroundImage: 'url(https://res.cloudinary.com/daetdadtt/image/upload/v1764709716/Untitled_design_2_gu3dmh.png)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  }}
+>
+  {/* Optional overlay for better text readability */}
+  <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]"></div>
+  
+  {/* Content - with relative z-10 to stay above overlay */}
+  <div className="relative z-10 w-full">
+    {/* LABEL */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border shadow-sm mb-6"
+      style={{
+        backgroundColor: "#fff8e5",
+        borderColor: secondary,
+      }}
+    >
+      <span className="relative flex h-2 w-2">
+        <span
+          className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+          style={{ background: secondary }}
+        ></span>
+        <span
+          className="relative inline-flex rounded-full h-2 w-2"
+          style={{ background: secondary }}
+        ></span>
+      </span>
+      <span className="text-xs font-bold text-slate-700 tracking-wide uppercase">
+        New: Admit Finder 2.0 is live
+      </span>
+      <ArrowRight size={12} className="text-slate-400" />
+    </motion.div>
 
-              <span className="text-xs font-bold text-slate-700 tracking-wide uppercase">
-                New: Admit Finder 2.0 is live
-              </span>
+    {/* TITLE */}
+    <motion.h1
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6"
+    >
+      Your Dream MBA College <br />
+      <span style={{ color: "#2f61ce" }}>Without the Noise.</span>
+    </motion.h1>
 
-              <ArrowRight size={12} className="text-slate-400" />
-            </motion.div>
+    {/* CTA BUTTON - MOVED TO MIDDLE */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+      className="mb-8"
+    >
+      <Link href={user ? "/home" : "/register"}>
+        <button
+          className="px-8 py-4 rounded-full font-bold text-lg inline-flex items-center gap-2 cursor-pointer shadow-xl hover:-translate-y-1 transition-all"
+          style={{ backgroundColor: "#2f61ce", color: "white" }}
+        >
+          {user ? "Go to Dashboard" : "Get Started for Free"}
+          <ArrowRight size={20} />
+        </button>
+      </Link>
+    </motion.div>
 
-            {/* TITLE */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6"
-            >
-              Your Dream MBA College <br />
-              <span style={{ color: "#2f61ce" }}>Without the Noise.</span>
-            </motion.h1>
-
-            {/* SUBTEXT */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-base sm:text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8"
-            >
-              EduNext helps you find the right course, secure scholarships, and
-              connect with alumni—all while keeping your data 100% private.
-            </motion.p>
-
-            {/* CTA BUTTON */}
-            <Link href={user ? "/home" : "/register"}>
-              <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="px-8 py-4 rounded-full font-bold text-lg flex items-center gap-2 cursor-pointer shadow-xl hover:-translate-y-1 transition-all"
-                style={{ backgroundColor: "#2f61ce", color: "white" }}
-              >
-                {user ? "Go to Dashboard" : "Get Started for Free"}{" "}
-                <ArrowRight size={20} />
-              </motion.button>
-            </Link>
-          </div>
+    {/* SUBTEXT */}
+    <motion.p
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.3 }}
+      className="text-base sm:text-lg md:text-xl text-slate-900 max-w-2xl mx-auto leading-relaxed"
+    >
+      EduNext helps you find the right course, secure scholarships, and
+      connect with alumni—all while keeping your data 100% private.
+    </motion.p>
+  </div>
+</div>
 
           {/* FEATURES + PREVIEW */}
           <div className="grid lg:grid-cols-12 gap-10 items-start">
