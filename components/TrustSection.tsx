@@ -24,7 +24,7 @@ export const TrustSection: React.FC = () => {
                     transition={{ delay: 0.1 }}
                     className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight"
                 >
-                    We fixed what is broken in education search.
+                    We fixed what is broken in MBA College search.
                 </motion.h2>
             </div>
             <div className="md:mb-2">
@@ -45,7 +45,7 @@ export const TrustSection: React.FC = () => {
                         <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 text-[#2f61ce]">
                             <UserX size={32} />
                         </div>
-                        <h3 className="text-3xl font-bold text-slate-900 mb-4">Zero Spam Calls. {"That's it"}.</h3>
+                        <h3 className="text-3xl font-bold text-slate-900 mb-4">Zero Spam Calls. Your Data YOur Contact.</h3>
                         <p className="text-slate-600 text-lg max-w-md">We never sell your phone number. Unlike other platforms that trigger 200+ spam calls, EduNext keeps your data 100% private until you choose to share it.</p>
                     </div>
                     <div className="mt-8">
@@ -103,7 +103,7 @@ export const TrustSection: React.FC = () => {
                 className="md:col-span-4 bg-[#2f61ce] rounded-3xl p-8 md:px-12 md:py-10 flex flex-col md:flex-row items-center justify-between gap-8 hover:bg-[#2f61ce] transition-colors group cursor-pointer shadow-xl shadow-red-900/20"
             >
                 <div className="text-white">
-                    <h3 className="text-3xl font-bold mb-2">Ready to find your dream university?</h3>
+                    <h3 className="text-3xl font-bold mb-2">Ready to find your dream MBA College?</h3>
                     <p className="text-red-100 text-lg">Join 10,000+ students who switched to EduNext today.</p>
                 </div>
                 <button className="px-8 py-4 bg-white text-[#2f61ce] rounded-xl font-bold text-lg flex items-center gap-2 group-hover:gap-4 transition-all shadow-lg">

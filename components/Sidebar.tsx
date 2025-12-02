@@ -12,12 +12,6 @@ import {
   ThumbsUp,
   Menu,
   X,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  Download,
-  BookMarked,
-  Newspaper,
   Calculator,
   FileCheck,
 } from "lucide-react";
@@ -33,8 +27,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isToolsExpanded, setIsToolsExpanded] = useState(false);
-  const [isStudyMaterialExpanded, setIsStudyMaterialExpanded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -46,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     ],
     explore: [
       { icon: BookOpen, label: "Find Colleges", path: "/find-colleges" },
-      { icon: Users, label: "Similar Students", path: "/similar-students" },
+      { icon: Users, label: "Previous Year Students", path: "/previous-year-students" },
       { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
     ],
@@ -55,53 +47,28 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: GraduationCap, label: "Document Upload", path: "/document" },
     ],
   };
+
   const toolOptions = [
-  {
-    icon: Calculator,
-    label: "Call Predictor",
-    path: "/call-predictor",
-  },
-  {
-    icon: FileCheck,
-    label: "Answer Key Tool",
-    path: "/answer-key-tool",
-  },
-];
-  const studyMaterials = [
     {
-      icon: FileText,
-      label: "PI Kit",
-      file: "/PI Kit 2024.pdf",
+      icon: Calculator,
+      label: "Call Predictor",
+      path: "/call-predictor",
     },
     {
-      icon: BookMarked,
-      label: "Formula Book",
-      file: "/Formula Book.pdf",
+      icon: FileCheck,
+      label: "Answer Key Tool",
+      path: "/answer-key-tool",
     },
     {
-      icon: Newspaper,
-      label: "Daily GK",
-      file: "/Daily GK.pdf",
+      icon: GraduationCap,
+      label: "Study Material",
+      path: "/study-material",
     },
   ];
 
   const handleNavClick = (path: string) => {
     router.push(path);
     setIsMobileMenuOpen(false);
-  };
-
-  const handlePDFOpen = (file: string) => {
-    window.open(file, '_blank');
-    setIsMobileMenuOpen(false);
-  };
-
-  const handlePDFDownload = (file: string, fileName: string) => {
-    const link = document.createElement('a');
-    link.href = file;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const handleLogout = async () => {
@@ -297,103 +264,43 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           </div>
 
           {/* Tools Section */}
-          
           <div className="pt-4">
-  <div className="flex items-center gap-2 mb-2 px-2">
-    <div className="text-xs font-bold text-[#2f61ce] uppercase tracking-wider">
-      Tools
-    </div>
-    <div className="flex-1 h-px bg-blue-200"></div>
-  </div>
-  {/* Other Tool Options (Call Predictor, Answer Key Tool) */}
-  {toolOptions.map((tool) => (
-    <button
-      key={tool.path}
-      onClick={() => handleNavClick(tool.path)}
-      className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
-        isActive(tool.path)
-          ? "bg-white shadow-md border-l-4 border-[#2f61ce] text-[#2f61ce]"
-          : "hover:bg-white hover:shadow-sm text-gray-700"
-      }`}
-    >
-      <tool.icon
-        size={18}
-        className={`transition-colors ${
-          isActive(tool.path)
-            ? "text-[#2f61ce]"
-            : "text-gray-600 group-hover:text-[#2f61ce]"
-        }`}
-      />
-      <span
-        className={`text-sm transition-colors ${
-          isActive(tool.path)
-            ? "font-semibold text-[#2f61ce]"
-            : "text-gray-700 group-hover:text-[#2f61ce]"
-        }`}
-      >
-        {tool.label}
-      </span>
-    </button>
-  ))}
-  
-  {/* Study Material Dropdown */}
-  <div className="space-y-1">
-    <button
-      onClick={() => setIsStudyMaterialExpanded(!isStudyMaterialExpanded)}
-      className="flex items-center justify-between gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group hover:bg-white hover:shadow-sm text-gray-700"
-    >
-      <div className="flex items-center gap-3">
-        <GraduationCap
-          size={18}
-          className="text-gray-600 group-hover:text-[#2f61ce] transition-colors"
-        />
-        <span className="text-sm text-gray-700 group-hover:text-[#2f61ce] transition-colors">
-          Study Material
-        </span>
-      </div>
-      {isStudyMaterialExpanded ? (
-        <ChevronDown size={16} className="text-gray-600 group-hover:text-[#2f61ce] transition-all" />
-      ) : (
-        <ChevronRight size={16} className="text-gray-600 group-hover:text-[#2f61ce] transition-all" />
-      )}
-    </button>
-
-    {/* Study Material Dropdown Items */}
-    {isStudyMaterialExpanded && (
-      <div className="ml-4 space-y-1 animate-in slide-in-from-top-2 duration-200">
-        {studyMaterials.map((material) => (
-          <div
-            key={material.label}
-            className="flex items-center gap-2 p-2 rounded-lg hover:bg-white group transition-all duration-200"
-          >
-            <button
-              onClick={() => handlePDFOpen(material.file)}
-              className="flex items-center gap-2 flex-1 text-left"
-            >
-              <material.icon
-                size={16}
-                className="text-gray-500 group-hover:text-[#2f61ce] transition-colors"
-              />
-              <span className="text-xs text-gray-600 group-hover:text-[#2f61ce] transition-colors">
-                {material.label}
-              </span>
-            </button>
-            <button
-              onClick={() => handlePDFDownload(material.file, material.label + '.pdf')}
-              className="p-1 hover:bg-blue-100 rounded transition-colors"
-              title="Download"
-            >
-              <Download
-                size={14}
-                className="text-gray-500 hover:text-[#2f61ce] transition-colors"
-              />
-            </button>
+            <div className="flex items-center gap-2 mb-2 px-2">
+              <div className="text-xs font-bold text-[#2f61ce] uppercase tracking-wider">
+                Tools
+              </div>
+              <div className="flex-1 h-px bg-blue-200"></div>
+            </div>
+            {toolOptions.map((tool) => (
+              <button
+                key={tool.path}
+                onClick={() => handleNavClick(tool.path)}
+                className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
+                  isActive(tool.path)
+                    ? "bg-white shadow-md border-l-4 border-[#2f61ce] text-[#2f61ce]"
+                    : "hover:bg-white hover:shadow-sm text-gray-700"
+                }`}
+              >
+                <tool.icon
+                  size={18}
+                  className={`transition-colors ${
+                    isActive(tool.path)
+                      ? "text-[#2f61ce]"
+                      : "text-gray-600 group-hover:text-[#2f61ce]"
+                  }`}
+                />
+                <span
+                  className={`text-sm transition-colors ${
+                    isActive(tool.path)
+                      ? "font-semibold text-[#2f61ce]"
+                      : "text-gray-700 group-hover:text-[#2f61ce]"
+                  }`}
+                >
+                  {tool.label}
+                </span>
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
         </nav>
 
         {/* Logout Button */}

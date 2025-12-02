@@ -1,148 +1,215 @@
-"use client"
-import type React from "react"
-import { useState, useEffect } from "react"
-import {
-  Heart,
-  Trash2,
-  BookOpen,
-  Award,
-  MapPin,
-  Calendar,
-  GraduationCap,
-  Globe,
-  IndianRupee,
-  ExternalLink,
-  FileText,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  X,
-  Sparkles,
-} from "lucide-react"
-import { supabase } from "../../../lib/supabase"
-import { useAuth } from "../../../contexts/AuthContext"
-import DefaultLayout from "../defaultLayout"
+"use client";
+import React, { useState, useEffect } from 'react';
+import { 
+  Heart, GraduationCap, Award, Trash2, MapPin, IndianRupee, 
+  BookOpen, FileText, Globe, ExternalLink, AlertCircle, 
+  CheckCircle, X, Clock, Calendar, Sparkles 
+} from 'lucide-react';
+import { supabase } from "../../../lib/supabase";
+import { useAuth } from "../../../contexts/AuthContext";
+import DefaultLayout from "../defaultLayout";
 
 interface Course {
-  id: number
-  Rank: string | null
-  "College Name": string | null
-  Location: string | null
-  City: string | null
-  State: string | null
-  Approvals: string | null
-  "CD Score": string | null
-  "Course Fees": string | null
-  "Average Package": string | null
-  "Highest Package": string | null
-  "Placement %": string | null
-  "Placement Score": string | null
-  "User Rating": string | null
-  "User Reviews": string | null
-  Ranking: string | null
-  Specialization: string | null
-  "Application Link": string | null
+  id: number;
+  Rank: string | null;
+  "College Name": string | null;
+  Location: string | null;
+  City: string | null;
+  State: string | null;
+  Approvals: string | null;
+  "CD Score": string | null;
+  "Course Fees": string | null;
+  "Average Package": string | null;
+  "Highest Package": string | null;
+  "Placement %": string | null;
+  "Placement Score": string | null;
+  "User Rating": string | null;
+  "User Reviews": string | null;
+  Ranking: string | null;
+  Specialization: string | null;
+  "Application Link": string | null;
 }
 
 interface Scholarship {
-  id: number
-  scholarship_name: string
-  organisation: string
-  eligibility: string
-  benefit: string
-  deadline: string
-  link: string
+  id: number;
+  scholarship_name: string;
+  organisation: string;
+  eligibility: string;
+  benefit: string;
+  deadline: string;
+  link: string;
 }
 
 interface ShortlistItem {
-  id: number
-  user_id: string
-  item_type: "course" | "scholarship"
-  course_id: number | null
-  scholarship_id: number | null
-  notes: string | null
-  status: string
-  created_at: string
-  updated_at: string
-  course?: Course
-  scholarship?: Scholarship
+  id: number;
+  user_id: string;
+  item_type: "course" | "scholarship";
+  course_id: number | null;
+  scholarship_id: number | null;
+  notes: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  course?: Course;
+  scholarship?: Scholarship;
 }
 
 const ShortlistBuilder: React.FC = () => {
-  const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<"courses" | "scholarships">("courses")
-  const [shortlistItems, setShortlistItems] = useState<ShortlistItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [editingNotes, setEditingNotes] = useState<number | null>(null)
-  const [noteText, setNoteText] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<"courses" | "scholarships">("courses");
+  const [shortlistItems, setShortlistItems] = useState<ShortlistItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editingNotes, setEditingNotes] = useState<number | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     if (user) {
-      fetchShortlistItems()
+      fetchShortlistItems();
     } else {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [user])
+  }, [user]);
 
   const fetchShortlistItems = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       const { data: shortlistData, error: shortlistError } = await supabase
         .from("shortlist_builder")
         .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: false });
 
-      if (shortlistError) throw shortlistError
+      if (shortlistError) throw shortlistError;
 
       const itemsWithDetails = await Promise.all(
         (shortlistData || []).map(async (item) => {
           if (item.item_type === "course" && item.course_id) {
-            const { data: courseData } = await supabase.from("courses").select("*").eq("id", item.course_id).single()
+            const { data: courseData } = await supabase
+              .from("courses")
+              .select("*")
+              .eq("id", item.course_id)
+              .single();
 
-            return { ...item, course: courseData }
+            return { ...item, course: courseData };
           } else if (item.item_type === "scholarship" && item.scholarship_id) {
             const { data: scholarshipData } = await supabase
               .from("scholarship")
               .select("*")
               .eq("id", item.scholarship_id)
-              .single()
+              .single();
 
-            return { ...item, scholarship: scholarshipData }
+            return { ...item, scholarship: scholarshipData };
           }
-          return item
-        }),
-      )
+          return item;
+        })
+      );
 
-      setShortlistItems(itemsWithDetails)
+      setShortlistItems(itemsWithDetails);
     } catch (err) {
-      console.error("Error fetching shortlist:", err)
-      setError(err instanceof Error ? err.message : "Failed to fetch shortlist")
+      console.error("Error fetching shortlist:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch shortlist");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const removeFromShortlist = async (itemId: number) => {
-    if (!confirm("Are you sure you want to remove this item from your shortlist?")) return
+  // Function to check if item already exists in shortlist
+  const checkIfItemExists = async (itemType: "course" | "scholarship", itemId: number): Promise<boolean> => {
+    if (!user) return false;
 
     try {
-      const { error } = await supabase.from("shortlist_builder").delete().eq("id", itemId).eq("user_id", user?.id)
+      const column = itemType === "course" ? "course_id" : "scholarship_id";
+      const { data, error } = await supabase
+        .from("shortlist_builder")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("item_type", itemType)
+        .eq(column, itemId)
+        .single();
 
-      if (error) throw error
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.error("Error checking item:", error);
+        return false;
+      }
 
-      setShortlistItems((prev) => prev.filter((item) => item.id !== itemId))
+      return !!data;
     } catch (err) {
-      console.error("Error removing item:", err)
-      alert("Failed to remove item. Please try again.")
+      console.error("Error checking if item exists:", err);
+      return false;
     }
-  }
+  };
+
+  // Function to add item to shortlist (call this from your course/scholarship pages)
+  const addToShortlist = async (itemType: "course" | "scholarship", itemId: number) => {
+    if (!user) {
+      alert("Please login to add items to your shortlist");
+      return { success: false, message: "Please login first" };
+    }
+
+    try {
+      // Check if item already exists
+      const exists = await checkIfItemExists(itemType, itemId);
+      
+      if (exists) {
+        alert(`This ${itemType} is already in your shortlist!`);
+        return { success: false, message: "Item already exists" };
+      }
+
+      // Add to shortlist
+      const insertData = {
+        user_id: user.id,
+        item_type: itemType,
+        course_id: itemType === "course" ? itemId : null,
+        scholarship_id: itemType === "scholarship" ? itemId : null,
+        status: "interested",
+        notes: null
+      };
+
+      const { data, error } = await supabase
+        .from("shortlist_builder")
+        .insert([insertData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      alert(`${itemType === "course" ? "College" : "Scholarship"} added to shortlist successfully!`);
+      
+      // Refresh the list if we're on the shortlist page
+      await fetchShortlistItems();
+      
+      return { success: true, message: "Added successfully", data };
+    } catch (err) {
+      console.error("Error adding to shortlist:", err);
+      alert("Failed to add item to shortlist. Please try again.");
+      return { success: false, message: err instanceof Error ? err.message : "Failed to add" };
+    }
+  };
+
+  const removeFromShortlist = async (itemId: number) => {
+    if (!confirm("Are you sure you want to remove this item from your shortlist?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("shortlist_builder")
+        .delete()
+        .eq("id", itemId)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+
+      setShortlistItems((prev) => prev.filter((item) => item.id !== itemId));
+    } catch (err) {
+      console.error("Error removing item:", err);
+      alert("Failed to remove item. Please try again.");
+    }
+  };
 
   const updateStatus = async (itemId: number, newStatus: string) => {
     try {
@@ -150,20 +217,20 @@ const ShortlistBuilder: React.FC = () => {
         .from("shortlist_builder")
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq("id", itemId)
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id);
 
-      if (error) throw error
+      if (error) throw error;
 
       setShortlistItems((prev) =>
         prev.map((item) =>
-          item.id === itemId ? { ...item, status: newStatus, updated_at: new Date().toISOString() } : item,
-        ),
-      )
+          item.id === itemId ? { ...item, status: newStatus, updated_at: new Date().toISOString() } : item
+        )
+      );
     } catch (err) {
-      console.error("Error updating status:", err)
-      alert("Failed to update status. Please try again.")
+      console.error("Error updating status:", err);
+      alert("Failed to update status. Please try again.");
     }
-  }
+  };
 
   const updateNotes = async (itemId: number) => {
     try {
@@ -171,49 +238,49 @@ const ShortlistBuilder: React.FC = () => {
         .from("shortlist_builder")
         .update({ notes: noteText, updated_at: new Date().toISOString() })
         .eq("id", itemId)
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id);
 
-      if (error) throw error
+      if (error) throw error;
 
       setShortlistItems((prev) =>
         prev.map((item) =>
-          item.id === itemId ? { ...item, notes: noteText, updated_at: new Date().toISOString() } : item,
-        ),
-      )
+          item.id === itemId ? { ...item, notes: noteText, updated_at: new Date().toISOString() } : item
+        )
+      );
 
-      setEditingNotes(null)
-      setNoteText("")
+      setEditingNotes(null);
+      setNoteText("");
     } catch (err) {
-      console.error("Error updating notes:", err)
-      alert("Failed to update notes. Please try again.")
+      console.error("Error updating notes:", err);
+      alert("Failed to update notes. Please try again.");
     }
-  }
+  };
 
   const formatDeadline = (dateString: string) => {
-    if (!dateString || dateString === "") return "Check website"
+    if (!dateString || dateString === "") return "Check website";
 
     if (
       dateString.toLowerCase().includes("varies") ||
       dateString.toLowerCase().includes("rolling") ||
       dateString.toLowerCase().includes("typically")
     ) {
-      return dateString
+      return dateString;
     }
 
     try {
-      const date = new Date(dateString)
+      const date = new Date(dateString);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString("en-US", {
           day: "numeric",
           month: "short",
           year: "numeric",
-        })
+        });
       }
-      return dateString
+      return dateString;
     } catch {
-      return dateString
+      return dateString;
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
@@ -222,27 +289,27 @@ const ShortlistBuilder: React.FC = () => {
       accepted: { color: "bg-green-100 text-green-700", icon: <CheckCircle size={14} />, label: "Accepted" },
       rejected: { color: "bg-red-100 text-red-700", icon: <X size={14} />, label: "Rejected" },
       pending: { color: "bg-yellow-100 text-yellow-700", icon: <Clock size={14} />, label: "Pending" },
-    }
+    };
 
-    const config = statusConfig[status] || statusConfig.interested
+    const config = statusConfig[status] || statusConfig.interested;
 
     return (
       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${config.color}`}>
         {config.icon}
         {config.label}
       </span>
-    )
-  }
+    );
+  };
 
   const filteredItems = shortlistItems.filter((item) => {
-    if (activeTab === "courses" && item.item_type !== "course") return false
-    if (activeTab === "scholarships" && item.item_type !== "scholarship") return false
-    if (statusFilter !== "all" && item.status !== statusFilter) return false
-    return true
-  })
+    if (activeTab === "courses" && item.item_type !== "course") return false;
+    if (activeTab === "scholarships" && item.item_type !== "scholarship") return false;
+    if (statusFilter !== "all" && item.status !== statusFilter) return false;
+    return true;
+  });
 
-  const courseCount = shortlistItems.filter((item) => item.item_type === "course").length
-  const scholarshipCount = shortlistItems.filter((item) => item.item_type === "scholarship").length
+  const courseCount = shortlistItems.filter((item) => item.item_type === "course").length;
+  const scholarshipCount = shortlistItems.filter((item) => item.item_type === "scholarship").length;
 
   if (!user) {
     return (
@@ -257,7 +324,7 @@ const ShortlistBuilder: React.FC = () => {
           </div>
         </div>
       </DefaultLayout>
-    )
+    );
   }
 
   return (
@@ -484,8 +551,8 @@ const ShortlistBuilder: React.FC = () => {
                             {editingNotes !== item.id && (
                               <button
                                 onClick={() => {
-                                  setEditingNotes(item.id)
-                                  setNoteText(item.notes || "")
+                                  setEditingNotes(item.id);
+                                  setNoteText(item.notes || "");
                                 }}
                                 className="text-xs text-[#005de6] hover:text-[#003d99] font-medium"
                               >
@@ -511,8 +578,8 @@ const ShortlistBuilder: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setEditingNotes(null)
-                                    setNoteText("")
+                                    setEditingNotes(null);
+                                    setNoteText("");
                                   }}
                                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
                                 >
@@ -622,8 +689,8 @@ const ShortlistBuilder: React.FC = () => {
                             {editingNotes !== item.id && (
                               <button
                                 onClick={() => {
-                                  setEditingNotes(item.id)
-                                  setNoteText(item.notes || "")
+                                  setEditingNotes(item.id);
+                                  setNoteText(item.notes || "");
                                 }}
                                 className="text-xs text-[#005de6] hover:text-[#003d99] font-medium"
                               >

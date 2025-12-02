@@ -22,18 +22,14 @@ interface TestScore {
 
 interface ProfileData {
   name?: string;
-  target_degree?: string;
-  target_field?: string;
-  academic_year?: string;
-  test_scores?: TestScore[];
   email?: string;
   phone?: string;
+  city?: string;
+  academic_year?: string;
+  test_scores?: TestScore[];
+  target_degree?: string;
+  target_field?: string;
   target_state?: string[];
-  tenth_score?: string;
-  twelfth_score?: string;
-  university?: string;
-  extracurricular?: string;
-  last_course_cgpa?: string;
 }
 
 // Global cache to persist data across page navigations
@@ -50,47 +46,39 @@ const DashboardPage = () => {
   const [loadingProfile, setLoadingProfile] = useState(!cachedProfileData);
   const [shortlistedCount, setShortlistedCount] = useState(0);
 
-  // Memoize calculations with required fields
+  // Memoize calculations with ONLY 6 required fields
   const profileMetrics = useMemo(() => {
     if (!profileData) {
       return {
         completion: 0,
         missingFields: [
-          'Degree', 'Field of Interest', 'Target Year', 'Test Scores',
-          'Email', 'Phone', 'Preferred States', '10th Score', '12th Score'
+          'Name', 'City', 'Email', 'Contact Number', 'Academic Year', 'Test Scores'
         ]
       };
     }
 
     const hasTestScores = profileData.test_scores && profileData.test_scores.length > 0;
-    const hasTargetStates = profileData.target_state && profileData.target_state.length > 0;
     
-    // Required fields only
+    // ONLY 6 Required fields
     const fields = [
-      profileData.target_degree,       // 1. Degree
-      profileData.target_field,        // 2. Field
-      profileData.academic_year,       // 3. Year
-      hasTestScores,                   // 4. Test Scores
-      profileData.email,               // 5. Email
-      profileData.phone,               // 6. Phone
-      hasTargetStates,                 // 7. Target States
-      profileData.tenth_score,         // 8. 10th Score
-      profileData.twelfth_score        // 9. 12th Score
+      profileData.name,           // 1. Name
+      profileData.city,           // 2. City
+      profileData.email,          // 3. Email
+      profileData.phone,          // 4. Contact Number
+      profileData.academic_year,  // 5. Academic Year
+      hasTestScores               // 6. Test Scores
     ];
 
     const filledCount = fields.filter(f => f && (typeof f === 'boolean' ? f : f.toString().trim() !== '')).length;
     const completion = Math.round((filledCount / fields.length) * 100);
 
     const missing: string[] = [];
-    if (!profileData.target_degree) missing.push('Degree');
-    if (!profileData.target_field) missing.push('Field of Interest');
-    if (!profileData.academic_year) missing.push('Target Year');
-    if (!hasTestScores) missing.push('Test Scores');
+    if (!profileData.name) missing.push('Name');
+    if (!profileData.city) missing.push('City');
     if (!profileData.email) missing.push('Email');
-    if (!profileData.phone) missing.push('Phone');
-    if (!hasTargetStates) missing.push('Preferred States');
-    if (!profileData.tenth_score) missing.push('10th Score');
-    if (!profileData.twelfth_score) missing.push('12th Score');
+    if (!profileData.phone) missing.push('Contact Number');
+    if (!profileData.academic_year) missing.push('Academic Year');
+    if (!hasTestScores) missing.push('Test Scores');
 
     return { completion, missingFields: missing };
   }, [profileData]);
@@ -176,27 +164,21 @@ const DashboardPage = () => {
       } else if (data) {
         const profileData = {
           name: data.name,
-          target_degree: data.target_degree,
-          target_field: data.target_field,
-          academic_year: data.academic_year,
-          test_scores: data.test_scores,
           email: data.email,
           phone: data.phone,
+          city: data.city,
+          academic_year: data.academic_year,
+          test_scores: data.test_scores,
+          target_degree: data.degree || data.target_degree,
+          target_field: data.program || data.target_field,
           target_state: data.target_state,
-          tenth_score: data.tenth_score,
-          twelfth_score: data.twelfth_score,
-          university: data.university,
-          extracurricular: data.extracurricular,
-          last_course_cgpa: data.last_course_cgpa,
         };
         
         cachedProfileData = profileData;
         cacheTimestamp = Date.now();
         setProfileData(profileData);
         
-        console.log('Fetched profile data:', profileData); // Debug log
-        
-        if (data.test_scores?.length > 0 || data.target_field || data.target_degree) {
+        if (data.test_scores?.length > 0 || data.program || data.degree) {
           fetchSimilarProfilesCount(profileData);
         }
       } else {
@@ -221,17 +203,15 @@ const DashboardPage = () => {
         .select('id', { count: 'exact', head: true })
         .neq('user_id', user.id);
 
-      // Extract test score for matching (e.g., CAT percentile)
       const testScore = profile.test_scores?.[0]?.percentile;
       const scoreNum = testScore ? parseFloat(testScore) : null;
       
       if (scoreNum) {
-        // Match similar test scores (within ±10 percentile range)
         query = query.gte('test_scores->0->percentile', (scoreNum - 10).toString())
                      .lte('test_scores->0->percentile', (scoreNum + 10).toString());
       }
       if (profile.target_degree) {
-        query = query.eq('target_degree', profile.target_degree);
+        query = query.eq('degree', profile.target_degree);
       }
 
       const { count, error } = await query;
@@ -325,16 +305,11 @@ const DashboardPage = () => {
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {profileMetrics.missingFields.slice(0, 5).map((field, idx) => (
+                      {profileMetrics.missingFields.map((field, idx) => (
                         <span key={idx} className="text-xs bg-white text-[#2f61ce] px-3 py-1 rounded-full border border-blue-200 font-medium">
                           {field}
                         </span>
                       ))}
-                      {profileMetrics.missingFields.length > 5 && (
-                        <span className="text-xs bg-white text-gray-600 px-3 py-1 rounded-full border border-gray-200 font-medium">
-                          +{profileMetrics.missingFields.length - 5} more
-                        </span>
-                      )}
                     </div>
                     <button
                       onClick={handleProfileClick}
@@ -497,7 +472,7 @@ const DashboardPage = () => {
                 <div>
                   <h3 className="font-bold text-gray-800 mb-2 text-lg">💡 Pro Tip</h3>
                   <p className="text-gray-700">
-                    Complete all 9 required fields in your profile to unlock personalized recommendations and connect with students who have similar academic backgrounds!
+                    Complete all 6 required fields (Name, City, Email, Contact Number, Academic Year, and Test Scores) in your profile to unlock personalized recommendations and connect with students who have similar academic backgrounds!
                   </p>
                 </div>
               </div>

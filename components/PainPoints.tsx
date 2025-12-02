@@ -42,7 +42,7 @@ export const PainPoints: React.FC = () => {
               <ul className="space-y-6">
                 <li className="flex gap-4">
                   <Check className="text-emerald-400 shrink-0" />
-                  <span>100% Private. You initiate contact, not them.</span>
+                  <span>100% Private. You initiate contact, not us.</span>
                 </li>
                 <li className="flex gap-4">
                   <Check className="text-emerald-400 shrink-0" />

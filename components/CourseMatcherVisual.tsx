@@ -41,7 +41,7 @@ export const CourseMatcherVisual: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden">
       <div className="p-8 border-b border-slate-100 bg-white">
-        <h3 className="text-3xl font-bold text-[#2f61ce] mb-2 tracking-tight">Find Your Perfect Course</h3>
+        <h3 className="text-3xl font-bold text-[#2f61ce] mb-2 tracking-tight">Find Your Perfect College</h3>
         <p className="text-slate-500 mb-8 text-lg">Explore Programs and Institutes Across India</p>
         
         <div className="flex gap-4 mb-8">

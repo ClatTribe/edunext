@@ -44,7 +44,7 @@ const features = [
   },
   {
     id: "admits",
-    title: "Similar Student",
+    title: "Previous Year Students",
     description: "See real profiles of students who got into your dream colleges.",
     icon: Target,
     component: AdmitFinderVisual,

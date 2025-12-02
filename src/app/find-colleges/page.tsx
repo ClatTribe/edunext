@@ -1,27 +1,27 @@
 "use client"
-
 import React, { useState, useEffect } from "react"
 import {
-  Search,
-  ChevronDown,
-  Heart,
-  IndianRupee,
-  MapPin,
   GraduationCap,
-  Filter,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  AlertCircle,
-  Globe,
-  Award,
   Sparkles,
+  Heart,
+  AlertCircle,
+  MapPin,
+  Award,
   Trophy,
+  Globe,
   Target,
+  Flame,
+  IndianRupee,
+  CheckCircle,
+  BookOpen,
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { useAuth } from "../../../contexts/AuthContext"
 import DefaultLayout from "../defaultLayout"
+import Pagination from "../../../components/CourseFinder/Pagination"
+import FilterComponent from "../../../components/CourseFinder/Filtering"
+import useSavedCourses from "../../../components/CourseFinder/SavedCourses"
+import ClgsRecommend from "../../../components/CourseFinder/ClgsRecommend"
 
 interface Course {
   id: number
@@ -32,7 +32,7 @@ interface Course {
   State?: string | null
   Approvals?: string | null
   "CD Score"?: string | null
-  "Course Fees": string | null
+  "Course Fees"?: string | null
   "Average Package"?: string | null
   "Highest Package"?: string | null
   "Placement %"?: string | null
@@ -42,20 +42,10 @@ interface Course {
   Ranking?: string | null
   Specialization?: string | null
   "Application Link"?: string | null
+  scholarship?: string | null
+  entrance_exam?: string | null
+  is_priority?: boolean
   matchScore?: number
-}
-
-interface UserProfile {
-  target_countries: string[]
-  degree: string
-  program: string
-  budget: string | null
-  twelfth_score: string | null
-  ug_score: string | null
-  pg_score: string | null
-  test_scores: Array<{ exam: string; score: string }>
-  has_experience: string | null
-  experience_years: string | null
 }
 
 const CourseFinder: React.FC = () => {
@@ -64,342 +54,18 @@ const CourseFinder: React.FC = () => {
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showFilters, setShowFilters] = useState(false)
-
-  const [selectedState, setSelectedState] = useState("")
-  const [selectedCity, setSelectedCity] = useState("")
-  const [selectedCollegeName, setSelectedCollegeName] = useState("")
-  const [selectedCourseFees, setSelectedCourseFees] = useState("")
-  const [selectedHighestPackage, setSelectedHighestPackage] = useState("")
-  const [selectedBudget, setSelectedBudget] = useState("")
-
   const [currentPage, setCurrentPage] = useState(0)
-  const [savedCourses, setSavedCourses] = useState<Set<number>>(new Set())
   const [viewMode, setViewMode] = useState<"all" | "recommended">("all")
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [loadingProfile, setLoadingProfile] = useState(true)
+
+  const { savedCourses, toggleSaved } = useSavedCourses(user)
 
   const perPage = 15
 
-  const indianStates = [
-    "Maharashtra",
-    "Andhra Pradesh",
-    "Arunachal Pradesh",
-    "Assam",
-    "Bihar",
-    "Chhattisgarh",
-    "Goa",
-    "Gujarat",
-    "Haryana",
-    "Himachal Pradesh",
-    "Jharkhand",
-    "Karnataka",
-    "Kerala",
-    "Madhya Pradesh",
-    "Manipur",
-    "Meghalaya",
-    "Mizoram",
-    "Nagaland",
-    "Odisha",
-    "Punjab",
-    "Rajasthan",
-    "Sikkim",
-    "Tamil Nadu",
-    "Telangana",
-    "Tripura",
-    "Uttar Pradesh",
-    "Uttarakhand",
-    "West Bengal",
-    "Delhi",
-    "Jammu and Kashmir",
-    "Ladakh",
-    "Puducherry",
-    "Chandigarh",
-    "Andaman and Nicobar Islands",
-    "Dadra and Nagar Haveli and Daman and Diu",
-    "Lakshadweep",
-  ]
-
-  useEffect(() => {
-    fetchUserProfile()
-    if (user) {
-      loadSavedCourses()
-    }
-  }, [user])
-
-  useEffect(() => {
-    if (!loadingProfile) {
-      if (viewMode === "all") {
-        fetchCourses()
-      } else {
-        fetchRecommendedCourses()
-      }
-    }
-  }, [loadingProfile, viewMode])
-
   useEffect(() => {
     if (viewMode === "all") {
-      applyFilters()
+      fetchCourses()
     }
-  }, [
-    searchQuery,
-    selectedState,
-    selectedCity,
-    selectedCollegeName,
-    selectedCourseFees,
-    selectedHighestPackage,
-    selectedBudget,
-    courses,
-    viewMode,
-  ])
-
-  const fetchUserProfile = async () => {
-    try {
-      setLoadingProfile(true)
-
-      if (!user) {
-        setUserProfile(null)
-        setLoadingProfile(false)
-        return
-      }
-
-      const { data, error: profileError } = await supabase
-        .from("admit_profiles")
-        .select(
-          "target_countries, degree, program, budget, twelfth_score, ug_score, pg_score, test_scores, has_experience, experience_years",
-        )
-        .eq("user_id", user.id)
-        .single()
-
-      if (profileError) {
-        console.error("Profile fetch error:", profileError)
-        setUserProfile(null)
-      } else if (data) {
-        setUserProfile(data)
-      }
-    } catch (err) {
-      console.error("Error fetching profile:", err)
-      setUserProfile(null)
-    } finally {
-      setLoadingProfile(false)
-    }
-  }
-
-  const loadSavedCourses = async () => {
-    if (!user) return
-
-    try {
-      const { data, error } = await supabase
-        .from("shortlist_builder")
-        .select("course_id")
-        .eq("user_id", user.id)
-        .eq("item_type", "course")
-
-      if (error) {
-        console.error("Error loading saved courses:", error)
-        return
-      }
-
-      if (data) {
-        const courseIds = new Set(data.map((item) => item.course_id).filter(Boolean))
-        setSavedCourses(courseIds)
-      }
-    } catch (error) {
-      console.error("Error loading saved courses:", error)
-    }
-  }
-
-  const toggleSaved = async (course: Course) => {
-    if (!user) {
-      alert("Please login to save courses")
-      return
-    }
-
-    try {
-      const isSaved = savedCourses.has(course.id)
-      if (isSaved) {
-        const { error } = await supabase
-          .from("shortlist_builder")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("course_id", course.id)
-          .eq("item_type", "course")
-
-        if (error) throw error
-        setSavedCourses((prev) => {
-          const newSet = new Set(prev)
-          newSet.delete(course.id)
-          return newSet
-        })
-      } else {
-        const { error } = await supabase.from("shortlist_builder").insert({
-          user_id: user.id,
-          item_type: "course",
-          course_id: course.id,
-          status: "interested",
-        })
-
-        if (error) throw error
-        setSavedCourses((prev) => new Set([...prev, course.id]))
-      }
-    } catch (error) {
-      console.error("Error toggling saved course:", error)
-      alert("Failed to update shortlist. Please try again.")
-    }
-  }
-
-  const calculateMatchScore = (course: Course): number => {
-    if (!userProfile) return 0
-    let score = 0
-
-    if (userProfile.program && course.Specialization) {
-      const userProgram = userProfile.program.toLowerCase().trim()
-      const specialization = course.Specialization.toLowerCase()
-
-      const commonWords = ["in", "of", "and", "the", "for", "with", "on", "at", "to", "a", "an"]
-      const userKeywords = userProgram.split(/[\s,\-/]+/).filter((k) => k.length > 2 && !commonWords.includes(k))
-
-      if (specialization.includes(userProgram)) {
-        score += 50
-      } else {
-        let keywordMatches = 0
-        const totalKeywords = userKeywords.length || 1
-
-        for (const keyword of userKeywords) {
-          if (specialization.includes(keyword)) {
-            keywordMatches++
-          }
-        }
-
-        const matchPercentage = keywordMatches / totalKeywords
-
-        if (matchPercentage >= 0.8) score += 45
-        else if (matchPercentage >= 0.6) score += 38
-        else if (matchPercentage >= 0.4) score += 30
-        else if (matchPercentage >= 0.2) score += 20
-        else if (keywordMatches > 0) score += 10
-      }
-
-      const fieldGroups: Record<string, string[]> = {
-        cs: [
-          "computer",
-          "software",
-          "data",
-          "artificial",
-          "intelligence",
-          "machine",
-          "learning",
-          "cyber",
-          "information",
-          "technology",
-        ],
-        business: ["business", "management", "mba", "finance", "accounting", "marketing", "economics"],
-        engineering: ["engineering", "mechanical", "electrical", "civil", "chemical", "industrial"],
-        science: ["science", "biology", "chemistry", "physics", "mathematics", "statistics"],
-        arts: ["art", "design", "music", "theatre", "media", "communication", "journalism"],
-      }
-
-      for (const group of Object.values(fieldGroups)) {
-        const userInGroup = group.some((term) => userProgram.includes(term))
-        const courseInGroup = group.some((term) => specialization.includes(term))
-        if (userInGroup && courseInGroup && score < 30) {
-          score += 15
-          break
-        }
-      }
-    }
-
-    if (userProfile.degree) {
-      score += 20
-    }
-
-    return score
-  }
-
-  const fetchRecommendedCourses = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      if (!userProfile) {
-        setError("Please complete your profile to see personalized recommendations")
-        setFilteredCourses([])
-        setLoading(false)
-        return
-      }
-
-      if (!userProfile.degree) {
-        setError("Please select your target degree in your profile")
-        setFilteredCourses([])
-        setLoading(false)
-        return
-      }
-
-      if (!userProfile.program) {
-        setError("Please select your field of study in your profile")
-        setFilteredCourses([])
-        setLoading(false)
-        return
-      }
-
-      let allCourses: Course[] = []
-      let from = 0
-      const batchSize = 1000
-      let hasMore = true
-
-      while (hasMore) {
-        const { data, error: supabaseError } = await supabase
-          .from("courses")
-          .select(
-            'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Course Fees", "Average Package", "Highest Package", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link"',
-          )
-          .order("id", { ascending: true })
-          .range(from, from + batchSize - 1)
-
-        if (supabaseError) throw supabaseError
-
-        if (data && data.length > 0) {
-          allCourses = [...allCourses, ...data]
-          hasMore = data.length === batchSize
-          from += batchSize
-        } else {
-          hasMore = false
-        }
-      }
-
-      const filtered = allCourses.filter((course) => {
-        if (!course["College Name"]) return false
-        return true
-      })
-
-      const scoredCourses = filtered.map((course) => ({
-        ...course,
-        matchScore: calculateMatchScore(course),
-      }))
-
-      const relevantCourses = scoredCourses.filter((c) => (c.matchScore || 0) > 10)
-
-      const topRecommendations = relevantCourses.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0)).slice(0, 10)
-
-      if (topRecommendations.length < 10) {
-        const remaining = scoredCourses
-          .filter((c) => !topRecommendations.find((t) => t.id === c.id))
-          .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
-          .slice(0, 10 - topRecommendations.length)
-
-        topRecommendations.push(...remaining)
-      }
-
-      setFilteredCourses(topRecommendations)
-      setCurrentPage(0)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch recommended courses")
-      console.error("Error fetching recommended courses:", err)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [viewMode])
 
   const fetchCourses = async () => {
     try {
@@ -415,8 +81,9 @@ const CourseFinder: React.FC = () => {
         const { data, error: supabaseError } = await supabase
           .from("courses")
           .select(
-            'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Course Fees", "Average Package", "Highest Package", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link"',
+            'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Course Fees", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link", scholarship, entrance_exam, is_priority'
           )
+          .order("is_priority", { ascending: false })
           .order("id", { ascending: true })
           .range(from, from + batchSize - 1)
 
@@ -432,6 +99,7 @@ const CourseFinder: React.FC = () => {
       }
 
       const validCourses = allCourses.filter((course) => course["College Name"] !== null)
+
       setCourses(validCourses)
       setFilteredCourses(validCourses)
     } catch (err) {
@@ -442,95 +110,14 @@ const CourseFinder: React.FC = () => {
     }
   }
 
-  const applyFilters = () => {
-    let filtered = [...courses]
+  const handleRecommendedCoursesChange = (recommendedCourses: Course[]) => {
+    setFilteredCourses(recommendedCourses)
+    setCurrentPage(0)
+  }
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (course) =>
-          course.Specialization?.toLowerCase().includes(query) || course["College Name"]?.toLowerCase().includes(query),
-      )
-    }
-
-    if (selectedState) {
-      filtered = filtered.filter((course) => course.State === selectedState)
-    }
-
-    if (selectedCity) {
-      filtered = filtered.filter((course) => course.City === selectedCity)
-    }
-
-    if (selectedCollegeName) {
-      filtered = filtered.filter((course) => course["College Name"] === selectedCollegeName)
-    }
-
-    if (selectedCourseFees) {
-      filtered = filtered.filter((course) =>
-        course["Course Fees"]?.toLowerCase().includes(selectedCourseFees.toLowerCase()),
-      )
-    }
-
-    if (selectedHighestPackage) {
-      filtered = filtered.filter((course) =>
-        course["Highest Package"]?.toLowerCase().includes(selectedHighestPackage.toLowerCase()),
-      )
-    }
-
-    if (selectedBudget) {
-      filtered = filtered.filter((course) =>
-        course["Course Fees"]?.toLowerCase().includes(selectedBudget.toLowerCase()),
-      )
-    }
-
+  const handleFilterChange = (filtered: Course[]) => {
     setFilteredCourses(filtered)
     setCurrentPage(0)
-  }
-
-  const handleFilterChange = (
-    filterSetter: React.Dispatch<React.SetStateAction<string>>,
-    value: string,
-    dependentFilters?: (() => void)[],
-  ) => {
-    filterSetter(value)
-    dependentFilters?.forEach((reset) => reset())
-  }
-
-  const resetFilters = () => {
-    setSearchQuery("")
-    setSelectedState("")
-    setSelectedCity("")
-    setSelectedCollegeName("")
-    setSelectedCourseFees("")
-    setSelectedHighestPackage("")
-    setSelectedBudget("")
-    setCurrentPage(0)
-  }
-
-  const clearFilter = (filterName: string) => {
-    switch (filterName) {
-      case "state":
-        setSelectedState("")
-        break
-      case "city":
-        setSelectedCity("")
-        break
-      case "college":
-        setSelectedCollegeName("")
-        break
-      case "fees":
-        setSelectedCourseFees("")
-        break
-      case "package":
-        setSelectedHighestPackage("")
-        break
-      case "budget":
-        setSelectedBudget("")
-        break
-      case "search":
-        setSearchQuery("")
-        break
-    }
   }
 
   const getMatchBadge = (course: Course) => {
@@ -574,88 +161,24 @@ const CourseFinder: React.FC = () => {
     )
   }
 
-  const getPageNumbers = () => {
-    const totalPages = Math.ceil(filteredCourses.length / perPage)
-    const pages: (number | string)[] = []
-    const maxVisible = 5
-
-    if (totalPages <= maxVisible) {
-      for (let i = 0; i < totalPages; i++) pages.push(i)
-    } else {
-      if (currentPage <= 2) {
-        for (let i = 0; i < 4; i++) pages.push(i)
-        pages.push("...")
-        pages.push(totalPages - 1)
-      } else if (currentPage >= totalPages - 3) {
-        pages.push(0)
-        pages.push("...")
-        for (let i = totalPages - 4; i < totalPages; i++) pages.push(i)
-      } else {
-        pages.push(0)
-        pages.push("...")
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i)
-        pages.push("...")
-        pages.push(totalPages - 1)
-      }
-    }
-
-    return pages
-  }
-
-  const getFilteredCities = () => {
-    let filtered = courses
-    if (selectedState) filtered = filtered.filter((c) => c.State === selectedState)
-    return Array.from(new Set(filtered.map((c) => c.City).filter((c): c is string => Boolean(c))))
-  }
-
-  const getFilteredColleges = () => {
-    let filtered = courses
-    if (selectedState) filtered = filtered.filter((c) => c.State === selectedState)
-    if (selectedCity) filtered = filtered.filter((c) => c.City === selectedCity)
-    return Array.from(new Set(filtered.map((c) => c["College Name"]).filter((c): c is string => Boolean(c))))
-  }
-
-  const getFilteredCourseFees = () => {
-    return Array.from(new Set(courses.map((c) => c["Course Fees"]).filter((f): f is string => Boolean(f))))
-  }
-
-  const getFilteredHighestPackages = () => {
-    return Array.from(new Set(courses.map((c) => c["Highest Package"]).filter((p): p is string => Boolean(p))))
-  }
-
-  const uniqueCities = getFilteredCities()
-  const uniqueColleges = getFilteredColleges()
-  const uniqueCourseFees = getFilteredCourseFees()
-  const uniquePackages = getFilteredHighestPackages()
-
-  const totalPages = Math.ceil(filteredCourses.length / perPage)
-  const activeFiltersCount = [
-    searchQuery,
-    selectedState,
-    selectedCity,
-    selectedCollegeName,
-    selectedCourseFees,
-    selectedHighestPackage,
-    selectedBudget,
-  ].filter(Boolean).length
   const paginatedCourses = filteredCourses.slice(currentPage * perPage, (currentPage + 1) * perPage)
-  const hasProfileData = userProfile && userProfile.degree && userProfile.program
-  const canShowRecommendations = hasProfileData && !loadingProfile
 
   return (
     <DefaultLayout>
       <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6">
         <div className="max-w-7xl mx-auto">
+          {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-[#005de6] mb-2">Find Your Perfect Course</h1>
+            <h1 className="text-4xl font-bold text-[#005de6] mb-2">Find Your Perfect College</h1>
             <p className="text-gray-600">Explore programs and institutes across India</p>
           </div>
 
+          {/* View Mode Toggle */}
           <div className="mb-6 flex gap-3">
             <button
               onClick={() => {
                 setViewMode("all")
-                resetFilters()
+                setCurrentPage(0)
               }}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 viewMode === "all"
@@ -664,295 +187,38 @@ const CourseFinder: React.FC = () => {
               }`}
             >
               <GraduationCap size={20} />
-              All Courses
+              All Colleges
             </button>
+
             <button
               onClick={() => {
-                if (canShowRecommendations) {
-                  setViewMode("recommended")
-                  resetFilters()
-                }
+                setViewMode("recommended")
+                setCurrentPage(0)
               }}
-              disabled={!canShowRecommendations}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                 viewMode === "recommended"
                   ? "bg-[#005de6] text-white shadow-lg"
-                  : canShowRecommendations
-                    ? "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
               }`}
-              title={!hasProfileData ? "Complete your profile to see recommendations" : ""}
             >
               <Sparkles size={20} />
               Recommended For You
-              {!loadingProfile && !hasProfileData && <span className="text-xs ml-1">(Complete profile)</span>}
             </button>
           </div>
 
-          {viewMode === "recommended" && userProfile && hasProfileData && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Sparkles className="text-blue-600 mt-0.5 flex-shrink-0" size={20} />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-blue-900">
-                    Showing your top 10 personalized recommendations
-                  </p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Based on: <strong>{userProfile.degree}</strong> degree
-                    {userProfile.program && (
-                      <>
-                        {" "}
-                        | Program: <strong>{userProfile.program}</strong>
-                      </>
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Recommendation Component */}
+          <ClgsRecommend
+            user={user}
+            viewMode={viewMode}
+            onRecommendedCoursesChange={handleRecommendedCoursesChange}
+            onLoadingChange={setLoading}
+            onErrorChange={setError}
+          />
 
-          {viewMode === "all" && (
-            <>
-              <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <div className="flex gap-4 mb-4">
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      placeholder="Search for programs or institutes..."
-                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <Search className="absolute right-3 top-3.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#005de6] text-white rounded-lg font-medium hover:bg-blue-700 transition"
-                  >
-                    <Filter size={20} />
-                    Filters
-                    {activeFiltersCount > 0 && (
-                      <span className="bg-white text-[#005de6] px-2 py-0.5 rounded-full text-sm font-bold">
-                        {activeFiltersCount}
-                      </span>
-                    )}
-                  </button>
-                </div>
+          {/* Filter Component */}
+          <FilterComponent courses={courses} viewMode={viewMode} onFilterChange={handleFilterChange} />
 
-                {activeFiltersCount > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {searchQuery && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">Search: {searchQuery}</span>
-                        <button onClick={() => clearFilter("search")} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    {selectedState && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">{selectedState}</span>
-                        <button onClick={() => clearFilter("state")} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    {selectedCity && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">{selectedCity}</span>
-                        <button onClick={() => clearFilter("city")} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    {selectedCollegeName && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">{selectedCollegeName}</span>
-                        <button onClick={() => clearFilter("college")} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    {selectedCourseFees && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">{selectedCourseFees}</span>
-                        <button onClick={() => clearFilter("fees")} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    {selectedHighestPackage && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">{selectedHighestPackage}</span>
-                        <button onClick={() => clearFilter("package")} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    {selectedBudget && (
-                      <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                        <span className="font-medium">Budget: {selectedBudget}</span>
-                        <button onClick={() => clearFilter("budget")} className="hover:bg-red-200 rounded-full p-0.5">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    )}
-                    <button
-                      onClick={resetFilters}
-                      className="text-sm text-[#005de6] hover:text-blue-700 font-medium px-2"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {showFilters && (
-                <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <Filter size={20} className="text-[#005de6]" />
-                    Refine Your Search
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <MapPin size={16} className="text-[#005de6]" />
-                        State
-                      </label>
-                      <div className="relative">
-                        <select
-                          className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          value={selectedState}
-                          onChange={(e) =>
-                            handleFilterChange(setSelectedState, e.target.value, [
-                              () => setSelectedCity(""),
-                              () => setSelectedCollegeName(""),
-                            ])
-                          }
-                        >
-                          <option value="">All States</option>
-                          {indianStates.map((state) => (
-                            <option key={state} value={state}>
-                              {state}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <MapPin size={16} className="text-[#005de6]" />
-                        City
-                      </label>
-                      <div className="relative">
-                        <select
-                          className={`appearance-none w-full bg-gray-50 border ${selectedState ? "border-blue-400" : "border-gray-300"} rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                          value={selectedCity}
-                          onChange={(e) =>
-                            handleFilterChange(setSelectedCity, e.target.value, [() => setSelectedCollegeName("")])
-                          }
-                        >
-                          <option value="">All Cities</option>
-                          {uniqueCities.map((city) => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <GraduationCap size={16} className="text-[#005de6]" />
-                        College Name
-                      </label>
-                      <div className="relative">
-                        <select
-                          className={`appearance-none w-full bg-gray-50 border ${selectedState || selectedCity ? "border-red-400 bg-red-50" : "border-gray-300"} rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500 font-semibold text-gray-800`}
-                          value={selectedCollegeName}
-                          onChange={(e) => handleFilterChange(setSelectedCollegeName, e.target.value)}
-                        >
-                          <option value="">All Colleges</option>
-                          {uniqueColleges.map((college) => (
-                            <option key={college} value={college}>
-                              {college}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <IndianRupee size={16} className="text-[#005de6]" />
-                        Course Fees
-                      </label>
-                      <div className="relative">
-                        <select
-                          className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          value={selectedCourseFees}
-                          onChange={(e) => setSelectedCourseFees(e.target.value)}
-                        >
-                          <option value="">All Fees</option>
-                          {uniqueCourseFees.slice(0, 15).map((fee) => (
-                            <option key={fee} value={fee}>
-                              {fee}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <Award size={16} className="text-[#005de6]" />
-                        Highest Package
-                      </label>
-                      <div className="relative">
-                        <select
-                          className="appearance-none w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          value={selectedHighestPackage}
-                          onChange={(e) => setSelectedHighestPackage(e.target.value)}
-                        >
-                          <option value="">All Packages</option>
-                          {uniquePackages.slice(0, 15).map((pkg) => (
-                            <option key={pkg} value={pkg}>
-                              {pkg}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <IndianRupee size={16} className="text-[#005de6]" />
-                        Budget
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="e.g., 10 Lakhs, 20 Lakhs"
-                          className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          value={selectedBudget}
-                          onChange={(e) => setSelectedBudget(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
+          {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
               <AlertCircle className="text-red-600 flex-shrink-0" size={24} />
@@ -963,12 +229,13 @@ const CourseFinder: React.FC = () => {
             </div>
           )}
 
+          {/* Results Count */}
           <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center gap-2">
               <GraduationCap className="text-[#005de6]" size={24} />
               <span className="font-semibold text-lg">
-                {filteredCourses.length.toLocaleString()} {viewMode === "recommended" ? "recommended " : ""}courses
-                found
+                {filteredCourses.length.toLocaleString()} {viewMode === "recommended" ? "recommended " : ""}
+                college found
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -977,6 +244,7 @@ const CourseFinder: React.FC = () => {
             </div>
           </div>
 
+          {/* Loading State */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="text-gray-500 flex flex-col items-center gap-3">
@@ -988,7 +256,7 @@ const CourseFinder: React.FC = () => {
             <div className="text-center py-16 bg-white rounded-lg shadow-sm">
               <GraduationCap size={48} className="mx-auto text-gray-300 mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                {viewMode === "recommended" ? "No recommended courses found" : "No courses found"}
+                {viewMode === "recommended" ? "No recommended college found" : "No college found"}
               </h3>
               <p className="text-gray-500">
                 {viewMode === "recommended"
@@ -998,6 +266,7 @@ const CourseFinder: React.FC = () => {
             </div>
           ) : (
             <>
+              {/* Course Cards Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {paginatedCourses.map((course, index) => {
                   const isBlurred = viewMode === "recommended" && index >= 2
@@ -1006,7 +275,9 @@ const CourseFinder: React.FC = () => {
                   return (
                     <div
                       key={course.id}
-                      className={`bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow relative ${
+                      className={`bg-white border ${
+                        course.is_priority ? "border-red-300 shadow-red-100" : "border-gray-200"
+                      } rounded-xl p-6 hover:shadow-lg transition-shadow relative ${
                         isBlurred ? "overflow-hidden" : ""
                       }`}
                     >
@@ -1031,18 +302,27 @@ const CourseFinder: React.FC = () => {
                         </div>
                       )}
 
+                      {/* Priority Badge */}
+                      {course.is_priority && (
+                        <div className="mb-3">
+                          <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+                            <Flame size={14} className="animate-bounce" />
+                            FAST FILLING - LIMITED SEATS!
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Course Card Content */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <h3 className="font-bold text-xl text-black px-4 py-2.5 rounded-lg mb-3 w-fit">
                             {course["College Name"] || "Institute Information Not Available"}
                           </h3>
-
                           <div className="flex items-center gap-2 mb-3">
                             <span className="text-xs font-semibold text-white bg-[#005de6] px-3 py-1.5 rounded-full">
                               {course.Specialization || "Specialization N/A"}
                             </span>
                           </div>
-
                           {course.City && (
                             <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
                               <MapPin size={12} />
@@ -1053,6 +333,7 @@ const CourseFinder: React.FC = () => {
                           )}
                           {viewMode === "recommended" && <div className="mt-2">{getMatchBadge(course)}</div>}
                         </div>
+
                         <button
                           onClick={() => toggleSaved(course)}
                           disabled={isBlurred}
@@ -1077,27 +358,15 @@ const CourseFinder: React.FC = () => {
 
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                          <div>
-                            <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <IndianRupee size={14} />
-                              <span>Course Fees</span>
+                          {course["Course Fees"] && (
+                            <div>
+                              <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                                <IndianRupee size={14} />
+                                <span>Tuition Fees</span>
+                              </div>
+                              <p className="font-semibold text-gray-800 text-sm">{course["Course Fees"]}</p>
                             </div>
-                            <p className="font-semibold text-gray-800 text-sm">{course["Course Fees"] || "N/A"}</p>
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <Award size={14} />
-                              <span>Highest Package</span>
-                            </div>
-                            <p className="font-semibold text-gray-800 text-sm">{course["Highest Package"] || "N/A"}</p>
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <Award size={14} />
-                              <span>Average Package</span>
-                            </div>
-                            <p className="font-semibold text-gray-800 text-sm">{course["Average Package"] || "N/A"}</p>
-                          </div>
+                          )}
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
                               <GraduationCap size={14} />
@@ -1106,6 +375,44 @@ const CourseFinder: React.FC = () => {
                             <p className="font-semibold text-gray-800 text-sm">{course["Placement %"] || "N/A"}</p>
                           </div>
                         </div>
+
+                        {/* Scholarship Section */}
+                        {course.scholarship && (
+                          <div className="pt-4 border-t border-gray-100">
+                            <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                              <CheckCircle size={14} className="text-blue-600" />
+                              Scholarship
+                            </h4>
+                            <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-blue-700">Availabale</span>
+                                {course.scholarship.toLowerCase() !== "Availabale" && course.scholarship.toLowerCase() !== "available" && (
+                                  <a
+                                    href={course.scholarship.startsWith("http") ? course.scholarship : `https://${course.scholarship}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                  >
+                                    Learn More
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Entrance Exam Section */}
+                        {course.entrance_exam && (
+                          <div className="pt-4 border-t border-gray-100">
+                            <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                              <BookOpen size={14} className="text-[#005de6]" />
+                              Exam Accepted
+                            </h4>
+                            <div className="bg-gray-50 rounded-lg p-2">
+                              <p className="text-sm text-gray-700">{course.entrance_exam}</p>
+                            </div>
+                          </div>
+                        )}
 
                         {course.Ranking && (
                           <div className="pt-4 border-t border-gray-100">
@@ -1140,8 +447,9 @@ const CourseFinder: React.FC = () => {
                           </div>
                         )}
 
+                        {/* CTA Button */}
                         <div className="flex items-center gap-4 pt-4">
-                          {course["Application Link"] && (
+                          {course["Application Link"] ? (
                             <a
                               href={
                                 course["Application Link"].startsWith("http")
@@ -1150,11 +458,23 @@ const CourseFinder: React.FC = () => {
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex-1 bg-[#005de6] text-white rounded-lg py-2 px-4 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                              className="flex-1 bg-[#005de6] hover:bg-blue-700 text-white rounded-lg py-2 px-4 transition-colors flex items-center justify-center gap-2 text-sm font-medium shadow-md"
                             >
                               <Globe size={16} />
                               Apply Now
                             </a>
+                          ) : (
+                            course.is_priority && (
+                              <button
+                                className="flex-1 bg-[#005de6] hover:bg-blue-700 text-white rounded-lg py-2 px-4 transition-colors flex items-center justify-center gap-2 text-sm font-medium shadow-md"
+                                onClick={() => {
+                                  alert("Contact our experts for fast admission!")
+                                }}
+                              >
+                                <Sparkles size={16} />
+                                Contact for Admission
+                              </button>
+                            )
                           )}
                         </div>
                       </div>
@@ -1163,91 +483,17 @@ const CourseFinder: React.FC = () => {
                 })}
               </div>
 
-              {totalPages > 1 && (
-                <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-600">
-                      Showing <span className="font-semibold">{currentPage * perPage + 1}</span> to{" "}
-                      <span className="font-semibold">
-                        {Math.min((currentPage + 1) * perPage, filteredCourses.length)}
-                      </span>{" "}
-                      of <span className="font-semibold">{filteredCourses.length.toLocaleString()}</span> courses
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setCurrentPage(currentPage - 1)
-                          window.scrollTo({ top: 0, behavior: "smooth" })
-                        }}
-                        disabled={currentPage === 0}
-                        className={`px-3 py-2 rounded-lg border flex items-center gap-1 ${
-                          currentPage === 0
-                            ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <ChevronLeft size={16} />
-                        <span className="hidden sm:inline">Previous</span>
-                      </button>
-
-                      <div className="flex items-center gap-1">
-                        {getPageNumbers().map((page, index) => (
-                          <React.Fragment key={index}>
-                            {page === "..." ? (
-                              <span className="px-3 py-2 text-gray-400">...</span>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setCurrentPage(page as number)
-                                  window.scrollTo({ top: 0, behavior: "smooth" })
-                                }}
-                                className={`min-w-[40px] px-3 py-2 rounded-lg border transition-colors ${
-                                  currentPage === page
-                                    ? "bg-[#005de6] text-white border-[#005de6]"
-                                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                                }`}
-                              >
-                                {(page as number) + 1}
-                              </button>
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          setCurrentPage(currentPage + 1)
-                          window.scrollTo({ top: 0, behavior: "smooth" })
-                        }}
-                        disabled={currentPage === totalPages - 1}
-                        className={`px-3 py-2 rounded-lg border flex items-center gap-1 ${
-                          currentPage === totalPages - 1
-                            ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <span className="hidden sm:inline">Next</span>
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Pagination Component */}
+              <Pagination
+                totalItems={filteredCourses.length}
+                currentPage={currentPage}
+                perPage={perPage}
+                onPageChange={setCurrentPage}
+              />
             </>
           )}
         </div>
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-      `}</style>
     </DefaultLayout>
   )
 }

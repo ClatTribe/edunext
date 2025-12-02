@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "EduNext - Indian Colleges Platform",
-  description: "Find your perfect course, scholarships, and connect with admits",
+  description: "Find Your Perfect College, scholarships, and connect with admits",
 };
 
 export default function RootLayout({

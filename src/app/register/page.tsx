@@ -115,7 +115,7 @@ const RegisterPage = () => {
             <div className="text-4xl font-bold text-[#fac300]">EduNext</div>
           </div>
           <h1 className="text-5xl font-bold text-white mb-6">
-            Your Gateway to Global Education
+            Your Gateway to Dream MBA College
           </h1>
           <p className="text-xl mb-8" style={{ color: '#b3d1ff' }}>
             Discover courses, connect with admits, and find scholarships to fuel your dreams.
@@ -128,7 +128,7 @@ const RegisterPage = () => {
               <GraduationCap className="text-[#fac300]" size={24} />
             </div>
             <div>
-              <h3 className="text-white font-semibold text-lg mb-1">2000+ Universities</h3>
+              <h3 className="text-white font-semibold text-lg mb-1">2000+ MBA Colleges</h3>
               <p style={{ color: '#b3d1ff' }}>Access comprehensive course information</p>
             </div>
           </div>
