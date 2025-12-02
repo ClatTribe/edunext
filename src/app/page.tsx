@@ -321,7 +321,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6"
             >
-              Your Future. <br />
+              Your Dream MBA College <br />
               <span style={{ color: "#2f61ce" }}>Without the Noise.</span>
             </motion.h1>
 

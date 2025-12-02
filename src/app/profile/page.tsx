@@ -1,1419 +1,507 @@
-"use client"
-
-import React, { useState, useEffect, useCallback, useMemo } from "react"
-import {
-  User,
-  BookOpen,
-  Award,
-  Trophy,
-  Edit2,
-  Save,
-  X,
-  CheckCircle,
-  Trash2,
-  Plus,
-  Minus,
-  GraduationCap,
+"use client"; 
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../../contexts/AuthContext';
+import DefaultLayout from '../defaultLayout';
+import { supabase } from '../../../lib/supabase';
+import { 
+  TrendingUp, 
+  CheckCircle, 
+  AlertCircle, 
+  Users, 
   Target,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-} from "lucide-react"
-import DefaultLayout from "../defaultLayout"
-import { useAuth } from "../../../contexts/AuthContext"
-import { supabase } from "../../../lib/supabase"
+  Sparkles,
+  ArrowRight,
+  User
+} from 'lucide-react';
 
 interface TestScore {
-  exam: string
-  score: string
+  exam: string;
+  percentile: string;
 }
 
-interface FormData {
-  // Personal Information
-  name: string
-  email: string
-  phone: string
-  city: string
-  state: string
-
-  // Target Program
-  target_countries: string[]
-  target_degree: string
-  target_field: string
-  budget: string
-  term: string
-
-  // 10th Grade
-  tenth_board: string
-  tenth_year: string
-  tenth_score: string
-
-  // 12th Grade
-  twelfth_board: string
-  twelfth_year: string
-  twelfth_score: string
-  twelfth_stream: string
-
-  // Undergraduate
-  ug_degree: string
-  ug_university: string
-  ug_year: string
-  ug_score: string
-  ug_field: string
-
-  // Postgraduate
-  pg_degree: string
-  pg_university: string
-  pg_year: string
-  pg_score: string
-  pg_field: string
-
-  // Test Scores
-  testScores: TestScore[]
-
-  // Work Experience
-  has_experience: string
-  experience_years: string
-  experience_field: string
-
-  // Other
-  extracurricular: string
-  verified: boolean
+interface ProfileData {
+  name?: string;
+  city?: string;
+  academic_year?: string;
+  test_scores?: TestScore[];
+  email?: string;
+  phone?: string;
+  target_state?: string[];
+  tenth_score?: string;
+  twelfth_score?: string;
+  university?: string;
+  extracurricular?: string;
+  last_course_cgpa?: string;
 }
 
-// Global cache for profile data
-let cachedFormData: FormData | null = null
-let cachedHasProfile = false
-let cacheTimestamp = 0
-const CACHE_DURATION = 5 * 60 * 1000
+// Global cache to persist data across page navigations
+let cachedProfileData: ProfileData | null = null;
+let cachedSimilarCount = 0;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-export const invalidateProfileCache = () => {
-  cachedFormData = null
-  cachedHasProfile = false
-  cacheTimestamp = 0
-}
+const DashboardPage = () => {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [profileData, setProfileData] = useState<ProfileData | null>(cachedProfileData);
+  const [similarProfilesCount, setSimilarProfilesCount] = useState(cachedSimilarCount);
+  const [loadingProfile, setLoadingProfile] = useState(!cachedProfileData);
+  const [shortlistedCount, setShortlistedCount] = useState(0);
 
-const COMMON_EXAMS = [
-  "GRE",
-  "GMAT",
-  "TOEFL",
-  "IELTS",
-  "Duolingo English Test",
-  "PTE Academic",
-  "TestDaF",
-  "Goethe Certificate",
-  "DELF/DALF",
-  "SAT",
-  "ACT",
-  "Other",
-]
-
-const COUNTRIES = ["United States of America", "United Kingdom", "Italy", "Australia", "Germany", "Europe (Other)"]
-
-const DEGREE_OPTIONS = [
-  { value: "Bachelors", label: "Bachelors (Undergraduate)" },
-  { value: "Masters", label: "Masters" },
-  { value: "MBA", label: "MBA" },
-  { value: "PhD", label: "PhD / Doctorate" },
-  { value: "Diploma", label: "Diploma/Certificate" },
-]
-
-const TERM_OPTIONS = [
-  { value: "Spring 2026", label: "Spring 2026" },
-  { value: "Fall 2026", label: "Fall 2026" },
-  { value: "2027", label: "2027 or later" },
-]
-
-// Type definitions for component props
-interface InputFieldProps {
-  label: string
-  type?: string
-  value: string
-  onChange: (field: string, value: string) => void
-  placeholder?: string
-  required?: boolean
-  disabled?: boolean
-  field: string
-}
-
-interface SelectOption {
-  value: string
-  label: string
-}
-
-interface SelectFieldProps {
-  label: string
-  value: string
-  onChange: (field: string, value: string) => void
-  options: SelectOption[]
-  required?: boolean
-  disabled?: boolean
-  field: string
-}
-
-interface SectionProps {
-  id: string
-  title: string
-  icon: React.ComponentType<{ className?: string }>
-  children: React.ReactNode
-  visible?: boolean
-  isExpanded: boolean
-  isComplete: boolean
-  onToggle: (id: string) => void
-}
-
-const InputField = React.memo(
-  ({ label, type = "text", value, onChange, placeholder, required = false, disabled, field }: InputFieldProps) => {
-    return (
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label} {required && <span className="text-[#2f61ce]">*</span>}
-        </label>
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(field, e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
-        />
-      </div>
-    )
-  },
-)
-InputField.displayName = "InputField"
-
-const SelectField = React.memo(
-  ({ label, value, onChange, options, required = false, disabled, field }: SelectFieldProps) => {
-    return (
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label} {required && <span className="text-[#2f61ce]">*</span>}
-        </label>
-        <select
-          value={value}
-          onChange={(e) => onChange(field, e.target.value)}
-          disabled={disabled}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
-        >
-          <option value="">Select...</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-    )
-  },
-)
-SelectField.displayName = "SelectField"
-
-const Section = React.memo(
-  ({ id, title, icon: Icon, children, visible = true, isExpanded, isComplete, onToggle }: SectionProps) => {
-    if (!visible) return null
-
-    return (
-      <div className="mb-4 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all">
-        <button
-          type="button"
-          onClick={() => onToggle(id)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-[#f8fafc] hover:bg-[#eef3fc] transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <Icon className="w-5 h-5 text-[#2f61ce]" />
-            <span className="font-semibold text-gray-800">{title}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {isComplete && <CheckCircle2 className="w-5 h-5 text-[#fac300]" />}
-            {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-[#2f61ce]" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-[#2f61ce]" />
-            )}
-          </div>
-        </button>
-
-        {isExpanded && <div className="px-6 py-5 bg-white">{children}</div>}
-      </div>
-    )
-  },
-)
-Section.displayName = "Section"
-
-const ProfilePage = () => {
-  const { user } = useAuth()
-  const [isEditing, setIsEditing] = useState(false)
-  const [loading, setLoading] = useState(!cachedFormData)
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("")
-  const [error, setError] = useState("")
-  const [hasProfile, setHasProfile] = useState(cachedHasProfile)
-  const [expandedSection, setExpandedSection] = useState("target")
-
-  const [formData, setFormData] = useState<FormData>(
-    cachedFormData || {
-      name: "",
-      email: "",
-      phone: "",
-      city: "",
-      state: "",
-      target_countries: [],
-      target_degree: "",
-      target_field: "",
-      budget: "",
-      term: "",
-      tenth_board: "",
-      tenth_year: "",
-      tenth_score: "",
-      twelfth_board: "",
-      twelfth_year: "",
-      twelfth_score: "",
-      twelfth_stream: "",
-      ug_degree: "",
-      ug_university: "",
-      ug_year: "",
-      ug_score: "",
-      ug_field: "",
-      pg_degree: "",
-      pg_university: "",
-      pg_year: "",
-      pg_score: "",
-      pg_field: "",
-      testScores: [],
-      has_experience: "",
-      experience_years: "",
-      experience_field: "",
-      extracurricular: "",
-      verified: false,
-    },
-  )
-
-  const getDefaultFormData = useCallback(
-    (): FormData => ({
-      name: user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
-      email: user?.email || "",
-      phone: "",
-      city: "",
-      state: "",
-      target_countries: [],
-      target_degree: "",
-      target_field: "",
-      budget: "",
-      term: "",
-      tenth_board: "",
-      tenth_year: "",
-      tenth_score: "",
-      twelfth_board: "",
-      twelfth_year: "",
-      twelfth_score: "",
-      twelfth_stream: "",
-      ug_degree: "",
-      ug_university: "",
-      ug_year: "",
-      ug_score: "",
-      ug_field: "",
-      pg_degree: "",
-      pg_university: "",
-      pg_year: "",
-      pg_score: "",
-      pg_field: "",
-      testScores: [],
-      has_experience: "",
-      experience_years: "",
-      experience_field: "",
-      extracurricular: "",
-      verified: false,
-    }),
-    [user],
-  )
-
-  const fetchUserProfile = useCallback(async () => {
-    try {
-      setLoading(true)
-
-      if (!user) {
-        setLoading(false)
-        return
-      }
-
-      const { data, error: fetchError } = await supabase
-        .from("admit_profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single()
-
-      if (fetchError && fetchError.code !== "PGRST116") {
-        console.error("Fetch error:", fetchError)
-        const defaultData = getDefaultFormData()
-        setFormData(defaultData)
-        cachedFormData = defaultData
-        setHasProfile(false)
-        cachedHasProfile = false
-        setIsEditing(true)
-      } else if (data) {
-        const profileData: FormData = {
-          name: data.name || "",
-          email: data.email || user?.email || "",
-          phone: data.phone || "",
-          city: data.city || "",
-          state: data.state || "",
-          target_countries: data.target_countries || [],
-          target_degree: data.degree || "",
-          target_field: data.program || "",
-          budget: data.budget || "",
-          term: data.term || data.intake_year || "",
-          tenth_board: data.tenth_board || "",
-          tenth_year: data.tenth_year || "",
-          tenth_score: data.tenth_score || "",
-          twelfth_board: data.twelfth_board || "",
-          twelfth_year: data.twelfth_year || "",
-          twelfth_score: data.twelfth_score || "",
-          twelfth_stream: data.twelfth_stream || "",
-          ug_degree: data.ug_degree || "",
-          ug_university: data.ug_university || "",
-          ug_year: data.ug_year || "",
-          ug_score: data.ug_score || "",
-          ug_field: data.ug_field || "",
-          pg_degree: data.pg_degree || "",
-          pg_university: data.pg_university || "",
-          pg_year: data.pg_year || "",
-          pg_score: data.pg_score || "",
-          pg_field: data.pg_field || "",
-          testScores: data.test_scores || [],
-          has_experience: data.has_experience || "",
-          experience_years: data.experience_years || "",
-          experience_field: data.experience_field || "",
-          extracurricular: data.extracurricular || "",
-          verified: data.verified || false,
-        }
-        setFormData(profileData)
-        cachedFormData = profileData
-        setHasProfile(true)
-        cachedHasProfile = true
-        cacheTimestamp = Date.now()
-      } else {
-        const defaultData = getDefaultFormData()
-        setFormData(defaultData)
-        cachedFormData = defaultData
-        setHasProfile(false)
-        cachedHasProfile = false
-        setIsEditing(true)
-      }
-    } catch (err) {
-      console.error("Error fetching profile:", err)
-      const defaultData = getDefaultFormData()
-      setFormData(defaultData)
-      cachedFormData = defaultData
-      setHasProfile(false)
-      cachedHasProfile = false
-      setIsEditing(true)
-    } finally {
-      setLoading(false)
+  // Memoize calculations with required fields
+  const profileMetrics = useMemo(() => {
+    if (!profileData) {
+      return {
+        completion: 0,
+        missingFields: [
+          'Name', 'Email', 'Phone', 'Target Year', 'Test Scores',
+          'Preferred States', '10th Score', '12th Score', 'City'
+        ]
+      };
     }
-  }, [user, getDefaultFormData])
+
+    const hasTestScores = profileData.test_scores && profileData.test_scores.length > 0;
+    const hasTargetStates = profileData.target_state && profileData.target_state.length > 0;
+    
+    // Required fields only
+    const fields = [
+      profileData.name,                // 1. Name
+      profileData.email,               // 2. Email
+      profileData.phone,               // 3. Phone
+      profileData.academic_year,       // 4. Year
+      hasTestScores,                   // 5. Test Scores
+      hasTargetStates,                 // 6. Target States
+      profileData.tenth_score,         // 7. 10th Score
+      profileData.twelfth_score,       // 8. 12th Score
+      profileData.city                 // 9. City
+    ];
+
+    const filledCount = fields.filter(f => f && (typeof f === 'boolean' ? f : f.toString().trim() !== '')).length;
+    const completion = Math.round((filledCount / fields.length) * 100);
+
+    const missing: string[] = [];
+    if (!profileData.name) missing.push('Name');
+    if (!profileData.email) missing.push('Email');
+    if (!profileData.phone) missing.push('Phone');
+    if (!profileData.academic_year) missing.push('Target Year');
+    if (!hasTestScores) missing.push('Test Scores');
+    if (!hasTargetStates) missing.push('Preferred States');
+    if (!profileData.tenth_score) missing.push('10th Score');
+    if (!profileData.twelfth_score) missing.push('12th Score');
+    if (!profileData.city) missing.push('City');
+
+    return { completion, missingFields: missing };
+  }, [profileData]);
+
+  const userName = useMemo(() => {
+    return profileData?.name?.split(' ')[0] || 
+           user?.user_metadata?.full_name?.split(' ')[0] || 
+           user?.email?.split('@')[0] || 
+           'User';
+  }, [profileData?.name, user]);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  }, []);
 
   useEffect(() => {
-    if (user) {
-      const now = Date.now()
-      const isCacheValid = cachedFormData && now - cacheTimestamp < CACHE_DURATION
+    if (!loading && !user) {
+      router.push('/register');
+    }
+  }, [user, loading, router]);
 
+  useEffect(() => {
+    if (user && !loading) {
+      const now = Date.now();
+      const isCacheValid = cachedProfileData && (now - cacheTimestamp < CACHE_DURATION);
+      
       if (!isCacheValid) {
-        fetchUserProfile()
+        fetchProfileData();
       } else {
-        setLoading(false)
+        setLoadingProfile(false);
       }
     }
-  }, [user, fetchUserProfile])
+  }, [user, loading]);
 
-  const handleInputChange = useCallback((field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    setError("")
-  }, [])
+  useEffect(() => {
+    loadShortlistCount();
 
-  const handleMultiSelect = useCallback((value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      target_countries: prev.target_countries.includes(value)
-        ? prev.target_countries.filter((c) => c !== value)
-        : [...prev.target_countries, value],
-    }))
-    setError("")
-  }, [])
+    const handleShortlistUpdate = () => {
+      loadShortlistCount();
+    };
 
-  const handleTestScoreChange = useCallback((index: number, field: "exam" | "score", value: string) => {
-    setFormData((prev) => {
-      const newTestScores = [...prev.testScores]
-      newTestScores[index] = { ...newTestScores[index], [field]: value }
-      return { ...prev, testScores: newTestScores }
-    })
-    setError("")
-  }, [])
+    window.addEventListener('shortlist-updated', handleShortlistUpdate);
 
-  const addTestScore = useCallback(() => {
-    setFormData((prev) => ({
-      ...prev,
-      testScores: [...prev.testScores, { exam: "", score: "" }],
-    }))
-  }, [])
+    return () => {
+      window.removeEventListener('shortlist-updated', handleShortlistUpdate);
+    };
+  }, []);
 
-  const removeTestScore = useCallback((index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      testScores: prev.testScores.filter((_, i) => i !== index),
-    }))
-  }, [])
-
-  const toggleSection = useCallback((section: string) => {
-    setExpandedSection((prev) => (prev === section ? "" : section))
-  }, [])
-
-  const shouldShowUG = useMemo(
-    () => ["Masters", "MBA", "PhD"].includes(formData.target_degree),
-    [formData.target_degree],
-  )
-  const shouldShowPG = useMemo(() => formData.target_degree === "PhD", [formData.target_degree])
-  const shouldShowWorkExp = useMemo(
-    () => ["Masters", "MBA", "PhD"].includes(formData.target_degree),
-    [formData.target_degree],
-  )
-
-  const isSectionComplete = useCallback(
-    (section: string): boolean => {
-      switch (section) {
-        case "target":
-          return !!(formData.target_countries.length > 0 && formData.target_degree && formData.target_field)
-        case "personal":
-          return !!(formData.name && formData.email && formData.phone && formData.city)
-        case "tenth":
-          return !!(formData.tenth_board && formData.tenth_year && formData.tenth_score)
-        case "twelfth":
-          return !!(
-            formData.twelfth_board &&
-            formData.twelfth_year &&
-            formData.twelfth_score &&
-            formData.twelfth_stream
-          )
-        case "ug":
-          return (
-            !shouldShowUG || !!(formData.ug_degree && formData.ug_university && formData.ug_year && formData.ug_score)
-          )
-        case "pg":
-          return !shouldShowPG || !!(formData.pg_degree && formData.pg_university && formData.pg_year)
-        case "tests":
-          return formData.testScores.length > 0
-        case "experience":
-          return !shouldShowWorkExp || !!formData.has_experience
-        default:
-          return false
-      }
-    },
-    [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp],
-  )
-
-  const validateForm = useCallback(() => {
-    if (!formData.name.trim()) {
-      setError("Please enter your name")
-      return false
-    }
-    if (!formData.email.trim()) {
-      setError("Please enter your email")
-      return false
-    }
-    if (!formData.phone.trim()) {
-      setError("Please enter your phone number")
-      return false
-    }
-    if (formData.target_countries.length === 0) {
-      setError("Please select at least one preferred country")
-      return false
-    }
-    if (!formData.target_degree) {
-      setError("Please select your target degree")
-      return false
-    }
-    if (!formData.target_field) {
-      setError("Please enter your field of interest")
-      return false
-    }
-
-    for (let i = 0; i < formData.testScores.length; i++) {
-      const test = formData.testScores[i]
-      if (!test.exam || !test.score) {
-        setError(`Please complete test score #${i + 1} or remove it`)
-        return false
-      }
-    }
-
-    return true
-  }, [formData])
-
-  const handleSave = async () => {
-    if (!validateForm()) return
-
+  const loadShortlistCount = () => {
     try {
-      setSaving(true)
-      setError("")
-
-      if (!user) throw new Error("User not authenticated")
-
-      const validTestScores = formData.testScores.filter((test) => test.exam && test.score)
-
-      const profileData = {
-        user_id: user.id,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        city: formData.city || null,
-        state: formData.state || null,
-        target_countries: formData.target_countries,
-        degree: formData.target_degree,
-        program: formData.target_field,
-        budget: formData.budget || null,
-        term: formData.term || null,
-        intake_year: formData.term || null,
-        tenth_board: formData.tenth_board || null,
-        tenth_year: formData.tenth_year || null,
-        tenth_score: formData.tenth_score || null,
-        twelfth_board: formData.twelfth_board || null,
-        twelfth_year: formData.twelfth_year || null,
-        twelfth_score: formData.twelfth_score || null,
-        twelfth_stream: formData.twelfth_stream || null,
-        ug_degree: formData.ug_degree || null,
-        ug_university: formData.ug_university || null,
-        ug_year: formData.ug_year || null,
-        ug_score: formData.ug_score || null,
-        ug_field: formData.ug_field || null,
-        pg_degree: formData.pg_degree || null,
-        pg_university: formData.pg_university || null,
-        pg_year: formData.pg_year || null,
-        pg_score: formData.pg_score || null,
-        pg_field: formData.pg_field || null,
-        test_scores: validTestScores,
-        has_experience: formData.has_experience || null,
-        experience_years: formData.experience_years || null,
-        experience_field: formData.experience_field || null,
-        extracurricular: formData.extracurricular || null,
-        applications_count: 1,
-        avatar_type: "S",
-        verified: formData.verified,
-        updated_at: new Date().toISOString(),
-      }
-
-      if (hasProfile) {
-        const { error: updateError } = await supabase.from("admit_profiles").update(profileData).eq("user_id", user.id)
-
-        if (updateError) throw updateError
-        setSuccessMessage("Profile updated successfully!")
+      const saved = localStorage.getItem('shortlisted-colleges');
+      if (saved) {
+        const data = JSON.parse(saved);
+        setShortlistedCount(data.ids?.length || 0);
       } else {
-        const { error: insertError } = await supabase
-          .from("admit_profiles")
-          .insert([{ ...profileData, created_at: new Date().toISOString() }])
-
-        if (insertError) throw insertError
-        setHasProfile(true)
-        cachedHasProfile = true
-        setSuccessMessage("Profile created successfully!")
+        setShortlistedCount(0);
       }
-
-      cachedFormData = formData
-      cacheTimestamp = Date.now()
-      invalidateProfileCache()
-      setIsEditing(false)
-      setTimeout(() => setSuccessMessage(""), 3000)
-    } catch (err) {
-      console.error("Error saving profile:", err)
-      setError("Failed to save profile. Please try again.")
-    } finally {
-      setSaving(false)
+    } catch (error) {
+      console.log('No saved colleges found:', error);
+      setShortlistedCount(0);
     }
-  }
+  };
 
-  const handleDelete = async () => {
-    if (!user) return
-
+  const fetchProfileData = async () => {
+    if (!user) return;
+    
     try {
-      setDeleting(true)
-      setError("")
+      setLoadingProfile(true);
+      
+      const { data, error } = await supabase
+        .from('admit_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-      const { error: deleteError } = await supabase.from("admit_profiles").delete().eq("user_id", user.id)
-
-      if (deleteError) throw deleteError
-
-      const defaultData = getDefaultFormData()
-      setFormData(defaultData)
-      cachedFormData = defaultData
-      setHasProfile(false)
-      cachedHasProfile = false
-      invalidateProfileCache()
-      setIsEditing(true)
-      setShowDeleteConfirm(false)
-      setSuccessMessage("Profile deleted successfully!")
-      setTimeout(() => setSuccessMessage(""), 3000)
-    } catch (err) {
-      console.error("Error deleting profile:", err)
-      setError("Failed to delete profile. Please try again.")
-      setShowDeleteConfirm(false)
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const handleCancel = useCallback(() => {
-    setIsEditing(false)
-    setError("")
-    if (hasProfile && cachedFormData) {
-      setFormData(cachedFormData)
-    }
-  }, [hasProfile])
-
-  const userInitial = useMemo(() => {
-    return formData.name ? formData.name.charAt(0).toUpperCase() : "U"
-  }, [formData.name])
-
-  const eduScore = useMemo(() => {
-    let score = 0
-
-    if (formData.target_countries.length > 0) score += 3
-    if (formData.target_degree) score += 4
-    if (formData.target_field) score += 4
-    if (formData.term) score += 2
-    if (formData.budget) score += 2
-
-    if (formData.name) score += 2
-    if (formData.email) score += 2
-    if (formData.phone) score += 2
-    if (formData.city) score += 2
-    if (formData.state) score += 2
-
-    if (formData.tenth_board) score += 3
-    if (formData.tenth_year) score += 3
-    if (formData.tenth_score) score += 4
-
-    if (formData.twelfth_board) score += 3
-    if (formData.twelfth_year) score += 2
-    if (formData.twelfth_score) score += 3
-    if (formData.twelfth_stream) score += 2
-
-    if (shouldShowUG) {
-      if (formData.ug_degree) score += 3
-      if (formData.ug_university) score += 3
-      if (formData.ug_year) score += 3
-      if (formData.ug_score) score += 3
-      if (formData.ug_field) score += 3
-    }
-
-    if (shouldShowPG) {
-      if (formData.pg_degree) score += 3
-      if (formData.pg_university) score += 3
-      if (formData.pg_year) score += 3
-      if (formData.pg_score) score += 3
-      if (formData.pg_field) score += 3
-    }
-
-    if (formData.testScores.length > 0) {
-      const validTests = formData.testScores.filter((t) => t.exam && t.score)
-      score += Math.min(validTests.length * 3, 10)
-    }
-
-    if (shouldShowWorkExp) {
-      if (formData.has_experience === "Yes") {
-        score += 2
-        if (formData.experience_years) score += 2
-        if (formData.experience_field) score += 1
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        cachedProfileData = null;
+        setProfileData(null);
+      } else if (data) {
+        const profileData = {
+          name: data.name,
+          city: data.city,
+          academic_year: data.academic_year,
+          test_scores: data.test_scores,
+          email: data.email,
+          phone: data.phone,
+          target_state: data.target_state,
+          tenth_score: data.tenth_score,
+          twelfth_score: data.twelfth_score,
+          university: data.university,
+          extracurricular: data.extracurricular,
+          last_course_cgpa: data.last_course_cgpa,
+        };
+        
+        cachedProfileData = profileData;
+        cacheTimestamp = Date.now();
+        setProfileData(profileData);
+        
+        console.log('Fetched profile data:', profileData); // Debug log
+        
+        if (data.test_scores?.length > 0) {
+          fetchSimilarProfilesCount(profileData);
+        }
+      } else {
+        cachedProfileData = null;
+        setProfileData(null);
       }
+    } catch (err) {
+      console.error('Error:', err);
+      cachedProfileData = null;
+      setProfileData(null);
+    } finally {
+      setLoadingProfile(false);
     }
+  };
 
-    if (formData.extracurricular && formData.extracurricular.trim().length > 20) {
-      score += 5
+  const fetchSimilarProfilesCount = async (profile: ProfileData) => {
+    if (!user) return;
+    
+    try {
+      let query = supabase
+        .from('admit_profiles')
+        .select('id', { count: 'exact', head: true })
+        .neq('user_id', user.id);
+
+      // Extract test score for matching (e.g., CAT percentile)
+      const testScore = profile.test_scores?.[0]?.percentile;
+      const scoreNum = testScore ? parseFloat(testScore) : null;
+      
+      if (scoreNum) {
+        // Match similar test scores (within ±10 percentile range)
+        query = query.gte('test_scores->0->percentile', (scoreNum - 10).toString())
+                     .lte('test_scores->0->percentile', (scoreNum + 10).toString());
+      }
+
+      const { count, error } = await query;
+
+      if (!error && count !== null) {
+        cachedSimilarCount = count;
+        setSimilarProfilesCount(count);
+      }
+    } catch (err) {
+      console.error('Error:', err);
     }
+  };
 
-    const maxPossibleScore = 90
-    const normalizedScore = Math.max(45, Math.min(90, Math.round((score / maxPossibleScore) * 90)))
+  const getProgressColor = useCallback(() => {
+    if (profileMetrics.completion >= 80) return 'from-[#2f61ce] to-blue-400';
+    if (profileMetrics.completion >= 50) return 'from-[#2f61ce] to-blue-300';
+    return 'from-[#2f61ce] to-blue-500';
+  }, [profileMetrics.completion]);
 
-    return normalizedScore
-  }, [formData, shouldShowUG, shouldShowPG, shouldShowWorkExp])
+  const getProgressMessage = useCallback(() => {
+    if (profileMetrics.completion === 100) return '🎉 Your profile is complete!';
+    if (profileMetrics.completion >= 80) return '🌟 Almost there! Complete your profile';
+    if (profileMetrics.completion >= 50) return '⚡ You\'re halfway there!';
+    return '🚀 Let\'s get started!';
+  }, [profileMetrics.completion]);
 
-  const getScoreColor = useCallback((score: number) => {
-    if (score >= 75) return { color: "#10b981", label: "Excellent" }
-    if (score >= 60) return { color: "#fac300", label: "Good" }
-    return { color: "#2f61ce", label: "Needs Improvement" }
-  }, [])
+  const handleProfileClick = useCallback(() => router.push('/profile'), [router]);
+  const handleAdmitFinderClick = useCallback(() => router.push('/similar-students'), [router]);
+  const handleCourseFinderClick = useCallback(() => router.push('/find-colleges'), [router]);
+  const handleScholarshipClick = useCallback(() => router.push('/find-scholarships'), [router]);
+  const handleShortlistClick = useCallback(() => router.push('/your-shortlist'), [router]);
 
-  const scoreInfo = useMemo(() => getScoreColor(eduScore), [eduScore, getScoreColor])
-
-  if (loading) {
+  if (loading || loadingProfile) {
     return (
       <DefaultLayout>
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center h-full">
           <div className="text-xl text-[#2f61ce] flex items-center gap-2">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#2f61ce]"></div>
-            Loading profile...
+            Loading...
           </div>
         </div>
       </DefaultLayout>
-    )
+    );
   }
+
+  if (!user) return null;
 
   return (
     <DefaultLayout>
-      <div className="flex-1 p-8 overflow-y-auto bg-[#f8fafc]">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+      <div className="flex-1 overflow-auto">
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              {greeting}, {userName}! 👋
+            </h1>
+            <p className="text-gray-600">Ready to take the next step in your academic journey?</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border-2 border-blue-100">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-[#2f61ce] rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                  {userInitial}
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 bg-gradient-to-br ${getProgressColor()} rounded-full flex items-center justify-center`}>
+                  <TrendingUp className="text-white" size={24} />
                 </div>
-
-                {/* EduScore Circle */}
-                <div className="flex flex-col items-center">
-                  <div className="relative w-24 h-24">
-                    <svg className="w-24 h-24 transform -rotate-90">
-                      <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                      <circle
-                        cx="48"
-                        cy="48"
-                        r="40"
-                        stroke={scoreInfo.color}
-                        strokeWidth="8"
-                        fill="none"
-                        strokeDasharray={`${(eduScore / 90) * 251.2} 251.2`}
-                        strokeLinecap="round"
-                        className="transition-all duration-500"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-bold" style={{ color: scoreInfo.color }}>
-                        {eduScore}
-                      </span>
-                      <span className="text-xs text-gray-500">/ 90</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-center">
-                    <div className="text-xs font-semibold text-gray-600">EduScore</div>
-                    <div className="text-xs" style={{ color: scoreInfo.color }}>
-                      {scoreInfo.label}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Title */}
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800">
-                    {hasProfile ? "My Profile" : "Create Your Profile"}
-                  </h1>
-                  <p className="text-gray-600">
-                    {hasProfile ? "Manage your academic information" : "Tell us about yourself"}
-                  </p>
+                  <h2 className="text-2xl font-bold text-gray-800">Profile Completion</h2>
+                  <p className="text-gray-600">{getProgressMessage()}</p>
                 </div>
               </div>
-
-              {hasProfile && !isEditing && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-6 py-3 rounded-lg hover:bg-[#254da6] transition-all"
-                  >
-                    <Edit2 size={18} />
-                    Edit Profile
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-2 bg-white border-2 border-[#2f61ce] text-[#2f61ce] px-6 py-3 rounded-lg hover:bg-[#eef3fc] transition-all"
-                  >
-                    <Trash2 size={18} />
-                    Delete
-                  </button>
+              <div className="text-right">
+                <div className="text-4xl font-bold bg-gradient-to-r from-[#2f61ce] to-blue-500 bg-clip-text text-transparent">
+                  {profileMetrics.completion}%
                 </div>
-              )}
+                <p className="text-sm text-gray-500">Complete</p>
+              </div>
             </div>
 
-            {successMessage && (
-              <div className="mb-4 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 flex items-center gap-2">
-                <CheckCircle size={20} />
-                <p>{successMessage}</p>
+            <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
+              <div 
+                className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getProgressColor()} transition-all duration-700 ease-out rounded-full`}
+                style={{ width: `${profileMetrics.completion}%` }}
+              >
+                <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+              </div>
+            </div>
+
+            {profileMetrics.missingFields.length > 0 && (
+              <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={20} />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {profileMetrics.missingFields.slice(0, 5).map((field, idx) => (
+                        <span key={idx} className="text-xs bg-white text-[#2f61ce] px-3 py-1 rounded-full border border-blue-200 font-medium">
+                          {field}
+                        </span>
+                      ))}
+                      {profileMetrics.missingFields.length > 5 && (
+                        <span className="text-xs bg-white text-gray-600 px-3 py-1 rounded-full border border-gray-200 font-medium">
+                          +{profileMetrics.missingFields.length - 5} more
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleProfileClick}
+                      className="flex items-center gap-2 bg-gradient-to-r from-[#2f61ce] to-blue-500 text-white px-4 py-2 rounded-lg hover:from-[#2451a8] hover:to-blue-600 transition-all text-sm font-semibold shadow-lg"
+                    >
+                      <User size={16} />
+                      Complete Your Profile
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
-            {error && (
-              <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
-                <p>{error}</p>
+            {profileMetrics.completion === 100 && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="text-green-600" size={24} />
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Awesome! Your profile is 100% complete! 🎉</h3>
+                    <p className="text-sm text-gray-600">You can now access all features and find similar profiles.</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Delete Confirmation Modal */}
-          {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#eef3fc] rounded-full flex items-center justify-center">
-                    <Trash2 className="text-[#2f61ce]" size={24} />
+          {profileMetrics.completion >= 50 && (
+            <div 
+              onClick={handleAdmitFinderClick}
+              className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-blue-100 cursor-pointer hover:shadow-xl transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Users className="text-[#2f61ce]" size={32} />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800">Delete Profile</h3>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-1">Find Similar Profiles</h2>
+                    <p className="text-gray-600">
+                      {similarProfilesCount > 0 
+                        ? `${similarProfilesCount} students with similar background found!` 
+                        : 'Discover students with profiles like yours'}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-6">
-                  Are you sure you want to delete your profile? This action cannot be undone and will remove all your
-                  academic information.
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={deleting}
-                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className={`flex-1 px-6 py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all ${
-                      deleting ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {deleting ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
+                <ArrowRight className="text-[#2f61ce]" size={28} />
               </div>
             </div>
           )}
 
-          {/* Form Sections */}
-          <div className="space-y-4">
-            {/* Target Program */}
-            <Section
-              id="target"
-              title="What are you looking to study?"
-              icon={Target}
-              isExpanded={expandedSection === "target"}
-              isComplete={isSectionComplete("target")}
-              onToggle={toggleSection}
-            >
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preferred Countries <span className="text-[#2f61ce]">*</span>
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {COUNTRIES.map((country) => (
-                    <button
-                      key={country}
-                      type="button"
-                      onClick={() => isEditing && handleMultiSelect(country)}
-                      disabled={!isEditing}
-                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
-                        formData.target_countries.includes(country)
-                          ? "border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce] font-medium"
-                          : "border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]"
-                      } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
-                    >
-                      {country}
-                    </button>
-                  ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-blue-100 hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Shortlisted</p>
+                  <p className="text-3xl font-bold text-[#2f61ce]">{shortlistedCount}</p>
+                  <p className="text-xs text-gray-500 mt-1">Programs saved</p>
+                </div>
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-sky-100 rounded-full flex items-center justify-center">
+                  <span className="text-3xl">📚</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectField
-                  label="What degree are you applying for?"
-                  value={formData.target_degree}
-                  onChange={handleInputChange}
-                  field="target_degree"
-                  options={DEGREE_OPTIONS}
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Field of Interest"
-                  value={formData.target_field}
-                  onChange={handleInputChange}
-                  field="target_field"
-                  placeholder="Computer Science, MBA, Medicine, etc."
-                  required
-                  disabled={!isEditing}
-                />
-                <SelectField
-                  label="When do you plan to start?"
-                  value={formData.term}
-                  onChange={handleInputChange}
-                  field="term"
-                  options={TERM_OPTIONS}
-                  disabled={!isEditing}
-                />
-                <SelectField
-                  label="Budget Range (Annual)"
-                  value={formData.budget}
-                  onChange={handleInputChange}
-                  field="budget"
-                  options={[
-                    { value: "Under 10L", label: "Under ₹10 Lakhs" },
-                    { value: "10-20L", label: "₹10-20 Lakhs" },
-                    { value: "20-30L", label: "₹20-30 Lakhs" },
-                    { value: "Above 30L", label: "Above ₹30 Lakhs" },
-                  ]}
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
+            </div>
 
-            {/* Personal Information */}
-            <Section
-              id="personal"
-              title="Personal Information"
-              icon={User}
-              isExpanded={expandedSection === "personal"}
-              isComplete={isSectionComplete("personal")}
-              onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Full Name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  field="name"
-                  placeholder="Enter your full name"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Email Address"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  field="email"
-                  placeholder="your.email@example.com"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Phone Number"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  field="phone"
-                  placeholder="+91 XXXXX XXXXX"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="City"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  field="city"
-                  placeholder="Your city"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="State"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  field="state"
-                  placeholder="Your state"
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
-
-            {/* 10th Grade */}
-            <Section
-              id="tenth"
-              title="10th Grade Details"
-              icon={GraduationCap}
-              isExpanded={expandedSection === "tenth"}
-              isComplete={isSectionComplete("tenth")}
-              onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <SelectField
-                  label="Board"
-                  value={formData.tenth_board}
-                  onChange={handleInputChange}
-                  field="tenth_board"
-                  options={[
-                    { value: "CBSE", label: "CBSE" },
-                    { value: "ICSE", label: "ICSE" },
-                    { value: "State Board", label: "State Board" },
-                    { value: "Other", label: "Other" },
-                  ]}
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Passing"
-                  type="number"
-                  value={formData.tenth_year}
-                  onChange={handleInputChange}
-                  field="tenth_year"
-                  placeholder="2019"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Percentage/CGPA"
-                  value={formData.tenth_score}
-                  onChange={handleInputChange}
-                  field="tenth_score"
-                  placeholder="85% or 9.5 CGPA"
-                  required
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
-
-            {/* 12th Grade */}
-            <Section
-              id="twelfth"
-              title="12th Grade Details"
-              icon={GraduationCap}
-              isExpanded={expandedSection === "twelfth"}
-              isComplete={isSectionComplete("twelfth")}
-              onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectField
-                  label="Board"
-                  value={formData.twelfth_board}
-                  onChange={handleInputChange}
-                  field="twelfth_board"
-                  options={[
-                    { value: "CBSE", label: "CBSE" },
-                    { value: "ICSE", label: "ICSE" },
-                    { value: "State Board", label: "State Board" },
-                    { value: "Other", label: "Other" },
-                  ]}
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Passing"
-                  type="number"
-                  value={formData.twelfth_year}
-                  onChange={handleInputChange}
-                  field="twelfth_year"
-                  placeholder="2021"
-                  required
-                  disabled={!isEditing}
-                />
-                <SelectField
-                  label="Stream"
-                  value={formData.twelfth_stream}
-                  onChange={handleInputChange}
-                  field="twelfth_stream"
-                  options={[
-                    { value: "Science", label: "Science" },
-                    { value: "Commerce", label: "Commerce" },
-                    { value: "Arts", label: "Arts" },
-                    { value: "Other", label: "Other" },
-                  ]}
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Percentage/CGPA"
-                  value={formData.twelfth_score}
-                  onChange={handleInputChange}
-                  field="twelfth_score"
-                  placeholder="88% or 9.2 CGPA"
-                  required
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
-
-            {/* Undergraduate */}
-            <Section
-              id="ug"
-              title="Undergraduate Details"
-              icon={GraduationCap}
-              visible={shouldShowUG}
-              isExpanded={expandedSection === "ug"}
-              isComplete={isSectionComplete("ug")}
-              onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Degree"
-                  value={formData.ug_degree}
-                  onChange={handleInputChange}
-                  field="ug_degree"
-                  placeholder="B.Tech, B.Sc, B.Com, etc."
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="University/College"
-                  value={formData.ug_university}
-                  onChange={handleInputChange}
-                  field="ug_university"
-                  placeholder="Name of institution"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Field of Study"
-                  value={formData.ug_field}
-                  onChange={handleInputChange}
-                  field="ug_field"
-                  placeholder="Computer Science, Mechanical, etc."
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Graduation"
-                  type="number"
-                  value={formData.ug_year}
-                  onChange={handleInputChange}
-                  field="ug_year"
-                  placeholder="2024"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="CGPA/Percentage"
-                  value={formData.ug_score}
-                  onChange={handleInputChange}
-                  field="ug_score"
-                  placeholder="8.5 CGPA or 85%"
-                  required
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
-
-            {/* Postgraduate */}
-            <Section
-              id="pg"
-              title="Postgraduate/Masters Details"
-              icon={GraduationCap}
-              visible={shouldShowPG}
-              isExpanded={expandedSection === "pg"}
-              isComplete={isSectionComplete("pg")}
-              onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Degree"
-                  value={formData.pg_degree}
-                  onChange={handleInputChange}
-                  field="pg_degree"
-                  placeholder="M.Tech, M.Sc, MBA, etc."
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="University"
-                  value={formData.pg_university}
-                  onChange={handleInputChange}
-                  field="pg_university"
-                  placeholder="Name of institution"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Field of Study"
-                  value={formData.pg_field}
-                  onChange={handleInputChange}
-                  field="pg_field"
-                  placeholder="Specialization"
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Graduation"
-                  type="number"
-                  value={formData.pg_year}
-                  onChange={handleInputChange}
-                  field="pg_year"
-                  placeholder="2024"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="CGPA/Percentage"
-                  value={formData.pg_score}
-                  onChange={handleInputChange}
-                  field="pg_score"
-                  placeholder="8.5 CGPA or 85%"
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
-
-            {/* Test Scores */}
-            <Section
-              id="tests"
-              title="Test Scores"
-              icon={BookOpen}
-              isExpanded={expandedSection === "tests"}
-              isComplete={isSectionComplete("tests")}
-              onToggle={toggleSection}
-            >
-              <div className="flex items-center justify-between mb-4">
-                {isEditing && (
-                  <button
-                    onClick={addTestScore}
-                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-4 py-2 rounded-lg hover:bg-[#254da6] transition-all ml-auto"
-                  >
-                    <Plus size={18} />
-                    Add Test
-                  </button>
-                )}
-              </div>
-              {formData.testScores.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  {isEditing ? (
-                    <p>No test scores added yet. Click &quot;Add Test&quot; to add your scores.</p>
-                  ) : (
-                    <p>No test scores available.</p>
-                  )}
+            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-sky-100 hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Applications</p>
+                  <p className="text-3xl font-bold text-sky-600">0</p>
+                  <p className="text-xs text-gray-500 mt-1">In progress</p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {formData.testScores.map((test, index) => (
-                    <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Exam Type</label>
-                        {isEditing ? (
-                          <select
-                            value={test.exam}
-                            onChange={(e) => handleTestScoreChange(index, "exam", e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
-                          >
-                            <option value="">Select Exam</option>
-                            {COMMON_EXAMS.map((exam) => (
-                              <option key={exam} value={exam}>
-                                {exam}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <p className="px-4 py-3 bg-gray-100 rounded-lg">{test.exam}</p>
-                        )}
-                      </div>
-
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Score</label>
-                        <input
-                          type="text"
-                          value={test.score}
-                          onChange={(e) => handleTestScoreChange(index, "score", e.target.value)}
-                          disabled={!isEditing}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
-                          placeholder="e.g., 325, 7.5, 110"
-                        />
-                      </div>
-                      {isEditing && (
-                        <button
-                          onClick={() => removeTestScore(index)}
-                          className="mt-8 p-3 text-[#2f61ce] hover:bg-[#eef3fc] rounded-lg transition-all"
-                          title="Remove test"
-                        >
-                          <Minus size={20} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                <div className="w-14 h-14 bg-gradient-to-br from-sky-100 to-cyan-100 rounded-full flex items-center justify-center">
+                  <span className="text-3xl">📝</span>
                 </div>
-              )}
-            </Section>
+              </div>
+            </div>
 
-            {/* Work Experience */}
-            <Section
-              id="experience"
-              title="Work Experience"
-              icon={Award}
-              visible={shouldShowWorkExp}
-              isExpanded={expandedSection === "experience"}
-              isComplete={isSectionComplete("experience")}
-              onToggle={toggleSection}
-            >
-              <SelectField
-                label="Do you have work experience?"
-                value={formData.has_experience}
-                onChange={handleInputChange}
-                field="has_experience"
-                options={[
-                  { value: "Yes", label: "Yes" },
-                  { value: "No", label: "No" },
-                ]}
-                required
-                disabled={!isEditing}
-              />
-              {formData.has_experience === "Yes" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <InputField
-                    label="Years of Experience"
-                    type="number"
-                    value={formData.experience_years}
-                    onChange={handleInputChange}
-                    field="experience_years"
-                    placeholder="2"
-                    disabled={!isEditing}
-                  />
-                  <InputField
-                    label="Field/Industry"
-                    value={formData.experience_field}
-                    onChange={handleInputChange}
-                    field="experience_field"
-                    placeholder="IT, Finance, Healthcare, etc."
-                    disabled={!isEditing}
-                  />
+            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-green-100 hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Scholarships</p>
+                  <p className="text-3xl font-bold text-green-600">0</p>
+                  <p className="text-xs text-gray-500 mt-1">Opportunities</p>
                 </div>
-              )}
-            </Section>
-
-            {/* Extracurricular Activities */}
-            <Section
-              id="extra"
-              title="Extracurricular Activities"
-              icon={Trophy}
-              isExpanded={expandedSection === "extra"}
-              isComplete={false}
-              onToggle={toggleSection}
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Describe your achievements, activities, and experiences
-                </label>
-                <textarea
-                  value={formData.extracurricular}
-                  onChange={(e) => handleInputChange("extracurricular", e.target.value)}
-                  disabled={!isEditing}
-                  rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100 resize-none"
-                  placeholder="Include sports, volunteer work, leadership roles, competitions, research projects, internships, etc."
-                />
+                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center">
+                  <span className="text-3xl">💰</span>
+                </div>
               </div>
-            </Section>
+            </div>
 
-            {/* Action Buttons */}
-            {isEditing && (
-              <div className="flex items-center justify-center gap-4 mt-8 pb-4">
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center gap-2 px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
-                >
-                  <X size={18} />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className={`flex items-center gap-2 px-8 py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all ${
-                    saving ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
-                >
-                  <Save size={18} />
-                  {saving ? "Saving..." : "Save Profile"}
-                </button>
+            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-purple-100 hover:shadow-xl transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Admits</p>
+                  <p className="text-3xl font-bold text-purple-600">0</p>
+                  <p className="text-xs text-gray-500 mt-1">Received</p>
+                </div>
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
+                  <span className="text-3xl">🎓</span>
+                </div>
               </div>
-            )}
+            </div>
           </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-blue-100">
+            <div className="flex items-center gap-2 mb-6">
+              <Target className="text-[#2f61ce]" size={24} />
+              <h2 className="text-2xl font-semibold text-gray-800">Quick Actions</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <button 
+                onClick={handleCourseFinderClick}
+                className="group p-6 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-all text-left hover:shadow-lg"
+              >
+                <div className="text-4xl mb-3">🔍</div>
+                <div className="font-bold text-gray-800 mb-1 text-lg">Find Courses</div>
+                <div className="text-sm text-gray-600">Explore programs Nationwide</div>
+                <ArrowRight className="text-[#2f61ce] mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+              </button>
+
+              <button 
+                onClick={handleAdmitFinderClick}
+                className="group p-6 border-2 border-sky-200 rounded-xl hover:bg-sky-50 transition-all text-left hover:shadow-lg"
+              >
+                <div className="text-4xl mb-3">👥</div>
+                <div className="font-bold text-gray-800 mb-1 text-lg">Admit Finder</div>
+                <div className="text-sm text-gray-600">Connect with admits</div>
+                <ArrowRight className="text-sky-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+              </button>
+
+              <button 
+                onClick={handleScholarshipClick}
+                className="group p-6 border-2 border-green-200 rounded-xl hover:bg-green-50 transition-all text-left hover:shadow-lg"
+              >
+                <div className="text-4xl mb-3">💵</div>
+                <div className="font-bold text-gray-800 mb-1 text-lg">Scholarships</div>
+                <div className="text-sm text-gray-600">Find funding options</div>
+                <ArrowRight className="text-green-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+              </button>
+
+              <button 
+                onClick={handleShortlistClick}
+                className="group p-6 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all text-left hover:shadow-lg"
+              >
+                <div className="text-4xl mb-3">⭐</div>
+                <div className="font-bold text-gray-800 mb-1 text-lg">Shortlist Builder</div>
+                <div className="text-sm text-gray-600">Build your dream list</div>
+                <ArrowRight className="text-purple-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+              </button>
+            </div>
+          </div>
+
+          {profileMetrics.completion < 100 && (
+            <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-[#fac300]">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-[#fac300] rounded-full flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="text-white" size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-800 mb-2 text-lg">💡 Pro Tip</h3>
+                  <p className="text-gray-700">
+                    Complete all 9 required fields in your profile to unlock personalized recommendations and connect with students who have similar academic backgrounds!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DefaultLayout>
-  )
-}
+  );
+};
 
-export default ProfilePage
+export default DashboardPage;

@@ -17,18 +17,18 @@ import {
 
 interface TestScore {
   exam: string;
-  score: string;
+  percentile: string;
 }
 
 interface ProfileData {
   name?: string;
-  degree?: string;
-  program?: string;
-  term?: string;
+  target_degree?: string;
+  target_field?: string;
+  academic_year?: string;
   test_scores?: TestScore[];
   email?: string;
   phone?: string;
-  target_countries?: string[];
+  target_state?: string[];
   tenth_score?: string;
   twelfth_score?: string;
   university?: string;
@@ -50,30 +50,30 @@ const DashboardPage = () => {
   const [loadingProfile, setLoadingProfile] = useState(!cachedProfileData);
   const [shortlistedCount, setShortlistedCount] = useState(0);
 
-  // Memoize calculations with new required fields
+  // Memoize calculations with required fields
   const profileMetrics = useMemo(() => {
     if (!profileData) {
       return {
         completion: 0,
         missingFields: [
-          'Degree', 'Program/Field', 'Target Term', 'Test Scores',
-          'Email', 'Phone', 'Target Countries', '10th Score', '12th Score'
+          'Degree', 'Field of Interest', 'Target Year', 'Test Scores',
+          'Email', 'Phone', 'Preferred States', '10th Score', '12th Score'
         ]
       };
     }
 
     const hasTestScores = profileData.test_scores && profileData.test_scores.length > 0;
-    const hasTargetCountries = profileData.target_countries && profileData.target_countries.length > 0;
+    const hasTargetStates = profileData.target_state && profileData.target_state.length > 0;
     
     // Required fields only
     const fields = [
-      profileData.degree,              // 1. Degree
-      profileData.program,             // 2. Program
-      profileData.term,                // 3. Term
+      profileData.target_degree,       // 1. Degree
+      profileData.target_field,        // 2. Field
+      profileData.academic_year,       // 3. Year
       hasTestScores,                   // 4. Test Scores
       profileData.email,               // 5. Email
       profileData.phone,               // 6. Phone
-      hasTargetCountries,              // 7. Target Countries
+      hasTargetStates,                 // 7. Target States
       profileData.tenth_score,         // 8. 10th Score
       profileData.twelfth_score        // 9. 12th Score
     ];
@@ -82,13 +82,13 @@ const DashboardPage = () => {
     const completion = Math.round((filledCount / fields.length) * 100);
 
     const missing: string[] = [];
-    if (!profileData.degree) missing.push('Degree');
-    if (!profileData.program) missing.push('Program/Field');
-    if (!profileData.term) missing.push('Target Term');
+    if (!profileData.target_degree) missing.push('Degree');
+    if (!profileData.target_field) missing.push('Field of Interest');
+    if (!profileData.academic_year) missing.push('Target Year');
     if (!hasTestScores) missing.push('Test Scores');
     if (!profileData.email) missing.push('Email');
     if (!profileData.phone) missing.push('Phone');
-    if (!hasTargetCountries) missing.push('Target Countries');
+    if (!hasTargetStates) missing.push('Preferred States');
     if (!profileData.tenth_score) missing.push('10th Score');
     if (!profileData.twelfth_score) missing.push('12th Score');
 
@@ -129,10 +129,8 @@ const DashboardPage = () => {
   }, [user, loading]);
 
   useEffect(() => {
-    // Load initial shortlist count
     loadShortlistCount();
 
-    // Listen for updates from Course Finder or Shortlist Builder
     const handleShortlistUpdate = () => {
       loadShortlistCount();
     };
@@ -167,7 +165,7 @@ const DashboardPage = () => {
       
       const { data, error } = await supabase
         .from('admit_profiles')
-        .select('name, degree, program, term, test_scores, email, phone, target_countries, tenth_score, twelfth_score, university, extracurricular, last_course_cgpa')
+        .select('*')
         .eq('user_id', user.id)
         .single();
 
@@ -176,12 +174,30 @@ const DashboardPage = () => {
         cachedProfileData = null;
         setProfileData(null);
       } else if (data) {
-        cachedProfileData = data;
-        cacheTimestamp = Date.now();
-        setProfileData(data);
+        const profileData = {
+          name: data.name,
+          target_degree: data.target_degree,
+          target_field: data.target_field,
+          academic_year: data.academic_year,
+          test_scores: data.test_scores,
+          email: data.email,
+          phone: data.phone,
+          target_state: data.target_state,
+          tenth_score: data.tenth_score,
+          twelfth_score: data.twelfth_score,
+          university: data.university,
+          extracurricular: data.extracurricular,
+          last_course_cgpa: data.last_course_cgpa,
+        };
         
-        if (data.test_scores?.length > 0 || data.program || data.degree) {
-          fetchSimilarProfilesCount(data);
+        cachedProfileData = profileData;
+        cacheTimestamp = Date.now();
+        setProfileData(profileData);
+        
+        console.log('Fetched profile data:', profileData); // Debug log
+        
+        if (data.test_scores?.length > 0 || data.target_field || data.target_degree) {
+          fetchSimilarProfilesCount(profileData);
         }
       } else {
         cachedProfileData = null;
@@ -205,15 +221,17 @@ const DashboardPage = () => {
         .select('id', { count: 'exact', head: true })
         .neq('user_id', user.id);
 
-      // Extract GRE score from test_scores array
-      const greScore = profile.test_scores?.find(t => t.exam === 'GRE')?.score;
-      const greNum = greScore ? parseFloat(greScore) : null;
+      // Extract test score for matching (e.g., CAT percentile)
+      const testScore = profile.test_scores?.[0]?.percentile;
+      const scoreNum = testScore ? parseFloat(testScore) : null;
       
-      if (greNum) {
-        query = query.gte('gre', greNum - 10).lte('gre', greNum + 10);
+      if (scoreNum) {
+        // Match similar test scores (within ±10 percentile range)
+        query = query.gte('test_scores->0->percentile', (scoreNum - 10).toString())
+                     .lte('test_scores->0->percentile', (scoreNum + 10).toString());
       }
-      if (profile.degree) {
-        query = query.eq('degree', profile.degree);
+      if (profile.target_degree) {
+        query = query.eq('target_degree', profile.target_degree);
       }
 
       const { count, error } = await query;
@@ -434,7 +452,7 @@ const DashboardPage = () => {
               >
                 <div className="text-4xl mb-3">🔍</div>
                 <div className="font-bold text-gray-800 mb-1 text-lg">Find Courses</div>
-                <div className="text-sm text-gray-600">Explore programs worldwide</div>
+                <div className="text-sm text-gray-600">Explore programs Nationwide</div>
                 <ArrowRight className="text-[#2f61ce] mt-2 group-hover:translate-x-1 transition-transform" size={20} />
               </button>
 

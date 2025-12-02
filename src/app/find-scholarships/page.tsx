@@ -403,7 +403,8 @@ const ScholarshipFinder: React.FC = () => {
               Find Scholarships to Fuel Your Dreams
             </h1>
             <p className="text-gray-600">
-              Discover scholarships from top universities and institutions worldwide
+              Discover scholarships from top universities and institutions Nationwide
+
             </p>
           </div>
 
