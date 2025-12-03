@@ -287,7 +287,7 @@ export default function Hero() {
           <div 
   className="flex flex-col items-center text-center mb-12 sm:mb-20 relative px-4 py-20"
   style={{
-    backgroundImage: 'url(https://res.cloudinary.com/daetdadtt/image/upload/v1764709716/Untitled_design_2_gu3dmh.png)',
+    backgroundImage: 'url(https://res.cloudinary.com/daetdadtt/image/upload/v1764742101/iim_hehe_optimized_9000_xh45xg.png)',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat'
