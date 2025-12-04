@@ -19,7 +19,7 @@ const RegisterPage = () => {
   // ✅ Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/home'); // Redirect to /home
+      router.replace('/cat-precentile-predictor'); // Redirect to /home
     }
   }, [user, loading, router]);
 
