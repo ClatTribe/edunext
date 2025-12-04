@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../../contexts/AuthContext';
 import { getPercentile } from '../../../utils/data';
 import ScoreCard from '../../../components/CatPredictor/ScoreCard';
 import { PercentileRadar, OverallGauge } from '../../../components/CatPredictor/Charts';
@@ -13,6 +15,9 @@ import {
 } from 'lucide-react';
 
 const Carpercentile: React.FC = () => {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  
   const [vaScore, setVaScore] = useState<number | ''>('');
   const [qaScore, setQaScore] = useState<number | ''>('');
   const [dilrScore, setDilrScore] = useState<number | ''>('');
@@ -25,6 +30,13 @@ const Carpercentile: React.FC = () => {
   });
 
   const [totalScore, setTotalScore] = useState(0);
+
+  // Authentication check - redirect to register if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/register');
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     const v = Number(vaScore) || 0;
@@ -53,6 +65,23 @@ const Carpercentile: React.FC = () => {
     { subject: 'Quant (QA)', A: percentiles.qa, fullMark: 100 },
     { subject: 'DILR', A: percentiles.dilr, fullMark: 100 },
   ];
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <DefaultLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-xl text-[#005de6] flex items-center gap-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#005de6]"></div>
+            Loading...
+          </div>
+        </div>
+      </DefaultLayout>
+    );
+  }
+
+  // Don't render the page content if user is not authenticated
+  if (!user) return null;
 
   return (
     <DefaultLayout>
