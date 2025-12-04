@@ -45,7 +45,7 @@ export const TrustSection: React.FC = () => {
                         <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 text-[#2f61ce]">
                             <UserX size={32} />
                         </div>
-                        <h3 className="text-3xl font-bold text-slate-900 mb-4">Zero Spam Calls. Your Data Your Contact.</h3>
+                        <h3 className="text-3xl font-bold text-slate-900 mb-4">Zero Spam Calls. Your Data Your Control.</h3>
                         <p className="text-slate-600 text-lg max-w-md">We never sell your phone number. Unlike other platforms that trigger 200+ spam calls, EduNext keeps your data 100% private until you choose to share it.</p>
                     </div>
                     <div className="mt-8">

@@ -14,6 +14,7 @@ import {
   X,
   Calculator,
   FileCheck,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -50,10 +51,15 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
 
   const toolOptions = [
     {
-      icon: Calculator,
-      label: "Call Predictor",
-      path: "/call-predictor",
+      icon: TrendingUp,
+      label: "Cat Percentile Predictor",
+      path: "/cat-precentile-predictor",
     },
+    // {
+    //   icon: Calculator,
+    //   label: "Call Predictor",
+    //   path: "/call-predictor",
+    // },
     {
       icon: FileCheck,
       label: "Answer Key Tool",
