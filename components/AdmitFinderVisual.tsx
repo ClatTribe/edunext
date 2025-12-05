@@ -57,9 +57,9 @@ export const AdmitFinderVisual: React.FC = () => {
 
          <div className="space-y-3 flex-1">
             {[
-              { name: "Priya S.", univ: "Carnegie Mellon", status: "Admitted", gpa: "9.2/10", gre: "328" },
-              { name: "Rahul M.", univ: "Stanford University", status: "Waitlisted", gpa: "9.5/10", gre: "332" },
-              { name: "Sarah K.", univ: "MIT", status: "Admitted", gpa: "9.8/10", gre: "335" }
+              { name: "Priya S.", univ: "Fostiima Business School", status: "Admitted" },
+              { name: "Rahul M.", univ: "IIMA - Indian Institute of Management", status: "Waitlisted"},
+              { name: "Sarah K.", univ: "DBS Global University", status: "Admitted"}
             ].map((item, i) => (
               <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between group cursor-pointer">
                  <div className="flex items-center gap-4">
@@ -69,8 +69,8 @@ export const AdmitFinderVisual: React.FC = () => {
                     <div>
                        <div className="font-bold text-slate-900">{item.name} <span className="font-normal text-slate-500 text-sm mx-1">applied to</span> {item.univ}</div>
                        <div className="text-xs text-slate-500 flex gap-3 mt-0.5">
-                          <span>GPA: <strong className="text-slate-700">{item.gpa}</strong></span>
-                          <span>GRE: <strong className="text-slate-700">{item.gre}</strong></span>
+                          {/* <span>GPA: <strong className="text-slate-700">{item.gpa}</strong></span>
+                          <span>GRE: <strong className="text-slate-700">{item.gre}</strong></span> */}
                        </div>
                     </div>
                  </div>

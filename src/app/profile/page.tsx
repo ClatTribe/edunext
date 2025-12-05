@@ -151,7 +151,7 @@ const InputField = React.memo(
           onChange={(e) => onChange(field, e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
+          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
         />
       </div>
     )
@@ -170,7 +170,7 @@ const SelectField = React.memo(
           value={value}
           onChange={(e) => onChange(field, e.target.value)}
           disabled={disabled}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
+          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
         >
           <option value="">Select...</option>
           {options.map((opt) => (
@@ -189,26 +189,26 @@ const Section = React.memo(
   ({ id, title, icon: Icon, children, visible = true, isExpanded, isComplete, onToggle }: SectionProps) => {
     if (!visible) return null
     return (
-      <div className="mb-4 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all">
+      <div className="mb-4 bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all">
         <button
           type="button"
           onClick={() => onToggle(id)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-[#f8fafc] hover:bg-[#eef3fc] transition-colors"
+          className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-[#f8fafc] hover:bg-[#eef3fc] transition-colors"
         >
-          <div className="flex items-center gap-3">
-            <Icon className="w-5 h-5 text-[#2f61ce]" />
-            <span className="font-semibold text-gray-800">{title}</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce] flex-shrink-0" />
+            <span className="font-semibold text-gray-800 text-sm sm:text-base text-left">{title}</span>
           </div>
-          <div className="flex items-center gap-2">
-            {isComplete && <CheckCircle2 className="w-5 h-5 text-[#fac300]" />}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {isComplete && <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#fac300]" />}
             {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-[#2f61ce]" />
+              <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce]" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-[#2f61ce]" />
+              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce]" />
             )}
           </div>
         </button>
-        {isExpanded && <div className="px-6 py-5 bg-white">{children}</div>}
+        {isExpanded && <div className="px-4 sm:px-6 py-4 sm:py-5 bg-white">{children}</div>}
       </div>
     )
   },
@@ -687,8 +687,8 @@ const ProfilePage = () => {
     return (
       <DefaultLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-xl text-[#2f61ce] flex items-center gap-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#2f61ce]"></div>
+          <div className="text-lg sm:text-xl text-[#2f61ce] flex items-center gap-2">
+            <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-[#2f61ce]"></div>
             Loading profile...
           </div>
         </div>
@@ -698,20 +698,43 @@ const ProfilePage = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 p-8 overflow-y-auto bg-[#f8fafc]">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-[#f8fafc]">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-[#2f61ce] rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                  {userInitial}
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
+            <div className="flex flex-col gap-4 mb-4">
+              <div className="flex items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-0">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#2f61ce] rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl font-bold flex-shrink-0">
+                    {userInitial}
+                  </div>
+                  {/* Title - visible on all screens */}
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 truncate">
+                      {hasProfile ? "My Profile" : "Create Your Profile"}
+                    </h1>
+                    <p className="text-sm sm:text-base text-gray-600 truncate">
+                      {hasProfile ? "Manage your academic information" : "Tell us about yourself"}
+                    </p>
+                  </div>
                 </div>
-                {/* EduScore Circle */}
-                <div className="flex flex-col items-center">
-                  <div className="relative w-24 h-24">
-                    <svg className="w-24 h-24 transform -rotate-90">
-                      <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                {/* EduScore Circle - hidden on mobile, shown on larger screens */}
+                <div className="hidden md:flex flex-col items-center flex-shrink-0">
+                  <div className="relative w-20 lg:w-24 h-20 lg:h-24">
+                    <svg className="w-20 lg:w-24 h-20 lg:h-24 transform -rotate-90">
+                      <circle cx="40" cy="40" r="34" stroke="#e5e7eb" strokeWidth="7" fill="none" className="lg:hidden" />
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="34"
+                        stroke={scoreInfo.color}
+                        strokeWidth="7"
+                        fill="none"
+                        strokeDasharray={`${(eduScore / 90) * 213.6} 213.6`}
+                        strokeLinecap="round"
+                        className="transition-all duration-500 lg:hidden"
+                      />
+                      <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" className="hidden lg:block" />
                       <circle
                         cx="48"
                         cy="48"
@@ -721,11 +744,11 @@ const ProfilePage = () => {
                         fill="none"
                         strokeDasharray={`${(eduScore / 90) * 251.2} 251.2`}
                         strokeLinecap="round"
-                        className="transition-all duration-500"
+                        className="transition-all duration-500 hidden lg:block"
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-bold" style={{ color: scoreInfo.color }}>
+                      <span className="text-xl lg:text-2xl font-bold" style={{ color: scoreInfo.color }}>
                         {eduScore}
                       </span>
                       <span className="text-xs text-gray-500">/ 90</span>
@@ -738,43 +761,70 @@ const ProfilePage = () => {
                     </div>
                   </div>
                 </div>
-                {/* Title */}
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-800">
-                    {hasProfile ? "My Profile" : "Create Your Profile"}
-                  </h1>
-                  <p className="text-gray-600">
-                    {hasProfile ? "Manage your academic information" : "Tell us about yourself"}
-                  </p>
+              </div>
+              
+              {/* EduScore for mobile - shown below header */}
+              <div className="flex md:hidden justify-center">
+                <div className="flex items-center gap-4">
+                  <div className="relative w-16 h-16">
+                    <svg className="w-16 h-16 transform -rotate-90">
+                      <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="6" fill="none" />
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r="28"
+                        stroke={scoreInfo.color}
+                        strokeWidth="6"
+                        fill="none"
+                        strokeDasharray={`${(eduScore / 90) * 175.8} 175.8`}
+                        strokeLinecap="round"
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-lg font-bold" style={{ color: scoreInfo.color }}>
+                        {eduScore}
+                      </span>
+                      <span className="text-xs text-gray-500">/ 90</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-600">EduScore</div>
+                    <div className="text-sm" style={{ color: scoreInfo.color }}>
+                      {scoreInfo.label}
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {/* Action buttons */}
               {hasProfile && !isEditing && (
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-6 py-3 rounded-lg hover:bg-[#254da6] transition-all"
+                    className="flex items-center justify-center gap-2 bg-[#2f61ce] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-[#254da6] transition-all text-sm sm:text-base"
                   >
-                    <Edit2 size={18} />
+                    <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                     Edit Profile
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-2 bg-white border-2 border-[#2f61ce] text-[#2f61ce] px-6 py-3 rounded-lg hover:bg-[#eef3fc] transition-all"
+                    className="flex items-center justify-center gap-2 bg-white border-2 border-[#2f61ce] text-[#2f61ce] px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-[#eef3fc] transition-all text-sm sm:text-base"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                     Delete
                   </button>
                 </div>
               )}
             </div>
             {successMessage && (
-              <div className="mb-4 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 flex items-center gap-2">
-                <CheckCircle size={20} />
+              <div className="mb-4 p-3 sm:p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 flex items-center gap-2 text-sm sm:text-base">
+                <CheckCircle size={18} className="flex-shrink-0" />
                 <p>{successMessage}</p>
               </div>
             )}
             {error && (
-              <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+              <div className="mb-4 p-3 sm:p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm sm:text-base">
                 <p>{error}</p>
               </div>
             )}
@@ -782,30 +832,30 @@ const ProfilePage = () => {
 
           {/* Delete Confirmation Modal */}
           {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#eef3fc] rounded-full flex items-center justify-center">
-                    <Trash2 className="text-[#2f61ce]" size={24} />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#eef3fc] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Trash2 className="text-[#2f61ce]" size={20} />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800">Delete Profile</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Delete Profile</h3>
                 </div>
-                <p className="text-gray-600 mb-6">
+                <p className="text-sm sm:text-base text-gray-600 mb-6">
                   Are you sure you want to delete your profile? This action cannot be undone and will remove all your
                   academic information.
                 </p>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={deleting}
-                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm sm:text-base"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleDelete}
                     disabled={deleting}
-                    className={`flex-1 px-6 py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all ${
+                    className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all text-sm sm:text-base ${
                       deleting ? "opacity-70 cursor-not-allowed" : ""
                     }`}
                   >
@@ -817,7 +867,7 @@ const ProfilePage = () => {
           )}
 
           {/* Form Sections */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {/* Target Program */}
             <Section
               id="target"
@@ -831,14 +881,14 @@ const ProfilePage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Preferred States <span className="text-[#2f61ce]">*</span>
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   {COUNTRIES.map((country) => (
                     <button
                       key={country}
                       type="button"
                       onClick={() => isEditing && handleMultiSelect(country)}
                       disabled={!isEditing}
-                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                      className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base ${
                         formData.target_state.includes(country)
                           ? "border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce] font-medium"
                           : "border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]"
@@ -960,7 +1010,7 @@ const ProfilePage = () => {
               isComplete={isSectionComplete("tenth")}
               onToggle={toggleSection}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <SelectField
                   label="Board"
                   value={formData.tenth_board}
@@ -1169,15 +1219,15 @@ const ProfilePage = () => {
                 {isEditing && (
                   <button
                     onClick={addTestScore}
-                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-4 py-2 rounded-lg hover:bg-[#254da6] transition-all ml-auto"
+                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#254da6] transition-all ml-auto text-sm sm:text-base"
                   >
-                    <Plus size={18} />
+                    <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
                     Add Test
                   </button>
                 )}
               </div>
               {formData.testScores.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-6 sm:py-8 text-gray-500 text-sm sm:text-base">
                   {isEditing ? (
                     <p>No test scores added yet. Click &quot;Add Test&quot; to add your scores.</p>
                   ) : (
@@ -1187,14 +1237,14 @@ const ProfilePage = () => {
               ) : (
                 <div className="space-y-4">
                   {formData.testScores.map((test, index) => (
-                    <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
+                    <div key={index} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start p-3 sm:p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1 w-full">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Exam Type</label>
                         {isEditing ? (
                           <select
                             value={test.exam}
                             onChange={(e) => handleTestScoreChange(index, "exam", e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                            className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
                           >
                             <option value="">Select Exam</option>
                             {COMMON_EXAMS.map((exam) => (
@@ -1204,27 +1254,27 @@ const ProfilePage = () => {
                             ))}
                           </select>
                         ) : (
-                          <p className="px-4 py-3 bg-gray-100 rounded-lg">{test.exam}</p>
+                          <p className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-100 rounded-lg">{test.exam}</p>
                         )}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 w-full">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Percentile</label>
                         <input
                           type="text"
                           value={test.percentile}
                           onChange={(e) => handleTestScoreChange(index, "percentile", e.target.value)}
                           disabled={!isEditing}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
                           placeholder="e.g., 85, 90, 95"
                         />
                       </div>
                       {isEditing && (
                         <button
                           onClick={() => removeTestScore(index)}
-                          className="mt-8 p-3 text-[#2f61ce] hover:bg-[#eef3fc] rounded-lg transition-all"
+                          className="sm:mt-8 p-2 sm:p-3 text-[#2f61ce] hover:bg-[#eef3fc] rounded-lg transition-all self-end sm:self-auto"
                           title="Remove test"
                         >
-                          <Minus size={20} />
+                          <Minus size={18} className="sm:w-[20px] sm:h-[20px]" />
                         </button>
                       )}
                     </div>
@@ -1296,7 +1346,7 @@ const ProfilePage = () => {
                   onChange={(e) => handleInputChange("extracurricular", e.target.value)}
                   disabled={!isEditing}
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100 resize-none"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100 resize-none"
                   placeholder="Include sports, volunteer work, leadership roles, competitions, research projects, internships, etc."
                 />
               </div>
@@ -1304,22 +1354,22 @@ const ProfilePage = () => {
 
             {/* Action Buttons */}
             {isEditing && (
-              <div className="flex items-center justify-center gap-4 mt-8 pb-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 pb-4">
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm sm:text-base"
                 >
-                  <X size={18} />
+                  <X size={16} className="sm:w-[18px] sm:h-[18px]" />
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className={`flex items-center gap-2 px-8 py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all ${
+                  className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all text-sm sm:text-base ${
                     saving ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                 >
-                  <Save size={18} />
+                  <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
                   {saving ? "Saving..." : "Save Profile"}
                 </button>
               </div>

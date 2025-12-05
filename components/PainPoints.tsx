@@ -63,7 +63,7 @@ export const PainPoints: React.FC = () => {
         
         <div className="text-center mt-16">
            <p className="text-slate-500 text-sm mb-6">Join 10,000+ students who switched for peace of mind.</p>
-           <button className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-full transition-all shadow-lg shadow-primary-600/30">
+           <button className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-black font-bold rounded-full transition-all shadow-lg shadow-primary-600/30">
              Experience the Difference
            </button>
         </div>
