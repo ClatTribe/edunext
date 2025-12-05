@@ -19,6 +19,7 @@ import { ScholarshipVisual } from "../../components/ScholarshipVisual";
 import { AdmitFinderVisual } from "../../components/AdmitFinderVisual";
 import { TrustSection } from "../../components/TrustSection";
 import { PainPoints } from "../../components/PainPoints";
+import TrainRoadmap from "../../components/TrainRoadmap";
 
 // BRAND COLORS
 const primary = "[#fac300]";
@@ -441,9 +442,12 @@ export default function Hero() {
           </div>
         </div>
       </section>
-
+       <div>
+      <TrainRoadmap />
+    </div>
       <TrustSection />
       <PainPoints />
+      
     </>
   );
 }

@@ -18,6 +18,7 @@ import {
   Globe,
   GraduationCap,
   IndianRupee,
+  Star, // Added Star icon for featured scholarship
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { useAuth } from "../../../contexts/AuthContext"
@@ -26,19 +27,44 @@ import DefaultLayout from "../defaultLayout"
 interface Scholarship {
   id: number
   scholarship_name: string
-  organisation: string
+  organisation: string // Renamed to 'provider' in featured but kept 'organisation' for database compatibility
   eligibility: string
   benefit: string
   deadline: string
   link: string
   created_at?: string
   matchScore?: number
+  // Added optional fields for better data structure/featured scholarship
+  country_region?: string
+  provider?: string
+  degree_level?: string
+  detailed_eligibility?: string
+  price?: string
+  isFeatured?: boolean
 }
 
 interface UserProfile {
   target_state: string[]
   degree: string
   program: string
+}
+
+// 1. Define FEATURED_SCHOLARSHIP
+const FEATURED_SCHOLARSHIP: Scholarship = {
+  id: -1, // Special ID to differentiate from database scholarships
+  scholarship_name: "Pt. R.S. Mishra Memorial Scholarship",
+  organisation: "EduNext", // Mapping 'provider' to 'organisation' for card consistency
+  eligibility: "High-achieving Indian students facing significant economic barriers; program highlights inclusion for persons with disabilities and displaced youth; leadership & community impact valued",
+  benefit: "₹5 Lakh+ financial aid, mentorship, and career support.", // Added benefit detail
+  deadline: "Varies by university",
+  link: "#",
+  matchScore: 100, // Always highest match score
+  isFeatured: true,
+  country_region: "All",
+  provider: "Edu Abroad",
+  degree_level: "Undergraduate / Postgraduate",
+  detailed_eligibility: "High-achieving Indian students facing significant economic barriers; program highlights inclusion for persons with disabilities and displaced youth; leadership & community impact valued",
+  price: "5 Lakh+",
 }
 
 const ScholarshipFinder: React.FC = () => {
@@ -130,6 +156,9 @@ const ScholarshipFinder: React.FC = () => {
       return
     }
 
+    // Featured scholarship cannot be saved as it has a special ID
+    if (scholarshipId === FEATURED_SCHOLARSHIP.id) return
+
     try {
       const isSaved = savedScholarships.has(scholarshipId)
       if (isSaved) {
@@ -163,6 +192,7 @@ const ScholarshipFinder: React.FC = () => {
   }
 
   const calculateMatchScore = (scholarship: Scholarship): number => {
+    if (scholarship.isFeatured) return 100 // Featured scholarship is always 100% match
     if (!userProfile) return 0
     let score = 0
 
@@ -200,7 +230,7 @@ const ScholarshipFinder: React.FC = () => {
 
       if (!userProfile || !userProfile.degree) {
         setError("Please complete your profile to see personalized recommendations")
-        setFilteredScholarships([])
+        setFilteredScholarships([FEATURED_SCHOLARSHIP]) // Still show featured in error case
         setLoading(false)
         return
       }
@@ -221,17 +251,18 @@ const ScholarshipFinder: React.FC = () => {
       const relevantScholarships = scoredScholarships.filter((s) => (s.matchScore || 0) > 10)
       const topRecommendations = relevantScholarships
         .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
-        .slice(0, 10)
+        .slice(0, 9) // Slice 9 instead of 10 to leave room for the featured scholarship
 
-      if (topRecommendations.length < 10) {
+      if (topRecommendations.length < 9) {
         const remaining = scoredScholarships
           .filter((s) => !topRecommendations.find((t) => t.id === s.id))
           .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
-          .slice(0, 10 - topRecommendations.length)
+          .slice(0, 9 - topRecommendations.length)
         topRecommendations.push(...remaining)
       }
 
-      setFilteredScholarships(topRecommendations)
+      // 3. Prepend Featured Scholarship
+      setFilteredScholarships([FEATURED_SCHOLARSHIP, ...topRecommendations])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch recommended scholarships")
     } finally {
@@ -250,8 +281,12 @@ const ScholarshipFinder: React.FC = () => {
 
       if (supabaseError) throw supabaseError
       const validScholarships = (data || []).filter((s) => s.scholarship_name !== null)
-      setScholarships(validScholarships)
-      setFilteredScholarships(validScholarships)
+      
+      // 3. Prepend Featured Scholarship
+      const allScholarships = [FEATURED_SCHOLARSHIP, ...validScholarships]
+      
+      setScholarships(allScholarships)
+      setFilteredScholarships(allScholarships)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch scholarships")
     } finally {
@@ -266,6 +301,7 @@ const ScholarshipFinder: React.FC = () => {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (scholarship) =>
+          scholarship.isFeatured || // Always show featured scholarship
           scholarship.scholarship_name?.toLowerCase().includes(query) ||
           scholarship.organisation?.toLowerCase().includes(query) ||
           scholarship.eligibility?.toLowerCase().includes(query),
@@ -273,10 +309,18 @@ const ScholarshipFinder: React.FC = () => {
     }
 
     if (selectedOrganisation) {
-      filtered = filtered.filter((s) => s.organisation === selectedOrganisation)
+      filtered = filtered.filter((s) => s.isFeatured || s.organisation === selectedOrganisation) // Always show featured
     }
 
-    setFilteredScholarships(filtered)
+    // Ensure featured scholarship remains at the top
+    const featured = filtered.find(s => s.isFeatured)
+    const nonFeatured = filtered.filter(s => !s.isFeatured)
+    
+    if (featured) {
+        setFilteredScholarships([featured, ...nonFeatured])
+    } else {
+        setFilteredScholarships(nonFeatured)
+    }
   }
 
   const resetFilters = () => {
@@ -412,7 +456,7 @@ const ScholarshipFinder: React.FC = () => {
                 <Sparkles className="text-[#fac300] mt-0.5 flex-shrink-0" size={18} />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                    Showing your top 10 personalized recommendations
+                    Showing your top 10 personalized recommendations (including our featured opportunity).
                   </p>
                   <p className="text-xs text-gray-700 mt-1 break-words">
                     Based on: <strong>{userProfile.degree}</strong>
@@ -547,15 +591,24 @@ const ScholarshipFinder: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {filteredScholarships.map((s, index) => {
-                const isBlurred = viewMode === "recommended" && index >= 2
+                const isBlurred = viewMode === "recommended" && index >= 2 && !s.isFeatured
+                const isFeatured = s.isFeatured
 
                 return (
                   <div
                     key={s.id}
                     className={`bg-white border-2 ${
-                      viewMode === "recommended" && index < 2 ? "border-[#fac300]" : "border-gray-200"
+                      isFeatured ? "border-amber-500 ring-2 ring-amber-200" : viewMode === "recommended" && index < 2 ? "border-[#fac300]" : "border-gray-200"
                     } rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow relative ${isBlurred ? "overflow-hidden" : ""}`}
                   >
+                    {/* Featured Ribbon */}
+                    {isFeatured && (
+                      <div className="absolute top-0 right-0 bg-[#fac300] text-gray-900 text-xs font-bold px-3 py-1.5 rounded-bl-lg flex items-center gap-1 shadow-md">
+                        <Star size={14} className="text-gray-900" fill="currentColor" />
+                        FEATURED
+                      </div>
+                    )}
+
                     {isBlurred && (
                       <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex items-center justify-center p-4 sm:p-6 rounded-xl">
                         <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 text-center max-w-sm border-2 border-[#fac300]">
@@ -570,7 +623,7 @@ const ScholarshipFinder: React.FC = () => {
                           <p className="text-xs sm:text-sm text-gray-600 mb-5 sm:mb-6">
                             Talk to our experts to view {10 - index - 1} more personalized recommendations
                           </p>
-                          <button className="bg-[#fac300] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold w-full flex items-center justify-center gap-2">
+                          <button className="bg-[#fac300] text-gray-900 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold w-full flex items-center justify-center gap-2 hover:bg-amber-400">
                             <Sparkles size={16} />
                             Contact Experts
                           </button>
@@ -582,6 +635,7 @@ const ScholarshipFinder: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-base sm:text-lg md:text-xl text-gray-900 leading-tight mb-2 sm:mb-3 break-words">
                           {s.scholarship_name || "Scholarship"}
+                          {isFeatured && <span className="text-xs text-amber-500 ml-2">(Top Pick)</span>}
                         </h3>
 
                         {s.organisation && (
@@ -596,38 +650,38 @@ const ScholarshipFinder: React.FC = () => {
 
                       <button
                         onClick={() => toggleSaveScholarship(s.id)}
-                        disabled={isBlurred}
+                        disabled={isBlurred || isFeatured} // Disabled saving featured scholarship
                         className={`transition-colors ml-2 flex-shrink-0 ${
-                          isBlurred
+                          isBlurred || isFeatured // Disabled for featured/blurred items
                             ? "opacity-50 cursor-not-allowed"
                             : savedScholarships.has(s.id)
                               ? "text-[#2f61ce]"
                               : "text-gray-400 hover:text-[#2f61ce]"
                         }`}
                       >
-                        <Heart size={20} className="sm:w-6 sm:h-6" fill={savedScholarships.has(s.id) ? "currentColor" : "none"} />
+                        <Heart size={20} className="sm:w-6 sm:h-6" fill={savedScholarships.has(s.id) && !isFeatured ? "currentColor" : "none"} />
                       </button>
                     </div>
 
-                    {s.eligibility && (
+                    {(s.eligibility || s.detailed_eligibility) && (
                       <div className="mb-3 sm:mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3 sm:p-4">
                         <div className="flex items-start gap-2">
                           <GraduationCap size={16} className="sm:w-4 sm:h-4 text-[#2f61ce] flex-shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-[#2f61ce] mb-1 uppercase tracking-wide">Eligibility</p>
-                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed break-words">{s.eligibility}</p>
+                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed break-words">{s.detailed_eligibility || s.eligibility}</p>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {s.benefit && (
+                    {(s.benefit || s.price) && (
                       <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-[#fac300] rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
                         <div className="flex items-start gap-2">
                           <IndianRupee size={16} className="sm:w-4 sm:h-4 text-[#fac300] flex-shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-gray-900 mb-1 uppercase tracking-wide">Benefits</p>
-                            <p className="text-xs sm:text-sm text-gray-800 leading-relaxed break-words">{s.benefit}</p>
+                            <p className="text-xs sm:text-sm text-gray-800 leading-relaxed break-words">{s.benefit || s.price}</p>
                           </div>
                         </div>
                       </div>
@@ -650,7 +704,7 @@ const ScholarshipFinder: React.FC = () => {
                           isBlurred ? "opacity-50 cursor-not-allowed pointer-events-none" : "hover:bg-[#2451a8]"
                         }`}
                       >
-                        Apply Now
+                        {isFeatured ? "Explore Scholarship" : "Apply Now"}
                         <ExternalLink size={14} className="sm:w-4 sm:h-4" />
                       </a>
                     )}
