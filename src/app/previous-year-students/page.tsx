@@ -91,7 +91,7 @@ const AdmitFinder: React.FC = () => {
   const calculateSimilarityScore = (profile: AdmitProfile): number => {
     if (!userProfile) return 0;
     let score = 0;
-    let maxScore = 100;
+    const maxScore = 100;
     
     // Simplified similarity calculation
     if (userProfile.program && profile.program) {
