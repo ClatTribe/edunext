@@ -89,7 +89,7 @@ const MemorialScholarshipPage = () => {
                                 Ready to Apply?
                             </h2>
                             <p className="text-gray-600 mb-6 text-sm">
-                                This scholarship is designed to remove financial barriers for India's future leaders.
+                                This scholarship is designed to remove financial barriers for {"India's"} future leaders.
                             </p>
                             <a 
                                 href={SCHOLARSHIP_DATA.link} 
@@ -116,10 +116,10 @@ const MemorialScholarshipPage = () => {
                                 Our Mission
                             </h2>
                             <p className="text-gray-700 text-lg mb-4 leading-relaxed border-l-4 border-[#fac300] pl-4 italic">
-                                "In the memory of Pt. R.S. Mishra, we pledge to foster educational inclusion and support those who aspire to lead positive change in their communities."
+                                {"In the memory of Pt. R.S. Mishra, we pledge to foster educational inclusion and support those who aspire to lead positive change in their communities."}
                             </p>
                             <p className="text-gray-700 leading-relaxed">
-                                The Pt. R.S. Mishra Memorial Scholarship, established by {SCHOLARSHIP_DATA.organisation}, is our commitment to promoting equitable access to higher education in India. We seek students who not only excel academically but also demonstrate resilience, leadership potential, and a deep commitment to social impact. This is more than financial aid; it's an investment in a scholar's entire journey, providing resources, networks, and mentorship to ensure their success.
+                                The Pt. R.S. Mishra Memorial Scholarship, established by {SCHOLARSHIP_DATA.organisation}, is our commitment to promoting equitable access to higher education in India. We seek students who not only excel academically but also demonstrate resilience, leadership potential, and a deep commitment to social impact. This is more than financial aid; {"it's"} an investment in a {"scholar's"} entire journey, providing resources, networks, and mentorship to ensure their success.
                             </p>
                         </section>
 
