@@ -57,11 +57,11 @@ const FEATURED_SCHOLARSHIP: Scholarship = {
   eligibility: "High-achieving Indian students facing significant economic barriers; program highlights inclusion for persons with disabilities and displaced youth; leadership & community impact valued",
   benefit: "₹5 Lakh+ financial aid, mentorship, and career support.", // Added benefit detail
   deadline: "Varies by university",
-  link: "#",
+  link: "/pt-rs-mishra-memorial-scholarship",
   matchScore: 100, // Always highest match score
   isFeatured: true,
   country_region: "All",
-  provider: "Edu Abroad",
+  provider: "EduNext",
   degree_level: "Undergraduate / Postgraduate",
   detailed_eligibility: "High-achieving Indian students facing significant economic barriers; program highlights inclusion for persons with disabilities and displaced youth; leadership & community impact valued",
   price: "5 Lakh+",

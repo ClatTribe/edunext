@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react" // <--- IMPORTED useCallback
 import {
   GraduationCap,
   Sparkles,
@@ -131,7 +131,8 @@ const CourseFinder: React.FC = () => {
         if (supabaseError) throw supabaseError
 
         if (data && data.length > 0) {
-          allCourses = [...allCourses, ...data]
+          // FIX: Cast data to Course[]
+          allCourses = [...allCourses, ...(data as Course[])]
           hasMore = data.length === batchSize
           from += batchSize
         } else {
@@ -142,7 +143,10 @@ const CourseFinder: React.FC = () => {
       const validCourses = allCourses.filter((course) => course["College Name"] !== null)
 
       setCourses(validCourses)
-      setFilteredCourses(validCourses)
+      // Only set filteredCourses if viewMode is 'all' upon initial load
+      if (viewMode === "all") {
+        setFilteredCourses(validCourses)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch courses")
       console.error("Error fetching courses:", err)
@@ -151,15 +155,17 @@ const CourseFinder: React.FC = () => {
     }
   }
 
-  const handleRecommendedCoursesChange = (recommendedCourses: Course[]) => {
+  // CRITICAL FIX: Wrap in useCallback to stabilize the prop passed to ClgsRecommend
+  const handleRecommendedCoursesChange = useCallback((recommendedCourses: Course[]) => {
     setFilteredCourses(recommendedCourses)
     setCurrentPage(0)
-  }
+  }, []) // Empty dependency array ensures the function is stable
 
-  const handleFilterChange = (filtered: Course[]) => {
+  // CRITICAL FIX: Wrap in useCallback to stabilize the prop passed to FilterComponent
+  const handleFilterChange = useCallback((filtered: Course[]) => {
     setFilteredCourses(filtered)
     setCurrentPage(0)
-  }
+  }, []) // Empty dependency array ensures the function is stable
 
   const getMatchBadge = (course: Course) => {
     if (viewMode !== "recommended" || !course.matchScore) return null
@@ -264,6 +270,7 @@ const CourseFinder: React.FC = () => {
           />
 
           {/* Filter Component */}
+          {/* Note: handleFilterChange is now stable via useCallback */}
           <FilterComponent courses={courses} viewMode={viewMode} onFilterChange={handleFilterChange} />
 
           {/* Error Message */}
@@ -341,7 +348,10 @@ const CourseFinder: React.FC = () => {
                               Unlock More Recommendations
                             </h3>
                             <p className="text-sm sm:text-base text-gray-600 mb-6">
-                              Talk to our experts to view detailed information about this and {10 - courseIndex - 1}{" "}
+                              Talk to our experts to view detailed information about this and {
+                                // Calculate remaining recommendations if total is limited (e.g., to 10)
+                                Math.max(0, 10 - courseIndex - 1)
+                              }{" "} 
                               more personalized course recommendations
                             </p>
                             <button className="bg-[#005de6] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors w-full flex items-center justify-center gap-2">

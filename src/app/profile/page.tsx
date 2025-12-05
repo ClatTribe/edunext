@@ -87,11 +87,11 @@ const COMMON_EXAMS = ["CAT", "NMAT", "MAT", "XAT", "BITSAT", "GMAT", "CMAT", "SN
 const COUNTRIES = ["Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Haryana", "West Bengal (Other)"]
 
 const DEGREE_OPTIONS = [
-  { value: "Bachelors", label: "Bachelors (Undergraduate)" },
-  { value: "Masters", label: "Masters" },
+  // { value: "Bachelors", label: "Bachelors (Undergraduate)" },
+  // { value: "Masters", label: "Masters" },
   { value: "MBA", label: "MBA" },
-  { value: "PhD", label: "PhD / Doctorate" },
-  { value: "Diploma", label: "Diploma/Certificate" },
+  // { value: "PhD", label: "PhD / Doctorate" },
+  // { value: "Diploma", label: "Diploma/Certificate" },
 ]
 
 const TERM_OPTIONS = [
@@ -450,8 +450,8 @@ const ProfilePage = () => {
   const isSectionComplete = useCallback(
     (section: string): boolean => {
       switch (section) {
-        case "target":
-          return !!(formData.target_state.length > 0 && formData.target_degree && formData.target_field)
+        // case "target":
+        //   return !!(formData.target_state.length > 0 && formData.target_degree && formData.target_field)
         case "personal":
           return !!(formData.name && formData.email && formData.phone && formData.city)
         case "tenth":
@@ -499,10 +499,10 @@ const ProfilePage = () => {
       setError("Please select your target degree")
       return false
     }
-    if (!formData.target_field) {
-      setError("Please enter your field of interest")
-      return false
-    }
+    // if (!formData.target_field) {
+    //   setError("Please enter your field of interest")
+    //   return false
+    // }
     for (let i = 0; i < formData.testScores.length; i++) {
       const test = formData.testScores[i]
       if (!test.exam || !test.percentile) {
@@ -531,7 +531,7 @@ const ProfilePage = () => {
         state: formData.state || null,
         target_state: formData.target_state,
         degree: formData.target_degree,
-        program: formData.target_field,
+        // program: formData.target_field,
         budget: formData.budget || null,
         academic_year: formData.academic_year || null,
         tenth_board: formData.tenth_board || null,
@@ -629,7 +629,7 @@ const ProfilePage = () => {
     let score = 0
     if (formData.target_state.length > 0) score += 3
     if (formData.target_degree) score += 4
-    if (formData.target_field) score += 4
+    // if (formData.target_field) score += 4
     if (formData.academic_year) score += 2
     if (formData.budget) score += 2
     if (formData.name) score += 2
@@ -909,7 +909,7 @@ const ProfilePage = () => {
                   required
                   disabled={!isEditing}
                 />
-                <InputField
+                {/* <InputField
                   label="Field of Interest"
                   value={formData.target_field}
                   onChange={handleInputChange}
@@ -917,7 +917,7 @@ const ProfilePage = () => {
                   placeholder="Computer Science, MBA, Medicine, etc."
                   required
                   disabled={!isEditing}
-                />
+                /> */}
                 <SelectField
                   label="When do you plan to start?"
                   value={formData.academic_year}
@@ -932,10 +932,10 @@ const ProfilePage = () => {
                   onChange={handleInputChange}
                   field="budget"
                   options={[
-                    { value: "Under 10L", label: "Under ₹10 Lakhs" },
-                    { value: "10-20L", label: "₹10-20 Lakhs" },
-                    { value: "20-30L", label: "₹20-30 Lakhs" },
-                    { value: "Above 30L", label: "Above ₹30 Lakhs" },
+                    { value: "5L", label: "5 Lakh" },
+                    { value: "5-10L", label: "₹5-10 Lakhs" },
+                    { value: "10-15L", label: "₹10-15 Lakhs" },
+                    { value: "Above 15L", label: "Above ₹15 Lakhs" },
                   ]}
                   disabled={!isEditing}
                 />
