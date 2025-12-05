@@ -374,7 +374,7 @@ const ApplicationDeadlinesPage: React.FC = () => {
               <MapPin size={16} /> Important Note
             </h3>
             <p className="text-xs sm:text-sm text-blue-700">
-              Dates marked **"To be announced"** (TBA) are tentative. Please regularly check the official college website for the most accurate and updated information.
+              Dates marked {"To be announced"} (TBA) are tentative. Please regularly check the official college website for the most accurate and updated information.
             </p>
           </div>
 
