@@ -156,46 +156,55 @@ const processUserSession = async (user: AuthUser) => {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-50 to-red-50 p-8">
-      <div className="max-w-4xl w-full">
-        <div className="bg-white rounded-lg shadow-2xl p-8">
-          <div className="text-center mb-6">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mb-4"></div>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Completing Sign In...</h2>
-            <p className="text-gray-600">Please wait while we set up your account</p>
-          </div>
-          
-          {showDebug && (
-            <div className="mt-8 border-t pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg text-gray-800">🔍 Debug Log</h3>
-                <button
-                  onClick={() => setShowDebug(false)}
-                  className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded hover:bg-gray-100"
-                >
-                  Hide
-                </button>
-              </div>
-              <div className="bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
-                {debugInfo.map((info, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`text-xs font-mono mb-1 ${
-                      info.includes('❌') || info.includes('FAILED') ? 'text-red-400' :
-                      info.includes('✅') || info.includes('SUCCESS') ? 'text-green-400' :
-                      info.includes('⚠️') || info.includes('CONFLICT') ? 'text-yellow-400' :
-                      'text-gray-300'
-                    }`}
-                  >
-                    {info}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#eaf2ff] to-[#cddfff] p-8">
+  <div className="max-w-4xl w-full">
+    <div className="bg-white rounded-lg shadow-2xl p-8">
+      <div className="text-center mb-6">
+        {/* Loading Spinner */}
+        <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-[#005de6] mb-4"></div>
+
+        <h2 className="text-2xl font-bold text-[#005de6] mb-2">
+          Completing Sign In...
+        </h2>
+        <p className="text-gray-600">Please wait while we set up your account</p>
       </div>
+
+      {showDebug && (
+        <div className="mt-8 border-t pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-lg text-gray-800">🔍 Debug Log</h3>
+            <button
+              onClick={() => setShowDebug(false)}
+              className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded hover:bg-gray-100"
+            >
+              Hide
+            </button>
+          </div>
+
+          <div className="bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
+            {debugInfo.map((info, idx) => (
+              <div
+                key={idx}
+                className={`text-xs font-mono mb-1 ${
+                  info.includes("❌") || info.includes("FAILED")
+                    ? "text-[#4d8fff]" // Light blue for errors previously red-400
+                    : info.includes("✅") || info.includes("SUCCESS")
+                    ? "text-green-400"
+                    : info.includes("⚠️") || info.includes("CONFLICT")
+                    ? "text-yellow-400"
+                    : "text-gray-300"
+                }`}
+              >
+                {info}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
+  </div>
+</div>
+
   );
 }
 
