@@ -11,6 +11,7 @@ interface Course {
   State?: string | null
   Approvals?: string | null
   "CD Score"?: string | null
+  "Course Fees"?: string | null
   "Average Package"?: string | null
   "Highest Package"?: string | null
   "Placement %"?: string | null
@@ -20,20 +21,21 @@ interface Course {
   Ranking?: string | null
   Specialization?: string | null
   "Application Link"?: string | null
+  scholarship?: string | null
+  entrance_exam?: string | null
   matchScore?: number
+}
+
+interface TestScore {
+  exam: string
+  percentile?: string
+  score?: string
 }
 
 interface UserProfile {
   target_state: string[]
   degree: string
-  program: string
-  budget: string | null
-  twelfth_score: string | null
-  ug_score: string | null
-  pg_score: string | null
-  test_scores: Array<{ exam: string; percentile: string }>
-  has_experience: string | null
-  experience_years: string | null
+  test_scores: TestScore[]
 }
 
 interface ClgsRecommendProps {
@@ -75,9 +77,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
 
       const { data, error: profileError } = await supabase
         .from("admit_profiles")
-        .select(
-          "target_state, degree, program, budget, twelfth_score, ug_score, pg_score, test_scores, has_experience, experience_years"
-        )
+        .select("target_state, degree, test_scores")
         .eq("user_id", (user as { id: string }).id)
         .single()
 
@@ -95,100 +95,123 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
     }
   }
 
+  const normalizeStateName = (state: string): string => {
+    return state.toLowerCase().trim().replace(/\s+/g, " ")
+  }
+
   const calculateMatchScore = (course: Course): number => {
     if (!userProfile) return 0
     let score = 0
 
-    // Program/Specialization matching (max 50 points)
-    if (userProfile.program && course.Specialization) {
-      const userProgram = userProfile.program.toLowerCase().trim()
-      const specialization = course.Specialization.toLowerCase()
-      const commonWords = ["in", "of", "and", "the", "for", "with", "on", "at", "to", "a", "an"]
-      const userKeywords = userProgram.split(/[\s,\-/]+/).filter((k) => k.length > 2 && !commonWords.includes(k))
+    // 1. Test Score Matching (65 points - MOST IMPORTANT)
+    if (userProfile.test_scores && Array.isArray(userProfile.test_scores) && userProfile.test_scores.length > 0) {
+      let bestTestScore = 0
+      
+      for (const testScore of userProfile.test_scores) {
+        const exam = testScore.exam?.toLowerCase() || ""
+        const percentile = parseFloat(testScore.percentile || "0")
+        const scoreValue = parseFloat(testScore.score || "0")
+        
+        // Check if course accepts this entrance exam
+        const courseEntrance = course.entrance_exam?.toLowerCase() || ""
+        
+        // Broad matching for common exams
+        const examMatches = 
+          (exam.includes("cat") && courseEntrance.includes("cat")) ||
+          (exam.includes("gate") && courseEntrance.includes("gate")) ||
+          (exam.includes("gmat") && courseEntrance.includes("gmat")) ||
+          (exam.includes("gre") && courseEntrance.includes("gre")) ||
+          (exam.includes("jee") && courseEntrance.includes("jee")) ||
+          (exam.includes("neet") && courseEntrance.includes("neet")) ||
+          (exam.includes("cmat") && courseEntrance.includes("cmat")) ||
+          (exam.includes("xat") && courseEntrance.includes("xat")) ||
+          courseEntrance.includes("all") ||
+          courseEntrance.includes("any")
 
-      // Exact or substring match
-      if (specialization.includes(userProgram)) {
-        score += 50
-      } else {
-        // Keyword-based matching
-        let keywordMatches = 0
-        const totalKeywords = userKeywords.length || 1
-
-        for (const keyword of userKeywords) {
-          if (specialization.includes(keyword)) {
-            keywordMatches++
+        if (examMatches || !courseEntrance) {
+          // Score based on percentile/score
+          let testPoints = 0
+          
+          if (percentile > 0) {
+            if (percentile >= 99) testPoints = 65
+            else if (percentile >= 95) testPoints = 60
+            else if (percentile >= 90) testPoints = 55
+            else if (percentile >= 85) testPoints = 50
+            else if (percentile >= 80) testPoints = 45
+            else if (percentile >= 75) testPoints = 40
+            else if (percentile >= 70) testPoints = 35
+            else if (percentile >= 60) testPoints = 30
+            else if (percentile >= 50) testPoints = 25
+            else testPoints = 20
+          } else if (scoreValue > 0) {
+            // Normalize score (assuming most exams are out of 100 or percentile-like)
+            const normalizedScore = scoreValue > 100 ? scoreValue / 10 : scoreValue
+            if (normalizedScore >= 90) testPoints = 60
+            else if (normalizedScore >= 80) testPoints = 50
+            else if (normalizedScore >= 70) testPoints = 40
+            else if (normalizedScore >= 60) testPoints = 30
+            else testPoints = 20
           }
+          
+          bestTestScore = Math.max(bestTestScore, testPoints)
         }
-
-        const matchPercentage = keywordMatches / totalKeywords
-
-        if (matchPercentage >= 0.8) score += 45
-        else if (matchPercentage >= 0.6) score += 38
-        else if (matchPercentage >= 0.4) score += 30
-        else if (matchPercentage >= 0.2) score += 20
-        else if (keywordMatches > 0) score += 10
       }
-
-      // Field group matching (bonus points)
-      const fieldGroups: Record<string, string[]> = {
-        cs: [
-          "computer",
-          "software",
-          "data",
-          "artificial",
-          "intelligence",
-          "machine",
-          "learning",
-          "cyber",
-          "information",
-          "technology",
-        ],
-        business: ["business", "management", "mba", "finance", "accounting", "marketing", "economics"],
-        engineering: ["engineering", "mechanical", "electrical", "civil", "chemical", "industrial"],
-        science: ["science", "biology", "chemistry", "physics", "mathematics", "statistics"],
-        arts: ["art", "design", "music", "theatre", "media", "communication", "journalism"],
+      
+      score += bestTestScore
+      
+      // If no test scores matched any entrance exam, give partial credit
+      if (bestTestScore === 0 && userProfile.test_scores.length > 0) {
+        score += 10
       }
+    }
 
-      for (const group of Object.values(fieldGroups)) {
-        const userInGroup = group.some((term) => userProgram.includes(term))
-        const courseInGroup = group.some((term) => specialization.includes(term))
-
-        if (userInGroup && courseInGroup && score < 30) {
-          score += 15
-          break
+    // 2. Degree Matching (25 points)
+    if (userProfile.degree && course.Specialization) {
+      const userDegree = userProfile.degree.toLowerCase().trim()
+      const specialization = course.Specialization.toLowerCase()
+      
+      // Extract degree keywords
+      const degreeKeywords = ["mba", "mtech", "btech", "bba", "bca", "mca", "phd", "pgdm", "be", "me", "ms", "ma", "ba", "bsc", "msc"]
+      const userDegreeType = degreeKeywords.find(kw => userDegree.includes(kw))
+      const courseDegreeType = degreeKeywords.find(kw => specialization.includes(kw))
+      
+      if (userDegreeType && courseDegreeType && userDegreeType === courseDegreeType) {
+        score += 25
+      } else if (userDegreeType && courseDegreeType) {
+        // Partial match for related degrees (e.g., BE and BTech, MBA and PGDM)
+        const relatedDegrees: Record<string, string[]> = {
+          "btech": ["be", "btech"],
+          "be": ["be", "btech"],
+          "mtech": ["me", "mtech", "ms"],
+          "me": ["me", "mtech", "ms"],
+          "ms": ["me", "mtech", "ms"],
+          "mba": ["mba", "pgdm"],
+          "pgdm": ["mba", "pgdm"]
+        }
+        
+        const userRelated = relatedDegrees[userDegreeType] || [userDegreeType]
+        if (userRelated.includes(courseDegreeType)) {
+          score += 25
+        } else {
+          score += 10
         }
       }
     }
 
-    // Degree matching (20 points)
-    if (userProfile.degree) {
-      score += 20
-    }
-
-    // Location/State matching (10 points)
+    // 3. State/Location Matching (10 points)
     if (userProfile.target_state && userProfile.target_state.length > 0 && course.State) {
-      const courseState = course.State.toLowerCase().trim()
+      const courseState = normalizeStateName(course.State)
       const matchesState = userProfile.target_state.some((state) => {
-        const targetState = state.toLowerCase().trim()
+        const targetState = normalizeStateName(state)
         return courseState.includes(targetState) || targetState.includes(courseState)
       })
+      
       if (matchesState) {
         score += 10
       }
     }
 
-    // Budget matching (10 points) - if course fees data available
-    // This is a placeholder - you may need to adjust based on your actual fee data
-    if (userProfile.budget && course["Average Package"]) {
-      score += 5
-    }
-
-    // Academic score matching (10 points)
-    if (userProfile.ug_score || userProfile.twelfth_score) {
-      score += 5
-    }
-
-    return Math.min(score, 100) // Cap at 100
+    return Math.min(score, 100)
   }
 
   const fetchRecommendedCourses = async () => {
@@ -210,13 +233,6 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         return
       }
 
-      if (!userProfile.program) {
-        onErrorChange("Please select your field of study in your profile")
-        onRecommendedCoursesChange([])
-        onLoadingChange(false)
-        return
-      }
-
       // Fetch all courses in batches
       let allCourses: Course[] = []
       let from = 0
@@ -227,7 +243,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         const { data, error: supabaseError } = await supabase
           .from("courses")
           .select(
-            'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Average Package", "Highest Package", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link"'
+            'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Course Fees", "Average Package", "Highest Package", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link", scholarship, entrance_exam'
           )
           .order("id", { ascending: true })
           .range(from, from + batchSize - 1)
@@ -255,11 +271,13 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         matchScore: calculateMatchScore(course),
       }))
 
-      // Filter for relevant courses (score > 10)
-      const relevantCourses = scoredCourses.filter((c) => (c.matchScore || 0) > 10)
+      // Filter for relevant courses (score > 15)
+      const relevantCourses = scoredCourses.filter((c) => (c.matchScore || 0) > 15)
 
-      // Get top 10 recommendations
-      const topRecommendations = relevantCourses.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0)).slice(0, 10)
+      // Get top 10 recommendations sorted by match score
+      const topRecommendations = relevantCourses
+        .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+        .slice(0, 10)
 
       // If we don't have 10 recommendations, fill with the best remaining courses
       if (topRecommendations.length < 10) {
@@ -319,7 +337,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
     )
   }
 
-  const hasProfileData = userProfile && userProfile.degree && userProfile.program
+  const hasProfileData = userProfile && userProfile.degree
 
   return (
     <>
@@ -333,16 +351,16 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
               </p>
               <p className="text-xs text-blue-700 mt-1">
                 Based on: <strong>{userProfile.degree}</strong> degree
-                {userProfile.program && (
+                {userProfile.test_scores && userProfile.test_scores.length > 0 && (
                   <>
                     {" "}
-                    | Program: <strong>{userProfile.program}</strong>
+                    | Test Scores: <strong>{userProfile.test_scores.map(t => t.exam).join(", ")}</strong>
                   </>
                 )}
                 {userProfile.target_state && userProfile.target_state.length > 0 && (
                   <>
                     {" "}
-                    | Preferred: <strong>{userProfile.target_state.join(", ")}</strong>
+                    | Preferred States: <strong>{userProfile.target_state.join(", ")}</strong>
                   </>
                 )}
               </p>

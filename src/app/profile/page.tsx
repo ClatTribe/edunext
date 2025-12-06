@@ -1,26 +1,26 @@
 "use client"
 import React, { useState, useEffect, useCallback, useMemo } from "react"
 import {
-  User,
-  BookOpen,
   Award,
   Trophy,
-  Edit2,
   Save,
   X,
-  CheckCircle,
   Trash2,
-  Plus,
-  Minus,
   GraduationCap,
-  Target,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  CheckCircle2,
 } from "lucide-react"
 import DefaultLayout from "../defaultLayout"
 import { useAuth } from "../../../contexts/AuthContext"
 import { supabase } from "../../../lib/supabase"
+
+// Import custom components
+import TargetProgramSection from "../../../components/ProfileData/TargetProgramSection"
+import PersonalInfoSection from "../../../components/ProfileData/PersonalInfoSection"
+import AcademicSection from "../../../components/ProfileData/AcademicSection"
+import TestScoresSection from "../../../components/ProfileData/TestScoresSection"
+import ProfileHeader from "../../../components/ProfileData/ProfileHeader"
 
 interface TestScore {
   exam: string
@@ -28,49 +28,40 @@ interface TestScore {
 }
 
 interface FormData {
-  // Personal Information
   name: string
   email: string
   phone: string
   city: string
   state: string
-  // Target Program
   target_state: string[]
   target_degree: string
   target_field: string
-  budget: string
+  budget: string []
   academic_year: string
-  // 10th Grade
   tenth_board: string
   tenth_year: string
   tenth_score: string
-  // 12th Grade
   twelfth_board: string
   twelfth_year: string
   twelfth_score: string
   twelfth_stream: string
-  // Undergraduate
   ug_degree: string
   ug_year: string
   ug_score: string
   ug_field: string
-  // Postgraduate
   pg_degree: string
   pg_year: string
   pg_score: string
   pg_field: string
-  // Test Scores
   testScores: TestScore[]
-  // Work Experience
   has_experience: string
   experience_years: string
   experience_field: string
-  // Other
   extracurricular: string
   verified: boolean
 }
 
-// Global cache for profile data
+// Global cache
 let cachedFormData: FormData | null = null
 let cachedHasProfile = false
 let cacheTimestamp = 0
@@ -82,25 +73,7 @@ export const invalidateProfileCache = () => {
   cacheTimestamp = 0
 }
 
-const COMMON_EXAMS = ["CAT", "NMAT", "MAT", "XAT", "BITSAT", "GMAT", "CMAT", "SNAP", "Other"]
-
-const COUNTRIES = ["Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Haryana", "West Bengal (Other)"]
-
-const DEGREE_OPTIONS = [
-  // { value: "Bachelors", label: "Bachelors (Undergraduate)" },
-  // { value: "Masters", label: "Masters" },
-  { value: "MBA", label: "MBA" },
-  // { value: "PhD", label: "PhD / Doctorate" },
-  // { value: "Diploma", label: "Diploma/Certificate" },
-]
-
-const TERM_OPTIONS = [
-  { value: "2026", label: "2026" },
-  { value: "2027", label: "2027" },
-  { value: "2028", label: "2028 or later" },
-]
-
-// Type definitions for component props
+// Shared Components
 interface InputFieldProps {
   label: string
   type?: string
@@ -110,32 +83,6 @@ interface InputFieldProps {
   required?: boolean
   disabled?: boolean
   field: string
-}
-
-interface SelectOption {
-  value: string
-  label: string
-}
-
-interface SelectFieldProps {
-  label: string
-  value: string
-  onChange: (field: string, value: string) => void
-  options: SelectOption[]
-  required?: boolean
-  disabled?: boolean
-  field: string
-}
-
-interface SectionProps {
-  id: string
-  title: string
-  icon: React.ComponentType<{ className?: string }>
-  children: React.ReactNode
-  visible?: boolean
-  isExpanded: boolean
-  isComplete: boolean
-  onToggle: (id: string) => void
 }
 
 const InputField = React.memo(
@@ -158,6 +105,16 @@ const InputField = React.memo(
   },
 )
 InputField.displayName = "InputField"
+
+interface SelectFieldProps {
+  label: string
+  value: string
+  onChange: (field: string, value: string) => void
+  options: { value: string; label: string }[]
+  required?: boolean
+  disabled?: boolean
+  field: string
+}
 
 const SelectField = React.memo(
   ({ label, value, onChange, options, required = false, disabled, field }: SelectFieldProps) => {
@@ -184,6 +141,17 @@ const SelectField = React.memo(
   },
 )
 SelectField.displayName = "SelectField"
+
+interface SectionProps {
+  id: string
+  title: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  visible?: boolean
+  isExpanded: boolean
+  isComplete: boolean
+  onToggle: (id: string) => void
+}
 
 const Section = React.memo(
   ({ id, title, icon: Icon, children, visible = true, isExpanded, isComplete, onToggle }: SectionProps) => {
@@ -236,7 +204,7 @@ const ProfilePage = () => {
       target_state: [],
       target_degree: "",
       target_field: "",
-      budget: "",
+      budget: [],
       academic_year: "",
       tenth_board: "",
       tenth_year: "",
@@ -272,7 +240,7 @@ const ProfilePage = () => {
       target_state: [],
       target_degree: "",
       target_field: "",
-      budget: "",
+      budget: [],
       academic_year: "",
       tenth_board: "",
       tenth_year: "",
@@ -407,6 +375,15 @@ const ProfilePage = () => {
     }))
     setError("")
   }, [])
+  const handleMultiSelectBudget = useCallback((value: string) => {
+  setFormData((prev) => ({
+    ...prev,
+    budget: prev.budget.includes(value)
+      ? prev.budget.filter((b) => b !== value)
+      : [...prev.budget, value],
+  }))
+  setError("")
+}, [])
 
   const handleTestScoreChange = useCallback((index: number, field: "exam" | "percentile", value: string) => {
     setFormData((prev) => {
@@ -450,8 +427,6 @@ const ProfilePage = () => {
   const isSectionComplete = useCallback(
     (section: string): boolean => {
       switch (section) {
-        // case "target":
-        //   return !!(formData.target_state.length > 0 && formData.target_degree && formData.target_field)
         case "personal":
           return !!(formData.name && formData.email && formData.phone && formData.city)
         case "tenth":
@@ -499,10 +474,6 @@ const ProfilePage = () => {
       setError("Please select your target degree")
       return false
     }
-    // if (!formData.target_field) {
-    //   setError("Please enter your field of interest")
-    //   return false
-    // }
     for (let i = 0; i < formData.testScores.length; i++) {
       const test = formData.testScores[i]
       if (!test.exam || !test.percentile) {
@@ -531,7 +502,6 @@ const ProfilePage = () => {
         state: formData.state || null,
         target_state: formData.target_state,
         degree: formData.target_degree,
-        // program: formData.target_field,
         budget: formData.budget || null,
         academic_year: formData.academic_year || null,
         tenth_board: formData.tenth_board || null,
@@ -629,7 +599,6 @@ const ProfilePage = () => {
     let score = 0
     if (formData.target_state.length > 0) score += 3
     if (formData.target_degree) score += 4
-    // if (formData.target_field) score += 4
     if (formData.academic_year) score += 2
     if (formData.budget) score += 2
     if (formData.name) score += 2
@@ -701,134 +670,17 @@ const ProfilePage = () => {
       <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-[#f8fafc]">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
-            <div className="flex flex-col gap-4 mb-4">
-              <div className="flex items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-0">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#2f61ce] rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl font-bold flex-shrink-0">
-                    {userInitial}
-                  </div>
-                  {/* Title - visible on all screens */}
-                  <div className="flex-1 min-w-0">
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 truncate">
-                      {hasProfile ? "My Profile" : "Create Your Profile"}
-                    </h1>
-                    <p className="text-sm sm:text-base text-gray-600 truncate">
-                      {hasProfile ? "Manage your academic information" : "Tell us about yourself"}
-                    </p>
-                  </div>
-                </div>
-                {/* EduScore Circle - hidden on mobile, shown on larger screens */}
-                <div className="hidden md:flex flex-col items-center flex-shrink-0">
-                  <div className="relative w-20 lg:w-24 h-20 lg:h-24">
-                    <svg className="w-20 lg:w-24 h-20 lg:h-24 transform -rotate-90">
-                      <circle cx="40" cy="40" r="34" stroke="#e5e7eb" strokeWidth="7" fill="none" className="lg:hidden" />
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="34"
-                        stroke={scoreInfo.color}
-                        strokeWidth="7"
-                        fill="none"
-                        strokeDasharray={`${(eduScore / 90) * 213.6} 213.6`}
-                        strokeLinecap="round"
-                        className="transition-all duration-500 lg:hidden"
-                      />
-                      <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" className="hidden lg:block" />
-                      <circle
-                        cx="48"
-                        cy="48"
-                        r="40"
-                        stroke={scoreInfo.color}
-                        strokeWidth="8"
-                        fill="none"
-                        strokeDasharray={`${(eduScore / 90) * 251.2} 251.2`}
-                        strokeLinecap="round"
-                        className="transition-all duration-500 hidden lg:block"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl lg:text-2xl font-bold" style={{ color: scoreInfo.color }}>
-                        {eduScore}
-                      </span>
-                      <span className="text-xs text-gray-500">/ 90</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-center">
-                    <div className="text-xs font-semibold text-gray-600">EduScore</div>
-                    <div className="text-xs" style={{ color: scoreInfo.color }}>
-                      {scoreInfo.label}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* EduScore for mobile - shown below header */}
-              <div className="flex md:hidden justify-center">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-16">
-                    <svg className="w-16 h-16 transform -rotate-90">
-                      <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="6" fill="none" />
-                      <circle
-                        cx="32"
-                        cy="32"
-                        r="28"
-                        stroke={scoreInfo.color}
-                        strokeWidth="6"
-                        fill="none"
-                        strokeDasharray={`${(eduScore / 90) * 175.8} 175.8`}
-                        strokeLinecap="round"
-                        className="transition-all duration-500"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-lg font-bold" style={{ color: scoreInfo.color }}>
-                        {eduScore}
-                      </span>
-                      <span className="text-xs text-gray-500">/ 90</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-600">EduScore</div>
-                    <div className="text-sm" style={{ color: scoreInfo.color }}>
-                      {scoreInfo.label}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Action buttons */}
-              {hasProfile && !isEditing && (
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center justify-center gap-2 bg-[#2f61ce] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-[#254da6] transition-all text-sm sm:text-base"
-                  >
-                    <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-                    Edit Profile
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center justify-center gap-2 bg-white border-2 border-[#2f61ce] text-[#2f61ce] px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-[#eef3fc] transition-all text-sm sm:text-base"
-                  >
-                    <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-            {successMessage && (
-              <div className="mb-4 p-3 sm:p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 flex items-center gap-2 text-sm sm:text-base">
-                <CheckCircle size={18} className="flex-shrink-0" />
-                <p>{successMessage}</p>
-              </div>
-            )}
-            {error && (
-              <div className="mb-4 p-3 sm:p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm sm:text-base">
-                <p>{error}</p>
-              </div>
-            )}
-          </div>
+          <ProfileHeader
+            userInitial={userInitial}
+            hasProfile={hasProfile}
+            isEditing={isEditing}
+            eduScore={eduScore}
+            scoreInfo={scoreInfo}
+            successMessage={successMessage}
+            error={error}
+            onEdit={() => setIsEditing(true)}
+            onDelete={() => setShowDeleteConfirm(true)}
+          />
 
           {/* Delete Confirmation Modal */}
           {showDeleteConfirm && (
@@ -869,419 +721,109 @@ const ProfilePage = () => {
           {/* Form Sections */}
           <div className="space-y-3 sm:space-y-4">
             {/* Target Program */}
-            <Section
-              id="target"
-              title="What are you looking to study?"
-              icon={Target}
+            <TargetProgramSection
+              formData={formData}
+              isEditing={isEditing}
               isExpanded={expandedSection === "target"}
               isComplete={isSectionComplete("target")}
               onToggle={toggleSection}
-            >
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preferred States <span className="text-[#2f61ce]">*</span>
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  {COUNTRIES.map((country) => (
-                    <button
-                      key={country}
-                      type="button"
-                      onClick={() => isEditing && handleMultiSelect(country)}
-                      disabled={!isEditing}
-                      className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base ${
-                        formData.target_state.includes(country)
-                          ? "border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce] font-medium"
-                          : "border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]"
-                      } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
-                    >
-                      {country}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectField
-                  label="What degree are you applying for?"
-                  value={formData.target_degree}
-                  onChange={handleInputChange}
-                  field="target_degree"
-                  options={DEGREE_OPTIONS}
-                  required
-                  disabled={!isEditing}
-                />
-                {/* <InputField
-                  label="Field of Interest"
-                  value={formData.target_field}
-                  onChange={handleInputChange}
-                  field="target_field"
-                  placeholder="Computer Science, MBA, Medicine, etc."
-                  required
-                  disabled={!isEditing}
-                /> */}
-                <SelectField
-                  label="When do you plan to start?"
-                  value={formData.academic_year}
-                  onChange={handleInputChange}
-                  field="academic_year"
-                  options={TERM_OPTIONS}
-                  disabled={!isEditing}
-                />
-                <SelectField
-                  label="Budget Range (Annual)"
-                  value={formData.budget}
-                  onChange={handleInputChange}
-                  field="budget"
-                  options={[
-                    { value: "5L", label: "5 Lakh" },
-                    { value: "5-10L", label: "₹5-10 Lakhs" },
-                    { value: "10-15L", label: "₹10-15 Lakhs" },
-                    { value: "Above 15L", label: "Above ₹15 Lakhs" },
-                  ]}
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
+              onInputChange={handleInputChange}
+              onMultiSelect={handleMultiSelect}
+              onMultiSelectBudget={handleMultiSelectBudget}
+              Section={Section}
+              SelectField={SelectField}
+            />
 
             {/* Personal Information */}
-            <Section
-              id="personal"
-              title="Personal Information"
-              icon={User}
+            <PersonalInfoSection
+              formData={formData}
+              isEditing={isEditing}
               isExpanded={expandedSection === "personal"}
               isComplete={isSectionComplete("personal")}
               onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Full Name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  field="name"
-                  placeholder="Enter your full name"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Email Address"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  field="email"
-                  placeholder="your.email@example.com"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Phone Number"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  field="phone"
-                  placeholder="+91 XXXXX XXXXX"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="City"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  field="city"
-                  placeholder="Your city"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="State"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  field="state"
-                  placeholder="Your state"
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
+              onInputChange={handleInputChange}
+              Section={Section}
+              InputField={InputField}
+            />
 
             {/* 10th Grade */}
-            <Section
+            <AcademicSection
               id="tenth"
               title="10th Grade Details"
-              icon={GraduationCap}
+              type="tenth"
+              formData={formData}
+              isEditing={isEditing}
               isExpanded={expandedSection === "tenth"}
               isComplete={isSectionComplete("tenth")}
               onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <SelectField
-                  label="Board"
-                  value={formData.tenth_board}
-                  onChange={handleInputChange}
-                  field="tenth_board"
-                  options={[
-                    { value: "CBSE", label: "CBSE" },
-                    { value: "ICSE", label: "ICSE" },
-                    { value: "State Board", label: "State Board" },
-                    { value: "Other", label: "Other" },
-                  ]}
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Passing"
-                  type="number"
-                  value={formData.tenth_year}
-                  onChange={handleInputChange}
-                  field="tenth_year"
-                  placeholder="2019"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Percentage/CGPA"
-                  value={formData.tenth_score}
-                  onChange={handleInputChange}
-                  field="tenth_score"
-                  placeholder="85% or 9.5 CGPA"
-                  required
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
+              onInputChange={handleInputChange}
+              Section={Section}
+              InputField={InputField}
+              SelectField={SelectField}
+            />
 
             {/* 12th Grade */}
-            <Section
+            <AcademicSection
               id="twelfth"
               title="12th Grade Details"
-              icon={GraduationCap}
+              type="twelfth"
+              formData={formData}
+              isEditing={isEditing}
               isExpanded={expandedSection === "twelfth"}
               isComplete={isSectionComplete("twelfth")}
               onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectField
-                  label="Board"
-                  value={formData.twelfth_board}
-                  onChange={handleInputChange}
-                  field="twelfth_board"
-                  options={[
-                    { value: "CBSE", label: "CBSE" },
-                    { value: "ICSE", label: "ICSE" },
-                    { value: "State Board", label: "State Board" },
-                    { value: "Other", label: "Other" },
-                  ]}
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Passing"
-                  type="number"
-                  value={formData.twelfth_year}
-                  onChange={handleInputChange}
-                  field="twelfth_year"
-                  placeholder="2021"
-                  required
-                  disabled={!isEditing}
-                />
-                <SelectField
-                  label="Stream"
-                  value={formData.twelfth_stream}
-                  onChange={handleInputChange}
-                  field="twelfth_stream"
-                  options={[
-                    { value: "Science", label: "Science" },
-                    { value: "Commerce", label: "Commerce" },
-                    { value: "Arts", label: "Arts" },
-                    { value: "Other", label: "Other" },
-                  ]}
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Percentage/CGPA"
-                  value={formData.twelfth_score}
-                  onChange={handleInputChange}
-                  field="twelfth_score"
-                  placeholder="88% or 9.2 CGPA"
-                  required
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
+              onInputChange={handleInputChange}
+              Section={Section}
+              InputField={InputField}
+              SelectField={SelectField}
+            />
 
             {/* Undergraduate */}
-            <Section
+            <AcademicSection
               id="ug"
               title="Undergraduate Details"
-              icon={GraduationCap}
-              visible={shouldShowUG}
+              type="ug"
+              formData={formData}
+              isEditing={isEditing}
               isExpanded={expandedSection === "ug"}
               isComplete={isSectionComplete("ug")}
+              visible={shouldShowUG}
               onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Degree"
-                  value={formData.ug_degree}
-                  onChange={handleInputChange}
-                  field="ug_degree"
-                  placeholder="B.Tech, B.Sc, B.Com, etc."
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Field of Study"
-                  value={formData.ug_field}
-                  onChange={handleInputChange}
-                  field="ug_field"
-                  placeholder="Computer Science, Mechanical, etc."
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Graduation"
-                  type="number"
-                  value={formData.ug_year}
-                  onChange={handleInputChange}
-                  field="ug_year"
-                  placeholder="2024"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="CGPA/Percentage"
-                  value={formData.ug_score}
-                  onChange={handleInputChange}
-                  field="ug_score"
-                  placeholder="8.5 CGPA or 85%"
-                  required
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
+              onInputChange={handleInputChange}
+              Section={Section}
+              InputField={InputField}
+              SelectField={SelectField}
+            />
 
             {/* Postgraduate */}
-            <Section
+            <AcademicSection
               id="pg"
               title="Postgraduate/Masters Details"
-              icon={GraduationCap}
-              visible={shouldShowPG}
+              type="pg"
+              formData={formData}
+              isEditing={isEditing}
               isExpanded={expandedSection === "pg"}
               isComplete={isSectionComplete("pg")}
+              visible={shouldShowPG}
               onToggle={toggleSection}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Degree"
-                  value={formData.pg_degree}
-                  onChange={handleInputChange}
-                  field="pg_degree"
-                  placeholder="M.Tech, M.Sc, MBA, etc."
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Field of Study"
-                  value={formData.pg_field}
-                  onChange={handleInputChange}
-                  field="pg_field"
-                  placeholder="Specialization"
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="Year of Graduation"
-                  type="number"
-                  value={formData.pg_year}
-                  onChange={handleInputChange}
-                  field="pg_year"
-                  placeholder="2024"
-                  required
-                  disabled={!isEditing}
-                />
-                <InputField
-                  label="CGPA/Percentage"
-                  value={formData.pg_score}
-                  onChange={handleInputChange}
-                  field="pg_score"
-                  placeholder="8.5 CGPA or 85%"
-                  disabled={!isEditing}
-                />
-              </div>
-            </Section>
+              onInputChange={handleInputChange}
+              Section={Section}
+              InputField={InputField}
+              SelectField={SelectField}
+            />
 
             {/* Test Scores */}
-            <Section
-              id="tests"
-              title="Test Scores"
-              icon={BookOpen}
+            <TestScoresSection
+              testScores={formData.testScores}
+              isEditing={isEditing}
               isExpanded={expandedSection === "tests"}
               isComplete={isSectionComplete("tests")}
               onToggle={toggleSection}
-            >
-              <div className="flex items-center justify-between mb-4">
-                {isEditing && (
-                  <button
-                    onClick={addTestScore}
-                    className="flex items-center gap-2 bg-[#2f61ce] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#254da6] transition-all ml-auto text-sm sm:text-base"
-                  >
-                    <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
-                    Add Test
-                  </button>
-                )}
-              </div>
-              {formData.testScores.length === 0 ? (
-                <div className="text-center py-6 sm:py-8 text-gray-500 text-sm sm:text-base">
-                  {isEditing ? (
-                    <p>No test scores added yet. Click &quot;Add Test&quot; to add your scores.</p>
-                  ) : (
-                    <p>No test scores available.</p>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {formData.testScores.map((test, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start p-3 sm:p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1 w-full">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Exam Type</label>
-                        {isEditing ? (
-                          <select
-                            value={test.exam}
-                            onChange={(e) => handleTestScoreChange(index, "exam", e.target.value)}
-                            className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
-                          >
-                            <option value="">Select Exam</option>
-                            {COMMON_EXAMS.map((exam) => (
-                              <option key={exam} value={exam}>
-                                {exam}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <p className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-100 rounded-lg">{test.exam}</p>
-                        )}
-                      </div>
-                      <div className="flex-1 w-full">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Percentile</label>
-                        <input
-                          type="text"
-                          value={test.percentile}
-                          onChange={(e) => handleTestScoreChange(index, "percentile", e.target.value)}
-                          disabled={!isEditing}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
-                          placeholder="e.g., 85, 90, 95"
-                        />
-                      </div>
-                      {isEditing && (
-                        <button
-                          onClick={() => removeTestScore(index)}
-                          className="sm:mt-8 p-2 sm:p-3 text-[#2f61ce] hover:bg-[#eef3fc] rounded-lg transition-all self-end sm:self-auto"
-                          title="Remove test"
-                        >
-                          <Minus size={18} className="sm:w-[20px] sm:h-[20px]" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Section>
+              onAdd={addTestScore}
+              onRemove={removeTestScore}
+              onChange={handleTestScoreChange}
+              Section={Section}
+            />
 
             {/* Work Experience */}
             <Section
