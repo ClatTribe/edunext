@@ -1,14 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    // Optimize Turbopack for Supabase client
-    turbo: {
-      resolveAlias: {
-        '@supabase/supabase-js': '@supabase/supabase-js',
-      },
-    },
-  },
+  // Remove the experimental.turbo section - it's not needed in Next.js 16
+  // Turbopack is now built-in and doesn't require this configuration
   
   // Webpack config for fallbacks
   webpack: (config, { isServer }) => {
