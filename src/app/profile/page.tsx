@@ -164,10 +164,10 @@ const Section = React.memo(
           className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-[#f8fafc] hover:bg-[#eef3fc] transition-colors"
         >
           <div className="flex items-center gap-2 sm:gap-3">
-            <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce] flex-shrink-0" />
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce] shrink-0" />
             <span className="font-semibold text-gray-800 text-sm sm:text-base text-left">{title}</span>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {isComplete && <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#fac300]" />}
             {isExpanded ? (
               <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce]" />
@@ -687,7 +687,7 @@ const ProfilePage = () => {
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#eef3fc] rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#eef3fc] rounded-full flex items-center justify-center shrink-0">
                     <Trash2 className="text-[#2f61ce]" size={20} />
                   </div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Delete Profile</h3>
@@ -747,7 +747,7 @@ const ProfilePage = () => {
             />
 
             {/* 10th Grade */}
-            <AcademicSection
+            {/* <AcademicSection
               id="tenth"
               title="10th Grade Details"
               type="tenth"
@@ -760,10 +760,10 @@ const ProfilePage = () => {
               Section={Section}
               InputField={InputField}
               SelectField={SelectField}
-            />
+            /> */}
 
             {/* 12th Grade */}
-            <AcademicSection
+            {/* <AcademicSection
               id="twelfth"
               title="12th Grade Details"
               type="twelfth"
@@ -776,10 +776,10 @@ const ProfilePage = () => {
               Section={Section}
               InputField={InputField}
               SelectField={SelectField}
-            />
+            /> */}
 
             {/* Undergraduate */}
-            <AcademicSection
+            {/* <AcademicSection
               id="ug"
               title="Undergraduate Details"
               type="ug"
@@ -793,7 +793,7 @@ const ProfilePage = () => {
               Section={Section}
               InputField={InputField}
               SelectField={SelectField}
-            />
+            /> */}
 
             {/* Postgraduate */}
             <AcademicSection
@@ -826,7 +826,7 @@ const ProfilePage = () => {
             />
 
             {/* Work Experience */}
-            <Section
+            {/* <Section
               id="experience"
               title="Work Experience"
               icon={Award}
@@ -868,10 +868,10 @@ const ProfilePage = () => {
                   />
                 </div>
               )}
-            </Section>
+            </Section> */}
 
             {/* Extracurricular Activities */}
-            <Section
+            {/* <Section
               id="extra"
               title="Extracurricular Activities"
               icon={Trophy}
@@ -892,7 +892,7 @@ const ProfilePage = () => {
                   placeholder="Include sports, volunteer work, leadership roles, competitions, research projects, internships, etc."
                 />
               </div>
-            </Section>
+            </Section> */}
 
             {/* Action Buttons */}
             {isEditing && (

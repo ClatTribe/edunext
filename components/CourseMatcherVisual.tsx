@@ -40,7 +40,7 @@ export const CourseMatcherVisual: React.FC = () => {
       {/* Header */}
       <div className="p-4 sm:p-6 md:p-8 border-b border-slate-100 bg-white">
         <h3 className="text-2xl sm:text-3xl font-bold text-[#2f61ce] mb-2 tracking-tight">
-          Find Your Perfect College
+          Find Your Dream MBA College
         </h3>
         <p className="text-sm sm:text-base md:text-lg text-slate-500 mb-6 sm:mb-8">
           Explore Programs and Institutes Across India
@@ -77,7 +77,7 @@ export const CourseMatcherVisual: React.FC = () => {
                 key={course.id}
                 className="bg-white p-3 sm:p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4"
               >
-                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-lg flex-shrink-0">
+                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-lg shrink-0">
                   {course["College Name"]?.[0] || "C"}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -86,7 +86,7 @@ export const CourseMatcherVisual: React.FC = () => {
                   </h4>
                   {(course.City || course.State) && (
                     <div className="flex items-center gap-1 text-xs sm:text-sm text-slate-600">
-                      <MapPin size={14} className="flex-shrink-0" />
+                      <MapPin size={14} className="shrink-0" />
                       <span className="truncate">
                         {course.City && course.State
                           ? `${course.City}, ${course.State}`
@@ -99,7 +99,7 @@ export const CourseMatcherVisual: React.FC = () => {
             ))}
 
             {/* Fade overlay */}
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-slate-50 to-transparent pointer-events-none"></div>
           </div>
         )}
       </div>

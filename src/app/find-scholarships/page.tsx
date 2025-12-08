@@ -13,12 +13,10 @@ import {
   X,
   AlertCircle,
   Sparkles,
-  Trophy,
-  Target,
   Globe,
   GraduationCap,
   IndianRupee,
-  Star, // Added Star icon for featured scholarship
+  Star,
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { useAuth } from "../../../contexts/AuthContext"
@@ -200,7 +198,7 @@ const ScholarshipFinder: React.FC = () => {
 
     if (score >= 90) {
       return (
-        <span className="text-xs bg-gradient-to-r from-[#fac300] to-yellow-400 text-gray-900 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <span className="text-xs bg-linear-to-r from-[#fac300] to-yellow-400 text-gray-900 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
           <Sparkles size={12} className="sm:w-3.5 sm:h-3.5" />
           <span className="hidden sm:inline">Perfect ({score.toFixed(0)}%)</span>
           <span className="sm:hidden">{score.toFixed(0)}%</span>
@@ -260,7 +258,7 @@ const ScholarshipFinder: React.FC = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6 mt-18 sm:mt-0">
+      <div className="flex-1 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6 mt-18 sm:mt-0">
         <div className="max-w-7xl mx-auto">
           <div className="mb-4 sm:mb-6 md:mb-8">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#2f61ce] mb-1 sm:mb-2">
@@ -400,17 +398,17 @@ const ScholarshipFinder: React.FC = () => {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3">
-              <AlertCircle className="text-[#2f61ce] flex-shrink-0 mt-0.5" size={18} />
+              <AlertCircle className="text-[#2f61ce] shrink-0 mt-0.5" size={18} />
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-red-800 text-sm sm:text-base">Notice</h3>
-                <p className="text-[#2f61ce] text-xs sm:text-sm break-words">{error}</p>
+                <p className="text-[#2f61ce] text-xs sm:text-sm wrap-break-word">{error}</p>
               </div>
             </div>
           )}
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 bg-white rounded-lg shadow-sm p-3 sm:p-4">
             <div className="flex items-center gap-2">
-              <Award className="text-[#2f61ce] flex-shrink-0" size={20} />
+              <Award className="text-[#2f61ce] shrink-0" size={20} />
               <span className="font-semibold text-sm sm:text-base md:text-lg">
                 {filteredScholarships.length.toLocaleString()} {viewMode === "recommended" ? "recommended " : ""}scholarships
               </span>
@@ -436,16 +434,15 @@ const ScholarshipFinder: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {filteredScholarships.map((s, index) => {
-                const isBlurred = viewMode === "recommended" && index >= 2 && !s.isFeatured
+              {filteredScholarships.map((s) => {
                 const isFeatured = s.isFeatured
 
                 return (
                   <div
                     key={s.id}
                     className={`bg-white border-2 ${
-                      isFeatured ? "border-amber-500 ring-2 ring-amber-200" : viewMode === "recommended" && index < 2 ? "border-[#fac300]" : "border-gray-200"
-                    } rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow relative ${isBlurred ? "overflow-hidden" : ""}`}
+                      isFeatured ? "border-amber-500 ring-2 ring-amber-200" : "border-gray-200"
+                    } rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow relative`}
                   >
                     {isFeatured && (
                       <div className="absolute top-0 right-0 bg-[#fac300] text-gray-900 text-xs font-bold px-3 py-1.5 rounded-bl-lg flex items-center gap-1 shadow-md">
@@ -454,38 +451,16 @@ const ScholarshipFinder: React.FC = () => {
                       </div>
                     )}
 
-                    {isBlurred && (
-                      <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex items-center justify-center p-4 sm:p-6 rounded-xl">
-                        <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 text-center max-w-sm border-2 border-[#fac300]">
-                          <div className="mb-4 flex justify-center">
-                            <div className="bg-gradient-to-br from-[#2f61ce] to-[#fac300] rounded-full p-3 sm:p-4">
-                              <AlertCircle className="text-white" size={24} />
-                            </div>
-                          </div>
-                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-3">
-                            Unlock More Recommendations
-                          </h3>
-                          <p className="text-xs sm:text-sm text-gray-600 mb-5 sm:mb-6">
-                            Talk to our experts to view {10 - index - 1} more personalized recommendations
-                          </p>
-                          <button className="bg-[#fac300] text-gray-900 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold w-full flex items-center justify-center gap-2 hover:bg-amber-400">
-                            <Sparkles size={16} />
-                            Contact Experts
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
                     <div className="flex items-start justify-between mb-4 gap-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base sm:text-lg md:text-xl text-gray-900 leading-tight mb-2 sm:mb-3 break-words">
+                        <h3 className="font-bold text-base sm:text-lg md:text-xl text-gray-900 leading-tight mb-2 sm:mb-3 wrap-break-word">
                           {s.scholarship_name || "Scholarship"}
                           {isFeatured && <span className="text-xs text-amber-500 ml-2">(Top Pick)</span>}
                         </h3>
 
                         {s.organisation && (
                           <div className="flex items-center gap-2 mb-2 sm:mb-3 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
-                            <Globe size={14} className="sm:w-4 sm:h-4 text-[#2f61ce] flex-shrink-0" />
+                            <Globe size={14} className="sm:w-4 sm:h-4 text-[#2f61ce] shrink-0" />
                             <p className="text-gray-700 font-medium text-xs sm:text-sm truncate">{s.organisation}</p>
                           </div>
                         )}
@@ -495,9 +470,9 @@ const ScholarshipFinder: React.FC = () => {
 
                       <button
                         onClick={() => toggleSaveScholarship(s.id)}
-                        disabled={isBlurred || isFeatured}
-                        className={`transition-colors ml-2 flex-shrink-0 ${
-                          isBlurred || isFeatured
+                        disabled={isFeatured}
+                        className={`transition-colors ml-2 shrink-0 ${
+                          isFeatured
                             ? "opacity-50 cursor-not-allowed"
                             : savedScholarships.has(s.id)
                               ? "text-[#2f61ce]"
@@ -511,29 +486,29 @@ const ScholarshipFinder: React.FC = () => {
                     {(s.eligibility || s.detailed_eligibility) && (
                       <div className="mb-3 sm:mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3 sm:p-4">
                         <div className="flex items-start gap-2">
-                          <GraduationCap size={16} className="sm:w-4 sm:h-4 text-[#2f61ce] flex-shrink-0 mt-0.5" />
+                          <GraduationCap size={16} className="sm:w-4 sm:h-4 text-[#2f61ce] shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-[#2f61ce] mb-1 uppercase tracking-wide">Eligibility</p>
-                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed break-words">{s.detailed_eligibility || s.eligibility}</p>
+                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed wrap-break-word">{s.detailed_eligibility || s.eligibility}</p>
                           </div>
                         </div>
                       </div>
                     )}
 
                     {(s.benefit || s.price) && (
-                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-[#fac300] rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                      <div className="bg-linear-to-r from-yellow-50 to-amber-50 border-2 border-[#fac300] rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
                         <div className="flex items-start gap-2">
-                          <IndianRupee size={16} className="sm:w-4 sm:h-4 text-[#fac300] flex-shrink-0 mt-0.5" />
+                          <IndianRupee size={16} className="sm:w-4 sm:h-4 text-[#fac300] shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-gray-900 mb-1 uppercase tracking-wide">Benefits</p>
-                            <p className="text-xs sm:text-sm text-gray-800 leading-relaxed break-words">{s.benefit || s.price}</p>
+                            <p className="text-xs sm:text-sm text-gray-800 leading-relaxed wrap-break-word">{s.benefit || s.price}</p>
                           </div>
                         </div>
                       </div>
                     )}
 
                     <div className="flex items-center gap-2 text-gray-700 mb-3 sm:mb-4 pt-3 sm:pt-4 border-t border-gray-100">
-                      <Calendar size={16} className="sm:w-4 sm:h-4 text-[#2f61ce] flex-shrink-0" />
+                      <Calendar size={16} className="sm:w-4 sm:h-4 text-[#2f61ce] shrink-0" />
                       <span className="text-xs sm:text-sm">
                         <strong className="font-semibold">Deadline:</strong>{" "}
                         <span className="text-gray-600">{formatDeadline(s.deadline)}</span>
@@ -545,9 +520,7 @@ const ScholarshipFinder: React.FC = () => {
                         href={s.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center justify-center gap-2 bg-[#2f61ce] text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-colors ${
-                          isBlurred ? "opacity-50 cursor-not-allowed pointer-events-none" : "hover:bg-[#2451a8]"
-                        }`}
+                        className="flex items-center justify-center gap-2 bg-[#2f61ce] text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-colors hover:bg-[#2451a8]"
                       >
                         {isFeatured ? "Explore Scholarship" : "Apply Now"}
                         <ExternalLink size={14} className="sm:w-4 sm:h-4" />

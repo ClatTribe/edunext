@@ -56,8 +56,8 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     },
     {
       icon: FileCheck,
-      label: "Answer Key Tool",
-      path: "/answer-key-tool",
+      label: "Exam & Deadline",
+      path: "/exams-and-deadline",
     },
     {
       icon: GraduationCap,
@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-50 to-sky-50 border-b border-blue-200 shadow-md z-40">
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-linear-to-r from-blue-50 to-sky-50 border-b border-blue-200 shadow-md z-40">
         <div className="flex items-center justify-between p-4">
           <Link href="/" className="flex items-center gap-2">
             <img
@@ -155,7 +155,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       <div
         className={`
           fixed md:sticky top-0 h-screen
-          w-64 bg-gradient-to-b from-blue-50 to-sky-50 
+          w-64 bg-linear-to-b from-blue-50 to-sky-50 
           border-r border-blue-200 flex flex-col shadow-lg 
           transition-transform duration-300 ease-in-out z-50
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
@@ -193,7 +193,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           <div className="px-4 pb-4">
             <div className="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="text-sm text-gray-600 flex-shrink-0">Welcome,</div>
+                <div className="text-sm text-gray-600shrink-0">Welcome,</div>
                 <div className="text-[#2f61ce] font-semibold truncate">{userName}</div>
               </div>
             </div>
@@ -314,7 +314,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           </div>
 
           {/* Logout Button - Always visible at bottom, no scrolling needed */}
-          <div className="p-4 pt-0 border-t border-blue-200 bg-gradient-to-b from-blue-50 to-sky-50">
+          <div className="p-4 pt-0 border-t border-blue-200 bg-linear-to-b from-blue-50 to-sky-50">
             <button
               onClick={async (e) => {
                 e.preventDefault();

@@ -17,7 +17,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { CourseMatcherVisual } from "../../components/CourseMatcherVisual";
 import { ScholarshipVisual } from "../../components/ScholarshipVisual";
 import { AdmitFinderVisual } from "../../components/AdmitFinderVisual";
-import { TrustSection } from "../../components/TrustSection";
+// import { TrustSection } from "../../components/TrustSection";
+import TrustSection from "../../components/TrustSection";
 import { PainPoints } from "../../components/PainPoints";
 import TrainRoadmap from "../../components/TrainRoadmap";
 
@@ -28,7 +29,7 @@ const secondary = "#fac300"; // 10–15% yellow usage
 const features = [
   {
     id: "courses",
-    title: "Find Colleges",
+    title: "Find MBA Colleges",
     description:
       "Find your perfect stream based on your actual grades and interests.",
     icon: BookOpen,
@@ -281,7 +282,7 @@ export default function Hero() {
 
       {/* HERO SECTION */}
       <section className="relative pt-36 pb-20 overflow-hidden bg-white">
-        <div className="absolute inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#f3f4f6_1px,transparent_1px),linear-gradient(to_bottom,#f3f4f6_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-50" />
+        <div className="absolute inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#f3f4f6_1px,transparent_1px),linear-gradient(to_bottom,#f3f4f6_1px,transparent_1px)] bg-size-[4rem_4rem] opacity-50" />
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
           <div

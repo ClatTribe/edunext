@@ -23,6 +23,7 @@ interface Course {
   "Application Link"?: string | null
   scholarship?: string | null
   entrance_exam?: string | null
+  is_priority?: boolean
   matchScore?: number
 }
 
@@ -97,6 +98,81 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
 
   const normalizeStateName = (state: string): string => {
     return state.toLowerCase().trim().replace(/\s+/g, " ")
+  }
+
+  // NEW: Check if priority college matches ANY criteria
+  const priorityMatchesAnyCriteria = (course: Course): boolean => {
+    if (!userProfile) return false
+    
+    let matchesAny = false
+
+    // Check State Match
+    if (userProfile.target_state && userProfile.target_state.length > 0 && course.State) {
+      const courseState = normalizeStateName(course.State)
+      const matchesState = userProfile.target_state.some((state) => {
+        const targetState = normalizeStateName(state)
+        return courseState.includes(targetState) || targetState.includes(courseState)
+      })
+      if (matchesState) matchesAny = true
+    }
+
+    // Check Degree Match
+    if (userProfile.degree && course.Specialization) {
+      const userDegree = userProfile.degree.toLowerCase().trim()
+      const specialization = course.Specialization.toLowerCase()
+      
+      const degreeKeywords = ["mba", "mtech", "btech", "bba", "bca", "mca", "phd", "pgdm", "be", "me", "ms", "ma", "ba", "bsc", "msc"]
+      const userDegreeType = degreeKeywords.find(kw => userDegree.includes(kw))
+      const courseDegreeType = degreeKeywords.find(kw => specialization.includes(kw))
+      
+      if (userDegreeType && courseDegreeType) {
+        if (userDegreeType === courseDegreeType) {
+          matchesAny = true
+        } else {
+          // Check related degrees
+          const relatedDegrees: Record<string, string[]> = {
+            "btech": ["be", "btech"],
+            "be": ["be", "btech"],
+            "mtech": ["me", "mtech", "ms"],
+            "me": ["me", "mtech", "ms"],
+            "ms": ["me", "mtech", "ms"],
+            "mba": ["mba", "pgdm"],
+            "pgdm": ["mba", "pgdm"]
+          }
+          const userRelated = relatedDegrees[userDegreeType] || [userDegreeType]
+          if (userRelated.includes(courseDegreeType)) {
+            matchesAny = true
+          }
+        }
+      }
+    }
+
+    // Check Test Score Match (entrance exam)
+    if (userProfile.test_scores && Array.isArray(userProfile.test_scores) && userProfile.test_scores.length > 0) {
+      for (const testScore of userProfile.test_scores) {
+        const exam = testScore.exam?.toLowerCase() || ""
+        const courseEntrance = course.entrance_exam?.toLowerCase() || ""
+        
+        const examMatches = 
+          (exam.includes("cat") && courseEntrance.includes("cat")) ||
+          (exam.includes("gate") && courseEntrance.includes("gate")) ||
+          (exam.includes("gmat") && courseEntrance.includes("gmat")) ||
+          (exam.includes("gre") && courseEntrance.includes("gre")) ||
+          (exam.includes("jee") && courseEntrance.includes("jee")) ||
+          (exam.includes("neet") && courseEntrance.includes("neet")) ||
+          (exam.includes("cmat") && courseEntrance.includes("cmat")) ||
+          (exam.includes("xat") && courseEntrance.includes("xat")) ||
+          courseEntrance.includes("all") ||
+          courseEntrance.includes("any")
+
+        if (examMatches) {
+          matchesAny = true
+          break
+        }
+      }
+    }
+
+    return matchesAny
   }
 
   const calculateMatchScore = (course: Course): number => {
@@ -214,6 +290,46 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
     return Math.min(score, 100)
   }
 
+  const jumblePriorityCoursesInRecommendations = (courses: Course[]): Course[] => {
+    // Only jumble priority courses that match at least one criteria
+    const priorityCourses = courses.filter((c) => c.is_priority && priorityMatchesAnyCriteria(c))
+    const normalCourses = courses.filter((c) => !(c.is_priority && priorityMatchesAnyCriteria(c)))
+
+    if (priorityCourses.length === 0) return courses
+
+    const result: Course[] = []
+    let priorityIndex = 0
+    let normalIndex = 0
+
+    // Create a deterministic seed based on course IDs for consistent shuffling
+    const seed = priorityCourses.reduce((acc, c) => acc + c.id, 0)
+    const random = (min: number, max: number, offset: number) => {
+      const x = Math.sin(seed + offset) * 10000
+      return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min
+    }
+
+    while (priorityIndex < priorityCourses.length || normalIndex < normalCourses.length) {
+      // Add priority course
+      if (priorityIndex < priorityCourses.length) {
+        result.push(priorityCourses[priorityIndex])
+        priorityIndex++
+
+        // Add 1-2 normal courses (with occasional 0 for consecutive priorities)
+        const gap = random(0, 2, priorityIndex)
+        for (let i = 0; i < gap && normalIndex < normalCourses.length; i++) {
+          result.push(normalCourses[normalIndex])
+          normalIndex++
+        }
+      } else {
+        // Add remaining normal courses
+        result.push(normalCourses[normalIndex])
+        normalIndex++
+      }
+    }
+
+    return result
+  }
+
   const fetchRecommendedCourses = async () => {
     try {
       onLoadingChange(true)
@@ -233,7 +349,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         return
       }
 
-      // Fetch all courses in batches
+      // Fetch all courses in batches - NOW INCLUDING is_priority
       let allCourses: Course[] = []
       let from = 0
       const batchSize = 1000
@@ -243,7 +359,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         const { data, error: supabaseError } = await supabase
           .from("courses")
           .select(
-            'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Course Fees", "Average Package", "Highest Package", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link", scholarship, entrance_exam'
+            'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Course Fees", "Average Package", "Highest Package", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link", scholarship, entrance_exam, is_priority'
           )
           .order("id", { ascending: true })
           .range(from, from + batchSize - 1)
@@ -271,25 +387,35 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         matchScore: calculateMatchScore(course),
       }))
 
-      // Filter for relevant courses (score > 15)
-      const relevantCourses = scoredCourses.filter((c) => (c.matchScore || 0) > 15)
+      // NEW LOGIC: Separate priority colleges that match ANY criteria from regular recommendations
+      const priorityMatching = scoredCourses.filter((c) => c.is_priority && priorityMatchesAnyCriteria(c))
+      const regularRelevant = scoredCourses.filter((c) => {
+        // Regular courses with good match score OR priority courses that don't match criteria
+        if (c.is_priority && priorityMatchesAnyCriteria(c)) return false // Already in priorityMatching
+        return (c.matchScore || 0) > 15
+      })
 
-      // Get top 10 recommendations sorted by match score
-      const topRecommendations = relevantCourses
-        .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
-        .slice(0, 10)
+      // Sort both by match score
+      const sortedPriority = priorityMatching.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+      const sortedRegular = regularRelevant.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+
+      // Combine: priority colleges + regular colleges to make up 10 total
+      let combinedRecommendations = [...sortedPriority, ...sortedRegular].slice(0, 10)
 
       // If we don't have 10 recommendations, fill with the best remaining courses
-      if (topRecommendations.length < 10) {
+      if (combinedRecommendations.length < 10) {
         const remaining = scoredCourses
-          .filter((c) => !topRecommendations.find((t) => t.id === c.id))
+          .filter((c) => !combinedRecommendations.find((t) => t.id === c.id))
           .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
-          .slice(0, 10 - topRecommendations.length)
+          .slice(0, 10 - combinedRecommendations.length)
 
-        topRecommendations.push(...remaining)
+        combinedRecommendations = [...combinedRecommendations, ...remaining]
       }
 
-      onRecommendedCoursesChange(topRecommendations)
+      // NOW JUMBLE PRIORITY COURSES within the final list
+      const jumbledRecommendations = jumblePriorityCoursesInRecommendations(combinedRecommendations)
+
+      onRecommendedCoursesChange(jumbledRecommendations)
     } catch (err) {
       onErrorChange(err instanceof Error ? err.message : "Failed to fetch recommended courses")
       console.error("Error fetching recommended courses:", err)

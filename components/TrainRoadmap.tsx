@@ -23,7 +23,7 @@ const TrainRoadmap: React.FC = () => {
       id: 1,
       title: "Research",
       emoji: "✨",
-      description: "Explore 75k+ Courses across 1k Universities",
+      description: "Explore 2000+ Dream MBA Colleges",
       buttonText: "Try Course Finder",
       buttonLink: "/find-colleges",
       position: "right",
@@ -43,7 +43,7 @@ const TrainRoadmap: React.FC = () => {
       id: 3,
       title: "Ideate",
       emoji: "✨",
-      description: "Find the perfect Universities for you",
+      description: "Find the perfect College",
       buttonText: "Get University Shortlist",
       buttonLink: "/your-shortlist",
       position: "right",
@@ -104,7 +104,7 @@ const TrainRoadmap: React.FC = () => {
   };
 
   return (
-    <div ref={roadmapRef} className="relative w-full bg-gradient-to-b from-blue-50 via-white to-blue-50 py-20 px-4 sm:px-6 lg:px-8">
+    <div ref={roadmapRef} className="relative w-full bg-linear-to-b from-blue-50 via-white to-blue-50 py-20 px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="text-center mb-20">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2f61ce] mb-4">

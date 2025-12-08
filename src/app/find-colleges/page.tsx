@@ -336,7 +336,7 @@ const CourseFinder: React.FC = () => {
                         isBlurred ? "overflow-hidden" : ""
                       }`}
                     >
-                      {isBlurred && (
+                      {/* {isBlurred && (
                         <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl">
                           <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 text-center max-w-sm border-2 border-blue-100">
                             <div className="mb-4 flex justify-center">
@@ -360,7 +360,7 @@ const CourseFinder: React.FC = () => {
                             </button>
                           </div>
                         </div>
-                      )}
+                      )} */}
 
                       {/* Priority Badges */}
                       {course.is_priority && (

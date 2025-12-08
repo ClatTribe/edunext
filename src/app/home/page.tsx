@@ -52,7 +52,7 @@ const DashboardPage = () => {
       return {
         completion: 0,
         missingFields: [
-          'Name', 'City', 'Email', 'Contact Number', 'Academic Year', 'Test Scores'
+          'Name', 'City', 'Email', 'Contact Number', 'Test Scores'
         ]
       };
     }
@@ -65,7 +65,7 @@ const DashboardPage = () => {
       profileData.city,           // 2. City
       profileData.email,          // 3. Email
       profileData.phone,          // 4. Contact Number
-      profileData.academic_year,  // 5. Academic Year
+      //profileData.academic_year,  // 5. Academic Year
       hasTestScores               // 6. Test Scores
     ];
 
@@ -273,7 +273,7 @@ const DashboardPage = () => {
           <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border-2 border-blue-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 bg-gradient-to-br ${getProgressColor()} rounded-full flex items-center justify-center`}>
+                <div className={`w-12 h-12 bg-linear-to-br ${getProgressColor()} rounded-full flex items-center justify-center`}>
                   <TrendingUp className="text-white" size={24} />
                 </div>
                 <div>
@@ -282,7 +282,7 @@ const DashboardPage = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold bg-gradient-to-r from-[#2f61ce] to-blue-500 bg-clip-text text-transparent">
+                <div className="text-4xl font-bold bg-linear-to-r from-[#2f61ce] to-blue-500 bg-clip-text text-transparent">
                   {profileMetrics.completion}%
                 </div>
                 <p className="text-sm text-gray-500">Complete</p>
@@ -291,7 +291,7 @@ const DashboardPage = () => {
 
             <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
               <div 
-                className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getProgressColor()} transition-all duration-700 ease-out rounded-full`}
+                className={`absolute top-0 left-0 h-full bg-linear-to-r ${getProgressColor()} transition-all duration-700 ease-out rounded-full`}
                 style={{ width: `${profileMetrics.completion}%` }}
               >
                 <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
@@ -299,9 +299,9 @@ const DashboardPage = () => {
             </div>
 
             {profileMetrics.missingFields.length > 0 && (
-              <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
+              <div className="bg-linear-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={20} />
+                  <AlertCircle className="text-[#2f61ce] mt-0.5 shrink-0" size={20} />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -313,7 +313,7 @@ const DashboardPage = () => {
                     </div>
                     <button
                       onClick={handleProfileClick}
-                      className="flex items-center gap-2 bg-gradient-to-r from-[#2f61ce] to-blue-500 text-white px-4 py-2 rounded-lg hover:from-[#2451a8] hover:to-blue-600 transition-all text-sm font-semibold shadow-lg"
+                      className="flex items-center gap-2 bg-linear-to-r from-[#2f61ce] to-blue-500 text-white px-4 py-2 rounded-lg hover:from-[#2451a8] hover:to-blue-600 transition-all text-sm font-semibold shadow-lg"
                     >
                       <User size={16} />
                       Complete Your Profile
@@ -325,7 +325,7 @@ const DashboardPage = () => {
             )}
 
             {profileMetrics.completion === 100 && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+              <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                 <div className="flex items-center gap-3">
                   <CheckCircle className="text-green-600" size={24} />
                   <div>
@@ -464,9 +464,9 @@ const DashboardPage = () => {
           </div>
 
           {profileMetrics.completion < 100 && (
-            <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-[#fac300]">
+            <div className="mt-6 bg-linear-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-[#fac300]">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-[#fac300] rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-[#fac300] rounded-full flex items-center justify-center shrink-0">
                   <Sparkles className="text-white" size={20} />
                 </div>
                 <div>
