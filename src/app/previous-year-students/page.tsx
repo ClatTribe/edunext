@@ -1,45 +1,39 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, BookOpen, Calendar, Users, User, Building2, Filter, UserCheck, AlertCircle, Sparkles } from 'lucide-react';
+import { Search, ChevronDown, BookOpen, Calendar, Users, User, Building2, UserCheck, AlertCircle, Sparkles, Trophy, Award, Target } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import DefaultLayout from '../defaultLayout';
 
 interface TestScore {
   exam: string;
   score: string;
+  percentile?: string;
 }
 
-interface AdmitProfile {
+interface PreviousStudent {
   id: number;
   name: string;
-  test_scores?: TestScore[];
-  term: string;
-  university: string;
-  program: string;
-  applications_count: number;
-  avatar_type: 'S' | 'G';
-  verified: boolean;
-  degree?: string;
-  last_course_cgpa?: string;
-  user_id?: string;
-  similarityScore?: number;
+  cat_percentile: number;
+  ug_degree: string;
+  city: string;
+  mba_college: string;
+  matchScore?: number;
 }
 
 interface UserProfile {
   test_scores?: TestScore[];
   program: string;
   degree?: string;
-  last_course_cgpa?: string;
+  city?: string;
 }
 
 const AdmitFinder: React.FC = () => {
-  const [profiles, setProfiles] = useState<AdmitProfile[]>([]);
+  const [profiles, setProfiles] = useState<PreviousStudent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUniversity, setSelectedUniversity] = useState('');
-  const [selectedMajor, setSelectedMajor] = useState('');
-  const [viewMode, setViewMode] = useState<'all' | 'similar'>('all');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCollege, setSelectedCollege] = useState('');
+  const [viewMode, setViewMode] = useState<'all' | 'recommended'>('all');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -52,7 +46,7 @@ const AdmitFinder: React.FC = () => {
     if (!loadingProfile) {
       fetchProfiles();
     }
-  }, [showVerifiedOnly, searchQuery, selectedUniversity, selectedMajor, viewMode, loadingProfile]);
+  }, [searchQuery, selectedCity, selectedCollege, viewMode, loadingProfile]);
 
   const fetchCurrentUserProfile = async () => {
     try {
@@ -72,7 +66,7 @@ const AdmitFinder: React.FC = () => {
 
       const { data, error } = await supabase
         .from('admit_profiles')
-        .select('test_scores, program, degree, last_course_cgpa')
+        .select('test_scores, program, degree, city')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -94,138 +88,110 @@ const AdmitFinder: React.FC = () => {
     }
   };
 
-  const parseScore = (score: string | null): number | null => {
+  const parseScore = (score: string | number | null): number | null => {
     if (!score) return null;
-    const parsed = parseFloat(score);
+    const parsed = parseFloat(String(score));
     return isNaN(parsed) ? null : parsed;
   };
 
-  const calculateSimilarityScore = (profile: AdmitProfile): number => {
+  const calculateMatchScore = (student: PreviousStudent): number => {
     if (!userProfile) return 0;
     
     let score = 0;
     let maxScore = 0;
 
-    const userExams = userProfile.test_scores || [];
-    const profileExams = profile.test_scores || [];
+    // 1. CAT Percentile Matching (60 points - MOST IMPORTANT)
+    const userTestScores = userProfile.test_scores || [];
+    const catScore = userTestScores.find(t => t.exam.toUpperCase().includes('CAT'));
     
-    if (userExams.length > 0 || profileExams.length > 0) {
-      const userExamMap = new Map(userExams.map(t => [t.exam.toUpperCase(), t.score]));
-      const profileExamMap = new Map(profileExams.map(t => [t.exam.toUpperCase(), t.score]));
+    if (catScore && student.cat_percentile) {
+      maxScore += 60;
+      const userPercentile = parseFloat(catScore.score || catScore.percentile || '0');
+      const studentPercentile = student.cat_percentile;
       
-      const allExamTypes = new Set([...userExamMap.keys(), ...profileExamMap.keys()]);
-      
-      const examConfig: Record<string, { maxDiff: number[], scores: number[], weight: number }> = {
-        'GRE': { maxDiff: [0, 3, 5, 10, 15, 20], scores: [20, 18, 15, 12, 8, 5, 2], weight: 20 },
-        'GMAT': { maxDiff: [0, 10, 20, 30, 50, 70], scores: [20, 18, 15, 12, 8, 5, 2], weight: 20 },
-        'TOEFL': { maxDiff: [0, 2, 5, 10, 15], scores: [20, 18, 15, 10, 5, 2], weight: 20 },
-        'IELTS': { maxDiff: [0, 0.5, 1.0, 1.5, 2.0], scores: [20, 18, 13, 8, 4, 2], weight: 20 },
-        'PTE ACADEMIC': { maxDiff: [0, 3, 6, 10, 15], scores: [20, 18, 15, 10, 5, 2], weight: 20 },
-        'DUOLINGO ENGLISH TEST': { maxDiff: [0, 5, 10, 15, 20], scores: [20, 18, 15, 10, 5, 2], weight: 20 },
-        'SAT': { maxDiff: [0, 20, 50, 100, 150], scores: [20, 18, 15, 10, 5, 2], weight: 20 },
-        'ACT': { maxDiff: [0, 1, 2, 3, 4], scores: [20, 18, 15, 10, 5, 2], weight: 20 },
-        'TESTDAF': { maxDiff: [0, 1, 2, 3], scores: [20, 15, 10, 5, 2], weight: 15 },
-        'GOETHE CERTIFICATE': { maxDiff: [0, 1, 2], scores: [15, 10, 5, 2], weight: 15 },
-        'DELF/DALF': { maxDiff: [0, 10, 20, 30], scores: [15, 10, 5, 2], weight: 15 },
-        'OTHER': { maxDiff: [0, 5, 10, 20], scores: [10, 8, 5, 2], weight: 10 }
-      };
-
-      let totalTestWeight = 0;
-      let totalTestScore = 0;
-
-      for (const examType of allExamTypes) {
-        const userScore = userExamMap.get(examType);
-        const profileScore = profileExamMap.get(examType);
+      if (userPercentile > 0 && studentPercentile > 0) {
+        const diff = Math.abs(userPercentile - studentPercentile);
         
-        const config = examConfig[examType] || examConfig['OTHER'];
-        const weight = config.weight;
-        totalTestWeight += weight;
-
-        if (userScore && profileScore) {
-          const userNum = parseFloat(userScore);
-          const profileNum = parseFloat(profileScore);
-          
-          if (!isNaN(userNum) && !isNaN(profileNum)) {
-            const diff = Math.abs(userNum - profileNum);
-            
-            let examScore = config.scores[config.scores.length - 1];
-            for (let i = 0; i < config.maxDiff.length; i++) {
-              if (diff <= config.maxDiff[i]) {
-                examScore = config.scores[i];
-                break;
-              }
-            }
-            totalTestScore += examScore;
-          }
-        } else if (!userScore && !profileScore) {
-          totalTestScore += weight / 2;
-        }
+        if (diff <= 0.5) score += 60;
+        else if (diff <= 1) score += 55;
+        else if (diff <= 2) score += 50;
+        else if (diff <= 3) score += 45;
+        else if (diff <= 5) score += 40;
+        else if (diff <= 7) score += 35;
+        else if (diff <= 10) score += 30;
+        else if (diff <= 15) score += 20;
+        else if (diff <= 20) score += 10;
+        else score += 5;
       }
-
-      if (totalTestWeight > 0) {
-        maxScore += 60;
-        score += (totalTestScore / totalTestWeight) * 60;
-      }
-    } else {
+    } else if (!catScore && !student.cat_percentile) {
       maxScore += 60;
       score += 30;
+    } else {
+      maxScore += 60;
     }
 
+    // 2. Degree Matching (25 points)
     maxScore += 25;
-    if (userProfile.program && profile.program) {
-      const userProg = userProfile.program.toLowerCase().trim();
-      const profProg = profile.program.toLowerCase().trim();
+    if (userProfile.degree && student.ug_degree) {
+      const userDeg = userProfile.degree.toLowerCase().trim();
+      const studentDeg = student.ug_degree.toLowerCase().trim();
       
-      if (userProg === profProg) {
+      if (userDeg === studentDeg) {
         score += 25;
-      } else if (userProg.includes(profProg) || profProg.includes(userProg)) {
+      } else if (userDeg.includes(studentDeg) || studentDeg.includes(userDeg)) {
         score += 20;
       } else {
-        const csFields = ['computer', 'software', 'data', 'artificial intelligence', 'machine learning', 'ai', 'ml', 'cse', 'cs'];
-        const eeFields = ['electrical', 'electronics', 'robotics', 'ee'];
-        const meFields = ['mechanical', 'industrial', 'manufacturing', 'me'];
-        const ceFields = ['civil', 'architecture', 'construction', 'ce'];
-        const bioFields = ['bio', 'biotechnology', 'biomedical', 'bioinformatics'];
+        // Related degrees
+        const techDegrees = ['btech', 'b.tech', 'be', 'b.e', 'engineering'];
+        const commDegrees = ['bcom', 'b.com', 'bba', 'b.b.a', 'commerce', 'business'];
+        const sciDegrees = ['bsc', 'b.sc', 'science'];
+        const artsDegrees = ['ba', 'b.a', 'arts'];
         
-        const relatedFields = [csFields, eeFields, meFields, ceFields, bioFields];
+        const degreeGroups = [techDegrees, commDegrees, sciDegrees, artsDegrees];
         
-        for (const group of relatedFields) {
-          const userInGroup = group.some(field => userProg.includes(field));
-          const profInGroup = group.some(field => profProg.includes(field));
-          if (userInGroup && profInGroup) {
+        for (const group of degreeGroups) {
+          const userInGroup = group.some(d => userDeg.includes(d));
+          const studentInGroup = group.some(d => studentDeg.includes(d));
+          if (userInGroup && studentInGroup) {
             score += 15;
             break;
           }
         }
       }
+    } else if (!userProfile.degree && !student.ug_degree) {
+      score += 12;
     }
 
-    maxScore += 10;
-    if (userProfile.degree && profile.degree) {
-      if (userProfile.degree === profile.degree) {
-        score += 10;
-      }
-    } else if (!userProfile.degree && !profile.degree) {
-      score += 5;
-    }
-
-    maxScore += 5;
-    if (userProfile.last_course_cgpa && profile.last_course_cgpa) {
-      const userCGPA = parseFloat(userProfile.last_course_cgpa);
-      const profileCGPA = parseFloat(profile.last_course_cgpa);
+    // 3. City Matching (15 points)
+    maxScore += 15;
+    if (userProfile.city && student.city) {
+      const userCity = userProfile.city.toLowerCase().trim();
+      const studentCity = student.city.toLowerCase().trim();
       
-      if (!isNaN(userCGPA) && !isNaN(profileCGPA)) {
-        const cgpaDiff = Math.abs(userCGPA - profileCGPA);
-        if (cgpaDiff <= 2) score += 5;
-        else if (cgpaDiff <= 5) score += 4;
-        else if (cgpaDiff <= 10) score += 2;
-        else score += 1;
+      if (userCity === studentCity) {
+        score += 15;
+      } else if (userCity.includes(studentCity) || studentCity.includes(userCity)) {
+        score += 10;
+      } else {
+        // Check if cities are in same region/state
+        const metros = [['mumbai', 'pune', 'nagpur'], ['delhi', 'gurgaon', 'noida', 'ncr'], 
+                       ['bangalore', 'bengaluru', 'mysore'], ['chennai', 'coimbatore'],
+                       ['kolkata', 'howrah'], ['hyderabad', 'secunderabad']];
+        
+        for (const metro of metros) {
+          const userInMetro = metro.some(c => userCity.includes(c));
+          const studentInMetro = metro.some(c => studentCity.includes(c));
+          if (userInMetro && studentInMetro) {
+            score += 8;
+            break;
+          }
+        }
       }
-    } else if (!userProfile.last_course_cgpa && !profile.last_course_cgpa) {
-      score += 2;
+    } else if (!userProfile.city && !student.city) {
+      score += 7;
     }
 
-    const finalScore = (score / maxScore) * 100;
+    const finalScore = maxScore > 0 ? (score / maxScore) * 100 : 0;
     return Math.round(finalScore * 10) / 10;
   };
 
@@ -234,26 +200,22 @@ const AdmitFinder: React.FC = () => {
       setLoading(true);
       
       let query = supabase
-        .from('admit_profiles')
+        .from('previous_student')
         .select('*');
 
-      if (showVerifiedOnly) {
-        query = query.eq('verified', true);
-      }
-
       if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,university.ilike.%${searchQuery}%,program.ilike.%${searchQuery}%`);
+        query = query.or(`name.ilike.%${searchQuery}%,mba_college.ilike.%${searchQuery}%,ug_degree.ilike.%${searchQuery}%`);
       }
 
-      if (selectedUniversity) {
-        query = query.eq('university', selectedUniversity);
+      if (selectedCity) {
+        query = query.eq('city', selectedCity);
       }
 
-      if (selectedMajor) {
-        query = query.ilike('program', `%${selectedMajor}%`);
+      if (selectedCollege) {
+        query = query.eq('mba_college', selectedCollege);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('id', { ascending: true });
 
       if (error) {
         console.error('Error fetching profiles:', error);
@@ -265,24 +227,21 @@ const AdmitFinder: React.FC = () => {
       let allProfiles = data || [];
       console.log(`Fetched ${allProfiles.length} total profiles from database`);
 
-      if (currentUserId) {
-        allProfiles = allProfiles.filter((p: AdmitProfile) => p.user_id !== currentUserId);
-      }
-
-      if (viewMode === 'similar' && userProfile) {
-        console.log('Calculating similarity scores...');
+      if (viewMode === 'recommended' && userProfile) {
+        console.log('Calculating match scores...');
         
-        const profilesWithScores = allProfiles.map((profile: AdmitProfile) => ({
+        const profilesWithScores = allProfiles.map((profile: PreviousStudent) => ({
           ...profile,
-          similarityScore: calculateSimilarityScore(profile)
+          matchScore: calculateMatchScore(profile)
         }));
 
-        const similarProfiles = profilesWithScores
-          .filter((p: AdmitProfile) => (p.similarityScore || 0) >= 20)
-          .sort((a: AdmitProfile, b: AdmitProfile) => (b.similarityScore || 0) - (a.similarityScore || 0));
+        const recommendedProfiles = profilesWithScores
+          .filter((p: PreviousStudent) => (p.matchScore || 0) >= 20)
+          .sort((a: PreviousStudent, b: PreviousStudent) => (b.matchScore || 0) - (a.matchScore || 0))
+          .slice(0, 10);
 
-        console.log(`Found ${similarProfiles.length} similar profiles`);
-        setProfiles(similarProfiles);
+        console.log(`Found ${recommendedProfiles.length} recommended profiles`);
+        setProfiles(recommendedProfiles);
       } else {
         console.log(`Showing ${allProfiles.length} profiles`);
         setProfiles(allProfiles);
@@ -295,52 +254,62 @@ const AdmitFinder: React.FC = () => {
     }
   };
 
-  const getSimilarityBadge = (profile: AdmitProfile) => {
-    if (viewMode !== 'similar' || !profile.similarityScore) return null;
+  const getMatchBadge = (profile: PreviousStudent) => {
+    if (viewMode !== 'recommended' || !profile.matchScore) return null;
     
-    const score = profile.similarityScore;
+    const score = profile.matchScore;
     
-    if (score >= 80) {
-      return <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">Very Similar ({score}%)</span>;
+    if (score >= 90) {
+      return <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <Trophy size={14} />
+        Perfect Match ({score}%)
+      </span>;
+    } else if (score >= 75) {
+      return <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <Award size={14} />
+        Excellent Match ({score}%)
+      </span>;
     } else if (score >= 60) {
-      return <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">Similar ({score}%)</span>;
+      return <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <Target size={14} />
+        Great Match ({score}%)
+      </span>;
     } else if (score >= 40) {
-      return <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold">Somewhat Similar ({score}%)</span>;
-    } else if (score >= 20) {
-      return <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-semibold">Match ({score}%)</span>;
+      return <span className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">
+        Good Match ({score}%)
+      </span>;
     }
-    return null;
-  };
-
-  const formatTestScoresForDisplay = (testScores?: TestScore[]): string => {
-    if (!testScores || testScores.length === 0) return 'None';
-    return testScores.map(t => `${t.exam}: ${t.score}`).join(' | ');
+    return <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">
+      Relevant ({score}%)
+    </span>;
   };
 
   const hasProfileData = userProfile && (
     (userProfile.test_scores && userProfile.test_scores.length > 0) ||
     userProfile.program || 
     userProfile.degree || 
-    userProfile.last_course_cgpa
+    userProfile.city
   );
 
   return (
     <DefaultLayout>
       <div className="flex-1 bg-white p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#2f61ce] mb-2">Access 375K+ Admits & Rejects!</h1>
-          <p className="text-gray-600">Find folks at your dream school with the same background, interests, and stats as you</p>
+          <h1 className="text-3xl font-bold text-[#2f61ce] mb-2">Connect with Previous Students!</h1>
+          <p className="text-gray-600">Find students with similar backgrounds who got into top MBA colleges</p>
         </div>
 
-        {viewMode === 'similar' && userProfile && (
+        {viewMode === 'recommended' && userProfile && (
           <div className="mb-4 p-4 bg-blue-50 border-l-4 border-[#2f61ce] rounded-lg">
             <div className="flex items-start gap-2">
-              <AlertCircle className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={20} />
+              <Sparkles className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={20} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#2f61ce]">Matching based on your profile:</p>
+                <p className="text-sm font-semibold text-[#2f61ce]">Showing your top 10 personalized matches:</p>
                 <p className="text-xs text-gray-700 break-words">
-                  Tests: {formatTestScoresForDisplay(userProfile.test_scores)} | 
-                  Program: {userProfile.program || 'N/A'} | Degree: {userProfile.degree || 'N/A'} | CGPA: {userProfile.last_course_cgpa || 'N/A'}
+                  Based on: {userProfile.test_scores?.find(t => t.exam.toUpperCase().includes('CAT'))
+                    ? `CAT: ${userProfile.test_scores.find(t => t.exam.toUpperCase().includes('CAT'))?.score}` 
+                    : 'No CAT score'} | 
+                  Degree: {userProfile.degree || 'N/A'} | City: {userProfile.city || 'N/A'}
                 </p>
               </div>
             </div>
@@ -357,26 +326,26 @@ const AdmitFinder: React.FC = () => {
             }`}
           >
             <Users size={20} />
-            All Profiles
+            All Students
           </button>
           <button
             onClick={() => {
               if (hasProfileData && !loadingProfile) {
-                setViewMode('similar');
+                setViewMode('recommended');
               }
             }}
             disabled={!hasProfileData || loadingProfile}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-              viewMode === 'similar'
+              viewMode === 'recommended'
                 ? 'bg-[#2f61ce] text-white shadow-lg'
                 : hasProfileData && !loadingProfile
                   ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
-            title={!hasProfileData && !loadingProfile ? 'Complete your profile to see similar profiles' : ''}
+            title={!hasProfileData && !loadingProfile ? 'Complete your profile to see recommendations' : ''}
           >
             <UserCheck size={20} />
-            Similar Profiles
+            Recommended for You
             {!loadingProfile && !hasProfileData && <span className="text-xs ml-1">(Complete profile first)</span>}
           </button>
         </div>
@@ -385,20 +354,17 @@ const AdmitFinder: React.FC = () => {
           <div className="relative">
             <select 
               className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
-              value={selectedUniversity}
-              onChange={(e) => setSelectedUniversity(e.target.value)}
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
             >
-              <option value="">All Universities</option>
-              <option>Stanford University</option>
-              <option>Duke University</option>
-              <option>Carnegie Mellon University</option>
-              <option>University of California Berkeley</option>
-              <option>Massachusetts Institute of Technology</option>
-              <option>Harvard University</option>
-              <option>Columbia University</option>
-              <option>Cornell University</option>
-              <option>University of Pennsylvania</option>
-              <option>Georgia Institute of Technology</option>
+              <option value="">All Cities</option>
+              <option>Mumbai</option>
+              <option>Delhi</option>
+              <option>Bangalore</option>
+              <option>Pune</option>
+              <option>Chennai</option>
+              <option>Hyderabad</option>
+              <option>Kolkata</option>
             </select>
             <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-600" />
           </div>
@@ -406,17 +372,18 @@ const AdmitFinder: React.FC = () => {
           <div className="relative">
             <select 
               className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
-              value={selectedMajor}
-              onChange={(e) => setSelectedMajor(e.target.value)}
+              value={selectedCollege}
+              onChange={(e) => setSelectedCollege(e.target.value)}
             >
-              <option value="">All Majors</option>
-              <option>Computer Science</option>
-              <option>CSE</option>
-              <option>Data Science</option>
-              <option>Electrical Engineering</option>
-              <option>Mechanical Engineering</option>
-              <option>Artificial Intelligence</option>
-              <option>Machine Learning</option>
+              <option value="">All Colleges</option>
+              <option>IIM Ahmedabad</option>
+              <option>IIM Bangalore</option>
+              <option>IIM Calcutta</option>
+              <option>IIM Lucknow</option>
+              <option>ISB Hyderabad</option>
+              <option>XLRI Jamshedpur</option>
+              <option>FMS Delhi</option>
+              <option>SPJIMR Mumbai</option>
             </select>
             <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-600" />
           </div>
@@ -424,7 +391,7 @@ const AdmitFinder: React.FC = () => {
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Search by name, university, or program"
+              placeholder="Search by name, college, or degree"
               className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -437,23 +404,8 @@ const AdmitFinder: React.FC = () => {
           <div className="flex items-center gap-2">
             <Users className="text-[#2f61ce]" size={20} />
             <span className="font-semibold text-gray-800">
-              {profiles.length} {viewMode === 'similar' ? 'similar ' : ''}profile{profiles.length !== 1 ? 's' : ''} found
+              {profiles.length} {viewMode === 'recommended' ? 'recommended ' : ''}student{profiles.length !== 1 ? 's' : ''} found
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Show Verified only</span>
-            <button
-              onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                showVerifiedOnly ? 'bg-[#2f61ce]' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                  showVerifiedOnly ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
           </div>
         </div>
 
@@ -465,123 +417,74 @@ const AdmitFinder: React.FC = () => {
           <div className="flex flex-col justify-center items-center h-64 text-center">
             <UserCheck size={48} className="text-gray-300 mb-4" />
             <div className="text-gray-500 text-lg mb-2">
-              {viewMode === 'similar' 
-                ? 'No similar profiles found'
+              {viewMode === 'recommended' 
+                ? 'No matching profiles found'
                 : 'No profiles found'}
             </div>
             <div className="text-gray-400 text-sm">
-              {viewMode === 'similar' 
+              {viewMode === 'recommended' 
                 ? 'Try adjusting your filters or complete more profile information'
                 : 'Try adjusting your search filters'}
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-6">
-            {profiles.map((profile, index) => {
-              const isBlurred = viewMode === 'similar' && index >= 2;
-              
-              return (
-                <div 
-                  key={profile.id} 
-                  className={`border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow bg-white relative ${
-                    isBlurred ? 'overflow-hidden' : ''
-                  }`}
-                >
-                  {isBlurred && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 rounded-lg">
-                      <div className="bg-white shadow-2xl rounded-2xl p-6 text-center max-w-sm border-2 border-[#fac300]">
-                        <div className="mb-4 flex justify-center">
-                          <div className="bg-[#fac300] bg-opacity-20 rounded-full p-3">
-                            <AlertCircle className="text-[#2f61ce]" size={28} />
-                          </div>
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          Unlock More Profiles
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-5">
-                          Talk to our experts to view detailed information about this and {profiles.length - index - 1} more similar profiles
-                        </p>
-                        <button className="bg-[#2f61ce] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#264a9f] transition-colors w-full flex items-center justify-center gap-2 text-sm">
-                          <Sparkles size={16} />
-                          Contact Our Experts
-                        </button>
-                      </div>
+            {profiles.map((profile) => (
+              <div 
+                key={profile.id} 
+                className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#2f61ce] text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                      {profile.name ? profile.name.charAt(0).toUpperCase() : 'S'}
                     </div>
-                  )}
-
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-full ${
-                        profile.avatar_type === 'S' ? 'bg-[#2f61ce]' : 'bg-[#fac300]'
-                      } text-white flex items-center justify-center font-bold text-lg flex-shrink-0`}>
-                        {profile.name ? profile.name.charAt(0).toUpperCase() : profile.avatar_type}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold flex items-center gap-1 text-gray-800">
-                          {profile.name}
-                          {profile.verified && (
-                            <span className="text-[#fac300] text-sm">★</span>
-                          )}
-                        </h3>
-                        {getSimilarityBadge(profile)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 flex-shrink-0">
-                      <Calendar size={16} />
-                      <span className="whitespace-nowrap">{profile.term}</span>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-800">
+                        {profile.name}
+                      </h3>
+                      {getMatchBadge(profile)}
                     </div>
                   </div>
-
-                  {profile.test_scores && profile.test_scores.length > 0 && (
-                    <div className="grid grid-cols-3 gap-3 mb-4">
-                      {profile.test_scores.slice(0, 3).map((test, idx) => (
-                        <div key={idx} className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                            <BookOpen size={12} />
-                            <span className="truncate">{test.exam}</span>
-                          </div>
-                          <p className="font-bold text-sm text-gray-800 truncate">{test.score}</p>
-                        </div>
-                      ))}
-                      {profile.test_scores.length > 3 && (
-                        <div className="flex-1 flex items-center justify-center">
-                          <span className="text-xs text-gray-500">+{profile.test_scores.length - 3} more</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Building2 size={14} className="text-[#2f61ce] flex-shrink-0" />
-                      <span className="text-sm font-semibold text-gray-800 line-clamp-1">{profile.university}</span>
-                    </div>
-                    <div className="text-sm text-gray-600 line-clamp-2">{profile.program}</div>
-                    {profile.degree && (
-                      <div className="text-xs text-gray-500">
-                        <span className="font-medium">Degree:</span> {profile.degree}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">Applications:</span>
-                      <span className="font-semibold text-gray-800">{profile.applications_count}</span>
-                    </div>
-                  </div>
-
-                  <button 
-                    disabled={isBlurred}
-                    className={`w-full border rounded-lg py-2 px-4 flex items-center justify-center gap-2 transition-all ${
-                      isBlurred 
-                        ? 'opacity-50 cursor-not-allowed text-gray-400 border-gray-300' 
-                        : 'hover:bg-[#2f61ce] hover:text-white text-[#2f61ce] border-[#2f61ce]'
-                    }`}
-                  >
-                    <User size={16} />
-                    View Profile
-                  </button>
                 </div>
-              );
-            })}
+
+                {profile.cat_percentile && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <BookOpen size={14} className="text-[#2f61ce]" />
+                      <span className="text-xs text-gray-500">CAT Percentile</span>
+                    </div>
+                    <p className="font-bold text-lg text-gray-800">{profile.cat_percentile}%</p>
+                  </div>
+                )}
+
+                <div className="space-y-2 mb-4">
+                  {profile.ug_degree && (
+                    <div className="text-sm">
+                      <span className="text-gray-500">Degree:</span>
+                      <span className="font-semibold text-gray-800 ml-2">{profile.ug_degree}</span>
+                    </div>
+                  )}
+                  {profile.city && (
+                    <div className="text-sm">
+                      <span className="text-gray-500">City:</span>
+                      <span className="font-semibold text-gray-800 ml-2">{profile.city}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                    <Building2 size={14} className="text-[#2f61ce] flex-shrink-0" />
+                    <span className="text-sm font-semibold text-gray-800 line-clamp-2">{profile.mba_college}</span>
+                  </div>
+                </div>
+
+                {/* <button 
+                  className="w-full border rounded-lg py-2 px-4 flex items-center justify-center gap-2 transition-all hover:bg-[#2f61ce] hover:text-white text-[#2f61ce] border-[#2f61ce]"
+                >
+                  <User size={16} />
+                  View Profile
+                </button> */}
+              </div>
+            ))}
           </div>
         )}
       </div>
