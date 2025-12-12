@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import DefaultLayout from '../defaultLayout';
 import { supabase } from '../../../lib/supabase';
+import LeadDataPopup from '../../../components/LeadDataPopup';
 import { 
   TrendingUp, 
   CheckCircle, 
@@ -12,7 +13,9 @@ import {
   Target,
   Sparkles,
   ArrowRight,
-  User
+  User,
+  CheckCircle2,
+  Zap
 } from 'lucide-react';
 
 interface TestScore {
@@ -52,7 +55,7 @@ const DashboardPage = () => {
       return {
         completion: 0,
         missingFields: [
-          'Name', 'City', 'Email', 'Contact Number', 'Test Scores'
+          'Name', 'City', 'Email', 'Contact Number', 'Academic Year', 'Test Scores'
         ]
       };
     }
@@ -65,7 +68,7 @@ const DashboardPage = () => {
       profileData.city,           // 2. City
       profileData.email,          // 3. Email
       profileData.phone,          // 4. Contact Number
-      //profileData.academic_year,  // 5. Academic Year
+      profileData.academic_year,  // 5. Academic Year
       hasTestScores               // 6. Test Scores
     ];
 
@@ -261,6 +264,7 @@ const DashboardPage = () => {
 
   return (
     <DefaultLayout>
+      <LeadDataPopup />
       <div className="flex-1 overflow-auto">
         <div className="p-6 max-w-7xl mx-auto">
           <div className="mb-6">
@@ -270,74 +274,87 @@ const DashboardPage = () => {
             <p className="text-gray-600">Ready to take the next step in your academic journey?</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border-2 border-blue-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 bg-linear-to-br ${getProgressColor()} rounded-full flex items-center justify-center`}>
-                  <TrendingUp className="text-white" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800">Profile Completion</h2>
-                  <p className="text-gray-600">{getProgressMessage()}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold bg-linear-to-r from-[#2f61ce] to-blue-500 bg-clip-text text-transparent">
-                  {profileMetrics.completion}%
-                </div>
-                <p className="text-sm text-gray-500">Complete</p>
-              </div>
-            </div>
-
-            <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
-              <div 
-                className={`absolute top-0 left-0 h-full bg-linear-to-r ${getProgressColor()} transition-all duration-700 ease-out rounded-full`}
-                style={{ width: `${profileMetrics.completion}%` }}
-              >
-                <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
-              </div>
-            </div>
-
-            {profileMetrics.missingFields.length > 0 && (
-              <div className="bg-linear-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="text-[#2f61ce] mt-0.5 shrink-0" size={20} />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {profileMetrics.missingFields.map((field, idx) => (
-                        <span key={idx} className="text-xs bg-white text-[#2f61ce] px-3 py-1 rounded-full border border-blue-200 font-medium">
-                          {field}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      onClick={handleProfileClick}
-                      className="flex items-center gap-2 bg-linear-to-r from-[#2f61ce] to-blue-500 text-white px-4 py-2 rounded-lg hover:from-[#2451a8] hover:to-blue-600 transition-all text-sm font-semibold shadow-lg"
-                    >
-                      <User size={16} />
-                      Complete Your Profile
-                      <ArrowRight size={16} />
-                    </button>
+          {/* COMPACT VERSION FOR 100% COMPLETE PROFILE */}
+          {profileMetrics.completion === 100 ? (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl shadow-md p-4 mb-6 border-2 border-green-300">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="text-white" size={20} />
                   </div>
-                </div>
-              </div>
-            )}
-
-            {profileMetrics.completion === 100 && (
-              <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="text-green-600" size={24} />
                   <div>
-                    <h3 className="font-semibold text-gray-800">Awesome! Your profile is 100% complete! 🎉</h3>
-                    <p className="text-sm text-gray-600">You can now access all features and find similar profiles.</p>
+                    <h3 className="font-bold text-gray-800 text-base">Profile Complete! 🎉</h3>
+                    <p className="text-sm text-gray-600">All features unlocked</p>
                   </div>
                 </div>
+                <button
+                  onClick={handleProfileClick}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0 flex items-center gap-1 shadow-md"
+                >
+                  <User size={14} />
+                  View Profile
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            /* FULL VERSION FOR INCOMPLETE PROFILE */
+            <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border-2 border-blue-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 bg-gradient-to-br ${getProgressColor()} rounded-full flex items-center justify-center`}>
+                    <TrendingUp className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Profile Completion</h2>
+                    <p className="text-gray-600">{getProgressMessage()}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-bold bg-gradient-to-r from-[#2f61ce] to-blue-500 bg-clip-text text-transparent">
+                    {profileMetrics.completion}%
+                  </div>
+                  <p className="text-sm text-gray-500">Complete</p>
+                </div>
+              </div>
 
-          {profileMetrics.completion >= 50 && (
+              <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
+                <div 
+                  className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getProgressColor()} transition-all duration-700 ease-out rounded-full`}
+                  style={{ width: `${profileMetrics.completion}%` }}
+                >
+                  <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+                </div>
+              </div>
+
+              {profileMetrics.missingFields.length > 0 && (
+                <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="text-[#2f61ce] mt-0.5 shrink-0" size={20} />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {profileMetrics.missingFields.map((field, idx) => (
+                          <span key={idx} className="text-xs bg-white text-[#2f61ce] px-3 py-1 rounded-full border border-blue-200 font-medium">
+                            {field}
+                          </span>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleProfileClick}
+                        className="flex items-center gap-2 bg-gradient-to-r from-[#2f61ce] to-blue-500 text-white px-4 py-2 rounded-lg hover:from-[#2451a8] hover:to-blue-600 transition-all text-sm font-semibold shadow-lg"
+                      >
+                        <User size={16} />
+                        Complete Your Profile
+                        <ArrowRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* {profileMetrics.completion >= 50 && (
             <div 
               onClick={handleAdmitFinderClick}
               className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-blue-100 cursor-pointer hover:shadow-xl transition-shadow"
@@ -359,61 +376,7 @@ const DashboardPage = () => {
                 <ArrowRight className="text-[#2f61ce]" size={28} />
               </div>
             </div>
-          )}
-
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-blue-100 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Shortlisted</p>
-                  <p className="text-3xl font-bold text-[#2f61ce]">{shortlistedCount}</p>
-                  <p className="text-xs text-gray-500 mt-1">Programs saved</p>
-                </div>
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-sky-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl">📚</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-sky-100 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Applications</p>
-                  <p className="text-3xl font-bold text-sky-600">0</p>
-                  <p className="text-xs text-gray-500 mt-1">In progress</p>
-                </div>
-                <div className="w-14 h-14 bg-gradient-to-br from-sky-100 to-cyan-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl">📝</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-green-100 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Scholarships</p>
-                  <p className="text-3xl font-bold text-green-600">0</p>
-                  <p className="text-xs text-gray-500 mt-1">Opportunities</p>
-                </div>
-                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl">💰</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-purple-100 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Admits</p>
-                  <p className="text-3xl font-bold text-purple-600">0</p>
-                  <p className="text-xs text-gray-500 mt-1">Received</p>
-                </div>
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl">🎓</span>
-                </div>
-              </div>
-            </div>
-          </div> */}
+          )} */}
 
           <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-blue-100">
             <div className="flex items-center gap-2 mb-6">
@@ -464,7 +427,7 @@ const DashboardPage = () => {
           </div>
 
           {profileMetrics.completion < 100 && (
-            <div className="mt-6 bg-linear-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-[#fac300]">
+            <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-[#fac300]">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-[#fac300] rounded-full flex items-center justify-center shrink-0">
                   <Sparkles className="text-white" size={20} />

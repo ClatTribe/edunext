@@ -33,6 +33,7 @@ interface FormData {
   phone: string
   city: string
   state: string
+  contact_preferences: string[]
   target_state: string[]
   target_degree: string
   target_field: string
@@ -201,6 +202,7 @@ const ProfilePage = () => {
       phone: "",
       city: "",
       state: "",
+      contact_preferences: [],
       target_state: [],
       target_degree: "",
       target_field: "",
@@ -237,6 +239,7 @@ const ProfilePage = () => {
       phone: "",
       city: "",
       state: "",
+      contact_preferences: [],
       target_state: [],
       target_degree: "",
       target_field: "",
@@ -296,6 +299,7 @@ const ProfilePage = () => {
           phone: data.phone || "",
           city: data.city || "",
           state: data.state || "",
+          contact_preferences: data.contact_preferences || [],
           target_state: data.target_state || [],
           target_degree: data.degree || "",
           target_field: data.program || "",
@@ -384,7 +388,16 @@ const ProfilePage = () => {
   }))
   setError("")
 }, [])
-
+  
+  const handleMultiSelectContactPreference = useCallback((value: string) => {
+  setFormData((prev) => ({
+    ...prev,
+    contact_preferences: prev.contact_preferences.includes(value)
+      ? prev.contact_preferences.filter((pref) => pref !== value)
+      : [...prev.contact_preferences, value],
+  }))
+  setError("")
+}, [])
   const handleTestScoreChange = useCallback((index: number, field: "exam" | "percentile", value: string) => {
     setFormData((prev) => {
       const newTestScores = [...prev.testScores]
@@ -500,6 +513,7 @@ const ProfilePage = () => {
         phone: formData.phone,
         city: formData.city || null,
         state: formData.state || null,
+        contact_preferences: formData.contact_preferences || [],
         target_state: formData.target_state,
         degree: formData.target_degree,
         budget: formData.budget || null,
@@ -742,8 +756,10 @@ const ProfilePage = () => {
               isComplete={isSectionComplete("personal")}
               onToggle={toggleSection}
               onInputChange={handleInputChange}
+              onMultiSelectContactPreference={handleMultiSelectContactPreference}
               Section={Section}
               InputField={InputField}
+              
             />
 
             {/* 10th Grade */}

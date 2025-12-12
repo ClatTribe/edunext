@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, BookOpen, Calendar, Users, User, Building2, UserCheck, AlertCircle, Sparkles, Trophy, Award, Target } from 'lucide-react';
+import { Search, ChevronDown, BookOpen, Users, Building2, UserCheck, Sparkles, Trophy, Award, Target, Filter, X } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import DefaultLayout from '../defaultLayout';
 
@@ -37,6 +37,7 @@ const AdmitFinder: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchCurrentUserProfile();
@@ -100,7 +101,6 @@ const AdmitFinder: React.FC = () => {
     let score = 0;
     let maxScore = 0;
 
-    // 1. CAT Percentile Matching (60 points - MOST IMPORTANT)
     const userTestScores = userProfile.test_scores || [];
     const catScore = userTestScores.find(t => t.exam.toUpperCase().includes('CAT'));
     
@@ -130,7 +130,6 @@ const AdmitFinder: React.FC = () => {
       maxScore += 60;
     }
 
-    // 2. Degree Matching (25 points)
     maxScore += 25;
     if (userProfile.degree && student.ug_degree) {
       const userDeg = userProfile.degree.toLowerCase().trim();
@@ -141,7 +140,6 @@ const AdmitFinder: React.FC = () => {
       } else if (userDeg.includes(studentDeg) || studentDeg.includes(userDeg)) {
         score += 20;
       } else {
-        // Related degrees
         const techDegrees = ['btech', 'b.tech', 'be', 'b.e', 'engineering'];
         const commDegrees = ['bcom', 'b.com', 'bba', 'b.b.a', 'commerce', 'business'];
         const sciDegrees = ['bsc', 'b.sc', 'science'];
@@ -162,7 +160,6 @@ const AdmitFinder: React.FC = () => {
       score += 12;
     }
 
-    // 3. City Matching (15 points)
     maxScore += 15;
     if (userProfile.city && student.city) {
       const userCity = userProfile.city.toLowerCase().trim();
@@ -173,7 +170,6 @@ const AdmitFinder: React.FC = () => {
       } else if (userCity.includes(studentCity) || studentCity.includes(userCity)) {
         score += 10;
       } else {
-        // Check if cities are in same region/state
         const metros = [['mumbai', 'pune', 'nagpur'], ['delhi', 'gurgaon', 'noida', 'ncr'], 
                        ['bangalore', 'bengaluru', 'mysore'], ['chennai', 'coimbatore'],
                        ['kolkata', 'howrah'], ['hyderabad', 'secunderabad']];
@@ -260,27 +256,32 @@ const AdmitFinder: React.FC = () => {
     const score = profile.matchScore;
     
     if (score >= 90) {
-      return <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+      return <span className="text-xs bg-green-100 text-green-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
         <Trophy size={14} />
-        Perfect Match ({score}%)
+        <span className="hidden sm:inline">Perfect Match ({score}%)</span>
+        <span className="sm:hidden">{score}%</span>
       </span>;
     } else if (score >= 75) {
-      return <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+      return <span className="text-xs bg-blue-100 text-blue-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
         <Award size={14} />
-        Excellent Match ({score}%)
+        <span className="hidden sm:inline">Excellent Match ({score}%)</span>
+        <span className="sm:hidden">{score}%</span>
       </span>;
     } else if (score >= 60) {
-      return <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+      return <span className="text-xs bg-purple-100 text-purple-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
         <Target size={14} />
-        Great Match ({score}%)
+        <span className="hidden sm:inline">Great Match ({score}%)</span>
+        <span className="sm:hidden">{score}%</span>
       </span>;
     } else if (score >= 40) {
-      return <span className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">
-        Good Match ({score}%)
+      return <span className="text-xs bg-yellow-100 text-yellow-700 px-2 sm:px-3 py-1 rounded-full font-semibold">
+        <span className="hidden sm:inline">Good Match ({score}%)</span>
+        <span className="sm:hidden">{score}%</span>
       </span>;
     }
-    return <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">
-      Relevant ({score}%)
+    return <span className="text-xs bg-gray-100 text-gray-600 px-2 sm:px-3 py-1 rounded-full font-semibold">
+      <span className="hidden sm:inline">Relevant ({score}%)</span>
+      <span className="sm:hidden">{score}%</span>
     </span>;
   };
 
@@ -293,200 +294,229 @@ const AdmitFinder: React.FC = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 bg-white p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#2f61ce] mb-2">Connect with Previous Students!</h1>
-          <p className="text-gray-600">Find students with similar backgrounds who got into top MBA colleges</p>
-        </div>
+      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6 mt-[72px] sm:mt-0">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-4 sm:mb-6 md:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#2f61ce] mb-1 sm:mb-2">
+              Connect with Previous Students!
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">Find students with similar backgrounds who got into top MBA colleges</p>
+          </div>
 
-        {viewMode === 'recommended' && userProfile && (
-          <div className="mb-4 p-4 bg-blue-50 border-l-4 border-[#2f61ce] rounded-lg">
-            <div className="flex items-start gap-2">
-              <Sparkles className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={20} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#2f61ce]">Showing your top 10 personalized matches:</p>
-                <p className="text-xs text-gray-700 break-words">
-                  Based on: {userProfile.test_scores?.find(t => t.exam.toUpperCase().includes('CAT'))
-                    ? `CAT: ${userProfile.test_scores.find(t => t.exam.toUpperCase().includes('CAT'))?.score}` 
-                    : 'No CAT score'} | 
-                  Degree: {userProfile.degree || 'N/A'} | City: {userProfile.city || 'N/A'}
-                </p>
+          {/* Profile Info Banner */}
+          {viewMode === 'recommended' && userProfile && (
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 border-l-4 border-[#2f61ce] rounded-lg">
+              <div className="flex items-start gap-2">
+                <Sparkles className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={18} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-semibold text-[#2f61ce] mb-1">Showing your top 10 personalized matches:</p>
+                  <p className="text-xs text-gray-700 break-words">
+                    Based on: {userProfile.test_scores?.find(t => t.exam.toUpperCase().includes('CAT'))
+                      ? `CAT: ${userProfile.test_scores.find(t => t.exam.toUpperCase().includes('CAT'))?.score}` 
+                      : 'No CAT score'} | 
+                    Degree: {userProfile.degree || 'N/A'} | City: {userProfile.city || 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* View Mode Toggle */}
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <button
+              onClick={() => setViewMode('all')}
+              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${
+                viewMode === 'all'
+                  ? 'bg-[#2f61ce] text-white shadow-lg'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              <Users size={18} className="sm:w-5 sm:h-5" />
+              All Students
+            </button>
+            <button
+              onClick={() => {
+                if (hasProfileData && !loadingProfile) {
+                  setViewMode('recommended');
+                }
+              }}
+              disabled={!hasProfileData || loadingProfile}
+              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${
+                viewMode === 'recommended'
+                  ? 'bg-[#2f61ce] text-white shadow-lg'
+                  : hasProfileData && !loadingProfile
+                    ? 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+              title={!hasProfileData && !loadingProfile ? 'Complete your profile to see recommendations' : ''}
+            >
+              <UserCheck size={18} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Recommended for You</span>
+              <span className="sm:inline md:hidden">Recommended</span>
+              {!loadingProfile && !hasProfileData && <span className="text-xs ml-1 hidden lg:inline">(Complete profile first)</span>}
+            </button>
+          </div>
+
+          {/* Mobile Filter Toggle Button */}
+          <div className="mb-4 sm:mb-6">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="lg:hidden w-full flex items-center justify-between gap-2 px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <Filter size={18} />
+                Filters {(selectedCity || selectedCollege || searchQuery) && '(Active)'}
+              </span>
+              {showFilters ? <X size={18} /> : <ChevronDown size={18} />}
+            </button>
+
+            {/* Filters - Hidden on mobile unless toggled */}
+            <div className={`${showFilters ? 'block' : 'hidden'} lg:flex flex-col lg:flex-row gap-3 lg:gap-4 mt-3 lg:mt-0`}>
+              <div className="relative w-full lg:w-auto">
+                <select 
+                  className="w-full lg:w-auto appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                >
+                  <option value="">All Cities</option>
+                  <option>Mumbai</option>
+                  <option>Delhi</option>
+                  <option>Bangalore</option>
+                  <option>Pune</option>
+                  <option>Chennai</option>
+                  <option>Hyderabad</option>
+                  <option>Kolkata</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-2.5 sm:top-3 h-4 w-4 pointer-events-none text-gray-600" />
+              </div>
+
+              <div className="relative w-full lg:w-auto">
+                <select 
+                  className="w-full lg:w-auto appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                  value={selectedCollege}
+                  onChange={(e) => setSelectedCollege(e.target.value)}
+                >
+                  <option value="">All Colleges</option>
+                  <option>IIM Ahmedabad</option>
+                  <option>IIM Bangalore</option>
+                  <option>IIM Calcutta</option>
+                  <option>IIM Lucknow</option>
+                  <option>ISB Hyderabad</option>
+                  <option>XLRI Jamshedpur</option>
+                  <option>FMS Delhi</option>
+                  <option>SPJIMR Mumbai</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-2.5 sm:top-3 h-4 w-4 pointer-events-none text-gray-600" />
+              </div>
+
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Search by name, college, or degree"
+                  className="w-full px-3 sm:px-4 py-2 pr-10 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Search className="absolute right-3 top-2.5 sm:top-3 h-4 w-4 text-gray-400" />
               </div>
             </div>
           </div>
-        )}
 
-        <div className="mb-6 flex gap-3">
-          <button
-            onClick={() => setViewMode('all')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-              viewMode === 'all'
-                ? 'bg-[#2f61ce] text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <Users size={20} />
-            All Students
-          </button>
-          <button
-            onClick={() => {
-              if (hasProfileData && !loadingProfile) {
-                setViewMode('recommended');
-              }
-            }}
-            disabled={!hasProfileData || loadingProfile}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-              viewMode === 'recommended'
-                ? 'bg-[#2f61ce] text-white shadow-lg'
-                : hasProfileData && !loadingProfile
-                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
-            title={!hasProfileData && !loadingProfile ? 'Complete your profile to see recommendations' : ''}
-          >
-            <UserCheck size={20} />
-            Recommended for You
-            {!loadingProfile && !hasProfileData && <span className="text-xs ml-1">(Complete profile first)</span>}
-          </button>
-        </div>
-
-        <div className="flex gap-4 mb-6">
-          <div className="relative">
-            <select 
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-            >
-              <option value="">All Cities</option>
-              <option>Mumbai</option>
-              <option>Delhi</option>
-              <option>Bangalore</option>
-              <option>Pune</option>
-              <option>Chennai</option>
-              <option>Hyderabad</option>
-              <option>Kolkata</option>
-            </select>
-            <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-600" />
-          </div>
-
-          <div className="relative">
-            <select 
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
-              value={selectedCollege}
-              onChange={(e) => setSelectedCollege(e.target.value)}
-            >
-              <option value="">All Colleges</option>
-              <option>IIM Ahmedabad</option>
-              <option>IIM Bangalore</option>
-              <option>IIM Calcutta</option>
-              <option>IIM Lucknow</option>
-              <option>ISB Hyderabad</option>
-              <option>XLRI Jamshedpur</option>
-              <option>FMS Delhi</option>
-              <option>SPJIMR Mumbai</option>
-            </select>
-            <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-gray-600" />
-          </div>
-
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder="Search by name, college, or degree"
-              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Users className="text-[#2f61ce]" size={20} />
-            <span className="font-semibold text-gray-800">
-              {profiles.length} {viewMode === 'recommended' ? 'recommended ' : ''}student{profiles.length !== 1 ? 's' : ''} found
-            </span>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="text-gray-500 text-lg">Loading profiles...</div>
-          </div>
-        ) : profiles.length === 0 ? (
-          <div className="flex flex-col justify-center items-center h-64 text-center">
-            <UserCheck size={48} className="text-gray-300 mb-4" />
-            <div className="text-gray-500 text-lg mb-2">
-              {viewMode === 'recommended' 
-                ? 'No matching profiles found'
-                : 'No profiles found'}
-            </div>
-            <div className="text-gray-400 text-sm">
-              {viewMode === 'recommended' 
-                ? 'Try adjusting your filters or complete more profile information'
-                : 'Try adjusting your search filters'}
+          {/* Results Count */}
+          <div className="flex items-center justify-between mb-4 sm:mb-6 bg-white rounded-lg shadow-sm p-3 sm:p-4">
+            <div className="flex items-center gap-2">
+              <Users className="text-[#2f61ce] flex-shrink-0" size={20} />
+              <span className="font-semibold text-sm sm:text-base text-gray-800">
+                {profiles.length} {viewMode === 'recommended' ? 'recommended ' : ''}student{profiles.length !== 1 ? 's' : ''} found
+              </span>
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-6">
-            {profiles.map((profile) => (
-              <div 
-                key={profile.id} 
-                className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#2f61ce] text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="text-gray-500 flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#2f61ce]"></div>
+                <p className="text-sm sm:text-base">Loading profiles...</p>
+              </div>
+            </div>
+          ) : profiles.length === 0 ? (
+            <div className="text-center py-12 sm:py-16 bg-white rounded-lg shadow-sm">
+              <UserCheck size={40} className="sm:w-12 sm:h-12 mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
+                {viewMode === 'recommended' 
+                  ? 'No matching profiles found'
+                  : 'No profiles found'}
+              </h3>
+              <p className="text-sm sm:text-base text-gray-500 px-4">
+                {viewMode === 'recommended' 
+                  ? 'Try adjusting your filters or complete more profile information'
+                  : 'Try adjusting your search filters'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {profiles.map((profile) => (
+                <div 
+                  key={profile.id} 
+                  className="border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow bg-white"
+                >
+                  {/* Header with Avatar and Name */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#2f61ce] text-white flex items-center justify-center font-bold text-lg sm:text-xl flex-shrink-0">
                       {profile.name ? profile.name.charAt(0).toUpperCase() : 'S'}
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-gray-800">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-lg sm:text-xl text-gray-800 break-words mb-1">
                         {profile.name}
                       </h3>
                       {getMatchBadge(profile)}
                     </div>
                   </div>
-                </div>
 
-                {profile.cat_percentile && (
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <BookOpen size={14} className="text-[#2f61ce]" />
-                      <span className="text-xs text-gray-500">CAT Percentile</span>
-                    </div>
-                    <p className="font-bold text-lg text-gray-800">{profile.cat_percentile}%</p>
+                  {/* CAT Percentile and Degree - Side by Side */}
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    {profile.cat_percentile && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <BookOpen size={12} className="text-[#2f61ce] flex-shrink-0" />
+                          <span className="text-xs text-gray-600">CAT Percentile</span>
+                        </div>
+                        <p className="font-bold text-xl text-[#2f61ce]">{profile.cat_percentile}%</p>
+                      </div>
+                    )}
+                    
+                    {profile.ug_degree && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-xs text-gray-600 block mb-1">Degree</span>
+                        <span className="font-semibold text-sm text-gray-800 break-words block">{profile.ug_degree}</span>
+                      </div>
+                    )}
                   </div>
-                )}
 
-                <div className="space-y-2 mb-4">
-                  {profile.ug_degree && (
-                    <div className="text-sm">
-                      <span className="text-gray-500">Degree:</span>
-                      <span className="font-semibold text-gray-800 ml-2">{profile.ug_degree}</span>
+                  {/* City and College - Side by Side */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {profile.city && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <span className="text-xs text-gray-600 block mb-1">City</span>
+                        <span className="font-semibold text-sm text-gray-800 block">{profile.city}</span>
+                      </div>
+                    )}
+                    
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center gap-1 mb-1">
+                        <Building2 size={12} className="text-[#2f61ce] flex-shrink-0" />
+                        <span className="text-xs text-gray-600">MBA College</span>
+                      </div>
+                      <span className="font-semibold text-sm text-gray-800 break-words block">{profile.mba_college}</span>
                     </div>
-                  )}
-                  {profile.city && (
-                    <div className="text-sm">
-                      <span className="text-gray-500">City:</span>
-                      <span className="font-semibold text-gray-800 ml-2">{profile.city}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                    <Building2 size={14} className="text-[#2f61ce] flex-shrink-0" />
-                    <span className="text-sm font-semibold text-gray-800 line-clamp-2">{profile.mba_college}</span>
                   </div>
                 </div>
-
-                {/* <button 
-                  className="w-full border rounded-lg py-2 px-4 flex items-center justify-center gap-2 transition-all hover:bg-[#2f61ce] hover:text-white text-[#2f61ce] border-[#2f61ce]"
-                >
-                  <User size={16} />
-                  View Profile
-                </button> */}
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </DefaultLayout>
   );

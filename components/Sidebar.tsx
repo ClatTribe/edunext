@@ -347,6 +347,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           </div>
         </div>
       </div>
+
+      {/* Mobile spacer - pushes content below fixed header */}
+      <div className="h-16 md:hidden"></div>
     </> 
   );
 };

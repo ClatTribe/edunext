@@ -1,108 +1,126 @@
 import React, { useState, useEffect } from 'react';
-import { Search, GraduationCap, MapPin } from 'lucide-react';
+// Adding BookOpen for the required visual style
+import { GraduationCap, MapPin, BookOpen } from 'lucide-react'; 
 import { supabase } from '../lib/supabase';
 
+// Define the Course interface
 interface Course {
-  id: number;
-  "College Name": string | null;
-  City?: string | null;
-  State?: string | null;
+    id: number;
+    "College Name": string | null;
+    City?: string | null;
+    State?: string | null;
 }
 
+// --------------------------------------------------------------------------------------
+// Main Component
+// --------------------------------------------------------------------------------------
+
 export const CourseMatcherVisual: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loading, setLoading] = useState(true);
+    // Dark Teal color for the icon/accents
+    const accentColor = '#008080'; 
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
+    useEffect(() => {
+        fetchCourses();
+    }, []);
 
-  const fetchCourses = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("courses")
-        .select('id, "College Name", City, State')
-        .not("College Name", "is", null)
-        .limit(5);
+    const fetchCourses = async () => {
+        try {
+            setLoading(true);
+            // Limit to 6 to ensure scrollability is apparent
+            const { data, error } = await supabase
+                .from("courses")
+                .select('id, "College Name", City, State')
+                .not("College Name", "is", null)
+                .limit(6); 
 
-      if (error) throw error;
-      if (data) setCourses(data);
-    } catch (err) {
-      console.error("Error fetching courses:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (error) throw error;
+            if (data) setCourses(data as Course[]);
+        } catch (err) {
+            console.error("Error fetching courses:", err);
+        } finally {
+            // Added a slight delay for better visual effect on initial load
+            setTimeout(() => setLoading(false), 500); 
+        }
+    };
 
-  return (
-    <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden">
-      {/* Header */}
-      <div className="p-4 sm:p-6 md:p-8 border-b border-slate-100 bg-white">
-        <h3 className="text-2xl sm:text-3xl font-bold text-[#2f61ce] mb-2 tracking-tight">
-          Find Your Dream MBA College
-        </h3>
-        <p className="text-sm sm:text-base md:text-lg text-slate-500 mb-6 sm:mb-8">
-          Explore Programs and Institutes Across India
-        </p>
-
-        {/* Button */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6 sm:mb-8">
-          <button className="bg-[#2f61ce] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-200 hover:bg-blue-600 transition-colors">
-            <GraduationCap size={18} /> All Courses
-          </button>
-        </div>
-
-        {/* Search input */}
-        <div className="relative group">
-          <input
-            type="text"
-            placeholder="Search for programs or institutes..."
-            className="w-full border border-slate-200 rounded-lg pl-4 sm:pl-5 pr-10 sm:pr-12 py-3 sm:py-4 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-[#2f61ce] transition-all outline-none text-sm sm:text-lg"
-          />
-          <Search className="absolute right-3 sm:right-4 top-2.5 sm:top-4 text-slate-400 group-focus-within:text-[#2f61ce] transition-colors" size={24} />
-        </div>
-      </div>
-
-      {/* Courses list */}
-      <div className="bg-slate-50 flex-1 p-4 sm:p-6 md:p-6 overflow-hidden relative">
-        {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#2f61ce]"></div>
-          </div>
-        ) : (
-          <div className="space-y-3 overflow-y-auto">
-            {courses.map((course) => (
-              <div
-                key={course.id}
-                className="bg-white p-3 sm:p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4"
-              >
-                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-lg shrink-0">
-                  {course["College Name"]?.[0] || "C"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-900 text-sm sm:text-base mb-1 truncate">
-                    {course["College Name"] || "Institute Information Not Available"}
-                  </h4>
-                  {(course.City || course.State) && (
-                    <div className="flex items-center gap-1 text-xs sm:text-sm text-slate-600">
-                      <MapPin size={14} className="shrink-0" />
-                      <span className="truncate">
-                        {course.City && course.State
-                          ? `${course.City}, ${course.State}`
-                          : course.City || course.State}
-                      </span>
+    return (
+        // Reduced vertical length by using `max-h-full` and smaller p-values
+        <div className="p-1 max-w-lg mx-auto rounded-2xl bg-gradient-to-br from-[#024687] to-[#0ea5e9]">
+            <div className="w-full bg-[#0f172a] backdrop-blur-xl rounded-xl p-6 flex flex-col gap-4 border border-white/10 shadow-2xl overflow-hidden">
+                
+                {/* Header Section - Reduced padding and vertical space */}
+                <div className="border-b border-white/10 pb-4">
+                    <div className="flex justify-between items-center mb-3">
+                        {/* Title Box - 🎨 CHANGED: Using BookOpen icon with Teal color as requested */}
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-white uppercase">
+                            <BookOpen className="w-4 h-4" style={{ color: accentColor }} /> 
+                            MBA Finder
+                        </div>
+                        {/* Single, consistent icon for the complete section, using GraduationCap */}
+                        <GraduationCap className="w-8 h-8 text-white/50" /> 
                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
 
-            {/* Fade overlay */}
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-slate-50 to-transparent pointer-events-none"></div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+                    <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-1 tracking-tight">
+                        Find Your Dream MBA College
+                    </h3>
+                    <p className="text-sm text-slate-400">
+                        Explore Programs and Institutes Across India
+                    </p>
+                </div>
+                
+                {/* Courses list Section - Fixed height and enforced scrollability */}
+                <div className="flex-1 overflow-hidden relative" style={{ maxHeight: '350px' }}>
+                    {loading ? (
+                        <div className="flex justify-center items-center h-full min-h-[200px]">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: accentColor }}></div>
+                        </div>
+                    ) : (
+                        <div className="space-y-3 overflow-y-auto h-full pr-2">
+                            {courses.length > 0 ? (
+                                courses.map((course) => (
+                                    <div
+                                        key={course.id}
+                                        className="bg-[#1e293b] p-3 rounded-lg border border-white/10 shadow-md hover:border-[#0ea5e9]/50 transition-all flex items-start gap-3"
+                                    >
+                                        {/* Icon/College Icon - Uses GraduationCap with Teal color */}
+                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" 
+                                             style={{ backgroundColor: `${accentColor}1A`, border: `1px solid ${accentColor}33`, color: accentColor }}>
+                                            <GraduationCap className="w-5 h-5" /> 
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-white text-base truncate">
+                                                {course["College Name"] || "Institute Information Not Available"}
+                                            </h4>
+                                            {(course.City || course.State) && (
+                                                <div className="flex items-center gap-1 text-xs text-slate-400">
+                                                    {/* Map Pin color remains for contrast */}
+                                                    <MapPin size={12} className="shrink-0 text-[#f59e0b]" /> 
+                                                    <span className="truncate">
+                                                        {course.City && course.State
+                                                            ? `${course.City}, ${course.State}`
+                                                            : course.City || course.State}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-slate-400 p-8">
+                                    No college data to display.
+                                </div>
+                            )}
+
+                            {/* Faded overlay at the bottom for scroll effect */}
+                            <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#0f172a] to-transparent pointer-events-none"></div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default CourseMatcherVisual;
