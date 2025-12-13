@@ -16,6 +16,12 @@ const RegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Color scheme from CourseFinder
+  const accentColor = '#6366f1'; // Indigo accent
+  const primaryBg = '#0a0f1e'; // Very dark navy blue
+  const secondaryBg = '#111827'; // Slightly lighter navy
+  const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
   // ✅ Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
@@ -33,10 +39,8 @@ const RegisterPage = () => {
         const { error } = await signIn(email, password);
         if (error) {
           setError(error.message || 'Invalid email or password');
-          setIsSubmitting(false); // ✅ Only stop submitting on error
+          setIsSubmitting(false);
         }
-        // ✅ REMOVED router.push('/home') - let the useEffect handle redirect
-        // When signIn succeeds, AuthContext updates user state → useEffect redirects
       } else {
         if (!fullName.trim()) {
           setError('Please enter your full name');
@@ -76,7 +80,6 @@ const RegisterPage = () => {
         setError(error.message || 'Failed to sign in with Google');
         setIsSubmitting(false);
       }
-      // Don't set isSubmitting to false on success - user will be redirected
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
@@ -95,61 +98,61 @@ const RegisterPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: 'linear-gradient(to bottom right, #f0f4ff, #e6eeff)' }}>
-        <div className="text-xl" style={{ color: '#005de6' }}>Loading...</div>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: primaryBg }}>
+        <div className="text-xl" style={{ color: accentColor }}>Loading...</div>
       </div>
     );
   }
 
   if (user) {
-    return null; // Will redirect via useEffect
+    return null;
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'linear-gradient(to bottom right, #f0f4ff, #e6eeff)' }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: primaryBg }}>
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between" style={{ background: 'linear-gradient(to bottom right, #005de6, #003d99)' }}>
+      <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between" style={{ background: `linear-gradient(135deg, ${primaryBg} 0%, ${secondaryBg} 100%)`, borderRight: `1px solid ${borderColor}` }}>
         <div>
           <div className="flex items-center gap-3 mb-8">
-            <GraduationCap className="text-[#fac300]" size={40} />
-            <div className="text-4xl font-bold text-[#fac300]">EduNext</div>
+            <GraduationCap style={{ color: accentColor }} size={40} />
+            <div className="text-4xl font-bold text-white">EduNext</div>
           </div>
           <h1 className="text-5xl font-bold text-white mb-6">
             Your Gateway to Dream MBA College
           </h1>
-          <p className="text-xl mb-8" style={{ color: '#b3d1ff' }}>
+          <p className="text-xl mb-8 text-slate-400">
             Discover courses, connect with admits, and find scholarships to fuel your dreams.
           </p>
         </div>
         
         <div className="space-y-6">
           <div className="flex items-start gap-4">
-            <div className="bg-white/20 rounded-full p-3">
-              <GraduationCap className="text-[#fac300]" size={24} />
+            <div className="rounded-full p-3" style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)' }}>
+              <GraduationCap style={{ color: accentColor }} size={24} />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">2000+ MBA Colleges</h3>
-              <p style={{ color: '#b3d1ff' }}>Access comprehensive course information</p>
+              <p className="text-slate-400">Access comprehensive course information</p>
             </div>
           </div>
           <div className="flex items-start gap-4">
-            <div className="bg-white/20 rounded-full p-3">
-              <User className="text-[#fac300]" size={24} />
+            <div className="rounded-full p-3" style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)' }}>
+              <User style={{ color: accentColor }} size={24} />
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">375K+ Admit Profiles</h3>
-              <p style={{ color: '#b3d1ff' }}>Learn from successful applicants</p>
+              <p className="text-slate-400">Learn from successful applicants</p>
             </div>
           </div>
           <div className="flex items-start gap-4">
-            <div className="bg-white/20 rounded-full p-3">
+            <div className="rounded-full p-3" style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)' }}>
               <svg className="text-white" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
               </svg>
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg mb-1">3500+ Scholarships</h3>
-              <p style={{ color: '#b3d1ff' }}>Find funding opportunities</p>
+              <p className="text-slate-400">Find funding opportunities</p>
             </div>
           </div>
         </div>
@@ -158,16 +161,16 @@ const RegisterPage = () => {
       {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="rounded-2xl shadow-xl p-8" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
             <div className="text-center mb-8">
               <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-                <GraduationCap style={{ color: '#005de6' }} size={32} />
-                <div className="text-3xl font-bold" style={{ color: '#005de6' }}>EduNext</div>
+                <GraduationCap style={{ color: accentColor }} size={32} />
+                <div className="text-3xl font-bold" style={{ color: accentColor }}>EduNext</div>
               </div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              <h2 className="text-3xl font-bold text-white mb-2">
                 {isLogin ? 'Welcome Back!' : 'Join EduNext'}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-slate-400">
                 {isLogin 
                   ? 'Sign in to continue your journey' 
                   : 'Start your study abroad journey today'}
@@ -175,14 +178,14 @@ const RegisterPage = () => {
             </div>
 
             {error && (
-              <div className="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-700">
-                <p className="text-sm">{error}</p>
+              <div className="mb-6 p-4 rounded-lg flex items-start gap-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <p className="text-sm" style={{ color: '#fca5a5' }}>{error}</p>
               </div>
             )}
 
             {successMessage && (
-              <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700">
-                <p className="text-sm">{successMessage}</p>
+              <div className="mb-6 p-4 rounded-lg flex items-start gap-3" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                <p className="text-sm" style={{ color: '#86efac' }}>{successMessage}</p>
               </div>
             )}
 
@@ -191,7 +194,8 @@ const RegisterPage = () => {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isSubmitting}
-              className="w-full mb-6 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mb-6 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: secondaryBg, border: `2px solid ${borderColor}` }}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -204,27 +208,27 @@ const RegisterPage = () => {
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full" style={{ borderTop: `1px solid ${borderColor}` }}></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+                <span className="px-2 text-slate-400" style={{ backgroundColor: secondaryBg }}>Or continue with email</span>
               </div>
             </div>
 
             <div className="space-y-5">
               {!isLogin && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Full Name
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <User className="absolute left-3 top-3 text-slate-500" size={20} />
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#005de6' } as React.CSSProperties}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none text-white"
+                      style={{ backgroundColor: primaryBg, border: `1px solid ${borderColor}` }}
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -232,46 +236,46 @@ const RegisterPage = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <Mail className="absolute left-3 top-3 text-slate-500" size={20} />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
-                    style={{ '--tw-ring-color': '#005de6' } as React.CSSProperties}
+                    className="w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none text-white"
+                    style={{ backgroundColor: primaryBg, border: `1px solid ${borderColor}` }}
                     placeholder="Enter your email"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <Lock className="absolute left-3 top-3 text-slate-500" size={20} />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
-                    style={{ '--tw-ring-color': '#005de6' } as React.CSSProperties}
+                    className="w-full pl-10 pr-12 py-3 rounded-lg focus:outline-none text-white"
+                    style={{ backgroundColor: primaryBg, border: `1px solid ${borderColor}` }}
                     placeholder="Enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
                 {!isLogin && (
-                  <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters</p>
+                  <p className="text-xs text-slate-500 mt-1">Password must be at least 6 characters</p>
                 )}
               </div>
 
@@ -280,15 +284,15 @@ const RegisterPage = () => {
                   <label className="flex items-center">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 border-gray-300 rounded"
-                      style={{ accentColor: '#005de6' }}
+                      className="w-4 h-4 rounded"
+                      style={{ accentColor: accentColor, backgroundColor: primaryBg, border: `1px solid ${borderColor}` }}
                     />
-                    <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                    <span className="ml-2 text-sm text-slate-400">Remember me</span>
                   </label>
                   <button
                     type="button"
                     className="text-sm font-medium hover:opacity-80"
-                    style={{ color: '#005de6' }}
+                    style={{ color: accentColor }}
                   >
                     Forgot Password?
                   </button>
@@ -302,9 +306,7 @@ const RegisterPage = () => {
                 className={`w-full text-white py-3 rounded-lg font-semibold transition-all duration-200 ${
                   isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'
                 }`}
-                style={{ 
-                  background: isSubmitting ? '#005de6' : 'linear-gradient(to right, #005de6, #0047b3)'
-                }}
+                style={{ backgroundColor: accentColor, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }}
               >
                 {isSubmitting 
                   ? 'Processing...' 
@@ -315,13 +317,13 @@ const RegisterPage = () => {
             </div>
 
             <div className="mt-6 text-center">
-              <p className="text-gray-600">
+              <p className="text-slate-400">
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
                 <button
                   type="button"
                   onClick={toggleMode}
                   className="font-semibold hover:opacity-80"
-                  style={{ color: '#005de6' }}
+                  style={{ color: accentColor }}
                 >
                   {isLogin ? 'Sign Up' : 'Sign In'}
                 </button>
@@ -329,11 +331,11 @@ const RegisterPage = () => {
             </div>
           </div>
 
-          <p className="text-center text-sm text-gray-600 mt-6">
+          <p className="text-center text-sm text-slate-500 mt-6">
             By continuing, you agree to our{' '}
-            <a href="#" className="hover:opacity-80" style={{ color: '#005de6' }}>Terms of Service</a>
+            <a href="#" className="hover:opacity-80" style={{ color: accentColor }}>Terms of Service</a>
             {' '}and{' '}
-            <a href="#" className="hover:opacity-80" style={{ color: '#005de6' }}>Privacy Policy</a>
+            <a href="#" className="hover:opacity-80" style={{ color: accentColor }}>Privacy Policy</a>
           </p>
         </div>
       </div>

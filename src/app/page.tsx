@@ -304,94 +304,112 @@ export default function Hero() {
         />
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
-          <div
-            className="flex flex-col items-center text-center mb-12 sm:mb-20 relative px-4 py-20 rounded-3xl"
-            style={{
-              backgroundImage:
-                'url(https://res.cloudinary.com/daetdadtt/image/upload/v1764742101/iim_hehe_optimized_9000_xh45xg.png)',
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-            }}
-          >
-            <div className="absolute inset-0 rounded-3xl" style={{ backgroundColor: "rgba(2, 6, 23, 0.7)", backdropFilter: "blur(4px)" }} />
-            <div className="relative z-10 w-full">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border shadow-sm mb-6"
-                style={{
-                  backgroundColor: "rgba(14, 165, 233, 0.1)",
-                  borderColor: secondary,
-                }}
-              >
-                <span className="relative flex h-2 w-2">
-                  <span
-                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                    style={{ background: secondary }}
-                  ></span>
-                  <span
-                    className="relative inline-flex rounded-full h-2 w-2"
-                    style={{ background: secondary }}
-                  ></span>
-                </span>
-                <span className="text-xs font-bold tracking-wide uppercase" style={{ color: "#f8fafc" }}>
-                  New: Admit Finder 2.0 is live
-                </span>
-                <ArrowRight size={12} style={{ color: "#94a3b8" }} />
-              </motion.div>
+          <div className="flex flex-col md:flex-row items-center gap-10 mb-12 sm:mb-20">
+  {/* LEFT SIDE - Text Content */}
+  <motion.div
+    initial={{ opacity: 0, x: -50 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.8 }}
+    className="md:w-1/2 text-left"
+  >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border shadow-sm mb-6"
+      style={{
+        backgroundColor: "rgba(14, 165, 233, 0.1)",
+        borderColor: secondary,
+      }}
+    >
+      <span className="relative flex h-2 w-2">
+        <span
+          className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+          style={{ background: secondary }}
+        ></span>
+        <span
+          className="relative inline-flex rounded-full h-2 w-2"
+          style={{ background: secondary }}
+        ></span>
+      </span>
+      <span className="text-xs font-bold tracking-wide uppercase" style={{ color: "#f8fafc" }}>
+        New: Admit Finder 2.0 is live
+      </span>
+      <ArrowRight size={12} style={{ color: "#94a3b8" }} />
+    </motion.div>
 
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6"
-                style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}
-              >
-                Your Dream MBA College <br />
-                <span style={{ 
-                  background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}>Without the Noise.</span>
-              </motion.h1>
+    <motion.h1
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight whitespace-nowrap sm:whitespace-normal"
+      style={{
+        background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      }}
+    >
+      Your Dream MBA College
+      <br />
+      <span style={{ 
+        background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      }}>Without the Noise.</span>
+    </motion.h1>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="mb-8"
-              >
-                <Link href={user ? "/home" : "/register"}>
-                  <button
-                    className="px-8 py-4 rounded-full font-bold text-lg inline-flex items-center gap-2 cursor-pointer shadow-xl hover:-translate-y-1 transition-all"
-                    style={{ backgroundColor: primary, color: "white" }}
-                  >
-                    {user ? "Go to Dashboard" : "Get Started for Free"}
-                    <ArrowRight size={20} />
-                  </button>
-                </Link>
-              </motion.div>
+    <motion.p
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+      className="text-base sm:text-lg md:text-xl max-w-lg leading-relaxed mb-8"
+      style={{ color: "#94a3b8" }}
+    >
+      EduNext helps you find the right course, secure scholarships, and
+      connect with alumni—all while keeping your data 100% private.
+    </motion.p>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
-                style={{ color: "#94a3b8" }}
-              >
-                EduNext helps you find the right course, secure scholarships, and
-                connect with alumni—all while keeping your data 100% private.
-              </motion.p>
-            </div>
-          </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.3 }}
+    >
+      <Link href={user ? "/home" : "/register"}>
+        <button
+          className="px-8 py-4 rounded-full font-bold text-lg inline-flex items-center gap-2 cursor-pointer shadow-xl hover:-translate-y-1 transition-all"
+          style={{ backgroundColor: primary, color: "white" }}
+        >
+          {user ? "Go to Dashboard" : "Get Started for Free"}
+          <ArrowRight size={20} />
+        </button>
+      </Link>
+    </motion.div>
+  </motion.div>
+
+  {/* RIGHT SIDE - Image */}
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.8, delay: 0.2 }}
+    className="md:w-1/2 flex justify-center relative"
+  >
+    <div className="relative w-80 h-80 md:w-[500px] md:h-[500px]">
+      {/* Decorative Frame */}
+      <div
+        className="absolute inset-0 border-2 rounded-2xl transform rotate-3 scale-105"
+        style={{ borderColor: "rgba(99, 102, 241, 0.3)" }}
+      ></div>
+
+      <img
+        src="https://res.cloudinary.com/daetdadtt/image/upload/v1765632272/file_ew0uf0.webp"
+        alt="MBA Student Success"
+        className="w-full h-full object-cover rounded-2xl shadow-2xl transition-all duration-700"
+      />
+    </div>
+  </motion.div>
+</div>
 
           {/* FEATURES + PREVIEW */}
           <div className="grid lg:grid-cols-12 gap-10 items-start">
