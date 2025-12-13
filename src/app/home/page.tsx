@@ -49,6 +49,12 @@ const DashboardPage = () => {
   const [loadingProfile, setLoadingProfile] = useState(!cachedProfileData);
   const [shortlistedCount, setShortlistedCount] = useState(0);
 
+  // Exact color scheme from the screenshot - using deeper navy/blue tones
+  const accentColor = '#6366f1'; // Indigo accent
+  const primaryBg = '#0a0f1e'; // Very dark navy blue (matching screenshot)
+  const secondaryBg = '#111827'; // Slightly lighter navy for cards
+  const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
   // Memoize calculations with ONLY 6 required fields
   const profileMetrics = useMemo(() => {
     if (!profileData) {
@@ -229,10 +235,10 @@ const DashboardPage = () => {
   };
 
   const getProgressColor = useCallback(() => {
-    if (profileMetrics.completion >= 80) return 'from-[#2f61ce] to-blue-400';
-    if (profileMetrics.completion >= 50) return 'from-[#2f61ce] to-blue-300';
-    return 'from-[#2f61ce] to-blue-500';
-  }, [profileMetrics.completion]);
+    if (profileMetrics.completion >= 80) return `from-[${accentColor}] to-indigo-400`;
+    if (profileMetrics.completion >= 50) return `from-[${accentColor}] to-indigo-300`;
+    return `from-[${accentColor}] to-indigo-500`;
+  }, [profileMetrics.completion, accentColor]);
 
   const getProgressMessage = useCallback(() => {
     if (profileMetrics.completion === 100) return '🎉 Your profile is complete!';
@@ -250,10 +256,16 @@ const DashboardPage = () => {
   if (loading || loadingProfile) {
     return (
       <DefaultLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-xl text-[#2f61ce] flex items-center gap-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#2f61ce]"></div>
-            Loading...
+        <div 
+          className="flex items-center justify-center min-h-screen w-full"
+          style={{ backgroundColor: primaryBg }}
+        >
+          <div className="flex items-center gap-2" style={{ color: accentColor }}>
+            <div 
+              className="animate-spin rounded-full h-6 w-6 border-b-2"
+              style={{ borderColor: accentColor }}
+            ></div>
+            <span className="text-xl">Loading...</span>
           </div>
         </div>
       </DefaultLayout>
@@ -265,31 +277,50 @@ const DashboardPage = () => {
   return (
     <DefaultLayout>
       <LeadDataPopup />
-      <div className="flex-1 overflow-auto">
+      <div 
+        className="w-full min-h-screen"
+        style={{ backgroundColor: primaryBg }}
+      >
         <div className="p-6 max-w-7xl mx-auto">
+          {/* Header Section */}
           <div className="mb-6">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            <h1 className="text-4xl font-bold text-white mb-2">
               {greeting}, {userName}! 👋
             </h1>
-            <p className="text-gray-600">Ready to take the next step in your academic journey?</p>
+            <p className="text-slate-400">Ready to take the next step in your academic journey?</p>
           </div>
 
           {/* COMPACT VERSION FOR 100% COMPLETE PROFILE */}
           {profileMetrics.completion === 100 ? (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl shadow-md p-4 mb-6 border-2 border-green-300">
+            <div 
+              className="rounded-xl shadow-lg p-4 mb-6 backdrop-blur-xl"
+              style={{ 
+                background: `linear-gradient(135deg, ${secondaryBg} 0%, rgba(34, 197, 94, 0.1) 100%)`,
+                border: `2px solid ${accentColor}`
+              }}
+            >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: accentColor }}
+                  >
                     <CheckCircle2 className="text-white" size={20} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 text-base">Profile Complete! 🎉</h3>
-                    <p className="text-sm text-gray-600">All features unlocked</p>
+                    <h3 className="font-bold text-white text-base">Profile Complete! 🎉</h3>
+                    <p className="text-sm text-slate-400">All features unlocked</p>
                   </div>
                 </div>
                 <button
                   onClick={handleProfileClick}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0 flex items-center gap-1 shadow-md"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0 flex items-center gap-1 shadow-md hover:shadow-lg"
+                  style={{ 
+                    backgroundColor: accentColor,
+                    color: 'white'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4f46e5'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = accentColor}
                 >
                   <User size={14} />
                   View Profile
@@ -298,50 +329,89 @@ const DashboardPage = () => {
             </div>
           ) : (
             /* FULL VERSION FOR INCOMPLETE PROFILE */
-            <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border-2 border-blue-100">
+            <div 
+              className="rounded-2xl shadow-xl p-6 mb-6 backdrop-blur-xl"
+              style={{ 
+                backgroundColor: secondaryBg,
+                border: `1px solid ${borderColor}`
+              }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${getProgressColor()} rounded-full flex items-center justify-center`}>
+                  <div 
+                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${accentColor} 0%, #818cf8 100%)`
+                    }}
+                  >
                     <TrendingUp className="text-white" size={24} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Profile Completion</h2>
-                    <p className="text-gray-600">{getProgressMessage()}</p>
+                    <h2 className="text-2xl font-bold text-white">Profile Completion</h2>
+                    <p className="text-slate-400">{getProgressMessage()}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-4xl font-bold bg-gradient-to-r from-[#2f61ce] to-blue-500 bg-clip-text text-transparent">
+                  <div 
+                    className="text-4xl font-bold"
+                    style={{ color: accentColor }}
+                  >
                     {profileMetrics.completion}%
                   </div>
-                  <p className="text-sm text-gray-500">Complete</p>
+                  <p className="text-sm text-slate-500">Complete</p>
                 </div>
               </div>
 
-              <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
+              <div 
+                className="relative h-4 rounded-full overflow-hidden mb-4"
+                style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
+              >
                 <div 
-                  className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getProgressColor()} transition-all duration-700 ease-out rounded-full`}
-                  style={{ width: `${profileMetrics.completion}%` }}
+                  className="absolute top-0 left-0 h-full transition-all duration-700 ease-out rounded-full"
+                  style={{ 
+                    width: `${profileMetrics.completion}%`,
+                    background: `linear-gradient(90deg, ${accentColor} 0%, #818cf8 100%)`
+                  }}
                 >
                   <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
                 </div>
               </div>
 
               {profileMetrics.missingFields.length > 0 && (
-                <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-xl p-4 border border-blue-200">
+                <div 
+                  className="rounded-xl p-4 backdrop-blur-sm"
+                  style={{ 
+                    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                    border: `1px solid ${borderColor}`
+                  }}
+                >
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="text-[#2f61ce] mt-0.5 shrink-0" size={20} />
+                    <AlertCircle style={{ color: accentColor }} className="mt-0.5 shrink-0" size={20} />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 mb-2">Complete these required fields to unlock full features:</h3>
+                      <h3 className="font-semibold text-white mb-2">Complete these required fields to unlock full features:</h3>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {profileMetrics.missingFields.map((field, idx) => (
-                          <span key={idx} className="text-xs bg-white text-[#2f61ce] px-3 py-1 rounded-full border border-blue-200 font-medium">
+                          <span 
+                            key={idx} 
+                            className="text-xs px-3 py-1 rounded-full font-medium"
+                            style={{ 
+                              backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                              color: '#a5b4fc',
+                              border: `1px solid ${borderColor}`
+                            }}
+                          >
                             {field}
                           </span>
                         ))}
                       </div>
                       <button
                         onClick={handleProfileClick}
-                        className="flex items-center gap-2 bg-gradient-to-r from-[#2f61ce] to-blue-500 text-white px-4 py-2 rounded-lg hover:from-[#2451a8] hover:to-blue-600 transition-all text-sm font-semibold shadow-lg"
+                        className="flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-all text-sm font-semibold shadow-lg hover:shadow-xl"
+                        style={{ 
+                          background: `linear-gradient(90deg, ${accentColor} 0%, #818cf8 100%)`
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                       >
                         <User size={16} />
                         Complete Your Profile
@@ -354,87 +424,153 @@ const DashboardPage = () => {
             </div>
           )}
 
-          {/* {profileMetrics.completion >= 50 && (
-            <div 
-              onClick={handleAdmitFinderClick}
-              className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-blue-100 cursor-pointer hover:shadow-xl transition-shadow"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Users className="text-[#2f61ce]" size={32} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-1">Find Similar Profiles</h2>
-                    <p className="text-gray-600">
-                      {similarProfilesCount > 0 
-                        ? `${similarProfilesCount} students with similar background found!` 
-                        : 'Discover students with profiles like yours'}
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="text-[#2f61ce]" size={28} />
-              </div>
-            </div>
-          )} */}
-
-          <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-blue-100">
+          {/* Quick Actions Section */}
+          <div 
+            className="rounded-2xl shadow-xl p-6 backdrop-blur-xl mb-6"
+            style={{ 
+              backgroundColor: secondaryBg,
+              border: `1px solid ${borderColor}`
+            }}
+          >
             <div className="flex items-center gap-2 mb-6">
-              <Target className="text-[#2f61ce]" size={24} />
-              <h2 className="text-2xl font-semibold text-gray-800">Quick Actions</h2>
+              <Target style={{ color: accentColor }} size={24} />
+              <h2 className="text-2xl font-semibold text-white">Quick Actions</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Find Colleges Card */}
               <button 
                 onClick={handleCourseFinderClick}
-                className="group p-6 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-all text-left hover:shadow-lg"
+                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+                style={{ 
+                  backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                  border: `1px solid ${borderColor}`
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = `0 20px 40px rgba(99, 102, 241, 0.2)`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 <div className="text-4xl mb-3">🔍</div>
-                <div className="font-bold text-gray-800 mb-1 text-lg">Find Colleges</div>
-                <div className="text-sm text-gray-600">Explore programs Nationwide</div>
-                <ArrowRight className="text-[#2f61ce] mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <div className="font-bold text-white mb-1 text-lg">Find Colleges</div>
+                <div className="text-sm text-slate-400">Explore programs Nationwide</div>
+                <ArrowRight 
+                  style={{ color: accentColor }}
+                  className="mt-2 group-hover:translate-x-1 transition-transform" 
+                  size={20} 
+                />
               </button>
 
+              {/* Previous Year Students Card */}
               <button 
                 onClick={handleAdmitFinderClick}
-                className="group p-6 border-2 border-sky-200 rounded-xl hover:bg-sky-50 transition-all text-left hover:shadow-lg"
+                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+                style={{ 
+                  backgroundColor: 'rgba(14, 165, 233, 0.05)',
+                  border: `1px solid rgba(14, 165, 233, 0.15)`
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(14, 165, 233, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 <div className="text-4xl mb-3">👥</div>
-                <div className="font-bold text-gray-800 mb-1 text-lg">Previous Year Students</div>
-                <div className="text-sm text-gray-600">Connect with admits</div>
-                <ArrowRight className="text-sky-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <div className="font-bold text-white mb-1 text-lg">Previous Year Students</div>
+                <div className="text-sm text-slate-400">Connect with admits</div>
+                <ArrowRight 
+                  className="text-sky-400 mt-2 group-hover:translate-x-1 transition-transform" 
+                  size={20} 
+                />
               </button>
 
+              {/* Scholarships Card */}
               <button 
                 onClick={handleScholarshipClick}
-                className="group p-6 border-2 border-green-200 rounded-xl hover:bg-green-50 transition-all text-left hover:shadow-lg"
+                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+                style={{ 
+                  backgroundColor: 'rgba(34, 197, 94, 0.05)',
+                  border: `1px solid rgba(34, 197, 94, 0.15)`
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(34, 197, 94, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 <div className="text-4xl mb-3">💵</div>
-                <div className="font-bold text-gray-800 mb-1 text-lg">Scholarships</div>
-                <div className="text-sm text-gray-600">Find funding options</div>
-                <ArrowRight className="text-green-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <div className="font-bold text-white mb-1 text-lg">Scholarships</div>
+                <div className="text-sm text-slate-400">Find funding options</div>
+                <ArrowRight 
+                  className="text-green-400 mt-2 group-hover:translate-x-1 transition-transform" 
+                  size={20} 
+                />
               </button>
 
+              {/* Your Shortlist Card */}
               <button 
                 onClick={handleShortlistClick}
-                className="group p-6 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all text-left hover:shadow-lg"
+                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+                style={{ 
+                  backgroundColor: 'rgba(168, 85, 247, 0.05)',
+                  border: `1px solid rgba(168, 85, 247, 0.15)`
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(168, 85, 247, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 <div className="text-4xl mb-3">⭐</div>
-                <div className="font-bold text-gray-800 mb-1 text-lg">Your Shortlist</div>
-                <div className="text-sm text-gray-600">Build your dream list</div>
-                <ArrowRight className="text-purple-600 mt-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <div className="font-bold text-white mb-1 text-lg">Your Shortlist</div>
+                <div className="text-sm text-slate-400">Build your dream list</div>
+                <ArrowRight 
+                  className="text-purple-400 mt-2 group-hover:translate-x-1 transition-transform" 
+                  size={20} 
+                />
               </button>
             </div>
           </div>
 
+          {/* Pro Tip Section */}
           {profileMetrics.completion < 100 && (
-            <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-[#fac300]">
+            <div 
+              className="rounded-2xl shadow-lg p-6 backdrop-blur-sm"
+              style={{ 
+                background: `linear-gradient(135deg, ${secondaryBg} 0%, rgba(250, 195, 0, 0.05) 100%)`,
+                border: `1px solid rgba(250, 195, 0, 0.2)`
+              }}
+            >
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-[#fac300] rounded-full flex items-center justify-center shrink-0">
-                  <Sparkles className="text-white" size={20} />
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: '#fac300' }}
+                >
+                  <Sparkles className="text-slate-900" size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-800 mb-2 text-lg">💡 Pro Tip</h3>
-                  <p className="text-gray-700">
+                  <h3 className="font-bold text-white mb-2 text-lg">💡 Pro Tip</h3>
+                  <p className="text-slate-400">
                     Complete all 6 required fields (Name, City, Email, Contact Number, Academic Year, and Test Scores) in your profile to unlock personalized recommendations and connect with students who have similar academic backgrounds!
                   </p>
                 </div>

@@ -1,6 +1,12 @@
 import React from "react"
 import { Target } from "lucide-react"
 
+// Color scheme matching the college compare page
+const accentColor = '#6366f1'; // Indigo accent
+const primaryBg = '#0a0f1e'; // Very dark navy blue
+const secondaryBg = '#111827'; // Slightly lighter navy
+const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
 interface TargetProgramSectionProps {
   formData: {
     target_state: string[]
@@ -60,8 +66,8 @@ const TargetProgramSection: React.FC<TargetProgramSectionProps> = ({
       onToggle={onToggle}
     >
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Preferred States <span className="text-[#2f61ce]">*</span>
+        <label className="block text-sm font-medium text-white mb-2">
+          Preferred States <span style={{ color: accentColor }}>*</span>
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           {COUNTRIES.map((country) => (
@@ -70,11 +76,32 @@ const TargetProgramSection: React.FC<TargetProgramSectionProps> = ({
               type="button"
               onClick={() => isEditing && onMultiSelect(country)}
               disabled={!isEditing}
-              className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base ${
+              className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base font-medium ${
+                !isEditing ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+              style={
                 formData.target_state.includes(country)
-                  ? "border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce] font-medium"
-                  : "border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]"
-              } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
+                  ? {
+                      borderColor: accentColor,
+                      backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                      color: accentColor,
+                    }
+                  : {
+                      borderColor: borderColor,
+                      backgroundColor: primaryBg,
+                      color: '#FFFFFF',
+                    }
+              }
+              onMouseEnter={(e) => {
+                if (isEditing && !formData.target_state.includes(country)) {
+                  e.currentTarget.style.borderColor = accentColor
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (isEditing && !formData.target_state.includes(country)) {
+                  e.currentTarget.style.borderColor = borderColor
+                }
+              }}
             >
               {country}
             </button>
@@ -103,8 +130,8 @@ const TargetProgramSection: React.FC<TargetProgramSectionProps> = ({
       </div>
       
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Budget Range (Annual) <span className="text-gray-500 text-xs">(Select all that apply)</span>
+        <label className="block text-sm font-medium text-white mb-2">
+          Budget Range (Annual) <span className="text-slate-500 text-xs">(Select all that apply)</span>
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {BUDGET_OPTIONS.map((option) => (
@@ -113,11 +140,32 @@ const TargetProgramSection: React.FC<TargetProgramSectionProps> = ({
               type="button"
               onClick={() => isEditing && onMultiSelectBudget(option.value)}
               disabled={!isEditing}
-              className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base ${
+              className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base font-medium ${
+                !isEditing ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+              style={
                 formData.budget.includes(option.value)
-                  ? "border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce] font-medium"
-                  : "border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]"
-              } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
+                  ? {
+                      borderColor: accentColor,
+                      backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                      color: accentColor,
+                    }
+                  : {
+                      borderColor: borderColor,
+                      backgroundColor: primaryBg,
+                      color: '#FFFFFF',
+                    }
+              }
+              onMouseEnter={(e) => {
+                if (isEditing && !formData.budget.includes(option.value)) {
+                  e.currentTarget.style.borderColor = accentColor
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (isEditing && !formData.budget.includes(option.value)) {
+                  e.currentTarget.style.borderColor = borderColor
+                }
+              }}
             >
               {option.label}
             </button>

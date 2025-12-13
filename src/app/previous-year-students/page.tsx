@@ -27,6 +27,12 @@ interface UserProfile {
   city?: string;
 }
 
+// Color scheme matching the home page
+const accentColor = '#6366f1'; // Indigo accent
+const primaryBg = '#0a0f1e'; // Very dark navy blue
+const secondaryBg = '#111827'; // Slightly lighter navy
+const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
 const AdmitFinder: React.FC = () => {
   const [profiles, setProfiles] = useState<PreviousStudent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -256,30 +262,30 @@ const AdmitFinder: React.FC = () => {
     const score = profile.matchScore;
     
     if (score >= 90) {
-      return <span className="text-xs bg-green-100 text-green-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+      return <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1" style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
         <Trophy size={14} />
         <span className="hidden sm:inline">Perfect Match ({score}%)</span>
         <span className="sm:hidden">{score}%</span>
       </span>;
     } else if (score >= 75) {
-      return <span className="text-xs bg-blue-100 text-blue-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+      return <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
         <Award size={14} />
         <span className="hidden sm:inline">Excellent Match ({score}%)</span>
         <span className="sm:hidden">{score}%</span>
       </span>;
     } else if (score >= 60) {
-      return <span className="text-xs bg-purple-100 text-purple-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+      return <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1" style={{ backgroundColor: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
         <Target size={14} />
         <span className="hidden sm:inline">Great Match ({score}%)</span>
         <span className="sm:hidden">{score}%</span>
       </span>;
     } else if (score >= 40) {
-      return <span className="text-xs bg-yellow-100 text-yellow-700 px-2 sm:px-3 py-1 rounded-full font-semibold">
+      return <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold" style={{ backgroundColor: 'rgba(250, 204, 21, 0.2)', color: '#fbbf24', border: '1px solid rgba(250, 204, 21, 0.3)' }}>
         <span className="hidden sm:inline">Good Match ({score}%)</span>
         <span className="sm:hidden">{score}%</span>
       </span>;
     }
-    return <span className="text-xs bg-gray-100 text-gray-600 px-2 sm:px-3 py-1 rounded-full font-semibold">
+    return <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold" style={{ backgroundColor: 'rgba(148, 163, 184, 0.2)', color: '#94a3b8', border: '1px solid rgba(148, 163, 184, 0.3)' }}>
       <span className="hidden sm:inline">Relevant ({score}%)</span>
       <span className="sm:hidden">{score}%</span>
     </span>;
@@ -294,24 +300,24 @@ const AdmitFinder: React.FC = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6 mt-[72px] sm:mt-0">
+      <div className="flex-1 min-h-screen p-3 sm:p-4 md:p-6 mt-[72px] sm:mt-0" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-4 sm:mb-6 md:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#2f61ce] mb-1 sm:mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2" style={{ color: accentColor }}>
               Connect with Previous Students!
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">Find students with similar backgrounds who got into top MBA colleges</p>
+            <p className="text-sm sm:text-base text-slate-400">Find students with similar backgrounds who got into top MBA colleges</p>
           </div>
 
           {/* Profile Info Banner */}
           {viewMode === 'recommended' && userProfile && (
-            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 border-l-4 border-[#2f61ce] rounded-lg">
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg backdrop-blur-xl" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', borderLeft: `4px solid ${accentColor}`, border: `1px solid ${borderColor}` }}>
               <div className="flex items-start gap-2">
-                <Sparkles className="text-[#2f61ce] mt-0.5 flex-shrink-0" size={18} />
+                <Sparkles className="mt-0.5 flex-shrink-0" style={{ color: accentColor }} size={18} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-semibold text-[#2f61ce] mb-1">Showing your top 10 personalized matches:</p>
-                  <p className="text-xs text-gray-700 break-words">
+                  <p className="text-xs sm:text-sm font-semibold mb-1" style={{ color: accentColor }}>Showing your top 10 personalized matches:</p>
+                  <p className="text-xs text-slate-300 break-words">
                     Based on: {userProfile.test_scores?.find(t => t.exam.toUpperCase().includes('CAT'))
                       ? `CAT: ${userProfile.test_scores.find(t => t.exam.toUpperCase().includes('CAT'))?.score}` 
                       : 'No CAT score'} | 
@@ -326,11 +332,11 @@ const AdmitFinder: React.FC = () => {
           <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               onClick={() => setViewMode('all')}
-              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${
-                viewMode === 'all'
-                  ? 'bg-[#2f61ce] text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-              }`}
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
+              style={viewMode === 'all'
+                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
+              }
             >
               <Users size={18} className="sm:w-5 sm:h-5" />
               All Students
@@ -342,13 +348,13 @@ const AdmitFinder: React.FC = () => {
                 }
               }}
               disabled={!hasProfileData || loadingProfile}
-              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${
-                viewMode === 'recommended'
-                  ? 'bg-[#2f61ce] text-white shadow-lg'
-                  : hasProfileData && !loadingProfile
-                    ? 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
+              style={viewMode === 'recommended'
+                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                : hasProfileData && !loadingProfile
+                  ? { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
+                  : { backgroundColor: 'rgba(148, 163, 184, 0.1)', color: '#64748b', cursor: 'not-allowed' }
+              }
               title={!hasProfileData && !loadingProfile ? 'Complete your profile to see recommendations' : ''}
             >
               <UserCheck size={18} className="sm:w-5 sm:h-5" />
@@ -362,7 +368,8 @@ const AdmitFinder: React.FC = () => {
           <div className="mb-4 sm:mb-6">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden w-full flex items-center justify-between gap-2 px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+              className="lg:hidden w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-all backdrop-blur-xl"
+              style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}`, color: '#cbd5e1' }}
             >
               <span className="flex items-center gap-2">
                 <Filter size={18} />
@@ -371,63 +378,66 @@ const AdmitFinder: React.FC = () => {
               {showFilters ? <X size={18} /> : <ChevronDown size={18} />}
             </button>
 
-            {/* Filters - Hidden on mobile unless toggled */}
+            {/* Filters */}
             <div className={`${showFilters ? 'block' : 'hidden'} lg:flex flex-col lg:flex-row gap-3 lg:gap-4 mt-3 lg:mt-0`}>
               <div className="relative w-full lg:w-auto">
                 <select 
-                  className="w-full lg:w-auto appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                  className="w-full lg:w-auto appearance-none rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 text-white"
+                  style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: `1px solid ${borderColor}` }}
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                 >
-                  <option value="">All Cities</option>
-                  <option>Mumbai</option>
-                  <option>Delhi</option>
-                  <option>Bangalore</option>
-                  <option>Pune</option>
-                  <option>Chennai</option>
-                  <option>Hyderabad</option>
-                  <option>Kolkata</option>
+                  <option value="" style={{ backgroundColor: secondaryBg }}>All Cities</option>
+                  <option style={{ backgroundColor: secondaryBg }}>Mumbai</option>
+                  <option style={{ backgroundColor: secondaryBg }}>Delhi</option>
+                  <option style={{ backgroundColor: secondaryBg }}>Bangalore</option>
+                  <option style={{ backgroundColor: secondaryBg }}>Pune</option>
+                  <option style={{ backgroundColor: secondaryBg }}>Chennai</option>
+                  <option style={{ backgroundColor: secondaryBg }}>Hyderabad</option>
+                  <option style={{ backgroundColor: secondaryBg }}>Kolkata</option>
                 </select>
-                <ChevronDown className="absolute right-2 top-2.5 sm:top-3 h-4 w-4 pointer-events-none text-gray-600" />
+                <ChevronDown className="absolute right-2 top-2.5 sm:top-3 h-4 w-4 pointer-events-none text-slate-400" />
               </div>
 
               <div className="relative w-full lg:w-auto">
                 <select 
-                  className="w-full lg:w-auto appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                  className="w-full lg:w-auto appearance-none rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 text-white"
+                  style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: `1px solid ${borderColor}` }}
                   value={selectedCollege}
                   onChange={(e) => setSelectedCollege(e.target.value)}
                 >
-                  <option value="">All Colleges</option>
-                  <option>IIM Ahmedabad</option>
-                  <option>IIM Bangalore</option>
-                  <option>IIM Calcutta</option>
-                  <option>IIM Lucknow</option>
-                  <option>ISB Hyderabad</option>
-                  <option>XLRI Jamshedpur</option>
-                  <option>FMS Delhi</option>
-                  <option>SPJIMR Mumbai</option>
+                  <option value="" style={{ backgroundColor: secondaryBg }}>All Colleges</option>
+                  <option style={{ backgroundColor: secondaryBg }}>IIM Ahmedabad</option>
+                  <option style={{ backgroundColor: secondaryBg }}>IIM Bangalore</option>
+                  <option style={{ backgroundColor: secondaryBg }}>IIM Calcutta</option>
+                  <option style={{ backgroundColor: secondaryBg }}>IIM Lucknow</option>
+                  <option style={{ backgroundColor: secondaryBg }}>ISB Hyderabad</option>
+                  <option style={{ backgroundColor: secondaryBg }}>XLRI Jamshedpur</option>
+                  <option style={{ backgroundColor: secondaryBg }}>FMS Delhi</option>
+                  <option style={{ backgroundColor: secondaryBg }}>SPJIMR Mumbai</option>
                 </select>
-                <ChevronDown className="absolute right-2 top-2.5 sm:top-3 h-4 w-4 pointer-events-none text-gray-600" />
+                <ChevronDown className="absolute right-2 top-2.5 sm:top-3 h-4 w-4 pointer-events-none text-slate-400" />
               </div>
 
               <div className="flex-1 relative">
                 <input
                   type="text"
                   placeholder="Search by name, college, or degree"
-                  className="w-full px-3 sm:px-4 py-2 pr-10 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce]"
+                  className="w-full px-3 sm:px-4 py-2 pr-10 text-sm sm:text-base rounded-lg focus:outline-none focus:ring-2 text-white placeholder-slate-500"
+                  style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: `1px solid ${borderColor}` }}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Search className="absolute right-3 top-2.5 sm:top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute right-3 top-2.5 sm:top-3 h-4 w-4 text-slate-400" />
               </div>
             </div>
           </div>
 
           {/* Results Count */}
-          <div className="flex items-center justify-between mb-4 sm:mb-6 bg-white rounded-lg shadow-sm p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
             <div className="flex items-center gap-2">
-              <Users className="text-[#2f61ce] flex-shrink-0" size={20} />
-              <span className="font-semibold text-sm sm:text-base text-gray-800">
+              <Users className="flex-shrink-0" style={{ color: accentColor }} size={20} />
+              <span className="font-semibold text-sm sm:text-base text-white">
                 {profiles.length} {viewMode === 'recommended' ? 'recommended ' : ''}student{profiles.length !== 1 ? 's' : ''} found
               </span>
             </div>
@@ -436,20 +446,20 @@ const AdmitFinder: React.FC = () => {
           {/* Loading State */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="text-gray-500 flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#2f61ce]"></div>
-                <p className="text-sm sm:text-base">Loading profiles...</p>
+              <div className="flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2" style={{ borderColor: accentColor }}></div>
+                <p className="text-sm sm:text-base text-slate-400">Loading profiles...</p>
               </div>
             </div>
           ) : profiles.length === 0 ? (
-            <div className="text-center py-12 sm:py-16 bg-white rounded-lg shadow-sm">
-              <UserCheck size={40} className="sm:w-12 sm:h-12 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
+            <div className="text-center py-12 sm:py-16 rounded-lg shadow-sm backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+              <UserCheck size={40} className="sm:w-12 sm:h-12 mx-auto text-slate-600 mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                 {viewMode === 'recommended' 
                   ? 'No matching profiles found'
                   : 'No profiles found'}
               </h3>
-              <p className="text-sm sm:text-base text-gray-500 px-4">
+              <p className="text-sm sm:text-base text-slate-400 px-4">
                 {viewMode === 'recommended' 
                   ? 'Try adjusting your filters or complete more profile information'
                   : 'Try adjusting your search filters'}
@@ -460,15 +470,16 @@ const AdmitFinder: React.FC = () => {
               {profiles.map((profile) => (
                 <div 
                   key={profile.id} 
-                  className="border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow bg-white"
+                  className="rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow backdrop-blur-xl"
+                  style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
                 >
                   {/* Header with Avatar and Name */}
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#2f61ce] text-white flex items-center justify-center font-bold text-lg sm:text-xl flex-shrink-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full text-white flex items-center justify-center font-bold text-lg sm:text-xl flex-shrink-0" style={{ backgroundColor: accentColor }}>
                       {profile.name ? profile.name.charAt(0).toUpperCase() : 'S'}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-lg sm:text-xl text-gray-800 break-words mb-1">
+                      <h3 className="font-bold text-lg sm:text-xl text-white break-words mb-1">
                         {profile.name}
                       </h3>
                       {getMatchBadge(profile)}
@@ -478,19 +489,19 @@ const AdmitFinder: React.FC = () => {
                   {/* CAT Percentile and Degree - Side by Side */}
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     {profile.cat_percentile && (
-                      <div className="bg-blue-50 rounded-lg p-3">
+                      <div className="rounded-lg p-3" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}>
                         <div className="flex items-center gap-1 mb-1">
-                          <BookOpen size={12} className="text-[#2f61ce] flex-shrink-0" />
-                          <span className="text-xs text-gray-600">CAT Percentile</span>
+                          <BookOpen size={12} className="flex-shrink-0" style={{ color: accentColor }} />
+                          <span className="text-xs text-slate-400">CAT Percentile</span>
                         </div>
-                        <p className="font-bold text-xl text-[#2f61ce]">{profile.cat_percentile}%</p>
+                        <p className="font-bold text-xl" style={{ color: accentColor }}>{profile.cat_percentile}%</p>
                       </div>
                     )}
                     
                     {profile.ug_degree && (
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <span className="text-xs text-gray-600 block mb-1">Degree</span>
-                        <span className="font-semibold text-sm text-gray-800 break-words block">{profile.ug_degree}</span>
+                      <div className="rounded-lg p-3" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                        <span className="text-xs text-slate-400 block mb-1">Degree</span>
+                        <span className="font-semibold text-sm text-slate-200 break-words block">{profile.ug_degree}</span>
                       </div>
                     )}
                   </div>
@@ -498,18 +509,18 @@ const AdmitFinder: React.FC = () => {
                   {/* City and College - Side by Side */}
                   <div className="grid grid-cols-2 gap-3">
                     {profile.city && (
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <span className="text-xs text-gray-600 block mb-1">City</span>
-                        <span className="font-semibold text-sm text-gray-800 block">{profile.city}</span>
+                      <div className="rounded-lg p-3" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                        <span className="text-xs text-slate-400 block mb-1">City</span>
+                        <span className="font-semibold text-sm text-slate-200 block">{profile.city}</span>
                       </div>
                     )}
                     
-                    <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="rounded-lg p-3" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
                       <div className="flex items-center gap-1 mb-1">
-                        <Building2 size={12} className="text-[#2f61ce] flex-shrink-0" />
-                        <span className="text-xs text-gray-600">MBA College</span>
+                        <Building2 size={12} className="flex-shrink-0" style={{ color: accentColor }} />
+                        <span className="text-xs text-slate-400">MBA College</span>
                       </div>
-                      <span className="font-semibold text-sm text-gray-800 break-words block">{profile.mba_college}</span>
+                      <span className="font-semibold text-sm text-slate-200 break-words block">{profile.mba_college}</span>
                     </div>
                   </div>
                 </div>

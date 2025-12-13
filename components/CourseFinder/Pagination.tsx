@@ -8,6 +8,12 @@ interface PaginationProps {
   onPageChange: (page: number) => void
 }
 
+// Color scheme matching the home page
+const accentColor = '#6366f1' // Indigo accent
+const primaryBg = '#0a0f1e' // Very dark navy blue
+const secondaryBg = '#111827' // Slightly lighter navy
+const borderColor = 'rgba(99, 102, 241, 0.15)' // Indigo border with opacity
+
 const Pagination: React.FC<PaginationProps> = ({ totalItems, currentPage, perPage, onPageChange }) => {
   const totalPages = Math.ceil(totalItems / perPage)
 
@@ -46,22 +52,33 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, currentPage, perPag
   if (totalPages <= 1) return null
 
   return (
-    <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
+    <div 
+      className="mt-8 rounded-lg shadow-lg p-6 backdrop-blur-xl"
+      style={{ 
+        backgroundColor: secondaryBg, 
+        border: `1px solid ${borderColor}` 
+      }}
+    >
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-gray-600">
-          Showing <span className="font-semibold">{currentPage * perPage + 1}</span> to{" "}
-          <span className="font-semibold">{Math.min((currentPage + 1) * perPage, totalItems)}</span> of{" "}
-          <span className="font-semibold">{totalItems.toLocaleString()}</span> colleges
+        <div className="text-sm text-slate-400">
+          Showing <span className="font-semibold text-white">{currentPage * perPage + 1}</span> to{" "}
+          <span className="font-semibold text-white">{Math.min((currentPage + 1) * perPage, totalItems)}</span> of{" "}
+          <span className="font-semibold text-white">{totalItems.toLocaleString()}</span> colleges
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            className={`px-3 py-2 rounded-lg border flex items-center gap-1 ${
+            className={`px-3 py-2 rounded-lg flex items-center gap-1 transition-all ${
               currentPage === 0
-                ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                ? "cursor-not-allowed opacity-40"
+                : "hover:bg-white/5"
             }`}
+            style={
+              currentPage === 0
+                ? { border: `1px solid ${borderColor}`, color: '#64748b' }
+                : { border: `1px solid ${borderColor}`, color: '#cbd5e1' }
+            }
           >
             <ChevronLeft size={16} />
             <span className="hidden sm:inline">Previous</span>
@@ -70,15 +87,35 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, currentPage, perPag
             {getPageNumbers().map((page, index) => (
               <React.Fragment key={index}>
                 {page === "..." ? (
-                  <span className="px-3 py-2 text-gray-400">...</span>
+                  <span className="px-3 py-2 text-slate-500">...</span>
                 ) : (
                   <button
                     onClick={() => handlePageChange(page as number)}
-                    className={`min-w-[40px] px-3 py-2 rounded-lg border transition-colors ${
+                    className="min-w-[40px] px-3 py-2 rounded-lg transition-all"
+                    style={
                       currentPage === page
-                        ? "bg-[#005de6] text-white border-[#005de6]"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
+                        ? { 
+                            backgroundColor: accentColor, 
+                            color: 'white', 
+                            border: `1px solid ${accentColor}`,
+                            boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)'
+                          }
+                        : { 
+                            border: `1px solid ${borderColor}`, 
+                            color: '#cbd5e1',
+                            backgroundColor: 'transparent'
+                          }
+                    }
+                    onMouseEnter={(e) => {
+                      if (currentPage !== page) {
+                        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentPage !== page) {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }
+                    }}
                   >
                     {(page as number) + 1}
                   </button>
@@ -89,11 +126,16 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, currentPage, perPag
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages - 1}
-            className={`px-3 py-2 rounded-lg border flex items-center gap-1 ${
+            className={`px-3 py-2 rounded-lg flex items-center gap-1 transition-all ${
               currentPage === totalPages - 1
-                ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                ? "cursor-not-allowed opacity-40"
+                : "hover:bg-white/5"
             }`}
+            style={
+              currentPage === totalPages - 1
+                ? { border: `1px solid ${borderColor}`, color: '#64748b' }
+                : { border: `1px solid ${borderColor}`, color: '#cbd5e1' }
+            }
           >
             <span className="hidden sm:inline">Next</span>
             <ChevronRight size={16} />

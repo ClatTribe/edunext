@@ -97,7 +97,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
       </div>
 
       <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           How would you like us to contact you? <span className="text-[#2f61ce]">*</span>
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

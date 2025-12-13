@@ -22,6 +22,12 @@ import AcademicSection from "../../../components/ProfileData/AcademicSection"
 import TestScoresSection from "../../../components/ProfileData/TestScoresSection"
 import ProfileHeader from "../../../components/ProfileData/ProfileHeader"
 
+// Color scheme matching the college compare page
+const accentColor = '#6366f1'; // Indigo accent
+const primaryBg = '#0a0f1e'; // Very dark navy blue
+const secondaryBg = '#111827'; // Slightly lighter navy
+const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
 interface TestScore {
   exam: string
   percentile: string
@@ -90,8 +96,8 @@ const InputField = React.memo(
   ({ label, type = "text", value, onChange, placeholder, required = false, disabled, field }: InputFieldProps) => {
     return (
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label} {required && <span className="text-[#2f61ce]">*</span>}
+        <label className="block text-sm font-medium text-slate-300 mb-2">
+          {label} {required && <span style={{ color: accentColor }}>*</span>}
         </label>
         <input
           type={type}
@@ -99,7 +105,14 @@ const InputField = React.memo(
           onChange={(e) => onChange(field, e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
+          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg focus:outline-none text-white placeholder:text-slate-500"
+          style={{ 
+            backgroundColor: primaryBg, 
+            border: `1px solid ${borderColor}`,
+            ...(disabled && { backgroundColor: 'rgba(99, 102, 241, 0.05)' })
+          }}
+          onFocus={(e) => !disabled && (e.target.style.border = `2px solid ${accentColor}`)}
+          onBlur={(e) => !disabled && (e.target.style.border = `1px solid ${borderColor}`)}
         />
       </div>
     )
@@ -121,14 +134,21 @@ const SelectField = React.memo(
   ({ label, value, onChange, options, required = false, disabled, field }: SelectFieldProps) => {
     return (
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label} {required && <span className="text-[#2f61ce]">*</span>}
+        <label className="block text-sm font-medium text-slate-300 mb-2">
+          {label} {required && <span style={{ color: accentColor }}>*</span>}
         </label>
         <select
           value={value}
           onChange={(e) => onChange(field, e.target.value)}
           disabled={disabled}
-          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100"
+          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg focus:outline-none text-white"
+          style={{ 
+            backgroundColor: primaryBg, 
+            border: `1px solid ${borderColor}`,
+            ...(disabled && { backgroundColor: 'rgba(99, 102, 241, 0.05)' })
+          }}
+          onFocus={(e) => !disabled && (e.target.style.border = `2px solid ${accentColor}`)}
+          onBlur={(e) => !disabled && (e.target.style.border = `1px solid ${borderColor}`)}
         >
           <option value="">Select...</option>
           {options.map((opt) => (
@@ -158,26 +178,40 @@ const Section = React.memo(
   ({ id, title, icon: Icon, children, visible = true, isExpanded, isComplete, onToggle }: SectionProps) => {
     if (!visible) return null
     return (
-      <div className="mb-4 bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all">
+      <div 
+        className="mb-4 rounded-xl sm:rounded-2xl shadow-xl overflow-hidden transition-all backdrop-blur-xl"
+        style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+      >
         <button
           type="button"
           onClick={() => onToggle(id)}
-          className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-[#f8fafc] hover:bg-[#eef3fc] transition-colors"
+          className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between transition-colors"
+          style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)'}
         >
           <div className="flex items-center gap-2 sm:gap-3">
-            <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce] shrink-0" />
-            <span className="font-semibold text-gray-800 text-sm sm:text-base text-left">{title}</span>
+            <span style={{ color: accentColor }}>
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+            </span>
+            <span className="font-semibold text-white text-sm sm:text-base text-left">{title}</span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {isComplete && <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#fac300]" />}
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce]" />
-            ) : (
-              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#2f61ce]" />
-            )}
+            {isComplete && <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />}
+            <span style={{ color: accentColor }}>
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" />
+              ) : (
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </span>
           </div>
         </button>
-        {isExpanded && <div className="px-4 sm:px-6 py-4 sm:py-5 bg-white">{children}</div>}
+        {isExpanded && (
+          <div className="px-4 sm:px-6 py-4 sm:py-5" style={{ backgroundColor: secondaryBg }}>
+            {children}
+          </div>
+        )}
       </div>
     )
   },
@@ -379,25 +413,27 @@ const ProfilePage = () => {
     }))
     setError("")
   }, [])
+  
   const handleMultiSelectBudget = useCallback((value: string) => {
-  setFormData((prev) => ({
-    ...prev,
-    budget: prev.budget.includes(value)
-      ? prev.budget.filter((b) => b !== value)
-      : [...prev.budget, value],
-  }))
-  setError("")
-}, [])
+    setFormData((prev) => ({
+      ...prev,
+      budget: prev.budget.includes(value)
+        ? prev.budget.filter((b) => b !== value)
+        : [...prev.budget, value],
+    }))
+    setError("")
+  }, [])
   
   const handleMultiSelectContactPreference = useCallback((value: string) => {
-  setFormData((prev) => ({
-    ...prev,
-    contact_preferences: prev.contact_preferences.includes(value)
-      ? prev.contact_preferences.filter((pref) => pref !== value)
-      : [...prev.contact_preferences, value],
-  }))
-  setError("")
-}, [])
+    setFormData((prev) => ({
+      ...prev,
+      contact_preferences: prev.contact_preferences.includes(value)
+        ? prev.contact_preferences.filter((pref) => pref !== value)
+        : [...prev.contact_preferences, value],
+    }))
+    setError("")
+  }, [])
+  
   const handleTestScoreChange = useCallback((index: number, field: "exam" | "percentile", value: string) => {
     setFormData((prev) => {
       const newTestScores = [...prev.testScores]
@@ -661,7 +697,7 @@ const ProfilePage = () => {
   const getScoreColor = useCallback((score: number) => {
     if (score >= 75) return { color: "#10b981", label: "Excellent" }
     if (score >= 60) return { color: "#fac300", label: "Good" }
-    return { color: "#2f61ce", label: "Needs Improvement" }
+    return { color: accentColor, label: "Needs Improvement" }
   }, [])
 
   const scoreInfo = useMemo(() => getScoreColor(eduScore), [eduScore, getScoreColor])
@@ -669,9 +705,9 @@ const ProfilePage = () => {
   if (loading) {
     return (
       <DefaultLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg sm:text-xl text-[#2f61ce] flex items-center gap-2">
-            <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-[#2f61ce]"></div>
+        <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: primaryBg }}>
+          <div className="text-lg sm:text-xl flex items-center gap-2" style={{ color: accentColor }}>
+            <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2" style={{ borderColor: accentColor }}></div>
             Loading profile...
           </div>
         </div>
@@ -681,7 +717,7 @@ const ProfilePage = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-[#f8fafc]">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto mt-[72px] sm:mt-0" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <ProfileHeader
@@ -698,15 +734,21 @@ const ProfilePage = () => {
 
           {/* Delete Confirmation Modal */}
           {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+              <div 
+                className="rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl backdrop-blur-xl"
+                style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+              >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#eef3fc] rounded-full flex items-center justify-center shrink-0">
-                    <Trash2 className="text-[#2f61ce]" size={20} />
+                  <div 
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
+                  >
+                    <Trash2 style={{ color: accentColor }} size={20} />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Delete Profile</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white">Delete Profile</h3>
                 </div>
-                <p className="text-sm sm:text-base text-gray-600 mb-6">
+                <p className="text-sm sm:text-base text-slate-400 mb-6">
                   Are you sure you want to delete your profile? This action cannot be undone and will remove all your
                   academic information.
                 </p>
@@ -714,16 +756,18 @@ const ProfilePage = () => {
                   <button
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={deleting}
-                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm sm:text-base"
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-slate-300 rounded-lg transition-all text-sm sm:text-base"
+                    style={{ border: `2px solid ${borderColor}` }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleDelete}
                     disabled={deleting}
-                    className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all text-sm sm:text-base ${
+                    className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-lg transition-all text-sm sm:text-base ${
                       deleting ? "opacity-70 cursor-not-allowed" : ""
                     }`}
+                    style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
                   >
                     {deleting ? "Deleting..." : "Delete"}
                   </button>
@@ -759,57 +803,7 @@ const ProfilePage = () => {
               onMultiSelectContactPreference={handleMultiSelectContactPreference}
               Section={Section}
               InputField={InputField}
-              
             />
-
-            {/* 10th Grade */}
-            {/* <AcademicSection
-              id="tenth"
-              title="10th Grade Details"
-              type="tenth"
-              formData={formData}
-              isEditing={isEditing}
-              isExpanded={expandedSection === "tenth"}
-              isComplete={isSectionComplete("tenth")}
-              onToggle={toggleSection}
-              onInputChange={handleInputChange}
-              Section={Section}
-              InputField={InputField}
-              SelectField={SelectField}
-            /> */}
-
-            {/* 12th Grade */}
-            {/* <AcademicSection
-              id="twelfth"
-              title="12th Grade Details"
-              type="twelfth"
-              formData={formData}
-              isEditing={isEditing}
-              isExpanded={expandedSection === "twelfth"}
-              isComplete={isSectionComplete("twelfth")}
-              onToggle={toggleSection}
-              onInputChange={handleInputChange}
-              Section={Section}
-              InputField={InputField}
-              SelectField={SelectField}
-            /> */}
-
-            {/* Undergraduate */}
-            {/* <AcademicSection
-              id="ug"
-              title="Undergraduate Details"
-              type="ug"
-              formData={formData}
-              isEditing={isEditing}
-              isExpanded={expandedSection === "ug"}
-              isComplete={isSectionComplete("ug")}
-              visible={shouldShowUG}
-              onToggle={toggleSection}
-              onInputChange={handleInputChange}
-              Section={Section}
-              InputField={InputField}
-              SelectField={SelectField}
-            /> */}
 
             {/* Postgraduate */}
             <AcademicSection
@@ -841,81 +835,13 @@ const ProfilePage = () => {
               Section={Section}
             />
 
-            {/* Work Experience */}
-            {/* <Section
-              id="experience"
-              title="Work Experience"
-              icon={Award}
-              visible={shouldShowWorkExp}
-              isExpanded={expandedSection === "experience"}
-              isComplete={isSectionComplete("experience")}
-              onToggle={toggleSection}
-            >
-              <SelectField
-                label="Do you have work experience?"
-                value={formData.has_experience}
-                onChange={handleInputChange}
-                field="has_experience"
-                options={[
-                  { value: "Yes", label: "Yes" },
-                  { value: "No", label: "No" },
-                ]}
-                required
-                disabled={!isEditing}
-              />
-              {formData.has_experience === "Yes" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <InputField
-                    label="Years of Experience"
-                    type="number"
-                    value={formData.experience_years}
-                    onChange={handleInputChange}
-                    field="experience_years"
-                    placeholder="2"
-                    disabled={!isEditing}
-                  />
-                  <InputField
-                    label="Field/Industry"
-                    value={formData.experience_field}
-                    onChange={handleInputChange}
-                    field="experience_field"
-                    placeholder="IT, Finance, Healthcare, etc."
-                    disabled={!isEditing}
-                  />
-                </div>
-              )}
-            </Section> */}
-
-            {/* Extracurricular Activities */}
-            {/* <Section
-              id="extra"
-              title="Extracurricular Activities"
-              icon={Trophy}
-              isExpanded={expandedSection === "extra"}
-              isComplete={false}
-              onToggle={toggleSection}
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Describe your achievements, activities, and experiences
-                </label>
-                <textarea
-                  value={formData.extracurricular}
-                  onChange={(e) => handleInputChange("extracurricular", e.target.value)}
-                  disabled={!isEditing}
-                  rows={6}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] disabled:bg-gray-100 resize-none"
-                  placeholder="Include sports, volunteer work, leadership roles, competitions, research projects, internships, etc."
-                />
-              </div>
-            </Section> */}
-
             {/* Action Buttons */}
             {isEditing && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 pb-4">
                 <button
                   onClick={handleCancel}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm sm:text-base"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 text-slate-300 rounded-lg transition-all text-sm sm:text-base"
+                  style={{ border: `2px solid ${borderColor}` }}
                 >
                   <X size={16} className="sm:w-[18px] sm:h-[18px]" />
                   Cancel
@@ -923,9 +849,10 @@ const ProfilePage = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-[#2f61ce] text-white rounded-lg hover:bg-[#254da6] transition-all text-sm sm:text-base ${
+                  className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg transition-all text-sm sm:text-base ${
                     saving ? "opacity-70 cursor-not-allowed" : ""
                   }`}
+                  style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
                 >
                   <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
                   {saving ? "Saving..." : "Save Profile"}

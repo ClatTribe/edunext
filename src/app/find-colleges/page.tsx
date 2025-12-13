@@ -59,9 +59,14 @@ const CourseFinder: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0)
   const [viewMode, setViewMode] = useState<"all" | "recommended">("all")
 
+  // Color scheme matching the home page
+  const accentColor = '#6366f1' // Indigo accent
+  const primaryBg = '#0a0f1e' // Very dark navy blue
+  const secondaryBg = '#111827' // Slightly lighter navy
+  const borderColor = 'rgba(99, 102, 241, 0.15)' // Indigo border with opacity
+
   const { savedCourses, toggleSaved } = useSavedCourses(user)
   
-  // Use the comparison hook
   const {
     compareColleges,
     toggleCompare,
@@ -176,7 +181,7 @@ const CourseFinder: React.FC = () => {
 
     if (score >= 90) {
       return (
-        <span className="text-xs bg-green-100 text-green-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1" style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
           <Trophy size={14} />
           <span className="hidden sm:inline">Perfect Match ({score}%)</span>
           <span className="sm:hidden">{score}%</span>
@@ -184,7 +189,7 @@ const CourseFinder: React.FC = () => {
       )
     } else if (score >= 75) {
       return (
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
           <Award size={14} />
           <span className="hidden sm:inline">Excellent Match ({score}%)</span>
           <span className="sm:hidden">{score}%</span>
@@ -192,7 +197,7 @@ const CourseFinder: React.FC = () => {
       )
     } else if (score >= 60) {
       return (
-        <span className="text-xs bg-purple-100 text-purple-700 px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold flex items-center gap-1" style={{ backgroundColor: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
           <Target size={14} />
           <span className="hidden sm:inline">Great Match ({score}%)</span>
           <span className="sm:hidden">{score}%</span>
@@ -200,7 +205,7 @@ const CourseFinder: React.FC = () => {
       )
     } else if (score >= 40) {
       return (
-        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 sm:px-3 py-1 rounded-full font-semibold">
+        <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold" style={{ backgroundColor: 'rgba(250, 204, 21, 0.2)', color: '#fbbf24', border: '1px solid rgba(250, 204, 21, 0.3)' }}>
           <span className="hidden sm:inline">Good Match ({score}%)</span>
           <span className="sm:hidden">{score}%</span>
         </span>
@@ -208,7 +213,7 @@ const CourseFinder: React.FC = () => {
     }
 
     return (
-      <span className="text-xs bg-gray-100 text-gray-600 px-2 sm:px-3 py-1 rounded-full font-semibold">
+      <span className="text-xs px-2 sm:px-3 py-1 rounded-full font-semibold" style={{ backgroundColor: 'rgba(148, 163, 184, 0.2)', color: '#94a3b8', border: '1px solid rgba(148, 163, 184, 0.3)' }}>
         <span className="hidden sm:inline">Relevant ({score}%)</span>
         <span className="sm:hidden">{score}%</span>
       </span>
@@ -219,14 +224,14 @@ const CourseFinder: React.FC = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6 mt-18 sm:mt-0">
+      <div className="flex-1 min-h-screen p-3 sm:p-4 md:p-6 mt-18 sm:mt-0" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-4 sm:mb-6 md:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#005de6] mb-1 sm:mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2" style={{ color: accentColor }}>
               Find Your Perfect College
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">Explore programs and institutes across India</p>
+            <p className="text-sm sm:text-base text-slate-400">Explore programs and institutes across India</p>
           </div>
 
           {/* View Mode Toggle */}
@@ -236,11 +241,11 @@ const CourseFinder: React.FC = () => {
                 setViewMode("all")
                 setCurrentPage(0)
               }}
-              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${
-                viewMode === "all"
-                  ? "bg-[#005de6] text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
-              }`}
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
+              style={viewMode === "all" 
+                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
+              }
             >
               <GraduationCap size={18} className="sm:w-5 sm:h-5" />
               All Colleges
@@ -251,11 +256,11 @@ const CourseFinder: React.FC = () => {
                 setViewMode("recommended")
                 setCurrentPage(0)
               }}
-              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all ${
-                viewMode === "recommended"
-                  ? "bg-[#005de6] text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
-              }`}
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
+              style={viewMode === "recommended"
+                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
+              }
             >
               <Sparkles size={18} className="sm:w-5 sm:h-5" />
               Recommended For You
@@ -273,49 +278,49 @@ const CourseFinder: React.FC = () => {
           <FilterComponent courses={courses} viewMode={viewMode} onFilterChange={handleFilterChange} />
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3">
-              <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+            <div className="rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+              <AlertCircle className="flex-shrink-0 mt-0.5" style={{ color: '#ef4444' }} size={20} />
               <div>
-                <h3 className="font-semibold text-red-800 text-sm sm:text-base">Notice</h3>
-                <p className="text-red-700 text-xs sm:text-sm">{error}</p>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: '#fca5a5' }}>Notice</h3>
+                <p className="text-xs sm:text-sm" style={{ color: '#fecaca' }}>{error}</p>
               </div>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 bg-white rounded-lg shadow-sm p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
             <div className="flex items-center gap-2">
-              <GraduationCap className="text-[#005de6] flex-shrink-0" size={20} />
-              <span className="font-semibold text-base sm:text-lg">
+              <GraduationCap className="flex-shrink-0" style={{ color: accentColor }} size={20} />
+              <span className="font-semibold text-base sm:text-lg text-white">
                 {filteredCourses.length.toLocaleString()} {viewMode === "recommended" ? "recommended " : ""}
                 college{filteredCourses.length !== 1 ? "s" : ""} found
               </span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Heart className="text-[#005de6]" size={16} />
-                <span className="text-xs sm:text-sm text-gray-600">{savedCourses.size} saved</span>
+                <Heart style={{ color: accentColor }} size={16} />
+                <span className="text-xs sm:text-sm text-slate-400">{savedCourses.size} saved</span>
               </div>
               <div className="flex items-center gap-2">
-                <GitCompare className="text-purple-600" size={16} />
-                <span className="text-xs sm:text-sm text-gray-600 font-medium">{compareColleges.length}/3 to compare</span>
+                <GitCompare className="text-purple-400" size={16} />
+                <span className="text-xs sm:text-sm text-slate-400 font-medium">{compareColleges.length}/3 to compare</span>
               </div>
             </div>
           </div>
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="text-gray-500 flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#005de6]"></div>
-                <p className="text-sm sm:text-base">Loading courses...</p>
+              <div className="flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2" style={{ borderColor: accentColor }}></div>
+                <p className="text-sm sm:text-base text-slate-400">Loading courses...</p>
               </div>
             </div>
           ) : filteredCourses.length === 0 ? (
-            <div className="text-center py-12 sm:py-16 bg-white rounded-lg shadow-sm">
-              <GraduationCap size={40} className="sm:w-12 sm:h-12 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
+            <div className="text-center py-12 sm:py-16 rounded-lg shadow-sm backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+              <GraduationCap size={40} className="sm:w-12 sm:h-12 mx-auto text-slate-600 mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                 {viewMode === "recommended" ? "No recommended colleges found" : "No colleges found"}
               </h3>
-              <p className="text-sm sm:text-base text-gray-500 px-4">
+              <p className="text-sm sm:text-base text-slate-400 px-4">
                 {viewMode === "recommended"
                   ? "Try updating your profile or check back later for more options"
                   : "Try adjusting your filters or search query"}
@@ -332,25 +337,32 @@ const CourseFinder: React.FC = () => {
                   return (
                     <div
                       key={course.id}
-                      className={`bg-white border ${
-                        inCompare 
-                          ? "border-purple-400 shadow-purple-200 ring-2 ring-purple-200" 
-                          : course.is_priority 
-                          ? "border-blue-300 shadow-blue-100" 
-                          : "border-gray-200"
-                      } rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all relative ${
+                      className={`rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all relative backdrop-blur-xl ${
                         isBlurred ? "overflow-hidden" : ""
                       }`}
+                      style={{
+                        backgroundColor: secondaryBg,
+                        border: inCompare 
+                          ? '2px solid rgba(168, 85, 247, 0.5)' 
+                          : course.is_priority 
+                          ? `2px solid ${accentColor}` 
+                          : `1px solid ${borderColor}`,
+                        boxShadow: inCompare 
+                          ? '0 0 20px rgba(168, 85, 247, 0.2)' 
+                          : course.is_priority
+                          ? '0 0 20px rgba(99, 102, 241, 0.2)'
+                          : 'none'
+                      }}
                     >
                       {/* Priority Badges */}
                       {course.is_priority && (
                         <div className="mb-3 flex flex-wrap gap-2">
-                          <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg animate-pulse">
+                          <span className="inline-flex items-center gap-1.5 text-white text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg animate-pulse" style={{ background: 'linear-gradient(90deg, #ef4444 0%, #f97316 100%)' }}>
                             <Flame size={12} className="sm:w-3.5 sm:h-3.5 animate-bounce" />
                             <span className="hidden sm:inline">FAST FILLING - LIMITED SEATS!</span>
                             <span className="sm:hidden">LIMITED SEATS!</span>
                           </span>
-                          <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg animate-pulse">
+                          <span className="inline-flex items-center gap-1.5 text-white text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg animate-pulse" style={{ background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 100%)' }}>
                             <Star size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" style={{ animationDuration: '3s' }} />
                             <span>FEATURED</span>
                           </span>
@@ -364,18 +376,18 @@ const CourseFinder: React.FC = () => {
                       <div className="flex items-start justify-between mb-3 gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <h3 className="font-bold text-base sm:text-lg text-gray-900 break-words flex-shrink-0">
+                            <h3 className="font-bold text-base sm:text-lg text-white break-words flex-shrink-0">
                               {course["College Name"] || "Institute Information Not Available"}
                             </h3>
                             {course.Specialization && (
-                              <span className="text-xs font-semibold text-white bg-[#005de6] px-2 py-1 rounded-full whitespace-nowrap">
+                              <span className="text-xs font-semibold text-white px-2 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: accentColor }}>
                                 {course.Specialization}
                               </span>
                             )}
                           </div>
                           
                           {course.City && (
-                            <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
+                            <div className="flex items-center gap-1 text-xs text-slate-400 mb-2">
                               <MapPin size={12} className="flex-shrink-0" />
                               <span className="truncate">
                                 {course.City}, {course.State}
@@ -392,9 +404,10 @@ const CourseFinder: React.FC = () => {
                             isBlurred
                               ? "opacity-50 cursor-not-allowed"
                               : savedCourses.has(course.id)
-                                ? "text-[#005de6]"
-                                : "text-gray-400 hover:text-[#005de6]"
+                                ? ""
+                                : "text-slate-500"
                           }`}
+                          style={savedCourses.has(course.id) ? { color: accentColor } : {}}
                           title={
                             isBlurred
                               ? "Contact experts to unlock"
@@ -410,55 +423,56 @@ const CourseFinder: React.FC = () => {
                       {/* Course Details */}
                       <div className="space-y-3 sm:space-y-4">
                         {/* Fees Grid */}
-                        <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-100">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-3 sm:pt-4" style={{ borderTop: `1px solid ${borderColor}` }}>
                           {course["Course Fees"] && (
                             <div>
-                              <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                              <div className="flex items-center gap-1 text-xs text-slate-500 mb-1">
                                 <IndianRupee size={12} className="flex-shrink-0" />
                                 <span>Tuition Fees</span>
                               </div>
-                              <p className="font-semibold text-gray-800 text-xs sm:text-sm break-words">{course["Course Fees"]}</p>
+                              <p className="font-semibold text-white text-xs sm:text-sm break-words">{course["Course Fees"]}</p>
                             </div>
                           )}
                           {course["Average Package"] && (
                             <div>
-                              <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                              <div className="flex items-center gap-1 text-xs text-slate-500 mb-1">
                                 <IndianRupee size={12} className="flex-shrink-0" />
                                 <span>Avg Package</span>
                               </div>
-                              <p className="font-semibold text-gray-800 text-xs sm:text-sm break-words">{course["Average Package"]}</p>
+                              <p className="font-semibold text-white text-xs sm:text-sm break-words">{course["Average Package"]}</p>
                             </div>
                           )}
                           {course["Highest Package"] && (
                             <div>
-                              <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                              <div className="flex items-center gap-1 text-xs text-slate-500 mb-1">
                                 <Trophy size={12} className="flex-shrink-0" />
                                 <span>Highest Package</span>
                               </div>
-                              <p className="font-semibold text-gray-800 text-xs sm:text-sm break-words">{course["Highest Package"]}</p>
+                              <p className="font-semibold text-white text-xs sm:text-sm break-words">{course["Highest Package"]}</p>
                             </div>
                           )}
                         </div>
 
                         {/* Two Column Grid for Details */}
-                        <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-100">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4" style={{ borderTop: `1px solid ${borderColor}` }}>
                           {/* Left Column */}
                           <div className="space-y-3">
                             {course.scholarship && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
-                                  <CheckCircle size={12} className="text-blue-600 flex-shrink-0" />
+                                <h4 className="text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+                                  <CheckCircle size={12} className="flex-shrink-0" style={{ color: accentColor }} />
                                   Scholarship
                                 </h4>
-                                <div className="bg-gray-50 rounded-lg p-2">
+                                <div className="rounded-lg p-2" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}>
                                   <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-medium text-gray-700">Available</span>
+                                    <span className="text-xs font-medium text-slate-300">Available</span>
                                     {course.scholarship.toLowerCase() !== "availabale" && course.scholarship.toLowerCase() !== "available" && (
                                       <a
                                         href={course.scholarship.startsWith("http") ? course.scholarship : `https://${course.scholarship}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs text-blue-600 hover:text-blue-800 underline break-all"
+                                        className="text-xs underline break-all hover:opacity-80"
+                                        style={{ color: accentColor }}
                                       >
                                         Learn More
                                       </a>
@@ -470,24 +484,24 @@ const CourseFinder: React.FC = () => {
 
                             {course.Ranking && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
-                                  <Trophy size={12} className="text-[#005de6] flex-shrink-0" />
+                                <h4 className="text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+                                  <Trophy size={12} className="flex-shrink-0" style={{ color: accentColor }} />
                                   Ranking
                                 </h4>
-                                <div className="bg-gray-50 rounded-lg p-2">
-                                  <p className="text-xs text-gray-700 break-words">{course.Ranking}</p>
+                                <div className="rounded-lg p-2" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}>
+                                  <p className="text-xs text-slate-300 break-words">{course.Ranking}</p>
                                 </div>
                               </div>
                             )}
 
                             {course["User Rating"] && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
-                                  <Award size={12} className="text-[#005de6] flex-shrink-0" />
+                                <h4 className="text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+                                  <Award size={12} className="flex-shrink-0" style={{ color: accentColor }} />
                                   User Rating
                                 </h4>
-                                <div className="bg-yellow-50 rounded-lg p-2">
-                                  <p className="text-xs text-yellow-700">{course["User Rating"]}</p>
+                                <div className="rounded-lg p-2" style={{ backgroundColor: 'rgba(250, 204, 21, 0.1)' }}>
+                                  <p className="text-xs text-yellow-400">{course["User Rating"]}</p>
                                 </div>
                               </div>
                             )}
@@ -497,21 +511,21 @@ const CourseFinder: React.FC = () => {
                           <div className="space-y-3">
                             {course.entrance_exam && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
-                                  <BookOpen size={12} className="text-[#005de6] flex-shrink-0" />
+                                <h4 className="text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+                                  <BookOpen size={12} className="flex-shrink-0" style={{ color: accentColor }} />
                                   Exam Accepted
                                 </h4>
-                                <div className="bg-gray-50 rounded-lg p-2">
-                                  <p className="text-xs text-gray-700 break-words">{course.entrance_exam}</p>
+                                <div className="rounded-lg p-2" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}>
+                                  <p className="text-xs text-slate-300 break-words">{course.entrance_exam}</p>
                                 </div>
                               </div>
                             )}
 
                             {course.Approvals && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5">Approvals</h4>
-                                <div className="bg-gray-50 rounded-lg p-2">
-                                  <p className="text-xs text-gray-700 break-words">{course.Approvals}</p>
+                                <h4 className="text-xs font-semibold text-slate-300 mb-1.5">Approvals</h4>
+                                <div className="rounded-lg p-2" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}>
+                                  <p className="text-xs text-slate-300 break-words">{course.Approvals}</p>
                                 </div>
                               </div>
                             )}
@@ -529,7 +543,8 @@ const CourseFinder: React.FC = () => {
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex-1 bg-[#005de6] hover:bg-blue-700 text-white rounded-lg py-2 px-3 sm:px-4 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md"
+                              className="flex-1 text-white rounded-lg py-2 px-3 sm:px-4 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md hover:shadow-lg"
+                              style={{ backgroundColor: accentColor }}
                             >
                               <Globe size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
                               <span>Apply Now</span>
@@ -537,7 +552,8 @@ const CourseFinder: React.FC = () => {
                           ) : (
                             course.is_priority && (
                               <button
-                                className="flex-1 bg-[#005de6] hover:bg-blue-700 text-white rounded-lg py-2 px-3 sm:px-4 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md"
+                                className="flex-1 text-white rounded-lg py-2 px-3 sm:px-4 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md hover:shadow-lg"
+                                style={{ backgroundColor: accentColor }}
                                 onClick={() => {
                                   alert("Contact our experts for fast admission!")
                                 }}

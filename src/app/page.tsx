@@ -14,26 +14,23 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
-import { CourseMatcherVisual } from "../../components/CourseMatcherVisual";
-import { ScholarshipVisual } from "../../components/ScholarshipVisual";
-import { AdmitFinderVisual } from "../../components/AdmitFinderVisual";
-// import { TrustSection } from "../../components/TrustSection";
+import {Features} from "../../components/Features";
 import TrustSection from "../../components/TrustSection";
 import { PainPoints } from "../../components/PainPoints";
 import TrainRoadmap from "../../components/TrainRoadmap";
 
-// BRAND COLORS
-const primary = "[#fac300]";
-const secondary = "#fac300"; // 10–15% yellow usage
+// BRAND COLORS - Updated to match provided scheme
+const primary = "#6366f1"; // Indigo
+const secondary = "#0ea5e9"; // Sky Blue
+const bgDark = "#020617"; // Very Dark Blue/Almost Black
 
 const features = [
   {
     id: "courses",
     title: "Find MBA Colleges",
-    description:
-      "Find your perfect stream based on your actual grades and interests.",
+    description: "Find your perfect stream based on your actual grades and interests.",
     icon: BookOpen,
-    component: CourseMatcherVisual,
+    component: () => <Features activeTab="courses" />,
     cta: "Find Courses",
   },
   {
@@ -41,7 +38,7 @@ const features = [
     title: "Find Scholarships",
     description: "Match with thousands of financial aid opportunities instantly.",
     icon: GraduationCap,
-    component: ScholarshipVisual,
+    component: () => <Features activeTab="scholarships" />,
     cta: "Find Scholarships",
   },
   {
@@ -49,7 +46,7 @@ const features = [
     title: "Previous Year Students",
     description: "See real profiles of students who got into your dream colleges.",
     icon: Target,
-    component: AdmitFinderVisual,
+    component: () => <Features activeTab="admits" />,
     cta: "See Admits",
   },
 ];
@@ -77,9 +74,13 @@ const Navbar: React.FC = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled || mobileMenuOpen
-          ? "bg-white/80 backdrop-blur-md border-b border-slate-100 py-3"
+          ? "backdrop-blur-md border-b py-3"
           : "bg-transparent py-5"
       }`}
+      style={{
+        backgroundColor: isScrolled || mobileMenuOpen ? "rgba(2, 6, 23, 0.9)" : "transparent",
+        borderColor: isScrolled || mobileMenuOpen ? "rgba(99, 102, 241, 0.1)" : "transparent",
+      }}
     >
       <div className="container mx-auto px-6 flex items-center justify-between max-w-7xl">
         <Link href="/" className="flex items-center gap-2 mb-2">
@@ -96,19 +97,22 @@ const Navbar: React.FC = () => {
         <div className="hidden md:flex items-center gap-8">
           <a
             href="#features"
-            className="text-sm font-medium text-slate-600 hover:text-[#fac300] transition-colors cursor-pointer"
+            className="text-sm font-medium transition-colors cursor-pointer"
+            style={{ color: "#94a3b8" }}
           >
             Features
           </a>
           <a
             href="#mission"
-            className="text-sm font-medium text-slate-600 hover:text-[#fac300] transition-colors cursor-pointer"
+            className="text-sm font-medium transition-colors cursor-pointer"
+            style={{ color: "#94a3b8" }}
           >
             Our Mission
           </a>
           <a
             href="#trust"
-            className="text-sm font-medium text-slate-600 hover:text-[#fac300] transition-colors cursor-pointer"
+            className="text-sm font-medium transition-colors cursor-pointer"
+            style={{ color: "#94a3b8" }}
           >
             Why Us
           </a>
@@ -118,7 +122,7 @@ const Navbar: React.FC = () => {
               <Link
                 href="/home"
                 className="px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer"
-                style={{ color: primary, backgroundColor: "#e7edff" }}
+                style={{ color: primary, backgroundColor: "rgba(99, 102, 241, 0.1)" }}
               >
                 Dashboard
               </Link>
@@ -134,12 +138,12 @@ const Navbar: React.FC = () => {
               <div
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full border"
                 style={{
-                  backgroundColor: "#e7edff",
-                  borderColor: "#c8d4ff",
+                  backgroundColor: "rgba(99, 102, 241, 0.1)",
+                  borderColor: "rgba(99, 102, 241, 0.2)",
                 }}
               >
                 <User size={16} style={{ color: primary }} />
-                <span className="text-sm font-medium text-slate-700">
+                <span className="text-sm font-medium" style={{ color: "#f8fafc" }}>
                   {user.user_metadata?.full_name || user.email}
                 </span>
               </div>
@@ -149,7 +153,7 @@ const Navbar: React.FC = () => {
               <Link
                 href="/register"
                 className="px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer"
-                style={{ color: primary, backgroundColor: "#e7edff" }}
+                style={{ color: primary, backgroundColor: "rgba(99, 102, 241, 0.1)" }}
               >
                 Log In
               </Link>
@@ -169,7 +173,8 @@ const Navbar: React.FC = () => {
         <div className="md:hidden">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-slate-600 cursor-pointer"
+            className="p-2 cursor-pointer"
+            style={{ color: "#94a3b8" }}
           >
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
@@ -178,14 +183,20 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-slate-100 p-6 flex flex-col gap-4 shadow-xl">
+        <div 
+          className="md:hidden absolute top-full left-0 right-0 border-b p-6 flex flex-col gap-4 shadow-xl"
+          style={{
+            backgroundColor: "rgba(2, 6, 23, 0.95)",
+            borderColor: "rgba(99, 102, 241, 0.1)"
+          }}
+        >
           {user && (
             <div
               className="flex items-center gap-2 p-3 rounded-xl mb-2"
-              style={{ backgroundColor: "#e7edff" }}
+              style={{ backgroundColor: "rgba(99, 102, 241, 0.1)" }}
             >
               <User size={20} style={{ color: primary }} />
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium" style={{ color: "#f8fafc" }}>
                 {user.user_metadata?.full_name || user.email}
               </span>
             </div>
@@ -193,31 +204,34 @@ const Navbar: React.FC = () => {
 
           <a
             href="#features"
-            className="text-lg font-medium text-slate-800 cursor-pointer"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
             Features
           </a>
           <a
             href="#mission"
-            className="text-lg font-medium text-slate-800 cursor-pointer"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
             Our Mission
           </a>
           <a
             href="#trust"
-            className="text-lg font-medium text-slate-800 cursor-pointer"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
             Why Us
           </a>
 
-          <hr className="border-slate-100" />
+          <hr style={{ borderColor: "rgba(99, 102, 241, 0.1)" }} />
 
           {user ? (
             <>
               <Link
                 href="/home"
                 className="w-full py-3 text-center font-medium rounded-xl cursor-pointer"
-                style={{ color: primary, backgroundColor: "#e7edff" }}
+                style={{ color: primary, backgroundColor: "rgba(99, 102, 241, 0.1)" }}
               >
                 Dashboard
               </Link>
@@ -236,7 +250,7 @@ const Navbar: React.FC = () => {
               <Link
                 href="/register"
                 className="w-full py-3 text-center font-medium rounded-xl cursor-pointer"
-                style={{ color: primary, backgroundColor: "#e7edff" }}
+                style={{ color: primary, backgroundColor: "rgba(99, 102, 241, 0.1)" }}
               >
                 Log In
               </Link>
@@ -281,12 +295,17 @@ export default function Hero() {
       <Navbar />
 
       {/* HERO SECTION */}
-      <section className="relative pt-36 pb-20 overflow-hidden bg-white">
-        <div className="absolute inset-0 z-0 pointer-events-none bg-[linear-gradient(to_right,#f3f4f6_1px,transparent_1px),linear-gradient(to_bottom,#f3f4f6_1px,transparent_1px)] bg-size-[4rem_4rem] opacity-50" />
+      <section className="relative pt-36 pb-20 overflow-hidden" style={{ backgroundColor: bgDark }}>
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20" 
+          style={{
+            backgroundImage: 'linear-gradient(to right, rgba(99, 102, 241, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(99, 102, 241, 0.1) 1px, transparent 1px)',
+            backgroundSize: '4rem 4rem'
+          }}
+        />
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
           <div
-            className="flex flex-col items-center text-center mb-12 sm:mb-20 relative px-4 py-20"
+            className="flex flex-col items-center text-center mb-12 sm:mb-20 relative px-4 py-20 rounded-3xl"
             style={{
               backgroundImage:
                 'url(https://res.cloudinary.com/daetdadtt/image/upload/v1764742101/iim_hehe_optimized_9000_xh45xg.png)',
@@ -295,7 +314,7 @@ export default function Hero() {
               backgroundRepeat: "no-repeat",
             }}
           >
-            <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]" />
+            <div className="absolute inset-0 rounded-3xl" style={{ backgroundColor: "rgba(2, 6, 23, 0.7)", backdropFilter: "blur(4px)" }} />
             <div className="relative z-10 w-full">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -303,7 +322,7 @@ export default function Hero() {
                 transition={{ duration: 0.6 }}
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border shadow-sm mb-6"
                 style={{
-                  backgroundColor: "#fff8e5",
+                  backgroundColor: "rgba(14, 165, 233, 0.1)",
                   borderColor: secondary,
                 }}
               >
@@ -317,20 +336,31 @@ export default function Hero() {
                     style={{ background: secondary }}
                   ></span>
                 </span>
-                <span className="text-xs font-bold text-slate-700 tracking-wide uppercase">
+                <span className="text-xs font-bold tracking-wide uppercase" style={{ color: "#f8fafc" }}>
                   New: Admit Finder 2.0 is live
                 </span>
-                <ArrowRight size={12} className="text-slate-400" />
+                <ArrowRight size={12} style={{ color: "#94a3b8" }} />
               </motion.div>
 
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6"
+                className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
               >
                 Your Dream MBA College <br />
-                <span style={{ color: "#2f61ce" }}>Without the Noise.</span>
+                <span style={{ 
+                  background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>Without the Noise.</span>
               </motion.h1>
 
               <motion.div
@@ -342,7 +372,7 @@ export default function Hero() {
                 <Link href={user ? "/home" : "/register"}>
                   <button
                     className="px-8 py-4 rounded-full font-bold text-lg inline-flex items-center gap-2 cursor-pointer shadow-xl hover:-translate-y-1 transition-all"
-                    style={{ backgroundColor: "#2f61ce", color: "white" }}
+                    style={{ backgroundColor: primary, color: "white" }}
                   >
                     {user ? "Go to Dashboard" : "Get Started for Free"}
                     <ArrowRight size={20} />
@@ -354,7 +384,8 @@ export default function Hero() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="text-base sm:text-lg md:text-xl text-slate-900 max-w-2xl mx-auto leading-relaxed"
+                className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
+                style={{ color: "#94a3b8" }}
               >
                 EduNext helps you find the right course, secure scholarships, and
                 connect with alumni—all while keeping your data 100% private.
@@ -372,18 +403,20 @@ export default function Hero() {
                   onClick={() => handleFeatureClick(index)}
                   className={`text-left p-6 rounded-2xl transition-all duration-300 group relative overflow-hidden border cursor-pointer ${
                     activeFeature === index
-                      ? "bg-white shadow-xl border-slate-200 scale-[1.02]"
-                      : "bg-transparent hover:bg-slate-50 border-transparent opacity-60 hover:opacity-100"
+                      ? "shadow-xl scale-[1.02]"
+                      : "opacity-60 hover:opacity-100"
                   }`}
+                  style={{
+                    backgroundColor: activeFeature === index ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.01)",
+                    borderColor: activeFeature === index ? "rgba(99, 102, 241, 0.2)" : "rgba(255, 255, 255, 0.05)",
+                  }}
                 >
-                  {/* YELLOW LEFT BAR */}
+                  {/* BLUE LEFT BAR */}
                   <div
                     className="absolute left-0 top-0 bottom-0 w-1.5 transition-all rounded-l-2xl"
                     style={{
-                      backgroundColor:
-                        activeFeature === index ? secondary : "transparent",
-                      transform:
-                        activeFeature === index ? "scaleY(1)" : "scaleY(0)",
+                      backgroundColor: activeFeature === index ? secondary : "transparent",
+                      transform: activeFeature === index ? "scaleY(1)" : "scaleY(0)",
                     }}
                   />
 
@@ -391,27 +424,24 @@ export default function Hero() {
                     <div
                       className="p-2.5 rounded-xl"
                       style={{
-                        backgroundColor:
-                          activeFeature === index ? "#fff4cc" : "#f1f1f1",
-                        color:
-                          activeFeature === index ? primary : "rgb(90,90,90)",
+                        backgroundColor: activeFeature === index ? "rgba(99, 102, 241, 0.1)" : "rgba(255, 255, 255, 0.05)",
+                        color: activeFeature === index ? primary : "#94a3b8",
                       }}
                     >
                       <feature.icon size={22} />
                     </div>
 
                     <h3
-                      className={`font-bold text-lg ${
-                        activeFeature === index
-                          ? "text-slate-900"
-                          : "text-slate-600"
-                      }`}
+                      className="font-bold text-lg"
+                      style={{
+                        color: activeFeature === index ? "#f8fafc" : "#94a3b8"
+                      }}
                     >
                       {feature.title}
                     </h3>
                   </div>
 
-                  <p className="text-sm text-slate-500 leading-relaxed pl-1">
+                  <p className="text-sm leading-relaxed pl-1" style={{ color: "#64748b" }}>
                     {feature.description}
                   </p>
                 </button>

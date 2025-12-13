@@ -46,6 +46,12 @@ interface Course {
   matchScore?: number
 }
 
+// Color scheme matching the admit finder page
+const accentColor = '#6366f1'; // Indigo accent
+const primaryBg = '#0a0f1e'; // Very dark navy blue
+const secondaryBg = '#111827'; // Slightly lighter navy
+const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
 const CollegeComparePage: React.FC = () => {
   const { user } = useAuth();
   const [colleges, setColleges] = useState<Course[]>([]);
@@ -221,10 +227,10 @@ const CollegeComparePage: React.FC = () => {
   if (loading) {
     return (
       <DefaultLayout>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center mt-[72px] sm:mt-0" style={{ backgroundColor: primaryBg }}>
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading comparison...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: accentColor }}></div>
+            <p className="text-slate-400">Loading comparison...</p>
           </div>
         </div>
       </DefaultLayout>
@@ -234,27 +240,29 @@ const CollegeComparePage: React.FC = () => {
   if (colleges.length === 0) {
     return (
       <DefaultLayout>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+        <div className="min-h-screen p-6 mt-[72px] sm:mt-0" style={{ backgroundColor: primaryBg }}>
           <div className="max-w-7xl mx-auto">
             <button
               onClick={goBack}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-6"
+              className="flex items-center gap-2 font-semibold mb-6 hover:opacity-80 transition-opacity"
+              style={{ color: accentColor }}
             >
               <ArrowLeft size={20} />
               Back to Colleges
             </button>
             
-            <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-              <GraduationCap size={64} className="mx-auto text-gray-300 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">No Colleges to Compare</h2>
-              <p className="text-gray-600 mb-6">
+            <div className="rounded-xl shadow-lg p-12 text-center backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+              <GraduationCap size={64} className="mx-auto text-slate-600 mb-4" />
+              <h2 className="text-2xl font-bold text-white mb-2">No Colleges to Compare</h2>
+              <p className="text-slate-400 mb-6">
                 {user 
                   ? "Select 2-3 colleges from the course finder to compare them" 
                   : "Login and select 2-3 colleges from the course finder to compare them"}
               </p>
               <button
                 onClick={goBack}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                className="text-white px-6 py-3 rounded-lg transition-colors"
+                style={{ backgroundColor: accentColor }}
               >
                 Browse Colleges
               </button>
@@ -272,13 +280,14 @@ const CollegeComparePage: React.FC = () => {
 
   return (
     <DefaultLayout>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
+      <div className="min-h-screen p-4 md:p-6 mt-[72px] sm:mt-0" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={goBack}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold"
+              className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity"
+              style={{ color: accentColor }}
             >
               <ArrowLeft size={20} />
               Back to Colleges
@@ -287,7 +296,8 @@ const CollegeComparePage: React.FC = () => {
             <div className="flex gap-2">
               <button 
                 onClick={resetComparison}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm text-slate-300"
+                style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: `1px solid ${borderColor}` }}
               >
                 <RefreshCw size={16} />
                 <span className="hidden sm:inline">Reset</span>
@@ -296,82 +306,21 @@ const CollegeComparePage: React.FC = () => {
           </div>
 
           <div className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: accentColor }}>
               College Comparison
             </h1>
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Comparing {colleges.length} college{colleges.length !== 1 ? 's' : ''} side by side
             </p>
           </div>
 
-          {/* Quick Insights */}
-          {/* <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4 md:p-6 mb-6">
-            <div className="flex items-start gap-3 mb-4">
-              <Sparkles className="text-blue-600 flex-shrink-0 mt-1" size={24} />
-              <div>
-                <h3 className="font-bold text-gray-800 text-lg mb-1">Quick Insights</h3>
-                <p className="text-sm text-gray-600">Key highlights from your comparison</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {bestPackage && (
-                <div className="bg-white rounded-lg p-3 border border-blue-100">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp size={16} className="text-green-600" />
-                    <span className="text-xs font-semibold text-gray-600">Highest Package</span>
-                  </div>
-                  <p className="font-bold text-gray-800 text-sm">
-                    {colleges.find((c: Course) => c.id === bestPackage)?.["College Name"]}
-                  </p>
-                </div>
-              )}
-              
-              {lowestFees && (
-                <div className="bg-white rounded-lg p-3 border border-green-100">
-                  <div className="flex items-center gap-2 mb-1">
-                    <IndianRupee size={16} className="text-blue-600" />
-                    <span className="text-xs font-semibold text-gray-600">Most Affordable</span>
-                  </div>
-                  <p className="font-bold text-gray-800 text-sm">
-                    {colleges.find((c: Course) => c.id === lowestFees)?.["College Name"]}
-                  </p>
-                </div>
-              )}
-              
-              {bestPlacement && (
-                <div className="bg-white rounded-lg p-3 border border-purple-100">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Trophy size={16} className="text-purple-600" />
-                    <span className="text-xs font-semibold text-gray-600">Best Placements</span>
-                  </div>
-                  <p className="font-bold text-gray-800 text-sm">
-                    {colleges.find((c: Course) => c.id === bestPlacement)?.["College Name"]}
-                  </p>
-                </div>
-              )}
-              
-              {bestRating && (
-                <div className="bg-white rounded-lg p-3 border border-yellow-100">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Star size={16} className="text-yellow-600" />
-                    <span className="text-xs font-semibold text-gray-600">Top Rated</span>
-                  </div>
-                  <p className="font-bold text-gray-800 text-sm">
-                    {colleges.find((c: Course) => c.id === bestRating)?.["College Name"]}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div> */}
-
           {/* Comparison Table - Desktop */}
-          <div className="hidden lg:block bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="hidden lg:block rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gradient-to-r from-blue-600 to-purple-600">
-                    <th className="p-4 text-left text-white font-semibold sticky left-0 bg-blue-600 z-10">
+                  <tr style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
+                    <th className="p-4 text-left text-white font-semibold sticky left-0 z-10" style={{ backgroundColor: accentColor }}>
                       Category
                     </th>
                     {colleges.map((college: Course) => (
@@ -379,13 +328,13 @@ const CollegeComparePage: React.FC = () => {
                         <div className="flex flex-col items-center gap-2">
                           <button
                             onClick={() => removeCollege(college.id)}
-                            className="ml-auto text-white hover:text-red-200 transition-colors"
+                            className="ml-auto text-white hover:text-red-300 transition-colors"
                           >
                             <X size={18} />
                           </button>
                           <h3 className="font-bold text-lg">{college["College Name"]}</h3>
                           {college.Specialization && (
-                            <span className="text-xs bg-white/20 px-3 py-1 rounded-full">
+                            <span className="text-xs px-3 py-1 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
                               {college.Specialization}
                             </span>
                           )}
@@ -396,10 +345,10 @@ const CollegeComparePage: React.FC = () => {
                 </thead>
                 <tbody>
                   {/* Location */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <MapPin size={16} className="text-blue-600" />
+                        <MapPin size={16} style={{ color: accentColor }} />
                         Location
                       </div>
                     </td>
@@ -407,212 +356,212 @@ const CollegeComparePage: React.FC = () => {
                       <td key={college.id} className="p-4 text-center">
                         {college.City && college.State ? (
                           <div className="text-sm">
-                            <p className="font-medium text-gray-800">{college.City}</p>
-                            <p className="text-gray-600">{college.State}</p>
+                            <p className="font-medium text-white">{college.City}</p>
+                            <p className="text-slate-400">{college.State}</p>
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Course Fees */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <IndianRupee size={16} className="text-blue-600" />
+                        <IndianRupee size={16} style={{ color: accentColor }} />
                         Course Fees
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college["Course Fees"] ? (
-                          <div className={`font-semibold text-gray-800 ${lowestFees === college.id ? 'text-green-600 bg-green-50 py-2 rounded-lg' : ''}`}>
+                          <div className={`font-semibold ${lowestFees === college.id ? 'text-green-400 bg-green-500/20 py-2 rounded-lg' : 'text-white'}`}>
                             {college["Course Fees"]}
                             {lowestFees === college.id && (
-                              <div className="text-xs text-green-600 mt-1">Most Affordable</div>
+                              <div className="text-xs text-green-400 mt-1">Most Affordable</div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Average Package */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <TrendingUp size={16} className="text-blue-600" />
+                        <TrendingUp size={16} style={{ color: accentColor }} />
                         Average Package
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college["Average Package"] ? (
-                          <div className={`font-semibold text-gray-800 ${bestPackage === college.id ? 'text-green-600 bg-green-50 py-2 rounded-lg' : ''}`}>
+                          <div className={`font-semibold ${bestPackage === college.id ? 'text-green-400 bg-green-500/20 py-2 rounded-lg' : 'text-white'}`}>
                             {college["Average Package"]}
                             {bestPackage === college.id && (
-                              <div className="text-xs text-green-600 mt-1">Highest</div>
+                              <div className="text-xs text-green-400 mt-1">Highest</div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Highest Package */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <Trophy size={16} className="text-blue-600" />
+                        <Trophy size={16} style={{ color: accentColor }} />
                         Highest Package
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college["Highest Package"] ? (
-                          <div className="font-semibold text-gray-800">
+                          <div className="font-semibold text-white">
                             {college["Highest Package"]}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Placement Score */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <Award size={16} className="text-blue-600" />
+                        <Award size={16} style={{ color: accentColor }} />
                         Placement Score
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college["Placement Score"] ? (
-                          <div className={`font-semibold text-gray-800 ${bestPlacement === college.id ? 'text-purple-600 bg-purple-50 py-2 rounded-lg' : ''}`}>
+                          <div className={`font-semibold ${bestPlacement === college.id ? 'text-purple-400 bg-purple-500/20 py-2 rounded-lg' : 'text-white'}`}>
                             {college["Placement Score"]}
                             {bestPlacement === college.id && (
-                              <div className="text-xs text-purple-600 mt-1">Best</div>
+                              <div className="text-xs text-purple-400 mt-1">Best</div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Ranking */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <Trophy size={16} className="text-blue-600" />
+                        <Trophy size={16} style={{ color: accentColor }} />
                         Ranking
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college.Ranking ? (
-                          <div className="text-sm font-medium text-gray-800">
+                          <div className="text-sm font-medium text-white">
                             {college.Ranking}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* User Rating */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <Star size={16} className="text-blue-600" />
+                        <Star size={16} style={{ color: accentColor }} />
                         User Rating
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college["User Rating"] ? (
-                          <div className={`font-semibold ${bestRating === college.id ? 'text-yellow-600 bg-yellow-50 py-2 rounded-lg' : 'text-gray-800'}`}>
+                          <div className={`font-semibold ${bestRating === college.id ? 'text-yellow-400 bg-yellow-500/20 py-2 rounded-lg' : 'text-white'}`}>
                             {college["User Rating"]}
                             {bestRating === college.id && (
-                              <div className="text-xs text-yellow-600 mt-1">Top Rated</div>
+                              <div className="text-xs text-yellow-400 mt-1">Top Rated</div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Approvals */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-blue-600" />
+                        <CheckCircle size={16} style={{ color: accentColor }} />
                         Approvals
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college.Approvals ? (
-                          <div className="text-sm text-gray-800">
+                          <div className="text-sm text-white">
                             {college.Approvals}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Entrance Exam */}
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="border-b hover:bg-opacity-50" style={{ borderColor: borderColor, backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <BookOpen size={16} className="text-blue-600" />
+                        <BookOpen size={16} style={{ color: accentColor }} />
                         Entrance Exam
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college.entrance_exam ? (
-                          <div className="text-sm font-medium text-gray-800">
+                          <div className="text-sm font-medium text-white">
                             {college.entrance_exam}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
                   </tr>
 
                   {/* Scholarship */}
-                  <tr className="hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-700 sticky left-0 bg-white">
+                  <tr className="hover:bg-opacity-50" style={{ backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
+                    <td className="p-4 font-semibold text-slate-300 sticky left-0" style={{ backgroundColor: secondaryBg }}>
                       <div className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-blue-600" />
+                        <CheckCircle size={16} style={{ color: accentColor }} />
                         Scholarship
                       </div>
                     </td>
                     {colleges.map((college: Course) => (
                       <td key={college.id} className="p-4 text-center">
                         {college.scholarship ? (
-                          <div className="text-sm text-gray-800">
+                          <div className="text-sm text-white">
                             {college.scholarship}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">N/A</span>
+                          <span className="text-slate-500 text-sm">N/A</span>
                         )}
                       </td>
                     ))}
@@ -623,19 +572,18 @@ const CollegeComparePage: React.FC = () => {
           </div>
 
           {/* Mobile View - Card Based */}
-          {/* Mobile View - Simple Comparison */}
           <div className="lg:hidden space-y-6">
             {/* First Two Colleges Comparison */}
             {colleges.slice(0, 2).length === 2 && (
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
                 {/* Headers */}
-                <div className="grid grid-cols-3 bg-gradient-to-r from-blue-600 to-purple-600">
+                <div className="grid grid-cols-3" style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
                   <div className="p-3 border-r border-white/20"></div>
                   {colleges.slice(0, 2).map((college: Course) => (
                     <div key={college.id} className="p-3 text-center">
                       <button
                         onClick={() => removeCollege(college.id)}
-                        className="text-white hover:text-red-200 mb-2 float-right"
+                        className="text-white hover:text-red-300 mb-2 float-right"
                       >
                         <X size={16} />
                       </button>
@@ -643,7 +591,7 @@ const CollegeComparePage: React.FC = () => {
                         {college["College Name"]}
                       </h3>
                       {college.Specialization && (
-                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full inline-block text-white">
+                        <span className="text-xs px-2 py-0.5 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', color: 'white' }}>
                           {college.Specialization}
                         </span>
                       )}
@@ -652,79 +600,21 @@ const CollegeComparePage: React.FC = () => {
                 </div>
 
                 {/* Comparison Rows */}
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y" style={{ borderColor: borderColor }}>
                   {/* Location */}
                   <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <MapPin size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Location</span>
+                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                      <MapPin size={14} className="flex-shrink-0" style={{ color: accentColor }} />
+                      <span className="text-xs font-semibold text-slate-300">Location</span>
                     </div>
                     {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
-                        {college.City && college.State ? (
-                          <div className="text-xs">
-                            <p className="font-medium text-gray-800">{college.City}</p>
-                            <p className="text-gray-600">{college.State}</p>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Course Fees */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <IndianRupee size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Fees</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
-                        {college["Course Fees"] ? (
-                          <div className={`text-xs font-semibold ${lowestFees === college.id ? 'text-green-600' : 'text-gray-800'}`}>
-                            {college["Course Fees"]}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Average Package */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <TrendingUp size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Avg Pkg</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
-                        {college["Average Package"] ? (
-                          <div className={`text-xs font-semibold ${bestPackage === college.id ? 'text-green-600' : 'text-gray-800'}`}>
-                            {college["Average Package"]}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Highest Package */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <Trophy size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">High Pkg</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
+                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
                         {college["Highest Package"] ? (
-                          <div className="text-xs font-semibold text-gray-800">
+                          <div className="text-xs font-semibold text-white">
                             {college["Highest Package"]}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
+                          <span className="text-slate-500 text-xs">N/A</span>
                         )}
                       </div>
                     ))}
@@ -732,18 +622,18 @@ const CollegeComparePage: React.FC = () => {
 
                   {/* Placement Score */}
                   <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <Award size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Placement</span>
+                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                      <Award size={14} className="flex-shrink-0" style={{ color: accentColor }} />
+                      <span className="text-xs font-semibold text-slate-300">Placement</span>
                     </div>
                     {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
+                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
                         {college["Placement Score"] ? (
-                          <div className={`text-xs font-semibold ${bestPlacement === college.id ? 'text-purple-600' : 'text-gray-800'}`}>
+                          <div className={`text-xs font-semibold ${bestPlacement === college.id ? 'text-purple-400' : 'text-white'}`}>
                             {college["Placement Score"]}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
+                          <span className="text-slate-500 text-xs">N/A</span>
                         )}
                       </div>
                     ))}
@@ -751,16 +641,16 @@ const CollegeComparePage: React.FC = () => {
 
                   {/* Ranking */}
                   <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <Trophy size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Ranking</span>
+                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                      <Trophy size={14} className="flex-shrink-0" style={{ color: accentColor }} />
+                      <span className="text-xs font-semibold text-slate-300">Ranking</span>
                     </div>
                     {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
+                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
                         {college.Ranking ? (
-                          <div className="text-xs font-medium text-gray-800">{college.Ranking}</div>
+                          <div className="text-xs font-medium text-white">{college.Ranking}</div>
                         ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
+                          <span className="text-slate-500 text-xs">N/A</span>
                         )}
                       </div>
                     ))}
@@ -768,18 +658,18 @@ const CollegeComparePage: React.FC = () => {
 
                   {/* User Rating */}
                   <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <Star size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Rating</span>
+                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                      <Star size={14} className="flex-shrink-0" style={{ color: accentColor }} />
+                      <span className="text-xs font-semibold text-slate-300">Rating</span>
                     </div>
                     {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
+                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
                         {college["User Rating"] ? (
-                          <div className={`text-xs font-semibold ${bestRating === college.id ? 'text-yellow-600' : 'text-gray-800'}`}>
+                          <div className={`text-xs font-semibold ${bestRating === college.id ? 'text-yellow-400' : 'text-white'}`}>
                             {college["User Rating"]}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
+                          <span className="text-slate-500 text-xs">N/A</span>
                         )}
                       </div>
                     ))}
@@ -787,16 +677,16 @@ const CollegeComparePage: React.FC = () => {
 
                   {/* Approvals */}
                   <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <CheckCircle size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Approvals</span>
+                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                      <CheckCircle size={14} className="flex-shrink-0" style={{ color: accentColor }} />
+                      <span className="text-xs font-semibold text-slate-300">Approvals</span>
                     </div>
                     {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
+                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
                         {college.Approvals ? (
-                          <div className="text-xs text-gray-800">{college.Approvals}</div>
+                          <div className="text-xs text-white">{college.Approvals}</div>
                         ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
+                          <span className="text-slate-500 text-xs">N/A</span>
                         )}
                       </div>
                     ))}
@@ -804,56 +694,39 @@ const CollegeComparePage: React.FC = () => {
 
                   {/* Entrance Exam */}
                   <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <BookOpen size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Exam</span>
+                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
+                      <BookOpen size={14} className="flex-shrink-0" style={{ color: accentColor }} />
+                      <span className="text-xs font-semibold text-slate-300">Exam</span>
                     </div>
                     {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
+                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
                         {college.entrance_exam ? (
-                          <div className="text-xs font-medium text-gray-800">{college.entrance_exam}</div>
+                          <div className="text-xs font-medium text-white">{college.entrance_exam}</div>
                         ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
+                          <span className="text-slate-500 text-xs">N/A</span>
                         )}
                       </div>
                     ))}
                   </div>
-
-                  {/* Scholarship */}
-                  {/* <div className="grid grid-cols-3">
-                    <div className="p-3 bg-gray-50 flex items-center gap-1">
-                      <CheckCircle size={14} className="text-blue-600 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-gray-700">Scholarship</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l border-gray-100">
-                        {college.scholarship ? (
-                          <div className="text-xs text-gray-800">{college.scholarship}</div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div> */}
                 </div>
               </div>
             )}
 
             {/* Third College (if exists) - Separate Card Below */}
             {colleges[2] && (
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
+              <div className="rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+                <div className="p-4 text-white" style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-bold text-lg">{colleges[2]["College Name"]}</h3>
                     <button
                       onClick={() => removeCollege(colleges[2].id)}
-                      className="text-white hover:text-red-200"
+                      className="text-white hover:text-red-300"
                     >
                       <X size={20} />
                     </button>
                   </div>
                   {colleges[2].Specialization && (
-                    <span className="text-xs bg-white/20 px-3 py-1 rounded-full inline-block">
+                    <span className="text-xs px-3 py-1 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
                       {colleges[2].Specialization}
                     </span>
                   )}
@@ -862,20 +735,20 @@ const CollegeComparePage: React.FC = () => {
                 <div className="p-4 space-y-3">
                   {colleges[2].City && colleges[2].State && (
                     <div className="flex items-start gap-3">
-                      <MapPin size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <MapPin size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Location</p>
-                        <p className="font-medium text-gray-800">{colleges[2].City}, {colleges[2].State}</p>
+                        <p className="text-xs text-slate-400 mb-1">Location</p>
+                        <p className="font-medium text-white">{colleges[2].City}, {colleges[2].State}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[2]["Course Fees"] && (
                     <div className="flex items-start gap-3">
-                      <IndianRupee size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <IndianRupee size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Course Fees</p>
-                        <p className={`font-semibold ${lowestFees === colleges[2].id ? 'text-green-600' : 'text-gray-800'}`}>
+                        <p className="text-xs text-slate-400 mb-1">Course Fees</p>
+                        <p className={`font-semibold ${lowestFees === colleges[2].id ? 'text-green-400' : 'text-white'}`}>
                           {colleges[2]["Course Fees"]}
                         </p>
                       </div>
@@ -884,10 +757,10 @@ const CollegeComparePage: React.FC = () => {
 
                   {colleges[2]["Average Package"] && (
                     <div className="flex items-start gap-3">
-                      <TrendingUp size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <TrendingUp size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Average Package</p>
-                        <p className={`font-semibold ${bestPackage === colleges[2].id ? 'text-green-600' : 'text-gray-800'}`}>
+                        <p className="text-xs text-slate-400 mb-1">Average Package</p>
+                        <p className={`font-semibold ${bestPackage === colleges[2].id ? 'text-green-400' : 'text-white'}`}>
                           {colleges[2]["Average Package"]}
                         </p>
                       </div>
@@ -896,20 +769,20 @@ const CollegeComparePage: React.FC = () => {
 
                   {colleges[2]["Highest Package"] && (
                     <div className="flex items-start gap-3">
-                      <Trophy size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Highest Package</p>
-                        <p className="font-semibold text-gray-800">{colleges[2]["Highest Package"]}</p>
+                        <p className="text-xs text-slate-400 mb-1">Highest Package</p>
+                        <p className="font-semibold text-white">{colleges[2]["Highest Package"]}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[2]["Placement Score"] && (
                     <div className="flex items-start gap-3">
-                      <Award size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Award size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Placement Score</p>
-                        <p className={`font-semibold ${bestPlacement === colleges[2].id ? 'text-purple-600' : 'text-gray-800'}`}>
+                        <p className="text-xs text-slate-400 mb-1">Placement Score</p>
+                        <p className={`font-semibold ${bestPlacement === colleges[2].id ? 'text-purple-400' : 'text-white'}`}>
                           {colleges[2]["Placement Score"]}
                         </p>
                       </div>
@@ -918,20 +791,20 @@ const CollegeComparePage: React.FC = () => {
 
                   {colleges[2].Ranking && (
                     <div className="flex items-start gap-3">
-                      <Trophy size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Ranking</p>
-                        <p className="font-medium text-gray-800">{colleges[2].Ranking}</p>
+                        <p className="text-xs text-slate-400 mb-1">Ranking</p>
+                        <p className="font-medium text-white">{colleges[2].Ranking}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[2]["User Rating"] && (
                     <div className="flex items-start gap-3">
-                      <Star size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Star size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">User Rating</p>
-                        <p className={`font-semibold ${bestRating === colleges[2].id ? 'text-yellow-600' : 'text-gray-800'}`}>
+                        <p className="text-xs text-slate-400 mb-1">User Rating</p>
+                        <p className={`font-semibold ${bestRating === colleges[2].id ? 'text-yellow-400' : 'text-white'}`}>
                           {colleges[2]["User Rating"]}
                         </p>
                       </div>
@@ -940,52 +813,42 @@ const CollegeComparePage: React.FC = () => {
 
                   {colleges[2].Approvals && (
                     <div className="flex items-start gap-3">
-                      <CheckCircle size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <CheckCircle size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Approvals</p>
-                        <p className="text-sm text-gray-800">{colleges[2].Approvals}</p>
+                        <p className="text-xs text-slate-400 mb-1">Approvals</p>
+                        <p className="text-sm text-white">{colleges[2].Approvals}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[2].entrance_exam && (
                     <div className="flex items-start gap-3">
-                      <BookOpen size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <BookOpen size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Entrance Exam</p>
-                        <p className="font-medium text-gray-800">{colleges[2].entrance_exam}</p>
+                        <p className="text-xs text-slate-400 mb-1">Entrance Exam</p>
+                        <p className="font-medium text-white">{colleges[2].entrance_exam}</p>
                       </div>
                     </div>
                   )}
-
-                  {/* {colleges[2].scholarship && (
-                    <div className="flex items-start gap-3">
-                      <CheckCircle size={16} className="text-blue-600 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs text-gray-600 mb-1">Scholarship</p>
-                        <p className="text-sm text-gray-800">{colleges[2].scholarship}</p>
-                      </div>
-                    </div>
-                  )} */}
                 </div>
               </div>
             )}
 
             {/* Single College View (if only 1 college) */}
             {colleges.length === 1 && (
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
+              <div className="rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+                <div className="p-4 text-white" style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-bold text-lg">{colleges[0]["College Name"]}</h3>
                     <button
                       onClick={() => removeCollege(colleges[0].id)}
-                      className="text-white hover:text-red-200"
+                      className="text-white hover:text-red-300"
                     >
                       <X size={20} />
                     </button>
                   </div>
                   {colleges[0].Specialization && (
-                    <span className="text-xs bg-white/20 px-3 py-1 rounded-full inline-block">
+                    <span className="text-xs px-3 py-1 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
                       {colleges[0].Specialization}
                     </span>
                   )}
@@ -994,103 +857,93 @@ const CollegeComparePage: React.FC = () => {
                 <div className="p-4 space-y-3">
                   {colleges[0].City && colleges[0].State && (
                     <div className="flex items-start gap-3">
-                      <MapPin size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <MapPin size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Location</p>
-                        <p className="font-medium text-gray-800">{colleges[0].City}, {colleges[0].State}</p>
+                        <p className="text-xs text-slate-400 mb-1">Location</p>
+                        <p className="font-medium text-white">{colleges[0].City}, {colleges[0].State}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0]["Course Fees"] && (
                     <div className="flex items-start gap-3">
-                      <IndianRupee size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <IndianRupee size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Course Fees</p>
-                        <p className="font-semibold text-gray-800">{colleges[0]["Course Fees"]}</p>
+                        <p className="text-xs text-slate-400 mb-1">Course Fees</p>
+                        <p className="font-semibold text-white">{colleges[0]["Course Fees"]}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0]["Average Package"] && (
                     <div className="flex items-start gap-3">
-                      <TrendingUp size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <TrendingUp size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Average Package</p>
-                        <p className="font-semibold text-gray-800">{colleges[0]["Average Package"]}</p>
+                        <p className="text-xs text-slate-400 mb-1">Average Package</p>
+                        <p className="font-semibold text-white">{colleges[0]["Average Package"]}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0]["Highest Package"] && (
                     <div className="flex items-start gap-3">
-                      <Trophy size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Highest Package</p>
-                        <p className="font-semibold text-gray-800">{colleges[0]["Highest Package"]}</p>
+                        <p className="text-xs text-slate-400 mb-1">Highest Package</p>
+                        <p className="font-semibold text-white">{colleges[0]["Highest Package"]}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0]["Placement Score"] && (
                     <div className="flex items-start gap-3">
-                      <Award size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Award size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Placement Score</p>
-                        <p className="font-semibold text-gray-800">{colleges[0]["Placement Score"]}</p>
+                        <p className="text-xs text-slate-400 mb-1">Placement Score</p>
+                        <p className="font-semibold text-white">{colleges[0]["Placement Score"]}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0].Ranking && (
                     <div className="flex items-start gap-3">
-                      <Trophy size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Ranking</p>
-                        <p className="font-medium text-gray-800">{colleges[0].Ranking}</p>
+                        <p className="text-xs text-slate-400 mb-1">Ranking</p>
+                        <p className="font-medium text-white">{colleges[0].Ranking}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0]["User Rating"] && (
                     <div className="flex items-start gap-3">
-                      <Star size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <Star size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">User Rating</p>
-                        <p className="font-semibold text-gray-800">{colleges[0]["User Rating"]}</p>
+                        <p className="text-xs text-slate-400 mb-1">User Rating</p>
+                        <p className="font-semibold text-white">{colleges[0]["User Rating"]}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0].Approvals && (
                     <div className="flex items-start gap-3">
-                      <CheckCircle size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <CheckCircle size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Approvals</p>
-                        <p className="text-sm text-gray-800">{colleges[0].Approvals}</p>
+                        <p className="text-xs text-slate-400 mb-1">Approvals</p>
+                        <p className="text-sm text-white">{colleges[0].Approvals}</p>
                       </div>
                     </div>
                   )}
 
                   {colleges[0].entrance_exam && (
                     <div className="flex items-start gap-3">
-                      <BookOpen size={16} className="text-blue-600 mt-1 flex-shrink-0" />
+                      <BookOpen size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Entrance Exam</p>
-                        <p className="font-medium text-gray-800">{colleges[0].entrance_exam}</p>
+                        <p className="text-xs text-slate-400 mb-1">Entrance Exam</p>
+                        <p className="font-medium text-white">{colleges[0].entrance_exam}</p>
                       </div>
                     </div>
                   )}
-
-                  {/* {colleges[0].scholarship && (
-                    <div className="flex items-start gap-3">
-                      <CheckCircle size={16} className="text-blue-600 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs text-gray-600 mb-1">Scholarship</p>
-                        <p className="text-sm text-gray-800">{colleges[0].scholarship}</p>
-                      </div>
-                    </div>
-                  )} */}
                 </div>
               </div>
             )}

@@ -4,6 +4,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { X, Phone, MapPin, CheckCircle2, Loader2 } from 'lucide-react';
 
+// Color scheme matching the college compare page
+const accentColor = '#6366f1'; // Indigo accent
+const primaryBg = '#0a0f1e'; // Very dark navy blue
+const secondaryBg = '#111827'; // Slightly lighter navy
+const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
 const CONTACT_OPTIONS = [
   { value: "WhatsApp", label: "WhatsApp", icon: "💬" },
   { value: "Email", label: "Email", icon: "📧" },
@@ -179,13 +185,19 @@ const LeadDataPopup = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm p-4">
+      <div 
+        className="rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto backdrop-blur-xl"
+        style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+      >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#2f61ce] to-blue-500 p-6 rounded-t-2xl">
+        <div 
+          className="p-6 rounded-t-2xl"
+          style={{ background: `linear-gradient(135deg, ${accentColor}, #8b5cf6)` }}
+        >
           <div className="flex items-center justify-center mb-2">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-              <CheckCircle2 className="text-[#2f61ce]" size={32} />
+              <CheckCircle2 style={{ color: accentColor }} size={32} />
             </div>
           </div>
           <h2 className="text-2xl font-bold text-white text-center mb-1">
@@ -201,21 +213,24 @@ const LeadDataPopup = () => {
           <div className="space-y-5">
             {/* Name (Read-only) */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-300 mb-2">
                 Your Name
               </label>
-              <div className="bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-700">
+              <div 
+                className="rounded-lg px-4 py-3 text-white"
+                style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: `2px solid ${borderColor}` }}
+              >
                 {userName}
               </div>
             </div>
 
             {/* City */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                City <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold text-slate-300 mb-2">
+                City <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
                 <input
                   type="text"
                   value={formData.city}
@@ -225,23 +240,27 @@ const LeadDataPopup = () => {
                   }}
                   onKeyPress={handleKeyPress}
                   placeholder="Enter your city"
-                  className={`w-full pl-11 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] focus:border-transparent transition-all ${
-                    errors.city ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-11 pr-4 py-3 rounded-lg focus:outline-none transition-all text-white placeholder:text-slate-500`}
+                  style={{ 
+                    backgroundColor: primaryBg,
+                    border: errors.city ? '2px solid #ef4444' : `2px solid ${borderColor}`
+                  }}
+                  onFocus={(e) => !errors.city && (e.target.style.border = `2px solid ${accentColor}`)}
+                  onBlur={(e) => !errors.city && (e.target.style.border = `2px solid ${borderColor}`)}
                 />
               </div>
               {errors.city && (
-                <p className="text-red-500 text-xs mt-1 ml-1">{errors.city}</p>
+                <p className="text-red-400 text-xs mt-1 ml-1">{errors.city}</p>
               )}
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Contact Number <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold text-slate-300 mb-2">
+                Contact Number <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
                 <input
                   type="tel"
                   value={formData.phone}
@@ -251,20 +270,24 @@ const LeadDataPopup = () => {
                   }}
                   onKeyPress={handleKeyPress}
                   placeholder="+91 XXXXX XXXXX"
-                  className={`w-full pl-11 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2f61ce] focus:border-transparent transition-all ${
-                    errors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-11 pr-4 py-3 rounded-lg focus:outline-none transition-all text-white placeholder:text-slate-500`}
+                  style={{ 
+                    backgroundColor: primaryBg,
+                    border: errors.phone ? '2px solid #ef4444' : `2px solid ${borderColor}`
+                  }}
+                  onFocus={(e) => !errors.phone && (e.target.style.border = `2px solid ${accentColor}`)}
+                  onBlur={(e) => !errors.phone && (e.target.style.border = `2px solid ${borderColor}`)}
                 />
               </div>
               {errors.phone && (
-                <p className="text-red-500 text-xs mt-1 ml-1">{errors.phone}</p>
+                <p className="text-red-400 text-xs mt-1 ml-1">{errors.phone}</p>
               )}
             </div>
 
             {/* Contact Preferences */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                How would you like us to contact you? <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold text-slate-300 mb-2">
+                How would you like us to contact you? <span className="text-red-400">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {CONTACT_OPTIONS.map((option) => (
@@ -272,11 +295,30 @@ const LeadDataPopup = () => {
                     key={option.value}
                     type="button"
                     onClick={() => handleContactPreferenceToggle(option.value)}
-                    className={`px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium flex items-center justify-center gap-2 ${
+                    className={`px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium flex items-center justify-center gap-2`}
+                    style={
                       formData.contact_preferences.includes(option.value)
-                        ? 'border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce]'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]'
-                    }`}
+                        ? {
+                            borderColor: accentColor,
+                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                            color: accentColor,
+                          }
+                        : {
+                            borderColor: borderColor,
+                            backgroundColor: primaryBg,
+                            color: '#cbd5e1',
+                          }
+                    }
+                    onMouseEnter={(e) => {
+                      if (!formData.contact_preferences.includes(option.value)) {
+                        e.currentTarget.style.borderColor = accentColor
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!formData.contact_preferences.includes(option.value)) {
+                        e.currentTarget.style.borderColor = borderColor
+                      }
+                    }}
                   >
                     <span>{option.icon}</span>
                     <span>{option.label}</span>
@@ -284,7 +326,7 @@ const LeadDataPopup = () => {
                 ))}
               </div>
               {errors.contact_preferences && (
-                <p className="text-red-500 text-xs mt-1 ml-1">{errors.contact_preferences}</p>
+                <p className="text-red-400 text-xs mt-1 ml-1">{errors.contact_preferences}</p>
               )}
             </div>
           </div>
@@ -293,7 +335,8 @@ const LeadDataPopup = () => {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full mt-6 bg-gradient-to-r from-[#2f61ce] to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-[#2451a8] hover:to-blue-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full mt-6 text-white py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:opacity-90"
+            style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
           >
             {submitting ? (
               <>
@@ -308,7 +351,7 @@ const LeadDataPopup = () => {
             )}
           </button>
 
-          <p className="text-xs text-gray-500 text-center mt-4">
+          <p className="text-xs text-slate-400 text-center mt-4">
             This information helps us provide you with personalized recommendations
           </p>
         </div>

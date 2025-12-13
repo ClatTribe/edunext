@@ -14,6 +14,12 @@ import {
   FileText,
 } from "lucide-react"
 
+// Color scheme matching the college compare page
+const accentColor = '#6366f1'; // Indigo accent
+const primaryBg = '#0a0f1e'; // Very dark navy blue
+const secondaryBg = '#111827'; // Slightly lighter navy
+const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+
 // Define the data structure for type safety
 interface ApplicationDeadline {
   examName: string
@@ -106,42 +112,40 @@ const ExamCard: React.FC<{ data: ApplicationDeadline }> = ({ data }) => {
   const isLinkAvailable = data.linkToApply && data.linkToApply !== "N/A"
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow relative">
+    <div 
+      className="rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all backdrop-blur-xl relative"
+      style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+    >
       {/* Exam Name and Status */}
       <div className="flex items-start justify-between mb-4 gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-base sm:text-xl text-gray-900 mb-2 sm:mb-3 wrap-break-words">
-            <GraduationCap size={20} className="inline mr-2 text-[#005de6]" />
+          <h3 className="font-bold text-base sm:text-xl text-white mb-2 sm:mb-3 wrap-break-words">
+            <GraduationCap size={20} className="inline mr-2" style={{ color: accentColor }} />
             {data.examName}
           </h3>
-          {/* <div className={`text-xs font-semibold px-2 py-1 rounded-full inline-block ${
-            isRegistrationOpen ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-          }`}>
-            {isRegistrationOpen ? "Registration Open" : "Upcoming"}
-          </div> */}
         </div>
       </div>
 
       <div className="space-y-3 sm:space-y-4">
         {/* Registration Dates */}
-        <div className="pt-3 sm:pt-4 border-t border-gray-100">
+        <div className="pt-3 sm:pt-4" style={{ borderTop: `1px solid ${borderColor}` }}>
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+              <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                 <Clock size={12} className="shrink-0" />
                 <span>Registration Starts</span>
               </div>
-              <p className="font-semibold text-gray-800 text-xs sm:text-sm wrap-break-words">
+              <p className="font-semibold text-white text-xs sm:text-sm wrap-break-words">
                 {data.registrationStarts || "TBA"}
               </p>
             </div>
             
             <div>
-              <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+              <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                 <Calendar size={12} className="shrink-0" />
                 <span>Registration Ends</span>
               </div>
-              <p className="font-semibold text-gray-800 text-xs sm:text-sm wrap-break-words">
+              <p className="font-semibold text-white text-xs sm:text-sm wrap-break-words">
                 {data.registrationEnds || "TBA"}
               </p>
             </div>
@@ -149,23 +153,23 @@ const ExamCard: React.FC<{ data: ApplicationDeadline }> = ({ data }) => {
         </div>
 
         {/* Admit Card and Exam Date */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-100">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4" style={{ borderTop: `1px solid ${borderColor}` }}>
           <div>
-            <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+            <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
               <FileText size={12} className="shrink-0" />
               <span>Admit Card Date</span>
             </div>
-            <p className="font-semibold text-gray-800 text-xs sm:text-sm wrap-break-words">
+            <p className="font-semibold text-white text-xs sm:text-sm wrap-break-words">
               {data.admitCardDate || "TBA"}
             </p>
           </div>
           
           <div>
-            <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+            <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
               <Trophy size={12} className="shrink-0" />
               <span>Exam Date</span>
             </div>
-            <p className="font-semibold text-gray-800 text-xs sm:text-sm wrap-break-words">
+            <p className="font-semibold text-white text-xs sm:text-sm wrap-break-words">
               {data.examDate || "TBA"}
             </p>
           </div>
@@ -178,7 +182,8 @@ const ExamCard: React.FC<{ data: ApplicationDeadline }> = ({ data }) => {
               href={data.linkToApply.startsWith("http") ? data.linkToApply : `https://${data.linkToApply}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-[#005de6] hover:bg-blue-700 text-white rounded-lg py-2 px-3 sm:px-4 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md"
+              className="flex-1 text-white rounded-lg py-2 px-3 sm:px-4 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md hover:opacity-90"
+              style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
             >
               <Globe size={14} className="sm:w-4 sm:h-4 shrink-0" />
               Visit Official Website
@@ -187,7 +192,8 @@ const ExamCard: React.FC<{ data: ApplicationDeadline }> = ({ data }) => {
           ) : (
             <button
               disabled
-              className="flex-1 bg-gray-200 text-gray-600 rounded-lg py-2 px-3 sm:px-4 flex items-center justify-center gap-2 text-xs sm:text-sm font-medium cursor-not-allowed"
+              className="flex-1 text-slate-500 rounded-lg py-2 px-3 sm:px-4 flex items-center justify-center gap-2 text-xs sm:text-sm font-medium cursor-not-allowed"
+              style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', border: `1px solid ${borderColor}` }}
             >
               <Sparkles size={14} className="sm:w-4 sm:h-4 shrink-0" />
               Link N/A
@@ -203,23 +209,26 @@ const ExamCard: React.FC<{ data: ApplicationDeadline }> = ({ data }) => {
 const ApplicationDeadlinesPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6">
+      <div className="flex-1 min-h-screen p-3 sm:p-4 md:p-6 mt-[72px] sm:mt-0" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-4 sm:mb-6 md:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#005de6] mb-1 sm:mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2" style={{ color: accentColor }}>
               📅 MBA Entrance Exam Dates & Deadlines 2025-26
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-sm sm:text-base text-slate-400">
               Check registration dates, admit card release, and exam schedules for top MBA entrance exams.
             </p>
           </div>
 
           {/* Results Count */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 bg-white rounded-lg shadow-sm p-3 sm:p-4 border-l-4 border-[#005de6]">
+          <div 
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 rounded-lg shadow-lg p-3 sm:p-4 backdrop-blur-xl"
+            style={{ backgroundColor: secondaryBg, borderLeft: `4px solid ${accentColor}` }}
+          >
             <div className="flex items-center gap-2">
-              <Calendar className="text-[#005de6] shrink-0" size={20} />
-              <span className="font-semibold text-base sm:text-lg">
+              <Calendar style={{ color: accentColor }} className="shrink-0" size={20} />
+              <span className="font-semibold text-base sm:text-lg text-white">
                 {applicationData.length} exams listed
               </span>
             </div>
@@ -233,11 +242,18 @@ const ApplicationDeadlinesPage: React.FC = () => {
           </div>
 
           {/* Note Section */}
-          <div className="mt-8 p-4 sm:p-6 bg-blue-50 border-l-4 border-blue-400 rounded-lg shadow-inner">
-            <h3 className="font-bold text-sm sm:text-base text-blue-800 mb-2 flex items-center gap-2">
+          <div 
+            className="mt-8 p-4 sm:p-6 rounded-lg shadow-lg backdrop-blur-xl"
+            style={{ 
+              backgroundColor: 'rgba(99, 102, 241, 0.1)', 
+              borderLeft: `4px solid ${accentColor}`,
+              border: `1px solid ${borderColor}`
+            }}
+          >
+            <h3 className="font-bold text-sm sm:text-base mb-2 flex items-center gap-2" style={{ color: accentColor }}>
               <MapPin size={16} /> Important Note
             </h3>
-            <p className="text-xs sm:text-sm text-blue-700">
+            <p className="text-xs sm:text-sm text-slate-300">
               The dates provided are based on official announcements. Please regularly check the official exam websites for the most accurate and updated information. Registration windows may vary and some dates are tentative.
             </p>
           </div>
