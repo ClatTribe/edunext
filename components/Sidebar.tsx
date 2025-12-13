@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: Users, label: "Previous Year Students", path: "/previous-year-students" },
       { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
-      { icon: Building2, label: "Compare", path: "/compare-your-college" },
+      { icon: Building2, label: "Compare Your COllege", path: "/compare-your-college" },
     ],
     applications: [
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
