@@ -119,79 +119,6 @@ const ShortlistBuilder: React.FC = () => {
     }
   };
 
-  // Function to check if item already exists in shortlist
-  const checkIfItemExists = async (itemType: "course" | "scholarship", itemId: number): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const column = itemType === "course" ? "course_id" : "scholarship_id";
-      const { data, error } = await supabase
-        .from("shortlist_builder")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("item_type", itemType)
-        .eq(column, itemId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        console.error("Error checking item:", error);
-        return false;
-      }
-
-      return !!data;
-    } catch (err) {
-      console.error("Error checking if item exists:", err);
-      return false;
-    }
-  };
-
-  // Function to add item to shortlist (call this from your course/scholarship pages)
-  const addToShortlist = async (itemType: "course" | "scholarship", itemId: number) => {
-    if (!user) {
-      alert("Please login to add items to your shortlist");
-      return { success: false, message: "Please login first" };
-    }
-
-    try {
-      // Check if item already exists
-      const exists = await checkIfItemExists(itemType, itemId);
-      
-      if (exists) {
-        alert(`This ${itemType} is already in your shortlist!`);
-        return { success: false, message: "Item already exists" };
-      }
-
-      // Add to shortlist
-      const insertData = {
-        user_id: user.id,
-        item_type: itemType,
-        course_id: itemType === "course" ? itemId : null,
-        scholarship_id: itemType === "scholarship" ? itemId : null,
-        status: "interested",
-        notes: null
-      };
-
-      const { data, error } = await supabase
-        .from("shortlist_builder")
-        .insert([insertData])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      alert(`${itemType === "course" ? "College" : "Scholarship"} added to shortlist successfully!`);
-      
-      // Refresh the list if we're on the shortlist page
-      await fetchShortlistItems();
-      
-      return { success: true, message: "Added successfully", data };
-    } catch (err) {
-      console.error("Error adding to shortlist:", err);
-      alert("Failed to add item to shortlist. Please try again.");
-      return { success: false, message: err instanceof Error ? err.message : "Failed to add" };
-    }
-  };
-
   const removeFromShortlist = async (itemId: number) => {
     if (!confirm("Are you sure you want to remove this item from your shortlist?")) return;
 
@@ -284,17 +211,17 @@ const ShortlistBuilder: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-      interested: { color: "bg-blue-100 text-blue-700", icon: <Heart size={14} />, label: "Interested" },
-      applied: { color: "bg-purple-100 text-purple-700", icon: <CheckCircle size={14} />, label: "Applied" },
-      accepted: { color: "bg-green-100 text-green-700", icon: <CheckCircle size={14} />, label: "Accepted" },
-      rejected: { color: "bg-red-100 text-red-700", icon: <X size={14} />, label: "Rejected" },
-      pending: { color: "bg-yellow-100 text-yellow-700", icon: <Clock size={14} />, label: "Pending" },
+      interested: { color: "bg-blue-100 text-blue-700", icon: <Heart size={12} className="sm:w-3.5 sm:h-3.5" />, label: "Interested" },
+      applied: { color: "bg-purple-100 text-purple-700", icon: <CheckCircle size={12} className="sm:w-3.5 sm:h-3.5" />, label: "Applied" },
+      accepted: { color: "bg-green-100 text-green-700", icon: <CheckCircle size={12} className="sm:w-3.5 sm:h-3.5" />, label: "Accepted" },
+      rejected: { color: "bg-red-100 text-red-700", icon: <X size={12} className="sm:w-3.5 sm:h-3.5" />, label: "Rejected" },
+      pending: { color: "bg-yellow-100 text-yellow-700", icon: <Clock size={12} className="sm:w-3.5 sm:h-3.5" />, label: "Pending" },
     };
 
     const config = statusConfig[status] || statusConfig.interested;
 
     return (
-      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${config.color}`}>
+      <span className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${config.color}`}>
         {config.icon}
         {config.label}
       </span>
@@ -314,12 +241,12 @@ const ShortlistBuilder: React.FC = () => {
   if (!user) {
     return (
       <DefaultLayout>
-        <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6">
+        <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-              <AlertCircle className="mx-auto text-red-600 mb-4" size={48} />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Login Required</h2>
-              <p className="text-gray-600">Please login to view your shortlist</p>
+            <div className="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center">
+              <AlertCircle className="mx-auto text-red-600 mb-4" size={40} />
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Login Required</h2>
+              <p className="text-sm sm:text-base text-gray-600">Please login to view your shortlist</p>
             </div>
           </div>
         </div>
@@ -329,31 +256,34 @@ const ShortlistBuilder: React.FC = () => {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6">
+      <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-3 sm:p-4 md:p-6 mt-18 sm:mt-0">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-[#005de6] mb-2 flex items-center gap-3">
-              <Heart size={36} />
+          {/* Header */}
+          <div className="mb-4 sm:mb-6 md:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#005de6] mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+              <Heart size={28} className="sm:w-9 sm:h-9" />
               My Shortlist
             </h1>
-            <p className="text-gray-600">Manage your saved Colleges and Scholarships in one place</p>
+            <p className="text-sm sm:text-base text-gray-600">Manage your saved Colleges and Scholarships in one place</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div className="flex gap-3">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
+            {/* Tab and Filter Section */}
+            <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+              {/* Tabs */}
+              <div className="flex gap-2 sm:gap-3">
                 <button
                   onClick={() => setActiveTab("courses")}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                  className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-base transition-all ${
                     activeTab === "courses"
                       ? "bg-[#005de6] text-white shadow-lg"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  <GraduationCap size={20} />
-                  Colleges
+                  <GraduationCap size={16} className="sm:w-5 sm:h-5" />
+                  <span className="hidden xs:inline">Colleges</span>
                   <span
-                    className={`ml-1 px-2 py-0.5 rounded-full text-xs ${
+                    className={`ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs ${
                       activeTab === "courses" ? "bg-white text-[#005de6]" : "bg-gray-200 text-gray-700"
                     }`}
                   >
@@ -362,16 +292,16 @@ const ShortlistBuilder: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab("scholarships")}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                  className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-base transition-all ${
                     activeTab === "scholarships"
                       ? "bg-[#005de6] text-white shadow-lg"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  <Award size={20} />
-                  Scholarships
+                  <Award size={16} className="sm:w-5 sm:h-5" />
+                  <span className="hidden xs:inline">Scholarships</span>
                   <span
-                    className={`ml-1 px-2 py-0.5 rounded-full text-xs ${
+                    className={`ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs ${
                       activeTab === "scholarships" ? "bg-white text-[#005de6]" : "bg-gray-200 text-gray-700"
                     }`}
                   >
@@ -380,12 +310,13 @@ const ShortlistBuilder: React.FC = () => {
                 </button>
               </div>
 
+              {/* Status Filter */}
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Status:</label>
+                <label className="text-xs sm:text-sm font-medium text-gray-700">Status:</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-sm"
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-xs sm:text-sm"
                 >
                   <option value="all">All</option>
                   <option value="interested">Interested</option>
@@ -397,142 +328,158 @@ const ShortlistBuilder: React.FC = () => {
               </div>
             </div>
 
+            {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-                <AlertCircle className="text-red-600 flex-shrink-0" size={24} />
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3">
+                <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+                <p className="text-red-600 text-xs sm:text-sm">{error}</p>
               </div>
             )}
 
+            {/* Loading State */}
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="text-gray-500 flex flex-col items-center gap-3">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005de6]"></div>
-                  <p>Loading your shortlist...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#005de6]"></div>
+                  <p className="text-sm sm:text-base">Loading your shortlist...</p>
                 </div>
               </div>
             ) : filteredItems.length === 0 ? (
-              <div className="text-center py-16">
-                <Heart size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">No {activeTab} in your shortlist yet</h3>
-                <p className="text-gray-500 mb-6">Start exploring and save items you are interested in</p>
-                <div className="flex gap-4 justify-center">
+              <div className="text-center py-12 sm:py-16">
+                <Heart size={40} className="sm:w-12 sm:h-12 mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
+                  No {activeTab} in your shortlist yet
+                </h3>
+                <p className="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6 px-4">
+                  Start exploring and save items you are interested in
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
                   <a
                     href="/find-colleges"
-                    className="flex items-center gap-2 px-6 py-3 bg-[#005de6] text-white rounded-lg font-semibold hover:bg-[#003d99] transition"
+                    className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#005de6] text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-[#003d99] transition"
                   >
-                    <GraduationCap size={20} />
+                    <GraduationCap size={18} className="sm:w-5 sm:h-5" />
                     Browse Colleges
                   </a>
                   <a
                     href="/find-scholarships"
-                    className="flex items-center gap-2 px-6 py-3 bg-[#005de6] text-white rounded-lg font-semibold hover:bg-[#003d99] transition"
+                    className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#005de6] text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-[#003d99] transition"
                   >
-                    <Award size={20} />
+                    <Award size={18} className="sm:w-5 sm:h-5" />
                     Browse Scholarships
                   </a>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {filteredItems.map((item) => (
                   <div
                     key={item.id}
-                    className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow bg-white"
+                    className="border border-gray-200 rounded-xl p-4 sm:p-5 md:p-6 hover:shadow-lg transition-shadow bg-white"
                   >
                     {item.item_type === "course" && item.course ? (
                       <>
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="mb-3">
-                              <div className="inline-block text-black px-4 py-2 rounded-lg font-bold text-lg mb-2">
+                        {/* Course Header */}
+                        <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="mb-2 sm:mb-3">
+                              <div className="text-black font-bold text-base sm:text-lg md:text-xl mb-2 break-words">
                                 {item.course["College Name"] || "College Name Not Available"}
                               </div>
                               {item.course["Specialization"] && (
-                                <div className="inline-block ml-2 bg-[#005DE6] text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                <div className="inline-block bg-[#005DE6] text-white px-2 sm:px-3 py-1 rounded-full text-xs font-semibold break-words">
                                   {item.course["Specialization"]}
                                 </div>
                               )}
                             </div>
 
-                            <div className="flex flex-wrap gap-2 mb-3">
+                            <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
                               {getStatusBadge(item.status)}
                               {item.course["State"] && (
-                                <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                                  <MapPin size={12} />
-                                  {item.course["State"]}
+                                <span className="bg-green-100 text-green-800 text-xs px-2 sm:px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                                  <MapPin size={12} className="flex-shrink-0" />
+                                  <span className="truncate">{item.course["State"]}</span>
                                 </span>
                               )}
                               {item.course["City"] && (
-                                <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-medium">
+                                <span className="bg-blue-100 text-blue-800 text-xs px-2 sm:px-3 py-1 rounded-full font-medium truncate">
                                   {item.course["City"]}
                                 </span>
                               )}
                               {item.course["Ranking"] && (
-                                <span className="bg-purple-100 text-purple-700 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                                  <Sparkles size={12} />
-                                  Rank: {item.course["Ranking"]}
+                                <span className="bg-purple-100 text-purple-700 text-xs px-2 sm:px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                                  <Sparkles size={12} className="flex-shrink-0" />
+                                  <span className="hidden sm:inline">Rank:</span> {item.course["Ranking"]}
                                 </span>
                               )}
                             </div>
                           </div>
                           <button
                             onClick={() => removeFromShortlist(item.id)}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
                             title="Remove from shortlist"
                           >
-                            <Trash2 size={20} />
+                            <Trash2 size={18} className="sm:w-5 sm:h-5" />
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 border-b border-gray-100">
+                        {/* Course Stats Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-gray-100">
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <IndianRupee size={12} />
-                              <span>Course Fees</span>
+                              <IndianRupee size={12} className="flex-shrink-0" />
+                              <span>Fees</span>
                             </div>
-                            <p className="font-medium text-gray-800 text-sm">{item.course["Course Fees"] || "N/A"}</p>
+                            <p className="font-medium text-gray-800 text-xs sm:text-sm break-words">
+                              {item.course["Course Fees"] || "N/A"}
+                            </p>
                           </div>
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <IndianRupee size={12} />
-                              <span>Average Package</span>
+                              <IndianRupee size={12} className="flex-shrink-0" />
+                              <span>Avg Package</span>
                             </div>
-                            <p className="font-medium text-gray-800 text-sm">
+                            <p className="font-medium text-gray-800 text-xs sm:text-sm break-words">
                               {item.course["Average Package"] || "N/A"}
                             </p>
                           </div>
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <Award size={12} />
-                              <span>Highest Package</span>
+                              <Award size={12} className="flex-shrink-0" />
+                              <span>Highest</span>
                             </div>
-                            <p className="font-medium text-gray-800 text-sm">
+                            <p className="font-medium text-gray-800 text-xs sm:text-sm break-words">
                               {item.course["Highest Package"] || "N/A"}
                             </p>
                           </div>
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <BookOpen size={12} />
-                              <span>Placement %</span>
+                              <BookOpen size={12} className="flex-shrink-0" />
+                              <span>Placement</span>
                             </div>
-                            <p className="font-medium text-gray-800 text-sm">{item.course["Placement %"] || "N/A"}</p>
+                            <p className="font-medium text-gray-800 text-xs sm:text-sm">
+                              {item.course["Placement %"] || "N/A"}
+                            </p>
                           </div>
                         </div>
 
+                        {/* User Rating */}
                         {item.course["User Rating"] && (
-                          <div className="mb-4 bg-yellow-50 border border-yellow-100 rounded-lg p-3">
+                          <div className="mb-3 sm:mb-4 bg-yellow-50 border border-yellow-100 rounded-lg p-2 sm:p-3">
                             <p className="text-xs font-medium text-yellow-900 mb-1">User Rating</p>
-                            <p className="text-sm text-gray-700">{item.course["User Rating"]}</p>
+                            <p className="text-xs sm:text-sm text-gray-700">{item.course["User Rating"]}</p>
                           </div>
                         )}
 
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Application Status</label>
+                        {/* Status Selector */}
+                        <div className="mb-3 sm:mb-4">
+                          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                            Application Status
+                          </label>
                           <select
                             value={item.status}
                             onChange={(e) => updateStatus(item.id, e.target.value)}
-                            className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-sm"
+                            className="w-full px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-xs sm:text-sm"
                           >
                             <option value="interested">Interested</option>
                             <option value="applied">Applied</option>
@@ -542,10 +489,11 @@ const ShortlistBuilder: React.FC = () => {
                           </select>
                         </div>
 
-                        <div className="mb-4">
+                        {/* Notes Section */}
+                        <div className="mb-3 sm:mb-4">
                           <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                              <FileText size={14} />
+                            <label className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-1">
+                              <FileText size={12} className="sm:w-3.5 sm:h-3.5" />
                               Notes
                             </label>
                             {editingNotes !== item.id && (
@@ -566,13 +514,13 @@ const ShortlistBuilder: React.FC = () => {
                                 value={noteText}
                                 onChange={(e) => setNoteText(e.target.value)}
                                 placeholder="Add your notes here..."
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-sm"
+                                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-xs sm:text-sm"
                                 rows={3}
                               />
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => updateNotes(item.id)}
-                                  className="px-4 py-2 bg-[#005de6] text-white rounded-lg text-sm font-medium hover:bg-[#003d99] transition"
+                                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#005de6] text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-[#003d99] transition"
                                 >
                                   Save
                                 </button>
@@ -581,20 +529,21 @@ const ShortlistBuilder: React.FC = () => {
                                     setEditingNotes(null);
                                     setNoteText("");
                                   }}
-                                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+                                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 text-gray-700 rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-300 transition"
                                 >
                                   Cancel
                                 </button>
                               </div>
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs sm:text-sm text-gray-600 bg-gray-50 rounded-lg p-2 sm:p-3 break-words">
                               {item.notes || "No notes added yet"}
                             </p>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                           {item.course["Application Link"] && (
                             <a
                               href={
@@ -604,9 +553,9 @@ const ShortlistBuilder: React.FC = () => {
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-4 py-2 bg-[#005de6] text-white rounded-lg text-sm font-medium hover:bg-[#003d99] transition"
+                              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-[#005de6] text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-[#003d99] transition"
                             >
-                              <Globe size={16} />
+                              <Globe size={14} className="sm:w-4 sm:h-4" />
                               View Details
                             </a>
                           )}
@@ -617,60 +566,71 @@ const ShortlistBuilder: React.FC = () => {
                       </>
                     ) : item.item_type === "scholarship" && item.scholarship ? (
                       <>
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-start gap-3 mb-3">
-                              <Award className="text-[#005de6] flex-shrink-0 mt-1" size={24} />
-                              <div>
-                                <h3 className="font-bold text-lg text-gray-900 mb-1">
+                        {/* Scholarship Header */}
+                        <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                              <Award className="text-[#005de6] flex-shrink-0 mt-1" size={20} />
+                              <div className="min-w-0">
+                                <h3 className="font-bold text-base sm:text-lg text-gray-900 mb-1 break-words">
                                   {item.scholarship.scholarship_name}
                                 </h3>
-                                <p className="text-gray-600 text-sm font-medium">{item.scholarship.organisation}</p>
+                                <p className="text-gray-600 text-xs sm:text-sm font-medium break-words">
+                                  {item.scholarship.organisation}
+                                </p>
                               </div>
                             </div>
-                            <div className="flex flex-wrap gap-2 mb-3">{getStatusBadge(item.status)}</div>
+                            <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                              {getStatusBadge(item.status)}
+                            </div>
                           </div>
                           <button
                             onClick={() => removeFromShortlist(item.id)}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
                             title="Remove from shortlist"
                           >
-                            <Trash2 size={20} />
+                            <Trash2 size={18} className="sm:w-5 sm:h-5" />
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-100">
+                        {/* Deadline */}
+                        <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-gray-100">
                           <div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <Calendar size={12} />
+                              <Calendar size={12} className="flex-shrink-0" />
                               <span>Deadline</span>
                             </div>
-                            <p className="font-medium text-gray-800 text-sm">
+                            <p className="font-medium text-gray-800 text-xs sm:text-sm break-words">
                               {formatDeadline(item.scholarship.deadline)}
                             </p>
                           </div>
                         </div>
 
+                        {/* Eligibility */}
                         {item.scholarship.eligibility && (
-                          <div className="mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                          <div className="mb-3 sm:mb-4 bg-blue-50 border border-blue-100 rounded-lg p-2 sm:p-3">
                             <p className="text-xs font-medium text-blue-900 mb-1">Eligibility</p>
-                            <p className="text-sm text-gray-700">{item.scholarship.eligibility}</p>
+                            <p className="text-xs sm:text-sm text-gray-700 break-words">{item.scholarship.eligibility}</p>
                           </div>
                         )}
 
+                        {/* Benefits */}
                         {item.scholarship.benefit && (
-                          <div className="mb-4 bg-green-50 border border-green-100 rounded-lg p-3">
+                          <div className="mb-3 sm:mb-4 bg-green-50 border border-green-100 rounded-lg p-2 sm:p-3">
                             <p className="text-xs font-medium text-green-900 mb-1">Benefits</p>
-                            <p className="text-sm text-green-700">{item.scholarship.benefit}</p>
+                            <p className="text-xs sm:text-sm text-green-700 break-words">{item.scholarship.benefit}</p>
                           </div>
                         )}
 
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Application Status</label>
+                        {/* Status Selector */}
+                        <div className="mb-3 sm:mb-4">
+                          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                            Application Status
+                          </label>
                           <select
                             value={item.status}
                             onChange={(e) => updateStatus(item.id, e.target.value)}
-                            className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-sm"
+                            className="w-full px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-xs sm:text-sm"
                           >
                             <option value="interested">Interested</option>
                             <option value="applied">Applied</option>
@@ -680,10 +640,11 @@ const ShortlistBuilder: React.FC = () => {
                           </select>
                         </div>
 
-                        <div className="mb-4">
+                        {/* Notes Section */}
+                        <div className="mb-3 sm:mb-4">
                           <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                              <FileText size={14} />
+                            <label className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-1">
+                              <FileText size={12} className="sm:w-3.5 sm:h-3.5" />
                               Notes
                             </label>
                             {editingNotes !== item.id && (
@@ -704,43 +665,44 @@ const ShortlistBuilder: React.FC = () => {
                                 value={noteText}
                                 onChange={(e) => setNoteText(e.target.value)}
                                 placeholder="Add your notes here..."
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-sm"
+                                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005de6] text-xs sm:text-sm"
                                 rows={3}
                               />
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => updateNotes(item.id)}
-                                  className="px-4 py-2 bg-[#005de6] text-white rounded-lg text-sm font-medium hover:bg-[#003d99] transition"
+                                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#005de6] text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-[#003d99] transition"
                                 >
                                   Save
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setEditingNotes(null)
-                                    setNoteText("")
+                                    setEditingNotes(null);
+                                    setNoteText("");
                                   }}
-                                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+                                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 text-gray-700 rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-300 transition"
                                 >
                                   Cancel
                                 </button>
                               </div>
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs sm:text-sm text-gray-600 bg-gray-50 rounded-lg p-2 sm:p-3 break-words">
                               {item.notes || "No notes added yet"}
                             </p>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                           {item.scholarship.link && (
                             <a
                               href={item.scholarship.link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-4 py-2 bg-[#005de6] text-white rounded-lg text-sm font-medium hover:bg-[#003d99] transition"
+                              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-[#005de6] text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-[#003d99] transition"
                             >
-                              <ExternalLink size={16} />
+                              <ExternalLink size={14} className="sm:w-4 sm:h-4" />
                               Apply Now
                             </a>
                           )}
@@ -758,7 +720,7 @@ const ShortlistBuilder: React.FC = () => {
         </div>
       </div>
     </DefaultLayout>
-  )
-}
+  );
+};
 
-export default ShortlistBuilder
+export default ShortlistBuilder;

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useMemo, useCallback } from "react" // <--- IMPORTED useCallback
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import {
   GraduationCap,
   Sparkles,
@@ -15,6 +15,7 @@ import {
   CheckCircle,
   BookOpen,
   Star,
+  GitCompare,
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { useAuth } from "../../../contexts/AuthContext"
@@ -23,6 +24,7 @@ import Pagination from "../../../components/CourseFinder/Pagination"
 import FilterComponent from "../../../components/CourseFinder/Filtering"
 import useSavedCourses from "../../../components/CourseFinder/SavedCourses"
 import ClgsRecommend from "../../../components/CourseFinder/ClgsRecommend"
+import CollegeComparison, { CompareButton, CompareBadge } from "../../../components/CourseFinder/CollegeComparison"
 
 interface Course {
   id: number
@@ -58,10 +60,18 @@ const CourseFinder: React.FC = () => {
   const [viewMode, setViewMode] = useState<"all" | "recommended">("all")
 
   const { savedCourses, toggleSaved } = useSavedCourses(user)
+  
+  // Use the comparison hook
+  const {
+    compareColleges,
+    toggleCompare,
+    removeFromCompare,
+    isInCompare,
+    goToComparison,
+  } = CollegeComparison({ user, courses })
 
   const perPage = 15
 
-  // Shuffle priority colleges with consistent positions using useMemo
   const shuffledCourses = useMemo(() => {
     if (filteredCourses.length === 0) return []
 
@@ -74,7 +84,6 @@ const CourseFinder: React.FC = () => {
     let priorityIndex = 0
     let normalIndex = 0
 
-    // Create a deterministic seed based on course IDs for consistent shuffling
     const seed = priorityCourses.reduce((acc, c) => acc + c.id, 0)
     const random = (min: number, max: number, offset: number) => {
       const x = Math.sin(seed + offset) * 10000
@@ -82,19 +91,16 @@ const CourseFinder: React.FC = () => {
     }
 
     while (priorityIndex < priorityCourses.length || normalIndex < normalCourses.length) {
-      // Add priority course
       if (priorityIndex < priorityCourses.length) {
         result.push(priorityCourses[priorityIndex])
         priorityIndex++
 
-        // Add 1-2 normal courses (with occasional 0 for consecutive priorities)
         const gap = random(0, 2, priorityIndex)
         for (let i = 0; i < gap && normalIndex < normalCourses.length; i++) {
           result.push(normalCourses[normalIndex])
           normalIndex++
         }
       } else {
-        // Add remaining normal courses
         result.push(normalCourses[normalIndex])
         normalIndex++
       }
@@ -131,7 +137,6 @@ const CourseFinder: React.FC = () => {
         if (supabaseError) throw supabaseError
 
         if (data && data.length > 0) {
-          // FIX: Cast data to Course[]
           allCourses = [...allCourses, ...(data as Course[])]
           hasMore = data.length === batchSize
           from += batchSize
@@ -143,7 +148,6 @@ const CourseFinder: React.FC = () => {
       const validCourses = allCourses.filter((course) => course["College Name"] !== null)
 
       setCourses(validCourses)
-      // Only set filteredCourses if viewMode is 'all' upon initial load
       if (viewMode === "all") {
         setFilteredCourses(validCourses)
       }
@@ -155,17 +159,15 @@ const CourseFinder: React.FC = () => {
     }
   }
 
-  // CRITICAL FIX: Wrap in useCallback to stabilize the prop passed to ClgsRecommend
   const handleRecommendedCoursesChange = useCallback((recommendedCourses: Course[]) => {
     setFilteredCourses(recommendedCourses)
     setCurrentPage(0)
-  }, []) // Empty dependency array ensures the function is stable
+  }, [])
 
-  // CRITICAL FIX: Wrap in useCallback to stabilize the prop passed to FilterComponent
   const handleFilterChange = useCallback((filtered: Course[]) => {
     setFilteredCourses(filtered)
     setCurrentPage(0)
-  }, []) // Empty dependency array ensures the function is stable
+  }, [])
 
   const getMatchBadge = (course: Course) => {
     if (viewMode !== "recommended" || !course.matchScore) return null
@@ -260,7 +262,6 @@ const CourseFinder: React.FC = () => {
             </button>
           </div>
 
-          {/* Recommendation Component */}
           <ClgsRecommend
             user={user}
             viewMode={viewMode}
@@ -269,11 +270,8 @@ const CourseFinder: React.FC = () => {
             onErrorChange={setError}
           />
 
-          {/* Filter Component */}
-          {/* Note: handleFilterChange is now stable via useCallback */}
           <FilterComponent courses={courses} viewMode={viewMode} onFilterChange={handleFilterChange} />
 
-          {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3">
               <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
@@ -284,7 +282,6 @@ const CourseFinder: React.FC = () => {
             </div>
           )}
 
-          {/* Results Count */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 bg-white rounded-lg shadow-sm p-3 sm:p-4">
             <div className="flex items-center gap-2">
               <GraduationCap className="text-[#005de6] flex-shrink-0" size={20} />
@@ -293,13 +290,18 @@ const CourseFinder: React.FC = () => {
                 college{filteredCourses.length !== 1 ? "s" : ""} found
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Heart className="text-[#005de6]" size={16} />
-              <span className="text-xs sm:text-sm text-gray-600">{savedCourses.size} saved</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Heart className="text-[#005de6]" size={16} />
+                <span className="text-xs sm:text-sm text-gray-600">{savedCourses.size} saved</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <GitCompare className="text-purple-600" size={16} />
+                <span className="text-xs sm:text-sm text-gray-600 font-medium">{compareColleges.length}/3 to compare</span>
+              </div>
             </div>
           </div>
 
-          {/* Loading State */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="text-gray-500 flex flex-col items-center gap-3">
@@ -322,46 +324,24 @@ const CourseFinder: React.FC = () => {
           ) : (
             <>
               {/* Course Cards Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-20">
                 {paginatedCourses.map((course, index) => {
                   const isBlurred = viewMode === "recommended" && index >= 2
-                  const courseIndex = currentPage * perPage + index
+                  const inCompare = isInCompare(course.id)
 
                   return (
                     <div
                       key={course.id}
                       className={`bg-white border ${
-                        course.is_priority ? "border-blue-300 shadow-blue-100" : "border-gray-200"
-                      } rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow relative ${
+                        inCompare 
+                          ? "border-purple-400 shadow-purple-200 ring-2 ring-purple-200" 
+                          : course.is_priority 
+                          ? "border-blue-300 shadow-blue-100" 
+                          : "border-gray-200"
+                      } rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all relative ${
                         isBlurred ? "overflow-hidden" : ""
                       }`}
                     >
-                      {/* {isBlurred && (
-                        <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-10 flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl">
-                          <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 text-center max-w-sm border-2 border-blue-100">
-                            <div className="mb-4 flex justify-center">
-                              <div className="bg-blue-100 rounded-full p-3 sm:p-4">
-                                <AlertCircle className="text-[#005de6]" size={28} />
-                              </div>
-                            </div>
-                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
-                              Unlock More Recommendations
-                            </h3>
-                            <p className="text-sm sm:text-base text-gray-600 mb-6">
-                              Talk to our experts to view detailed information about this and {
-                                // Calculate remaining recommendations if total is limited (e.g., to 10)
-                                Math.max(0, 10 - courseIndex - 1)
-                              }{" "} 
-                              more personalized course recommendations
-                            </p>
-                            <button className="bg-[#005de6] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors w-full flex items-center justify-center gap-2">
-                              <Sparkles size={16} />
-                              Contact Our Experts
-                            </button>
-                          </div>
-                        </div>
-                      )} */}
-
                       {/* Priority Badges */}
                       {course.is_priority && (
                         <div className="mb-3 flex flex-wrap gap-2">
@@ -377,17 +357,23 @@ const CourseFinder: React.FC = () => {
                         </div>
                       )}
 
+                      {/* Compare Badge */}
+                      <CompareBadge show={inCompare} />
+
                       {/* Course Card Content */}
-                      <div className="flex items-start justify-between mb-4 gap-2">
+                      <div className="flex items-start justify-between mb-3 gap-2">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-base sm:text-xl text-black px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg mb-2 sm:mb-3 break-words">
-                            {course["College Name"] || "Institute Information Not Available"}
-                          </h3>
-                          <div className="flex items-center gap-2 mb-2 sm:mb-3 flex-wrap">
-                            <span className="text-xs font-semibold text-white bg-[#005de6] px-2 sm:px-3 py-1 sm:py-1.5 rounded-full break-words">
-                              {course.Specialization || "Specialization N/A"}
-                            </span>
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <h3 className="font-bold text-base sm:text-lg text-gray-900 break-words flex-shrink-0">
+                              {course["College Name"] || "Institute Information Not Available"}
+                            </h3>
+                            {course.Specialization && (
+                              <span className="text-xs font-semibold text-white bg-[#005de6] px-2 py-1 rounded-full whitespace-nowrap">
+                                {course.Specialization}
+                              </span>
+                            )}
                           </div>
+                          
                           {course.City && (
                             <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
                               <MapPin size={12} className="flex-shrink-0" />
@@ -421,8 +407,10 @@ const CourseFinder: React.FC = () => {
                         </button>
                       </div>
 
+                      {/* Course Details */}
                       <div className="space-y-3 sm:space-y-4">
-                        <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-100">
+                        {/* Fees Grid */}
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-100">
                           {course["Course Fees"] && (
                             <div>
                               <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
@@ -452,79 +440,86 @@ const CourseFinder: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Scholarship Section */}
-                        {course.scholarship && (
-                          <div className="pt-3 sm:pt-4 border-t border-gray-100">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                              <CheckCircle size={12} className="sm:w-3.5 sm:h-3.5 text-blue-600 flex-shrink-0" />
-                              Scholarship
-                            </h4>
-                            <div className="bg-blue-50 rounded-lg p-2 sm:p-3 border border-blue-100">
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
-                                <span className="text-xs sm:text-sm font-medium text-blue-700">Available</span>
-                                {course.scholarship.toLowerCase() !== "availabale" && course.scholarship.toLowerCase() !== "available" && (
-                                  <a
-                                    href={course.scholarship.startsWith("http") ? course.scholarship : `https://${course.scholarship}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-blue-600 hover:text-blue-800 underline break-all"
-                                  >
-                                    Learn More
-                                  </a>
-                                )}
+                        {/* Two Column Grid for Details */}
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-100">
+                          {/* Left Column */}
+                          <div className="space-y-3">
+                            {course.scholarship && (
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
+                                  <CheckCircle size={12} className="text-blue-600 flex-shrink-0" />
+                                  Scholarship
+                                </h4>
+                                <div className="bg-gray-50 rounded-lg p-2">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-xs font-medium text-gray-700">Available</span>
+                                    {course.scholarship.toLowerCase() !== "availabale" && course.scholarship.toLowerCase() !== "available" && (
+                                      <a
+                                        href={course.scholarship.startsWith("http") ? course.scholarship : `https://${course.scholarship}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-600 hover:text-blue-800 underline break-all"
+                                      >
+                                        Learn More
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        )}
+                            )}
 
-                        {/* Entrance Exam Section */}
-                        {course.entrance_exam && (
-                          <div className="pt-3 sm:pt-4 border-t border-gray-100">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                              <BookOpen size={12} className="sm:w-3.5 sm:h-3.5 text-[#005de6] flex-shrink-0" />
-                              Exam Accepted
-                            </h4>
-                            <div className="bg-gray-50 rounded-lg p-2">
-                              <p className="text-xs sm:text-sm text-gray-700 break-words">{course.entrance_exam}</p>
-                            </div>
-                          </div>
-                        )}
+                            {course.Ranking && (
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
+                                  <Trophy size={12} className="text-[#005de6] flex-shrink-0" />
+                                  Ranking
+                                </h4>
+                                <div className="bg-gray-50 rounded-lg p-2">
+                                  <p className="text-xs text-gray-700 break-words">{course.Ranking}</p>
+                                </div>
+                              </div>
+                            )}
 
-                        {course.Ranking && (
-                          <div className="pt-3 sm:pt-4 border-t border-gray-100">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                              <Trophy size={12} className="sm:w-3.5 sm:h-3.5 text-[#005de6] flex-shrink-0" />
-                              Ranking
-                            </h4>
-                            <div className="bg-gray-50 rounded-lg p-2">
-                              <p className="text-xs sm:text-sm text-gray-700 break-words">{course.Ranking}</p>
-                            </div>
+                            {course["User Rating"] && (
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
+                                  <Award size={12} className="text-[#005de6] flex-shrink-0" />
+                                  User Rating
+                                </h4>
+                                <div className="bg-yellow-50 rounded-lg p-2">
+                                  <p className="text-xs text-yellow-700">{course["User Rating"]}</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
 
-                        {course["User Rating"] && (
-                          <div className="pt-3 sm:pt-4 border-t border-gray-100">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                              <Award size={12} className="sm:w-3.5 sm:h-3.5 text-[#005de6] flex-shrink-0" />
-                              User Rating
-                            </h4>
-                            <div className="bg-yellow-50 rounded-lg p-2">
-                              <p className="text-xs sm:text-sm text-yellow-700">{course["User Rating"]}</p>
-                            </div>
+                          {/* Right Column */}
+                          <div className="space-y-3">
+                            {course.entrance_exam && (
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
+                                  <BookOpen size={12} className="text-[#005de6] flex-shrink-0" />
+                                  Exam Accepted
+                                </h4>
+                                <div className="bg-gray-50 rounded-lg p-2">
+                                  <p className="text-xs text-gray-700 break-words">{course.entrance_exam}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {course.Approvals && (
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-700 mb-1.5">Approvals</h4>
+                                <div className="bg-gray-50 rounded-lg p-2">
+                                  <p className="text-xs text-gray-700 break-words">{course.Approvals}</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
 
-                        {course.Approvals && (
-                          <div className="pt-3 sm:pt-4 border-t border-gray-100">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-2">Approvals</h4>
-                            <div className="bg-blue-50 rounded-lg p-2">
-                              <p className="text-xs sm:text-sm text-blue-700 break-words">{course.Approvals}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* CTA Button */}
-                        <div className="flex items-center gap-3 sm:gap-4 pt-3 sm:pt-4">
+                        {/* CTA Buttons */}
+                        <div className="flex items-center gap-2 sm:gap-3 pt-3 sm:pt-4">
                           {course["Application Link"] ? (
                             <a
                               href={
@@ -537,7 +532,7 @@ const CourseFinder: React.FC = () => {
                               className="flex-1 bg-[#005de6] hover:bg-blue-700 text-white rounded-lg py-2 px-3 sm:px-4 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md"
                             >
                               <Globe size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
-                              Apply Now
+                              <span>Apply Now</span>
                             </a>
                           ) : (
                             course.is_priority && (
@@ -548,10 +543,16 @@ const CourseFinder: React.FC = () => {
                                 }}
                               >
                                 <Sparkles size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
-                                Contact for Admission
+                                <span>Contact</span>
                               </button>
                             )
                           )}
+                          
+                          <CompareButton
+                            course={course}
+                            isInCompare={inCompare}
+                            onToggle={toggleCompare}
+                          />
                         </div>
                       </div>
                     </div>
@@ -559,7 +560,6 @@ const CourseFinder: React.FC = () => {
                 })}
               </div>
 
-              {/* Pagination Component */}
               <Pagination
                 totalItems={filteredCourses.length}
                 currentPage={currentPage}
