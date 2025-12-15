@@ -27,7 +27,7 @@ const bgDark = "#020617"; // Very Dark Blue/Almost Black
 const features = [
   {
     id: "courses",
-    title: "Find MBA Collegez",
+    title: "Find MBA Colleges",
     description: "Find your perfect stream based on your actual grades and interests.",
     icon: BookOpen,
     component: () => <Features activeTab="courses" />,
