@@ -90,13 +90,13 @@ const TrainRoadmap: React.FC = () => {
       {/* Header */}
       <div className="text-center mb-24 relative z-10">
         <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 mb-10">
-          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          {/* <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
             Roadmap
-          </span>
+          </span> */}
           <span className="text-xs font-bold text-slate-300 tracking-wide uppercase">Your future. Without the noise.</span>
         </div>
         
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-8 text-white leading-tight">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-8 text-[#F59E0B] leading-tight">
           Your Dream MBA Journey
         </h1>
         <h2 className="text-lg md:text-xl text-slate-400 leading-relaxed">

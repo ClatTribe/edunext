@@ -20,9 +20,14 @@ import { PainPoints } from "../../components/PainPoints";
 import TrainRoadmap from "../../components/TrainRoadmap";
 
 // BRAND COLORS - Updated to match provided scheme
-const primary = "#6366f1"; // Indigo
-const secondary = "#0ea5e9"; // Sky Blue
-const bgDark = "#020617"; // Very Dark Blue/Almost Black
+const primary = "#F59E0B"; // Indigo
+const secondary = "#C77808"; // Sky Blue
+const bgDark = "#050818"; // Very Dark Blue/Almost Black
+// const accentColor = '#F59E0B';
+// const primaryBg = '#050818'; // Very dark navy blue
+// const secondaryBg = '#0F172B'; // Slightly lighter navy
+// const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 const features = [
   {

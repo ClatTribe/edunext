@@ -47,10 +47,11 @@ interface Course {
 }
 
 // Color scheme matching the admit finder page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 const CollegeComparePage: React.FC = () => {
   const { user } = useAuth();
@@ -319,7 +320,7 @@ const CollegeComparePage: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
+                  <tr style={{ background: accentColor }}>
                     <th className="p-4 text-left text-white font-semibold sticky left-0 z-10" style={{ backgroundColor: accentColor }}>
                       Category
                     </th>
@@ -572,382 +573,258 @@ const CollegeComparePage: React.FC = () => {
           </div>
 
           {/* Mobile View - Card Based */}
-          <div className="lg:hidden space-y-6">
-            {/* First Two Colleges Comparison */}
-            {colleges.slice(0, 2).length === 2 && (
-              <div className="rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-                {/* Headers */}
-                <div className="grid grid-cols-3" style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
-                  <div className="p-3 border-r border-white/20"></div>
-                  {colleges.slice(0, 2).map((college: Course) => (
-                    <div key={college.id} className="p-3 text-center">
-                      <button
-                        onClick={() => removeCollege(college.id)}
-                        className="text-white hover:text-red-300 mb-2 float-right"
-                      >
-                        <X size={16} />
-                      </button>
-                      <h3 className="font-bold text-xs text-white leading-tight mb-2 clear-both">
-                        {college["College Name"]}
-                      </h3>
-                      {college.Specialization && (
-                        <span className="text-xs px-2 py-0.5 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', color: 'white' }}>
-                          {college.Specialization}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+          {/* Mobile View - Vertical Grid Comparison */}
+<div className="lg:hidden">
+  <div className="rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+    {/* College Headers */}
+    <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ background: accentColor }}>
+      {colleges.map((college: Course) => (
+        <div key={college.id} className="p-3 text-center relative">
+          <button
+            onClick={() => removeCollege(college.id)}
+            className="absolute top-2 right-2 text-white hover:text-red-300 transition-colors z-10"
+          >
+            <X size={16} />
+          </button>
+          <h3 className="font-bold text-xs text-white leading-tight mb-2 pr-6">
+            {college["College Name"]}
+          </h3>
+          {college.Specialization && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', color: 'white' }}>
+              {college.Specialization}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
 
-                {/* Comparison Rows */}
-                <div className="divide-y" style={{ borderColor: borderColor }}>
-                  {/* Location */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
-                      <MapPin size={14} className="flex-shrink-0" style={{ color: accentColor }} />
-                      <span className="text-xs font-semibold text-slate-300">Location</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
-                        {college["Highest Package"] ? (
-                          <div className="text-xs font-semibold text-white">
-                            {college["Highest Package"]}
-                          </div>
-                        ) : (
-                          <span className="text-slate-500 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Placement Score */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
-                      <Award size={14} className="flex-shrink-0" style={{ color: accentColor }} />
-                      <span className="text-xs font-semibold text-slate-300">Placement</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
-                        {college["Placement Score"] ? (
-                          <div className={`text-xs font-semibold ${bestPlacement === college.id ? 'text-purple-400' : 'text-white'}`}>
-                            {college["Placement Score"]}
-                          </div>
-                        ) : (
-                          <span className="text-slate-500 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Ranking */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
-                      <Trophy size={14} className="flex-shrink-0" style={{ color: accentColor }} />
-                      <span className="text-xs font-semibold text-slate-300">Ranking</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
-                        {college.Ranking ? (
-                          <div className="text-xs font-medium text-white">{college.Ranking}</div>
-                        ) : (
-                          <span className="text-slate-500 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* User Rating */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
-                      <Star size={14} className="flex-shrink-0" style={{ color: accentColor }} />
-                      <span className="text-xs font-semibold text-slate-300">Rating</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
-                        {college["User Rating"] ? (
-                          <div className={`text-xs font-semibold ${bestRating === college.id ? 'text-yellow-400' : 'text-white'}`}>
-                            {college["User Rating"]}
-                          </div>
-                        ) : (
-                          <span className="text-slate-500 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Approvals */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
-                      <CheckCircle size={14} className="flex-shrink-0" style={{ color: accentColor }} />
-                      <span className="text-xs font-semibold text-slate-300">Approvals</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
-                        {college.Approvals ? (
-                          <div className="text-xs text-white">{college.Approvals}</div>
-                        ) : (
-                          <span className="text-slate-500 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Entrance Exam */}
-                  <div className="grid grid-cols-3">
-                    <div className="p-3 flex items-center gap-1" style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)' }}>
-                      <BookOpen size={14} className="flex-shrink-0" style={{ color: accentColor }} />
-                      <span className="text-xs font-semibold text-slate-300">Exam</span>
-                    </div>
-                    {colleges.slice(0, 2).map((college: Course) => (
-                      <div key={college.id} className="p-3 text-center border-l" style={{ borderColor: borderColor }}>
-                        {college.entrance_exam ? (
-                          <div className="text-xs font-medium text-white">{college.entrance_exam}</div>
-                        ) : (
-                          <span className="text-slate-500 text-xs">N/A</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+    {/* Comparison Rows */}
+    <div className="divide-y" style={{ borderColor: borderColor }}>
+      
+      {/* Location */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college.City && college.State ? (
+              <div>
+                <p className="font-medium text-white text-xs leading-tight">{college.City}</p>
+                <p className="text-slate-400 text-[10px] mt-0.5">{college.State}</p>
+                <p className="text-slate-500 text-[9px] mt-1">(Location)</p>
               </div>
-            )}
-
-            {/* Third College (if exists) - Separate Card Below */}
-            {colleges[2] && (
-              <div className="rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-                <div className="p-4 text-white" style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg">{colleges[2]["College Name"]}</h3>
-                    <button
-                      onClick={() => removeCollege(colleges[2].id)}
-                      className="text-white hover:text-red-300"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                  {colleges[2].Specialization && (
-                    <span className="text-xs px-3 py-1 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                      {colleges[2].Specialization}
-                    </span>
-                  )}
-                </div>
-
-                <div className="p-4 space-y-3">
-                  {colleges[2].City && colleges[2].State && (
-                    <div className="flex items-start gap-3">
-                      <MapPin size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Location</p>
-                        <p className="font-medium text-white">{colleges[2].City}, {colleges[2].State}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2]["Course Fees"] && (
-                    <div className="flex items-start gap-3">
-                      <IndianRupee size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Course Fees</p>
-                        <p className={`font-semibold ${lowestFees === colleges[2].id ? 'text-green-400' : 'text-white'}`}>
-                          {colleges[2]["Course Fees"]}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2]["Average Package"] && (
-                    <div className="flex items-start gap-3">
-                      <TrendingUp size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Average Package</p>
-                        <p className={`font-semibold ${bestPackage === colleges[2].id ? 'text-green-400' : 'text-white'}`}>
-                          {colleges[2]["Average Package"]}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2]["Highest Package"] && (
-                    <div className="flex items-start gap-3">
-                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Highest Package</p>
-                        <p className="font-semibold text-white">{colleges[2]["Highest Package"]}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2]["Placement Score"] && (
-                    <div className="flex items-start gap-3">
-                      <Award size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Placement Score</p>
-                        <p className={`font-semibold ${bestPlacement === colleges[2].id ? 'text-purple-400' : 'text-white'}`}>
-                          {colleges[2]["Placement Score"]}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2].Ranking && (
-                    <div className="flex items-start gap-3">
-                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Ranking</p>
-                        <p className="font-medium text-white">{colleges[2].Ranking}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2]["User Rating"] && (
-                    <div className="flex items-start gap-3">
-                      <Star size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">User Rating</p>
-                        <p className={`font-semibold ${bestRating === colleges[2].id ? 'text-yellow-400' : 'text-white'}`}>
-                          {colleges[2]["User Rating"]}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2].Approvals && (
-                    <div className="flex items-start gap-3">
-                      <CheckCircle size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Approvals</p>
-                        <p className="text-sm text-white">{colleges[2].Approvals}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[2].entrance_exam && (
-                    <div className="flex items-start gap-3">
-                      <BookOpen size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Entrance Exam</p>
-                        <p className="font-medium text-white">{colleges[2].entrance_exam}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Single College View (if only 1 college) */}
-            {colleges.length === 1 && (
-              <div className="rounded-xl shadow-lg overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-                <div className="p-4 text-white" style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg">{colleges[0]["College Name"]}</h3>
-                    <button
-                      onClick={() => removeCollege(colleges[0].id)}
-                      className="text-white hover:text-red-300"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                  {colleges[0].Specialization && (
-                    <span className="text-xs px-3 py-1 rounded-full inline-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                      {colleges[0].Specialization}
-                    </span>
-                  )}
-                </div>
-
-                <div className="p-4 space-y-3">
-                  {colleges[0].City && colleges[0].State && (
-                    <div className="flex items-start gap-3">
-                      <MapPin size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Location</p>
-                        <p className="font-medium text-white">{colleges[0].City}, {colleges[0].State}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0]["Course Fees"] && (
-                    <div className="flex items-start gap-3">
-                      <IndianRupee size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Course Fees</p>
-                        <p className="font-semibold text-white">{colleges[0]["Course Fees"]}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0]["Average Package"] && (
-                    <div className="flex items-start gap-3">
-                      <TrendingUp size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Average Package</p>
-                        <p className="font-semibold text-white">{colleges[0]["Average Package"]}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0]["Highest Package"] && (
-                    <div className="flex items-start gap-3">
-                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Highest Package</p>
-                        <p className="font-semibold text-white">{colleges[0]["Highest Package"]}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0]["Placement Score"] && (
-                    <div className="flex items-start gap-3">
-                      <Award size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Placement Score</p>
-                        <p className="font-semibold text-white">{colleges[0]["Placement Score"]}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0].Ranking && (
-                    <div className="flex items-start gap-3">
-                      <Trophy size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Ranking</p>
-                        <p className="font-medium text-white">{colleges[0].Ranking}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0]["User Rating"] && (
-                    <div className="flex items-start gap-3">
-                      <Star size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">User Rating</p>
-                        <p className="font-semibold text-white">{colleges[0]["User Rating"]}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0].Approvals && (
-                    <div className="flex items-start gap-3">
-                      <CheckCircle size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Approvals</p>
-                        <p className="text-sm text-white">{colleges[0].Approvals}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {colleges[0].entrance_exam && (
-                    <div className="flex items-start gap-3">
-                      <BookOpen size={16} className="mt-1 flex-shrink-0" style={{ color: accentColor }} />
-                      <div>
-                        <p className="text-xs text-slate-400 mb-1">Entrance Exam</p>
-                        <p className="font-medium text-white">{colleges[0].entrance_exam}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Location)</p>
               </div>
             )}
           </div>
+        ))}
+      </div>
+
+      {/* Course Fees */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college["Course Fees"] ? (
+              <div>
+                <div className={`text-xs font-semibold ${lowestFees === college.id ? 'text-green-400' : 'text-white'}`}>
+                  {college["Course Fees"]}
+                </div>
+                {lowestFees === college.id && (
+                  <div className="text-[9px] text-green-400 mt-0.5">Most Affordable</div>
+                )}
+                <p className="text-slate-500 text-[9px] mt-1">(Course Fees)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Course Fees)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Average Package */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college["Average Package"] ? (
+              <div>
+                <div className={`text-xs font-semibold ${bestPackage === college.id ? 'text-green-400' : 'text-white'}`}>
+                  {college["Average Package"]}
+                </div>
+                {bestPackage === college.id && (
+                  <div className="text-[9px] text-green-400 mt-0.5">Highest</div>
+                )}
+                <p className="text-slate-500 text-[9px] mt-1">(Avg Package)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Avg Package)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Highest Package */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college["Highest Package"] ? (
+              <div>
+                <div className="text-xs font-semibold text-white">
+                  {college["Highest Package"]}
+                </div>
+                <p className="text-slate-500 text-[9px] mt-1">(Highest Package)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Highest Package)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Placement Score */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college["Placement Score"] ? (
+              <div>
+                <div className={`text-xs font-semibold ${bestPlacement === college.id ? 'text-purple-400' : 'text-white'}`}>
+                  {college["Placement Score"]}
+                </div>
+                {bestPlacement === college.id && (
+                  <div className="text-[9px] text-purple-400 mt-0.5">Best</div>
+                )}
+                <p className="text-slate-500 text-[9px] mt-1">(Placement Score)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Placement Score)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Ranking */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college.Ranking ? (
+              <div>
+                <div className="text-xs font-medium text-white">
+                  {college.Ranking}
+                </div>
+                <p className="text-slate-500 text-[9px] mt-1">(Ranking)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Ranking)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* User Rating */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college["User Rating"] ? (
+              <div>
+                <div className={`text-xs font-semibold ${bestRating === college.id ? 'text-yellow-400' : 'text-white'}`}>
+                  {college["User Rating"]}
+                </div>
+                {bestRating === college.id && (
+                  <div className="text-[9px] text-yellow-400 mt-0.5">Top Rated</div>
+                )}
+                <p className="text-slate-500 text-[9px] mt-1">(User Rating)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(User Rating)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Approvals */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college.Approvals ? (
+              <div>
+                <div className="text-xs text-white break-words">
+                  {college.Approvals}
+                </div>
+                <p className="text-slate-500 text-[9px] mt-1">(Approvals)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Approvals)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Entrance Exam */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college.entrance_exam ? (
+              <div>
+                <div className="text-xs font-medium text-white break-words">
+                  {college.entrance_exam}
+                </div>
+                <p className="text-slate-500 text-[9px] mt-1">(Entrance Exam)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Entrance Exam)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Scholarship */}
+      <div className={`grid ${colleges.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-px`} style={{ backgroundColor: borderColor }}>
+        {colleges.map((college: Course) => (
+          <div key={college.id} className="p-3 text-center" style={{ backgroundColor: secondaryBg }}>
+            {college.scholarship ? (
+              <div>
+                <div className="text-xs text-white break-words">
+                  {college.scholarship}
+                </div>
+                <p className="text-slate-500 text-[9px] mt-1">(Scholarship)</p>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500 text-xs">N/A</span>
+                <p className="text-slate-500 text-[9px] mt-1">(Scholarship)</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </div>
+</div>
         </div>
       </div>
     </DefaultLayout>

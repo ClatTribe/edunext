@@ -2,10 +2,11 @@ import React from "react"
 import { Edit2, Trash2, CheckCircle } from "lucide-react"
 
 // Color scheme matching the college compare page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 interface ProfileHeaderProps {
   userInitial: string
@@ -40,7 +41,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <div className="flex items-center gap-3 sm:gap-6 flex-1 min-w-0">
             <div 
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl font-bold flex-shrink-0"
-              style={{ background: `linear-gradient(135deg, ${accentColor}, #8b5cf6)` }}
+              style={{ background: accentColor }}
             >
               {userInitial}
             </div>
@@ -139,7 +140,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <button
               onClick={onEdit}
               className="flex items-center justify-center gap-2 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all text-sm sm:text-base hover:opacity-90"
-              style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
+              style={{ background: accentColor }}
             >
               <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
               Edit Profile

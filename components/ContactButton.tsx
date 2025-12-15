@@ -79,7 +79,7 @@ const ExpertContactButton = () => {
         onClick={handleMainButtonClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`relative bg-gradient-to-r from-[#0054D1] to-[#003BA3] hover:from-[#003BA3] hover:to-[#002D80] text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-2 group rounded-full
+        className={`relative bg-gradient-to-r from-[#F59E0B] to-[#DC8709] hover:from-[#DC8709] hover:to-[#C77808] text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-2 group rounded-full
           ${isOpen ? 'scale-95' : 'scale-100'}
           md:px-4 md:py-2.5 px-3 py-3 w-12 h-12 md:w-auto md:h-auto justify-center md:justify-start
         `}

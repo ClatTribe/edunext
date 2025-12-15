@@ -25,10 +25,10 @@ import { ScholarshipRecommend } from "../../../components/CourseFinder/Scholarsh
 import type { Scholarship } from "../../../components/CourseFinder/ScholarshipRecommend"
 
 // Color scheme matching the home page
-const accentColor = '#6366f1' // Indigo accent
-const primaryBg = '#0a0f1e' // Very dark navy blue
-const secondaryBg = '#111827' // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)' // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
 
 // Featured Scholarship Definition
 const FEATURED_SCHOLARSHIP: Scholarship = {
@@ -283,7 +283,7 @@ const ScholarshipFinder: React.FC = () => {
               }}
               className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
               style={viewMode === "all"
-                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                ? { backgroundColor: accentColor, color: 'white',  }
                 : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
               }
             >
@@ -297,7 +297,7 @@ const ScholarshipFinder: React.FC = () => {
               }}
               className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
               style={viewMode === "recommended"
-                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                ? { backgroundColor: accentColor, color: 'white',  }
                 : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
               }
             >

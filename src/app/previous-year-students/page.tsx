@@ -28,10 +28,11 @@ interface UserProfile {
 }
 
 // Color scheme matching the home page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 const AdmitFinder: React.FC = () => {
   const [profiles, setProfiles] = useState<PreviousStudent[]>([]);
@@ -334,7 +335,7 @@ const AdmitFinder: React.FC = () => {
               onClick={() => setViewMode('all')}
               className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
               style={viewMode === 'all'
-                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                ? { backgroundColor: accentColor, color: 'white',  }
                 : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
               }
             >
@@ -350,7 +351,7 @@ const AdmitFinder: React.FC = () => {
               disabled={!hasProfileData || loadingProfile}
               className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
               style={viewMode === 'recommended'
-                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                ? { backgroundColor: accentColor, color: 'white',  }
                 : hasProfileData && !loadingProfile
                   ? { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
                   : { backgroundColor: 'rgba(148, 163, 184, 0.1)', color: '#64748b', cursor: 'not-allowed' }

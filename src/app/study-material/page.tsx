@@ -8,10 +8,11 @@ import {
 import DefaultLayout from "../defaultLayout";
 
 // Color scheme matching the college compare page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 interface StudyMaterial {
   id: string;
@@ -190,7 +191,7 @@ const StudyMaterialPage: React.FC = () => {
                   style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
                 >
                   {/* Card Header */}
-                  <div className="p-6 text-white" style={{ background: `linear-gradient(135deg, ${accentColor}, #8b5cf6)` }}>
+                  <div className="p-6 text-white" style={{ background: accentColor }}>
                     <div className="flex items-start justify-between mb-3">
                       <FileText size={32} />
                       {material.featured && (
@@ -224,7 +225,7 @@ const StudyMaterialPage: React.FC = () => {
                       <button
                         onClick={() => openPDF(material.fileName)}
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-medium transition hover:opacity-90"
-                        style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
+                        style={{ background: accentColor }}
                       >
                         <Eye size={16} />
                         View

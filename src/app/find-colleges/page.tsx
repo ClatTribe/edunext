@@ -24,7 +24,7 @@ import Pagination from "../../../components/CourseFinder/Pagination"
 import FilterComponent from "../../../components/CourseFinder/Filtering"
 import useSavedCourses from "../../../components/CourseFinder/SavedCourses"
 import ClgsRecommend from "../../../components/CourseFinder/ClgsRecommend"
-import CollegeComparison, { CompareButton, CompareBadge } from "../../../components/CourseFinder/CollegeComparison"
+import CollegeComparison, { CompareBadge, CompareFloatingButton } from "../../../components/CourseFinder/CollegeComparison"
 
 interface Course {
   id: number
@@ -60,10 +60,10 @@ const CourseFinder: React.FC = () => {
   const [viewMode, setViewMode] = useState<"all" | "recommended">("all")
 
   // Color scheme matching the home page
-  const accentColor = '#6366f1' // Indigo accent
-  const primaryBg = '#0a0f1e' // Very dark navy blue
-  const secondaryBg = '#111827' // Slightly lighter navy
-  const borderColor = 'rgba(99, 102, 241, 0.15)' // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
 
   const { savedCourses, toggleSaved } = useSavedCourses(user)
   
@@ -228,8 +228,8 @@ const CourseFinder: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-4 sm:mb-6 md:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2" style={{ color: accentColor }}>
-              Find Your Perfect College
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">
+              <span className="text-white">Find Your</span> <span className="text-[#F59E0B]">Perfect College</span>
             </h1>
             <p className="text-sm sm:text-base text-slate-400">Explore programs and institutes across India</p>
           </div>
@@ -243,7 +243,7 @@ const CourseFinder: React.FC = () => {
               }}
               className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
               style={viewMode === "all" 
-                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                ? { backgroundColor: accentColor, color: 'white', }
                 : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
               }
             >
@@ -258,7 +258,7 @@ const CourseFinder: React.FC = () => {
               }}
               className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
               style={viewMode === "recommended"
-                ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                ? { backgroundColor: accentColor, color: 'white', }
                 : { backgroundColor: secondaryBg, color: '#cbd5e1', border: `1px solid ${borderColor}` }
               }
             >
@@ -347,11 +347,6 @@ const CourseFinder: React.FC = () => {
                           : course.is_priority 
                           ? `2px solid ${accentColor}` 
                           : `1px solid ${borderColor}`,
-                        boxShadow: inCompare 
-                          ? '0 0 20px rgba(168, 85, 247, 0.2)' 
-                          : course.is_priority
-                          ? '0 0 20px rgba(99, 102, 241, 0.2)'
-                          : 'none'
                       }}
                     >
                       {/* Priority Badges */}
@@ -373,52 +368,70 @@ const CourseFinder: React.FC = () => {
                       <CompareBadge show={inCompare} />
 
                       {/* Course Card Content */}
-                      <div className="flex items-start justify-between mb-3 gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <h3 className="font-bold text-base sm:text-lg text-white break-words flex-shrink-0">
-                              {course["College Name"] || "Institute Information Not Available"}
-                            </h3>
-                            {course.Specialization && (
-                              <span className="text-xs font-semibold text-white px-2 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: accentColor }}>
-                                {course.Specialization}
-                              </span>
-                            )}
-                          </div>
-                          
-                          {course.City && (
-                            <div className="flex items-center gap-1 text-xs text-slate-400 mb-2">
-                              <MapPin size={12} className="flex-shrink-0" />
-                              <span className="truncate">
-                                {course.City}, {course.State}
-                              </span>
-                            </div>
-                          )}
-                          {viewMode === "recommended" && <div className="mt-2">{getMatchBadge(course)}</div>}
-                        </div>
+                      <div className="flex items-start justify-between mb-3 gap-3">
+  <div className="flex-1 min-w-0 pr-2">
+    <div className="flex items-center gap-2 mb-2 flex-wrap">
+      <h3 className="font-bold text-base sm:text-lg text-white break-words pr-2">
+        {course["College Name"] || "Institute Information Not Available"}
+      </h3>
+      {course.Specialization && (
+        <span className="text-xs font-semibold text-white px-2 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: accentColor }}>
+          {course.Specialization}
+        </span>
+      )}
+    </div>
+    
+    {course.City && (
+      <div className="flex items-center gap-1 text-xs text-slate-400 mb-2">
+        <MapPin size={12} className="flex-shrink-0" />
+        <span className="truncate">
+          {course.City}, {course.State}
+        </span>
+      </div>
+    )}
+    {viewMode === "recommended" && <div className="mt-2">{getMatchBadge(course)}</div>}
+  </div>
 
-                        <button
-                          onClick={() => toggleSaved(course)}
-                          disabled={isBlurred}
-                          className={`transition-colors flex-shrink-0 ${
-                            isBlurred
-                              ? "opacity-50 cursor-not-allowed"
-                              : savedCourses.has(course.id)
-                                ? ""
-                                : "text-slate-500"
-                          }`}
-                          style={savedCourses.has(course.id) ? { color: accentColor } : {}}
-                          title={
-                            isBlurred
-                              ? "Contact experts to unlock"
-                              : savedCourses.has(course.id)
-                                ? "Remove from shortlist"
-                                : "Add to shortlist"
-                          }
-                        >
-                          <Heart size={18} className="sm:w-5 sm:h-5" fill={savedCourses.has(course.id) ? "currentColor" : "none"} />
-                        </button>
-                      </div>
+  {/* Compare Checkbox + Heart Button */}
+  <div className="flex items-center gap-3 flex-shrink-0">
+  {/* Compare Checkbox */}
+  <label className="flex items-center gap-1.5 cursor-pointer group" title="Add to compare">
+    <input 
+      type="checkbox"
+      checked={inCompare}
+      onChange={() => toggleCompare(course)}
+      disabled={isBlurred}
+      className="w-4 h-4 accent-purple-600 cursor-pointer disabled:opacity-50"
+    />
+    <span className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
+      Compare
+    </span>
+  </label>
+
+  {/* Heart Button */}
+  <button
+    onClick={() => toggleSaved(course)}
+    disabled={isBlurred}
+    className={`transition-colors flex-shrink-0 ${
+      isBlurred
+        ? "opacity-50 cursor-not-allowed"
+        : savedCourses.has(course.id)
+          ? ""
+          : "text-slate-500"
+    }`}
+    style={savedCourses.has(course.id) ? { color: accentColor } : {}}
+    title={
+      isBlurred
+        ? "Contact experts to unlock"
+        : savedCourses.has(course.id)
+          ? "Remove from shortlist"
+          : "Add to shortlist"
+    }
+  >
+    <Heart size={18} className="sm:w-5 sm:h-5" fill={savedCourses.has(course.id) ? "currentColor" : "none"} />
+  </button>
+</div>
+</div>
 
                       {/* Course Details */}
                       <div className="space-y-3 sm:space-y-4">
@@ -564,11 +577,11 @@ const CourseFinder: React.FC = () => {
                             )
                           )}
                           
-                          <CompareButton
+                          {/* <CompareButton
                             course={course}
                             isInCompare={inCompare}
                             onToggle={toggleCompare}
-                          />
+                          /> */}
                         </div>
                       </div>
                     </div>
@@ -585,6 +598,10 @@ const CourseFinder: React.FC = () => {
             </>
           )}
         </div>
+        <CompareFloatingButton 
+          compareCount={compareColleges.length}
+          onCompareClick={goToComparison}
+        />
       </div>
     </DefaultLayout>
   )

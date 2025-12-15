@@ -15,10 +15,11 @@ import {
 } from 'lucide-react';
 
 // Color scheme matching the college compare page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 const Carpercentile: React.FC = () => {
   const router = useRouter();
@@ -237,7 +238,7 @@ const Carpercentile: React.FC = () => {
             {/* Right Col: Overall Summary */}
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-white">Overall Standing</h3>
-              <div className="rounded-xl shadow-lg p-6 text-white relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${accentColor}, #8b5cf6)` }}>
+              <div className="rounded-xl shadow-lg p-6 text-white relative overflow-hidden" style={{ background: accentColor }}>
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-purple-500 rounded-full opacity-30 blur-xl"></div>
                 <div className="relative z-10">
                   <p className="text-blue-100 font-medium mb-1">Total Score</p>

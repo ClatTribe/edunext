@@ -5,10 +5,11 @@ import { supabase } from '../lib/supabase';
 import { X, Phone, MapPin, CheckCircle2, Loader2 } from 'lucide-react';
 
 // Color scheme matching the college compare page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 const CONTACT_OPTIONS = [
   { value: "WhatsApp", label: "WhatsApp", icon: "💬" },
@@ -336,7 +337,7 @@ const LeadDataPopup = () => {
             onClick={handleSubmit}
             disabled={submitting}
             className="w-full mt-6 text-white py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:opacity-90"
-            style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
+            style={{ background: accentColor }}
           >
             {submitting ? (
               <>

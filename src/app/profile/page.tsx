@@ -23,10 +23,11 @@ import TestScoresSection from "../../../components/ProfileData/TestScoresSection
 import ProfileHeader from "../../../components/ProfileData/ProfileHeader"
 
 // Color scheme matching the college compare page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 interface TestScore {
   exam: string
@@ -767,7 +768,7 @@ const ProfilePage = () => {
                     className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-lg transition-all text-sm sm:text-base ${
                       deleting ? "opacity-70 cursor-not-allowed" : ""
                     }`}
-                    style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
+                    style={{ background: accentColor }}
                   >
                     {deleting ? "Deleting..." : "Delete"}
                   </button>
@@ -852,7 +853,7 @@ const ProfilePage = () => {
                   className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg transition-all text-sm sm:text-base ${
                     saving ? "opacity-70 cursor-not-allowed" : ""
                   }`}
-                  style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
+                  style={{ background: accentColor }}
                 >
                   <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
                   {saving ? "Saving..." : "Save Profile"}

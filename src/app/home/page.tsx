@@ -50,10 +50,11 @@ const DashboardPage = () => {
   const [shortlistedCount, setShortlistedCount] = useState(0);
 
   // Exact color scheme from the screenshot - using deeper navy/blue tones
-  const accentColor = '#6366f1'; // Indigo accent
-  const primaryBg = '#0a0f1e'; // Very dark navy blue (matching screenshot)
-  const secondaryBg = '#111827'; // Slightly lighter navy for cards
-  const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
   // Memoize calculations with ONLY 6 required fields
   const profileMetrics = useMemo(() => {

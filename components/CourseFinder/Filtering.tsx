@@ -27,10 +27,10 @@ interface FilterProps {
 }
 
 // Color scheme matching the home page
-const accentColor = '#6366f1' // Indigo accent
-const primaryBg = '#0a0f1e' // Very dark navy blue
-const secondaryBg = '#111827' // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)' // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
 
 const cityToStatesMapping: Record<string, string[]> = {
   "New Delhi": ["Delhi NCR"],

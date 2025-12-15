@@ -55,10 +55,11 @@ interface ShortlistItem {
 }
 
 // Color scheme matching the admit finder page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 const ShortlistBuilder: React.FC = () => {
   const { user } = useAuth();
@@ -282,7 +283,7 @@ const ShortlistBuilder: React.FC = () => {
                   onClick={() => setActiveTab("courses")}
                   className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-base transition-all"
                   style={activeTab === "courses"
-                    ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                    ? { backgroundColor: accentColor, color: 'white',  }
                     : { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#cbd5e1', border: `1px solid ${borderColor}` }
                   }
                 >
@@ -302,7 +303,7 @@ const ShortlistBuilder: React.FC = () => {
                   onClick={() => setActiveTab("scholarships")}
                   className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-base transition-all"
                   style={activeTab === "scholarships"
-                    ? { backgroundColor: accentColor, color: 'white', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }
+                    ? { backgroundColor: accentColor, color: 'white',  }
                     : { backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#cbd5e1', border: `1px solid ${borderColor}` }
                   }
                 >

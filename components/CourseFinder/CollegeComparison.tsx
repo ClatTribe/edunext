@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { GitCompare, X } from "lucide-react"
+import { GitCompare, X, ArrowRight } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 
 interface Course {
@@ -197,27 +197,6 @@ const useCollegeComparison = ({ user, courses }: CollegeComparisonProps) => {
   }
 }
 
-// Compare Button Component (for individual cards)
-export const CompareButton: React.FC<{
-  course: Course
-  isInCompare: boolean
-  onToggle: (course: Course) => void
-}> = ({ course, isInCompare, onToggle }) => {
-  return (
-    <button
-      onClick={() => onToggle(course)}
-      className={`flex-1 rounded-lg py-2 px-3 sm:px-4 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm font-medium shadow-md ${
-        isInCompare
-          ? "bg-purple-600 hover:bg-purple-700 text-white"
-          : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300"
-      }`}
-    >
-      <GitCompare size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
-      <span>{isInCompare ? "Remove" : "Add to Compare"}</span>
-    </button>
-  )
-}
-
 // Compare Badge Component (for cards)
 export const CompareBadge: React.FC<{ show: boolean }> = ({ show }) => {
   if (!show) return null
@@ -228,6 +207,90 @@ export const CompareBadge: React.FC<{ show: boolean }> = ({ show }) => {
         <GitCompare size={12} />
         Added to Compare
       </span>
+    </div>
+  )
+}
+
+// Floating Compare Button Component
+export const CompareFloatingButton: React.FC<{
+  compareCount: number
+  onCompareClick: () => void
+}> = ({ compareCount, onCompareClick }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  // Hide button if no colleges selected
+  if (compareCount === 0) return null
+
+  const handleClick = () => {
+    if (compareCount < 2) {
+      alert('Please select at least 2 colleges for comparison')
+      return
+    }
+    onCompareClick()
+  }
+
+  return (
+    <div 
+      className="fixed right-6 z-40 transition-all duration-300"
+      style={{ 
+        bottom: '90px', // Positioned above contact button (which is at bottom-4 = 16px)
+      }}
+    >
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes comparePing {
+          75%, 100% {
+            transform: scale(1.3);
+            opacity: 0;
+          }
+        }
+        .compare-ping-animation {
+          animation: comparePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+      `}} />
+      
+      <button
+        onClick={handleClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="relative bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-2 group rounded-full
+          md:px-5 md:py-3 px-4 py-3
+          hover:scale-105 active:scale-95
+        "
+      >
+        <GitCompare
+          size={20}
+          className={`transition-transform duration-300 ${
+            isHovered ? 'rotate-12 scale-110' : ''
+          }`}
+        />
+        
+        {/* Desktop Text */}
+        <span className="font-bold text-sm whitespace-nowrap hidden md:inline">
+          Compare ({compareCount})
+        </span>
+        
+        {/* Mobile Text */}
+        <span className="font-bold text-sm whitespace-nowrap md:hidden">
+          Compare ({compareCount})
+        </span>
+
+        <ArrowRight 
+          size={18} 
+          className={`transition-transform duration-300 hidden md:inline ${
+            isHovered ? 'translate-x-1' : ''
+          }`}
+        />
+
+        {/* Pulse Animation Ring */}
+        <div className="absolute inset-0 rounded-full bg-purple-600 compare-ping-animation opacity-20"></div>
+
+        {/* Badge for count */}
+        {compareCount === 3 && (
+          <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+            ✓
+          </div>
+        )}
+      </button>
     </div>
   )
 }

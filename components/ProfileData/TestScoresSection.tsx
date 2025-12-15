@@ -2,10 +2,11 @@ import React from "react"
 import { BookOpen, Plus, Minus } from "lucide-react"
 
 // Color scheme matching the college compare page
-const accentColor = '#6366f1'; // Indigo accent
-const primaryBg = '#0a0f1e'; // Very dark navy blue
-const secondaryBg = '#111827'; // Slightly lighter navy
-const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
 interface TestScore {
   exam: string
@@ -51,7 +52,7 @@ const TestScoresSection: React.FC<TestScoresSectionProps> = ({
           <button
             onClick={onAdd}
             className="flex items-center gap-2 text-white px-3 sm:px-4 py-2 rounded-lg transition-all ml-auto text-sm sm:text-base hover:opacity-90"
-            style={{ background: `linear-gradient(to right, ${accentColor}, #8b5cf6)` }}
+            style={{ background: accentColor }}
           >
             <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
             Add Test

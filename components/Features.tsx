@@ -38,7 +38,7 @@ export const Features: React.FC<FeaturesProps> = ({ activeTab = 'courses' }) => 
   const [currentTab, setCurrentTab] = useState<'courses' | 'scholarships' | 'admits'>(activeTab);
   const [loading, setLoading] = useState(true);
   
-  const accentColor = '#008080';
+  const accentColor = '#F59E0B';
 
   // Complete dummy data for courses
   const courses: Course[] = [

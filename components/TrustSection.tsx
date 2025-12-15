@@ -12,12 +12,12 @@ export default function TrustSection() {
         {/* Full Width Header */}
         <div className="text-center mb-16">
           <div 
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6 bg-{#F59E0B]/10 text-[#F59E0B] border border-emerald-500/20"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
             The New Standard
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white max-w-5xl mx-auto">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-[#F59E0B] max-w-5xl mx-auto">
             We fixed what is broken in MBA College search.
           </h2>
         </div>

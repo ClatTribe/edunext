@@ -32,10 +32,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   const pathname = usePathname();
 
   // Color scheme matching the TrustSection component
-  const accentColor = '#6366f1'; // Indigo accent (from indigo-500)
-  const primaryBg = '#020617'; // Slate-950 background
-  const secondaryBg = '#0f172a'; // Slate-900
-  const borderColor = 'rgba(255, 255, 255, 0.1)'; // White border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
 
   const navItems = {
     main: [
@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: Users, label: "Previous Year Students", path: "/previous-year-students" },
       { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
-      { icon: Building2, label: "Compare Your COllege", path: "/compare-your-college" },
+      { icon: Building2, label: "Compare Your College", path: "/compare-your-college" },
     ],
     applications: [
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
