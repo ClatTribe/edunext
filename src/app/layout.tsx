@@ -16,6 +16,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "EduNext - Indian Colleges Platform",
   description: "Find Your Perfect College, scholarships, and connect with admits",
+    icons: {
+    icon: [
+      { url: '/favion.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favion.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favion.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/favion.png',
+    shortcut: '/favion.png',
+  },
 };
 
 export default function RootLayout({

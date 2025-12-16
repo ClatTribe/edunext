@@ -17,10 +17,10 @@ export default function TrustSection() {
             <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
             The New Standard
           </div>
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-5xl mx-auto
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight max-w-5xl mx-auto
   bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
   bg-clip-text text-transparent">
-  We fixed what is broken in MBA College search.
+  We Disrupted MBA College Search
 </h2>
         </div>
 

@@ -95,7 +95,7 @@ const TrainRoadmap: React.FC = () => {
           <span className="text-xs font-bold text-slate-300 tracking-wide uppercase">Your future. Without the noise.</span>
         </div>
         
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 md:mb-8 leading-tight
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4 md:mb-8 leading-tight
 bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
 bg-clip-text text-transparent">
 Your Dream MBA Journey
