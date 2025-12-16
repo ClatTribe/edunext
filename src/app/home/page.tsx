@@ -7,15 +7,14 @@ import { supabase } from '../../../lib/supabase';
 // import LeadDataPopup from '../../../components/LeadDataPopup';
 import { 
   TrendingUp, 
-  CheckCircle, 
   AlertCircle, 
-  Users, 
   Target,
   Sparkles,
   ArrowRight,
   User,
   CheckCircle2,
-  Zap
+  BookOpen,
+  Calendar,
 } from 'lucide-react';
 
 interface TestScore {
@@ -282,148 +281,138 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
         className="w-full min-h-screen"
         style={{ backgroundColor: primaryBg }}
       >
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-6 max-w-7xl mx-auto pt-24 md:pt-6">
           {/* Header Section */}
           <div className="mb-6">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              {greeting}, {userName}! 👋
-            </h1>
-            <p className="text-slate-400">Ready to take the next step in your academic journey?</p>
-          </div>
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="flex-1">
+      <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
+        {greeting}, {userName}! 👋
+      </h1>
+      <p className="text-slate-400">Ready to take the next step in your academic journey?</p>
+    </div>
+    
+    {/* Profile Complete Badge - Only shows when 100% */}
+    {profileMetrics.completion === 100 && (
+      <div 
+        className="rounded-xl shadow-lg px-4 py-3 backdrop-blur-xl flex items-center gap-3 self-start md:self-center"
+        style={{ 
+          background: `linear-gradient(135deg, ${secondaryBg} 0%, rgba(34, 197, 94, 0.1) 100%)`,
+          border: `2px solid ${accentColor}`
+        }}
+      >
+        <div 
+          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+          style={{ backgroundColor: accentColor }}
+        >
+          <CheckCircle2 className="text-white" size={20} />
+        </div>
+        <div>
+          <h3 className="font-bold text-white text-sm">Profile Complete</h3>
+          <p className="text-xs text-slate-400">All features unlocked</p>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
 
           {/* COMPACT VERSION FOR 100% COMPLETE PROFILE */}
-          {profileMetrics.completion === 100 ? (
-            <div 
-              className="rounded-xl shadow-lg p-4 mb-6 backdrop-blur-xl"
-              style={{ 
-                background: `linear-gradient(135deg, ${secondaryBg} 0%, rgba(34, 197, 94, 0.1) 100%)`,
-                border: `2px solid ${accentColor}`
-              }}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 flex-1">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: accentColor }}
-                  >
-                    <CheckCircle2 className="text-white" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-base">Profile Complete! 🎉</h3>
-                    <p className="text-sm text-slate-400">All features unlocked</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleProfileClick}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0 flex items-center gap-1 shadow-md hover:shadow-lg"
-                  style={{ 
-                    backgroundColor: accentColor,
-                    color: 'white'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4f46e5'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = accentColor}
-                >
-                  <User size={14} />
-                  View Profile
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* FULL VERSION FOR INCOMPLETE PROFILE */
-            <div 
-              className="rounded-2xl shadow-xl p-6 mb-6 backdrop-blur-xl"
-              style={{ 
-                backgroundColor: secondaryBg,
-                border: `1px solid ${borderColor}`
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ 
-                      background: `linear-gradient(135deg, ${accentColor} 0%, #818cf8 100%)`
-                    }}
-                  >
-                    <TrendingUp className="text-white" size={24} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">Profile Completion</h2>
-                    <p className="text-slate-400">{getProgressMessage()}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div 
-                    className="text-4xl font-bold"
-                    style={{ color: accentColor }}
-                  >
-                    {profileMetrics.completion}%
-                  </div>
-                  <p className="text-sm text-slate-500">Complete</p>
-                </div>
-              </div>
+          {/* Profile Progress Section - Only shows when NOT 100% */}
+{profileMetrics.completion !== 100 && (
+  <div 
+    className="rounded-2xl shadow-xl p-6 mb-6 backdrop-blur-xl"
+    style={{ 
+      backgroundColor: secondaryBg,
+      border: `1px solid ${borderColor}`
+    }}
+  >
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <div 
+          className="w-12 h-12 rounded-full flex items-center justify-center"
+          style={{ 
+            background:`${accentColor}` 
+          }}
+        >
+          <TrendingUp className="text-white" size={24} />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-white">Profile Completion</h2>
+          <p className="text-slate-400">{getProgressMessage()}</p>
+        </div>
+      </div>
+      <div className="text-right">
+        <div 
+          className="text-4xl font-bold"
+          style={{ color: accentColor }}
+        >
+          {profileMetrics.completion}%
+        </div>
+        <p className="text-sm text-slate-500">Complete</p>
+      </div>
+    </div>
 
-              <div 
-                className="relative h-4 rounded-full overflow-hidden mb-4"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
-              >
-                <div 
-                  className="absolute top-0 left-0 h-full transition-all duration-700 ease-out rounded-full"
-                  style={{ 
-                    width: `${profileMetrics.completion}%`,
-                    background: `linear-gradient(90deg, ${accentColor} 0%, #818cf8 100%)`
-                  }}
-                >
-                  <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
-                </div>
-              </div>
+    <div 
+      className="relative h-4 rounded-full overflow-hidden mb-4"
+      style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
+    >
+      <div 
+        className="absolute top-0 left-0 h-full transition-all duration-700 ease-out rounded-full"
+        style={{ 
+          width: `${profileMetrics.completion}%`,
+          background:`${accentColor}` 
+        }}
+      >
+        <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+      </div>
+    </div>
 
-              {profileMetrics.missingFields.length > 0 && (
-                <div 
-                  className="rounded-xl p-4 backdrop-blur-sm"
+    {profileMetrics.missingFields.length > 0 && (
+      <div 
+        className="rounded-xl p-4 backdrop-blur-sm"
+        style={{ 
+          backgroundColor: 'rgba(99, 102, 241, 0.05)',
+          border: `1px solid ${borderColor}`
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <AlertCircle style={{ color: accentColor }} className="mt-0.5 shrink-0" size={20} />
+          <div className="flex-1">
+            <h3 className="font-semibold text-white mb-2">Complete these required fields to unlock full features:</h3>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {profileMetrics.missingFields.map((field, idx) => (
+                <span 
+                  key={idx} 
+                  className="text-xs px-3 py-1 rounded-full font-medium"
                   style={{ 
-                    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                    color: '#a5b4fc',
                     border: `1px solid ${borderColor}`
                   }}
                 >
-                  <div className="flex items-start gap-3">
-                    <AlertCircle style={{ color: accentColor }} className="mt-0.5 shrink-0" size={20} />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-2">Complete these required fields to unlock full features:</h3>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {profileMetrics.missingFields.map((field, idx) => (
-                          <span 
-                            key={idx} 
-                            className="text-xs px-3 py-1 rounded-full font-medium"
-                            style={{ 
-                              backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                              color: '#a5b4fc',
-                              border: `1px solid ${borderColor}`
-                            }}
-                          >
-                            {field}
-                          </span>
-                        ))}
-                      </div>
-                      <button
-                        onClick={handleProfileClick}
-                        className="flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-all text-sm font-semibold shadow-lg hover:shadow-xl"
-                        style={{ 
-                          background: `linear-gradient(90deg, ${accentColor} 0%, #818cf8 100%)`
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                      >
-                        <User size={16} />
-                        Complete Your Profile
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  {field}
+                </span>
+              ))}
             </div>
-          )}
+            <button
+              onClick={handleProfileClick}
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-all text-sm font-semibold shadow-lg hover:shadow-xl"
+              style={{ 
+                background: `${accentColor}`
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <User size={16} />
+              Complete Your Profile
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+)}
 
           {/* Quick Actions Section */}
           <div 
@@ -437,7 +426,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
               <Target style={{ color: accentColor }} size={24} />
               <h2 className="text-2xl font-semibold text-white">Quick Actions</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Find Colleges Card */}
               <button 
                 onClick={handleCourseFinderClick}
@@ -552,32 +541,114 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
               </button>
             </div>
           </div>
+          <div 
+  className="rounded-2xl shadow-xl p-6 backdrop-blur-xl mb-6"
+  style={{ 
+    backgroundColor: secondaryBg,
+    border: `1px solid ${borderColor}`
+  }}
+>
+  <div className="flex items-center gap-2 mb-6">
+    <Target style={{ color: accentColor }} size={24} />
+    <h2 className="text-2xl font-semibold text-white">Our Tools</h2>
+  </div>
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+    {/* Cat Percentile Predictor */}
+    <button 
+      onClick={() => router.push('/cat-percentile-predictor')}
+      className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+      style={{ 
+        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+        border: `1px solid ${borderColor}`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = `0 20px 40px rgba(99, 102, 241, 0.2)`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <TrendingUp 
+        style={{ color: accentColor }}
+        className="mb-3" 
+        size={32} 
+      />
+      <div className="font-bold text-white mb-1 text-lg">Cat Percentile Predictor</div>
+      <div className="text-sm text-slate-400">Predict your CAT score</div>
+      <ArrowRight 
+        style={{ color: accentColor }}
+        className="mt-2 group-hover:translate-x-1 transition-transform" 
+        size={20} 
+      />
+    </button>
 
-          {/* Pro Tip Section */}
-          {profileMetrics.completion < 100 && (
-            <div 
-              className="rounded-2xl shadow-lg p-6 backdrop-blur-sm"
-              style={{ 
-                background: `linear-gradient(135deg, ${secondaryBg} 0%, rgba(250, 195, 0, 0.05) 100%)`,
-                border: `1px solid rgba(250, 195, 0, 0.2)`
-              }}
-            >
-              <div className="flex items-start gap-3">
-                <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: '#fac300' }}
-                >
-                  <Sparkles className="text-slate-900" size={20} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white mb-2 text-lg">💡 Pro Tip</h3>
-                  <p className="text-slate-400">
-                    Complete all 6 required fields (Name, City, Email, Contact Number, Academic Year, and Test Scores) in your profile to unlock personalized recommendations and connect with students who have similar academic backgrounds!
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+    {/* Exam & Deadline */}
+    <button 
+      onClick={() => router.push('/exams-and-deadline')}
+      className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+      style={{ 
+        backgroundColor: 'rgba(14, 165, 233, 0.05)',
+        border: `1px solid rgba(14, 165, 233, 0.15)`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 20px 40px rgba(14, 165, 233, 0.2)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <Calendar 
+        className="text-sky-400 mb-3" 
+        size={32} 
+      />
+      <div className="font-bold text-white mb-1 text-lg">Exam & Deadline</div>
+      <div className="text-sm text-slate-400">Track important dates</div>
+      <ArrowRight 
+        className="text-sky-400 mt-2 group-hover:translate-x-1 transition-transform" 
+        size={20} 
+      />
+    </button>
+
+    {/* Study Material */}
+    <button 
+      onClick={() => router.push('/study-material')}
+      className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+      style={{ 
+        backgroundColor: 'rgba(34, 197, 94, 0.05)',
+        border: `1px solid rgba(34, 197, 94, 0.15)`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 20px 40px rgba(34, 197, 94, 0.2)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <BookOpen 
+        className="text-green-400 mb-3" 
+        size={32} 
+      />
+      <div className="font-bold text-white mb-1 text-lg">Study Material</div>
+      <div className="text-sm text-slate-400">Access learning resources</div>
+      <ArrowRight 
+        className="text-green-400 mt-2 group-hover:translate-x-1 transition-transform" 
+        size={20} 
+      />
+    </button>
+  </div>
+</div>
         </div>
       </div>
     </DefaultLayout>

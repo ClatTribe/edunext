@@ -1,6 +1,11 @@
 import React from "react"
 import { User } from "lucide-react"
 
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 interface PersonalInfoSectionProps {
   formData: {
     name: string
@@ -97,27 +102,48 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
       </div>
 
       <div className="mt-4">
-        <label className="block text-sm font-medium text-white mb-2">
-          How would you like us to contact you? <span className="text-[#2f61ce]">*</span>
-        </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {CONTACT_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => isEditing && onMultiSelectContactPreference(option.value)}
-              disabled={!isEditing}
-              className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base ${
-                formData.contact_preferences?.includes(option.value)
-                  ? "border-[#2f61ce] bg-[#eef3fc] text-[#2f61ce] font-medium"
-                  : "border-gray-300 bg-white text-gray-700 hover:border-[#2f61ce]"
-              } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
+  <label className="block text-sm font-medium text-white mb-2">
+    How would you like us to contact you?<span style={{ color: accentColor }}>*</span>
+  </label>
+  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+    {CONTACT_OPTIONS.map((option) => (
+      <button
+        key={option.value}
+        type="button"
+        onClick={() => isEditing && onMultiSelectContactPreference(option.value)}
+        disabled={!isEditing}
+        className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base font-medium ${
+          !isEditing ? "opacity-60 cursor-not-allowed" : ""
+        }`}
+        style={
+          formData.contact_preferences?.includes(option.value)
+            ? {
+                borderColor: accentColor,
+                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                color: accentColor,
+              }
+            : {
+                borderColor: borderColor,
+                backgroundColor: primaryBg,
+                color: '#FFFFFF',
+              }
+        }
+        onMouseEnter={(e) => {
+          if (isEditing && !formData.contact_preferences?.includes(option.value)) {
+            e.currentTarget.style.borderColor = accentColor
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (isEditing && !formData.contact_preferences?.includes(option.value)) {
+            e.currentTarget.style.borderColor = borderColor
+          }
+        }}
+      >
+        {option.label}
+      </button>
+    ))}
+  </div>
+</div>
     </Section>
   )
 }

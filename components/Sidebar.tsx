@@ -59,7 +59,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
     {
       icon: TrendingUp,
       label: "Cat Percentile Predictor",
-      path: "/cat-precentile-predictor",
+      path: "/cat-percentile-predictor",
     },
     {
       icon: FileCheck,
@@ -127,18 +127,15 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
         }}
       >
         <div className="flex items-center justify-between p-4">
-          <Link href="/" className="flex items-center gap-2">
-            <img
-              src="/whitelogo.svg"
-              alt="EduNext Logo"
-              width={40}
-              height={40}
-              className="h-10 w-10 object-contain"
-            />
-            <span className="text-xl font-bold" style={{ color: accentColor }}>
-              EduNext
-            </span>
-          </Link>
+          <Link href="/" className="flex items-center gap-2 mb-2">
+              <img
+                src="/whitelogo.svg"
+                alt="EduNext Logo"
+                width={32}
+                height={32}
+                className="h-10 w-32 object-contain brightness-110"
+              />
+            </Link>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 rounded-lg transition-colors"
