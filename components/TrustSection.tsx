@@ -3,9 +3,9 @@ import { ShieldCheck, UserX, Database, Zap, ArrowRight, MousePointerClick } from
 
 export default function TrustSection() {
   return (
-    <section id="trust" className="py-32 relative overflow-hidden bg-slate-950">
+    <section id="trust" className="py-10 relative overflow-hidden bg-slate-950">
       {/* Glow Effects */}
-      <div className="absolute w-[800px] h-[800px] bg-indigo-600/20 top-[-300px] left-1/2 -translate-x-1/2 blur-[120px] rounded-full" />
+      <div className="absolute w-[800px] h-[800px] bg-[#0F172B]/90 top-[-300px] left-1/2 -translate-x-1/2 blur-[120px] rounded-full animate-pulse" />
       <div className="absolute w-[500px] h-[500px] bg-sky-500/10 bottom-[-100px] right-[-100px] blur-[120px] rounded-full" />
       
       <div className="container mx-auto max-w-7xl px-6 relative z-10">
@@ -17,9 +17,11 @@ export default function TrustSection() {
             <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
             The New Standard
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-[#F59E0B] max-w-5xl mx-auto">
-            We fixed what is broken in MBA College search.
-          </h2>
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-5xl mx-auto
+  bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
+  bg-clip-text text-transparent">
+  We fixed what is broken in MBA College search.
+</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

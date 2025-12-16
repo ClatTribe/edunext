@@ -24,7 +24,7 @@ const CONTACT_OPTIONS = [
   { value: "WhatsApp", label: "WhatsApp" },
   { value: "Email", label: "Email" },
   { value: "Calling", label: "Phone Call" },
-  { value: "LinkedIn", label: "LinkedIn" },
+  { value: "Do not disturb", label: "Do not disturb" },
 ]
 
 const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({

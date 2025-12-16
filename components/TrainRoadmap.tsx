@@ -15,6 +15,7 @@ interface Station {
 
 const TrainRoadmap: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
   const roadmapRef = useRef<HTMLDivElement>(null);
 
   const stations: Station[] = [
@@ -23,7 +24,7 @@ const TrainRoadmap: React.FC = () => {
       title: "Research",
       emoji: "✨",
       description: "Explore 2000+ Dream MBA Colleges",
-      buttonText: "Try Course Finder",
+      buttonText: "Try College Finder",
       buttonLink: "/find-colleges",
       position: "right",
       icon: Search,
@@ -34,7 +35,7 @@ const TrainRoadmap: React.FC = () => {
       emoji: "✨",
       description: "Get 1-on-1 Counselling from our experts",
       buttonText: "Book Free Counselling",
-      buttonLink: "/counselling",
+      buttonLink: "#",
       position: "left",
       icon: Users,
     },
@@ -54,7 +55,7 @@ const TrainRoadmap: React.FC = () => {
       emoji: "✨",
       description: "Complete your applications with guidance",
       buttonText: "Start Application",
-      buttonLink: "/application-builder",
+      buttonLink: "/home",
       position: "left",
       icon: FileCheck,
     },
@@ -62,7 +63,7 @@ const TrainRoadmap: React.FC = () => {
       id: 5,
       title: "Success",
       emoji: "✨",
-      description: "Track your progress and celebrate achievements",
+      description: "Track your progress",
       buttonText: "View Dashboard",
       buttonLink: "/home",
       position: "right",
@@ -71,41 +72,41 @@ const TrainRoadmap: React.FC = () => {
   ];
 
   useEffect(() => {
+    if (isHovering) return;
     const timer = setInterval(() => {
       setActiveStep(s => (s + 1) % stations.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isHovering, stations.length]);
 
   const handleButtonClick = (link: string) => {
     window.location.href = link;
   };
 
   return (
-    <div ref={roadmapRef} className="relative w-full bg-slate-950 py-32 px-6 overflow-hidden">
+    <div ref={roadmapRef} className="relative w-full bg-slate-950 py-10 px-6 overflow-hidden">
       {/* Glow Effects */}
-      <div className="absolute w-[800px] h-[800px] bg-indigo-600/20 top-[-300px] left-1/2 -translate-x-1/2 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute w-[800px] h-[800px] bg-[#0F172B]/90 top-[-300px] left-1/2 -translate-x-1/2 blur-[120px] rounded-full animate-pulse" />
       <div className="absolute w-[500px] h-[500px] bg-sky-500/10 bottom-[-100px] right-[-100px] blur-[120px] rounded-full" />
 
       {/* Header */}
-      <div className="text-center mb-24 relative z-10">
-        <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 mb-10">
-          {/* <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            Roadmap
-          </span> */}
+      <div className="text-center mb-16 md:mb-24 relative z-10">
+        <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 mb-6 md:mb-10">
           <span className="text-xs font-bold text-slate-300 tracking-wide uppercase">Your future. Without the noise.</span>
         </div>
         
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-8 text-[#F59E0B] leading-tight">
-          Your Dream MBA Journey
-        </h1>
-        <h2 className="text-lg md:text-xl text-slate-400 leading-relaxed">
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 md:mb-8 leading-tight
+bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
+bg-clip-text text-transparent">
+Your Dream MBA Journey
+       </h1>
+        <h2 className="text-base md:text-lg lg:text-xl text-slate-400 leading-relaxed">
           A perfectly orchestrated path to your dream admit
         </h2>
       </div>
 
       {/* Desktop Horizontal Layout */}
-      <div className="hidden md:block max-w-7xl mx-auto relative">
+      <div className="hidden md:block max-w-7xl mx-auto relative pb-32">
         {/* Horizontal Progress Line */}
         <div className="absolute top-[75px] left-0 w-full h-0.5 bg-slate-800/50 overflow-hidden">
           <div 
@@ -119,7 +120,11 @@ const TrainRoadmap: React.FC = () => {
           {stations.map((station, i) => (
             <div 
               key={i} 
-              onMouseEnter={() => setActiveStep(i)}
+              onMouseEnter={() => {
+                setIsHovering(true);
+                setActiveStep(i);
+              }}
+              onMouseLeave={() => setIsHovering(false)}
               className="flex flex-col items-center text-center cursor-pointer transition-all duration-500 relative"
               style={{ width: `${100 / stations.length}%` }}
             >
@@ -138,7 +143,7 @@ const TrainRoadmap: React.FC = () => {
                 />
                 
                 {/* Icon Circle */}
-                <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center relative z-10 backdrop-blur-xl border-2 transition-all duration-500 ${activeStep === i ? 'bg-indigo-600/20 border-indigo-500' : 'bg-slate-900/50 border-slate-700'}`}>
+                <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center relative z-10 backdrop-blur-xl border-2 transition-all duration-500 ${activeStep === i ? 'border-indigo-500' : 'bg-slate-900/50 border-slate-700'}`}>
                   <station.icon className={`w-10 h-10 ${activeStep === i ? 'text-indigo-400' : 'text-slate-600'}`} />
                 </div>
               </div>
@@ -157,10 +162,21 @@ const TrainRoadmap: React.FC = () => {
                   .replace('Track your progress and celebrate achievements', 'FINAL ADMISSIONS')}
               </p>
 
-              {/* Description Card - Shows below on active */}
+              {/* Description Card and Button - Shows below on active */}
               {activeStep === i && (
-                <div className="absolute top-72 left-1/2 -translate-x-1/2 w-80 bg-transparent animate-in fade-in slide-in-from-top-4 duration-500 z-20">
-                  <p className="text-sm text-slate-300 leading-relaxed text-center">{station.description}</p>
+                <div className="absolute top-60 left-1/2 -translate-x-1/2 w-80 bg-transparent animate-in fade-in slide-in-from-top-4 duration-500 z-20">
+                  <p className="text-sm text-slate-300 leading-relaxed text-center mb-4">{station.description}</p>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleButtonClick(station.buttonLink);
+                      }}
+                      className="px-6 py-2.5 bg-[#F59E0B] text-white text-sm font-bold rounded-full transition-all shadow-xl shadow-[#F59E0B]/20"
+                    >
+                      {station.buttonText}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -171,7 +187,7 @@ const TrainRoadmap: React.FC = () => {
       {/* Mobile Vertical Layout */}
       <div className="md:hidden max-w-2xl mx-auto relative">
         {/* Vertical Progress Line */}
-        <div className="absolute left-[60px] top-0 w-1 bg-slate-800 overflow-hidden rounded-full" style={{ height: '100%' }}>
+        <div className="absolute left-[40px] top-0 w-0.5 bg-slate-800 overflow-hidden rounded-full" style={{ height: '100%' }}>
           <div 
             className="w-full bg-gradient-to-b from-indigo-500 via-sky-500 to-emerald-500 transition-all duration-1000 ease-in-out" 
             style={{ height: `${(activeStep / (stations.length - 1)) * 100}%` }}
@@ -179,28 +195,28 @@ const TrainRoadmap: React.FC = () => {
         </div>
 
         {/* Vertical Stations */}
-        <div className="space-y-24 py-8">
+        <div className="space-y-12 py-4">
           {stations.map((station, i) => (
             <div 
               key={i} 
               onClick={() => setActiveStep(i)}
-              className="flex items-start gap-6 cursor-pointer relative"
+              className="flex items-start gap-4 cursor-pointer relative"
             >
               {/* Icon Circle */}
-              <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center shrink-0 backdrop-blur-xl border transition-all duration-500 ${activeStep === i ? 'bg-indigo-600/20 border-indigo-500 shadow-[0_0_40px_rgba(99,102,241,0.2)] scale-110' : 'bg-white/5 border-white/10'}`}>
-                <station.icon className={`w-10 h-10 ${activeStep === i ? 'text-indigo-400' : 'text-slate-500'}`} />
+              <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xl border transition-all duration-500 ${activeStep === i ? 'bg-indigo-600/20 border-indigo-500 shadow-[0_0_40px_rgba(99,102,241,0.2)] scale-110' : 'bg-white/5 border-white/10'}`}>
+                <station.icon className={`w-8 h-8 ${activeStep === i ? 'text-indigo-400' : 'text-slate-500'}`} />
               </div>
 
               {/* Content */}
-              <div className="flex-1 pt-2">
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className={`text-2xl font-black ${activeStep === i ? 'text-white' : 'text-slate-400'}`}>
+              <div className="flex-1 pt-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className={`text-xl font-black ${activeStep === i ? 'text-white' : 'text-slate-400'}`}>
                     {station.title}
                   </h3>
-                  <span className="text-lg">{station.emoji}</span>
+                  <span className="text-base">{station.emoji}</span>
                 </div>
                 
-                <p className="text-sm text-slate-400 mb-4 leading-relaxed">
+                <p className="text-xs text-slate-400 mb-3 leading-relaxed">
                   {station.description}
                 </p>
 
@@ -210,7 +226,7 @@ const TrainRoadmap: React.FC = () => {
                       e.stopPropagation();
                       handleButtonClick(station.buttonLink);
                     }}
-                    className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-full hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/30 animate-in fade-in slide-in-from-left-4 duration-500"
+                    className="px-5 py-2 bg-[#F59E0B] text-white text-xs font-bold rounded-full hover:bg-indigo-500 transition-all shadow-lg shadow-[#F59E0B]/20 animate-in fade-in slide-in-from-left-4 duration-500"
                   >
                     {station.buttonText}
                   </button>

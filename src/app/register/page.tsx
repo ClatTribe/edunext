@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -17,10 +18,11 @@ const RegisterPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Color scheme from CourseFinder
-  const accentColor = '#6366f1'; // Indigo accent
-  const primaryBg = '#0a0f1e'; // Very dark navy blue
-  const secondaryBg = '#111827'; // Slightly lighter navy
-  const borderColor = 'rgba(99, 102, 241, 0.15)'; // Indigo border with opacity
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; // Very dark navy blue
+const secondaryBg = '#0F172B'; // Slightly lighter navy
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
 
   // ✅ Redirect if already logged in
   useEffect(() => {
@@ -113,10 +115,15 @@ const RegisterPage = () => {
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between" style={{ background: `linear-gradient(135deg, ${primaryBg} 0%, ${secondaryBg} 100%)`, borderRight: `1px solid ${borderColor}` }}>
         <div>
-          <div className="flex items-center gap-3 mb-8">
-            <GraduationCap style={{ color: accentColor }} size={40} />
-            <div className="text-4xl font-bold text-white">EduNext</div>
-          </div>
+          <Link href="/" className="flex items-center gap-2 mb-5">
+            <img
+              src="/whitelogo.svg"
+              alt="EduNext Logo"
+              width={40}
+              height={40}
+              className="h-20 w-40 object-contain"
+            />
+          </Link>
           <h1 className="text-5xl font-bold text-white mb-6">
             Your Gateway to Dream MBA College
           </h1>
@@ -163,10 +170,15 @@ const RegisterPage = () => {
         <div className="w-full max-w-md">
           <div className="rounded-2xl shadow-xl p-8" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
             <div className="text-center mb-8">
-              <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-                <GraduationCap style={{ color: accentColor }} size={32} />
-                <div className="text-3xl font-bold" style={{ color: accentColor }}>EduNext</div>
-              </div>
+              <Link href="/" className="flex items-center justify-center mb-4">
+                <img
+                  src="/whitelogo.svg"
+                  alt="EduNext Logo"
+                  width={40}
+                  height={40}
+                  className="h-20 w-40 object-contain"
+                />
+               </Link>
               <h2 className="text-3xl font-bold text-white mb-2">
                 {isLogin ? 'Welcome Back!' : 'Join EduNext'}
               </h2>
@@ -306,7 +318,7 @@ const RegisterPage = () => {
                 className={`w-full text-white py-3 rounded-lg font-semibold transition-all duration-200 ${
                   isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'
                 }`}
-                style={{ backgroundColor: accentColor, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)' }}
+                style={{ backgroundColor: accentColor,}}
               >
                 {isSubmitting 
                   ? 'Processing...' 

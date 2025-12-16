@@ -90,11 +90,11 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-6 flex items-center justify-between max-w-7xl">
         <Link href="/" className="flex items-center gap-2 mb-2">
           <img
-            src="/EduNext.svg"
+            src="/whitelogo.svg"
             alt="EduNext Logo"
             width={32}
             height={32}
-            className="h-10 w-32 object-contain"
+            className="h-12 w-40   object-contain"
           />
         </Link>
 
@@ -416,9 +416,19 @@ export default function Hero() {
   </motion.div>
 </div>
 
+          <TrainRoadmap />
+
+            
+          {/* LEFT FEATURE LIST */}
           {/* FEATURES + PREVIEW */}
-          <div className="grid lg:grid-cols-12 gap-10 items-start">
-            {/* LEFT FEATURE LIST */}
+          <div className="text-center mb-10 relative z-10">
+           <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-5xl mx-auto
+  bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
+  bg-clip-text text-transparent">
+  Our features
+</h2>
+          </div>
+           <div className="grid lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-4 flex flex-col gap-3">
               {features.map((feature, index) => (
                 <button
@@ -490,7 +500,7 @@ export default function Hero() {
         </div>
       </section>
 
-      <TrainRoadmap />
+      
       <TrustSection />
       <PainPoints />
     </>

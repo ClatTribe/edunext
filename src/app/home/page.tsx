@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import DefaultLayout from '../defaultLayout';
 import { supabase } from '../../../lib/supabase';
-import LeadDataPopup from '../../../components/LeadDataPopup';
+// import LeadDataPopup from '../../../components/LeadDataPopup';
 import { 
   TrendingUp, 
   CheckCircle, 
@@ -277,7 +277,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
   return (
     <DefaultLayout>
-      <LeadDataPopup />
+      {/* <LeadDataPopup /> */}
       <div 
         className="w-full min-h-screen"
         style={{ backgroundColor: primaryBg }}

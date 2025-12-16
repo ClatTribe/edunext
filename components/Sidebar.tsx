@@ -129,7 +129,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
         <div className="flex items-center justify-between p-4">
           <Link href="/" className="flex items-center gap-2">
             <img
-              src="/EduNext.svg"
+              src="/whitelogo.svg"
               alt="EduNext Logo"
               width={40}
               height={40}
@@ -189,7 +189,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
           <div className="mb-6 hidden md:block p-4 pb-0">
             <Link href="/" className="flex items-center gap-2 mb-2">
               <img
-                src="/EduNext.svg"
+                src="/whitelogo.svg"
                 alt="EduNext Logo"
                 width={32}
                 height={32}
