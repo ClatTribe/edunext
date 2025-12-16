@@ -415,156 +415,166 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 )}
 
           {/* Quick Actions Section */}
-          <div 
-            className="rounded-2xl shadow-xl p-6 backdrop-blur-xl mb-6"
-            style={{ 
-              backgroundColor: secondaryBg,
-              border: `1px solid ${borderColor}`
-            }}
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <Target style={{ color: accentColor }} size={24} />
-              <h2 className="text-2xl font-semibold text-white">Quick Actions</h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Find Colleges Card */}
-              <button 
-                onClick={handleCourseFinderClick}
-                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
-                style={{ 
-                  backgroundColor: 'rgba(99, 102, 241, 0.05)',
-                  border: `1px solid ${borderColor}`
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = `0 20px 40px rgba(99, 102, 241, 0.2)`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div className="text-4xl mb-3">🔍</div>
-                <div className="font-bold text-white mb-1 text-lg">Find Colleges</div>
-                <div className="text-sm text-slate-400">Explore programs Nationwide</div>
-                <ArrowRight 
-                  style={{ color: accentColor }}
-                  className="mt-2 group-hover:translate-x-1 transition-transform" 
-                  size={20} 
-                />
-              </button>
-
-              {/* Previous Year Students Card */}
-              <button 
-                onClick={handleAdmitFinderClick}
-                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
-                style={{ 
-                  backgroundColor: 'rgba(14, 165, 233, 0.05)',
-                  border: `1px solid rgba(14, 165, 233, 0.15)`
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.1)';
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(14, 165, 233, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.05)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div className="text-4xl mb-3">👥</div>
-                <div className="font-bold text-white mb-1 text-lg">Previous Year Students</div>
-                <div className="text-sm text-slate-400">Connect with admits</div>
-                <ArrowRight 
-                  className="text-sky-400 mt-2 group-hover:translate-x-1 transition-transform" 
-                  size={20} 
-                />
-              </button>
-
-              {/* Scholarships Card */}
-              <button 
-                onClick={handleScholarshipClick}
-                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
-                style={{ 
-                  backgroundColor: 'rgba(34, 197, 94, 0.05)',
-                  border: `1px solid rgba(34, 197, 94, 0.15)`
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(34, 197, 94, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.05)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div className="text-4xl mb-3">💵</div>
-                <div className="font-bold text-white mb-1 text-lg">Scholarships</div>
-                <div className="text-sm text-slate-400">Find funding options</div>
-                <ArrowRight 
-                  className="text-green-400 mt-2 group-hover:translate-x-1 transition-transform" 
-                  size={20} 
-                />
-              </button>
-
-              {/* Your Shortlist Card */}
-              <button 
-                onClick={handleShortlistClick}
-                className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
-                style={{ 
-                  backgroundColor: 'rgba(168, 85, 247, 0.05)',
-                  border: `1px solid rgba(168, 85, 247, 0.15)`
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.1)';
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(168, 85, 247, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.05)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div className="text-4xl mb-3">⭐</div>
-                <div className="font-bold text-white mb-1 text-lg">Your Shortlist</div>
-                <div className="text-sm text-slate-400">Build your dream list</div>
-                <ArrowRight 
-                  className="text-purple-400 mt-2 group-hover:translate-x-1 transition-transform" 
-                  size={20} 
-                />
-              </button>
-            </div>
-          </div>
-          <div 
-  className="rounded-2xl shadow-xl p-6 backdrop-blur-xl mb-6"
+<div 
+  className="rounded-2xl shadow-xl p-4 md:p-6 backdrop-blur-xl mb-6"
   style={{ 
     backgroundColor: secondaryBg,
     border: `1px solid ${borderColor}`
   }}
 >
-  <div className="flex items-center gap-2 mb-6">
+  <div className="flex items-center gap-2 mb-4 md:mb-6">
     <Target style={{ color: accentColor }} size={24} />
-    <h2 className="text-2xl font-semibold text-white">Our Tools</h2>
+    <h2 className="text-xl md:text-2xl font-semibold text-white">Quick Actions</h2>
   </div>
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-    {/* Cat Percentile Predictor */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    {/* Find Colleges Card */}
     <button 
-      onClick={() => router.push('/cat-percentile-predictor')}
-      className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+      onClick={handleCourseFinderClick}
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
       style={{ 
         backgroundColor: 'rgba(99, 102, 241, 0.05)',
         border: `1px solid ${borderColor}`
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = `0 20px 40px rgba(99, 102, 241, 0.2)`;
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = `0 10px 30px rgba(99, 102, 241, 0.2)`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <div className="text-2xl md:text-3xl">🔍</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Find Colleges</div>
+        <div className="text-xs text-slate-400 truncate">Explore programs Nationwide</div>
+      </div>
+      <ArrowRight 
+        style={{ color: accentColor }}
+        className="group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
+      />
+    </button>
+
+    {/* Previous Year Students Card */}
+    <button 
+      onClick={handleAdmitFinderClick}
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
+      style={{ 
+        backgroundColor: 'rgba(14, 165, 233, 0.05)',
+        border: `1px solid rgba(14, 165, 233, 0.15)`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 10px 30px rgba(14, 165, 233, 0.2)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <div className="text-2xl md:text-3xl">👥</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Previous Year Students</div>
+        <div className="text-xs text-slate-400 truncate">Connect with admits</div>
+      </div>
+      <ArrowRight 
+        className="text-sky-400 group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
+      />
+    </button>
+
+    {/* Scholarships Card */}
+    <button 
+      onClick={handleScholarshipClick}
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
+      style={{ 
+        backgroundColor: 'rgba(34, 197, 94, 0.05)',
+        border: `1px solid rgba(34, 197, 94, 0.15)`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 10px 30px rgba(34, 197, 94, 0.2)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <div className="text-2xl md:text-3xl">💵</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Scholarships</div>
+        <div className="text-xs text-slate-400 truncate">Find funding options</div>
+      </div>
+      <ArrowRight 
+        className="text-green-400 group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
+      />
+    </button>
+
+    {/* Your Shortlist Card */}
+    <button 
+      onClick={handleShortlistClick}
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
+      style={{ 
+        backgroundColor: 'rgba(168, 85, 247, 0.05)',
+        border: `1px solid rgba(168, 85, 247, 0.15)`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 10px 30px rgba(168, 85, 247, 0.2)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <div className="text-2xl md:text-3xl">⭐</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Your Shortlist</div>
+        <div className="text-xs text-slate-400 truncate">Build your dream list</div>
+      </div>
+      <ArrowRight 
+        className="text-purple-400 group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
+      />
+    </button>
+  </div>
+</div>
+
+{/* Our Tools */}
+<div 
+  className="rounded-2xl shadow-xl p-4 md:p-6 backdrop-blur-xl mb-6"
+  style={{ 
+    backgroundColor: secondaryBg,
+    border: `1px solid ${borderColor}`
+  }}
+>
+  <div className="flex items-center gap-2 mb-4 md:mb-6">
+    <Target style={{ color: accentColor }} size={24} />
+    <h2 className="text-xl md:text-2xl font-semibold text-white">Our Tools</h2>
+  </div>
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    {/* Cat Percentile Predictor */}
+    <button 
+      onClick={() => router.push('/cat-percentile-predictor')}
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
+      style={{ 
+        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+        border: `1px solid ${borderColor}`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = `0 10px 30px rgba(99, 102, 241, 0.2)`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
@@ -574,30 +584,32 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
     >
       <TrendingUp 
         style={{ color: accentColor }}
-        className="mb-3" 
-        size={32} 
+        className="flex-shrink-0" 
+        size={24} 
       />
-      <div className="font-bold text-white mb-1 text-lg">Cat Percentile Predictor</div>
-      <div className="text-sm text-slate-400">Predict your CAT score</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Cat Percentile Predictor</div>
+        <div className="text-xs text-slate-400 truncate">Predict your CAT score</div>
+      </div>
       <ArrowRight 
         style={{ color: accentColor }}
-        className="mt-2 group-hover:translate-x-1 transition-transform" 
-        size={20} 
+        className="group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
       />
     </button>
 
     {/* Exam & Deadline */}
     <button 
       onClick={() => router.push('/exams-and-deadline')}
-      className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
       style={{ 
         backgroundColor: 'rgba(14, 165, 233, 0.05)',
         border: `1px solid rgba(14, 165, 233, 0.15)`
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.1)';
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 20px 40px rgba(14, 165, 233, 0.2)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 10px 30px rgba(14, 165, 233, 0.2)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = 'rgba(14, 165, 233, 0.05)';
@@ -606,29 +618,31 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       }}
     >
       <Calendar 
-        className="text-sky-400 mb-3" 
-        size={32} 
+        className="text-sky-400 flex-shrink-0" 
+        size={24} 
       />
-      <div className="font-bold text-white mb-1 text-lg">Exam & Deadline</div>
-      <div className="text-sm text-slate-400">Track important dates</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Exam & Deadline</div>
+        <div className="text-xs text-slate-400 truncate">Track important dates</div>
+      </div>
       <ArrowRight 
-        className="text-sky-400 mt-2 group-hover:translate-x-1 transition-transform" 
-        size={20} 
+        className="text-sky-400 group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
       />
     </button>
 
     {/* Study Material */}
     <button 
       onClick={() => router.push('/study-material')}
-      className="group p-6 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm"
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
       style={{ 
         backgroundColor: 'rgba(34, 197, 94, 0.05)',
         border: `1px solid rgba(34, 197, 94, 0.15)`
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 20px 40px rgba(34, 197, 94, 0.2)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 10px 30px rgba(34, 197, 94, 0.2)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.05)';
@@ -637,18 +651,21 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       }}
     >
       <BookOpen 
-        className="text-green-400 mb-3" 
-        size={32} 
+        className="text-green-400 flex-shrink-0" 
+        size={24} 
       />
-      <div className="font-bold text-white mb-1 text-lg">Study Material</div>
-      <div className="text-sm text-slate-400">Access learning resources</div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Study Material</div>
+        <div className="text-xs text-slate-400 truncate">Access learning resources</div>
+      </div>
       <ArrowRight 
-        className="text-green-400 mt-2 group-hover:translate-x-1 transition-transform" 
-        size={20} 
+        className="text-green-400 group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
       />
     </button>
   </div>
 </div>
+
         </div>
       </div>
     </DefaultLayout>
