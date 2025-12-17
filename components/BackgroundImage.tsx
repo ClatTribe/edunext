@@ -1,5 +1,3 @@
-import landing from '../public/landing.png'
-import Image from 'next/image'
 import { motion } from "framer-motion";
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -26,7 +24,7 @@ function BackgroundImage() {
   const { user } = useAuth();
   return (
     <div className='h-screen'>
-        <Image className='relative h-full object-cover lg:hidden' src={landing} alt='' />
+        <img className='relative h-full object-cover lg:hidden' src='https://res.cloudinary.com/daetdadtt/image/upload/v1765956344/landing_1_optimized_500_y3ndnn.png' alt='' />
         <div className='Imagetext ml-[5%] absolute top-[55%]'>
         <motion.div
       initial={{ opacity: 0, y: 20 }}
