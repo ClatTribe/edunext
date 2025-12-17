@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Remove the experimental.turbo section - it's not needed in Next.js 16
+  // Turbopack is now built-in and doesn't require this configuration
+  
   // Webpack config for fallbacks
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -13,28 +16,6 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
-
-  // Allow Sanity CDN images
-  images: {
-    domains: ['cdn.sanity.io'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.sanity.io',
-      },
-    ],
-  },
-
-  // Subdomain routing for blogs
-  async rewrites() {
-    return [
-      {
-        source: '/:path*',
-        destination: '/blogs/:path*',
-        has: [{ type: 'host', value: 'blogs.getedunext.com' }]
-      }
-    ];
-  }
 };
 
 export default nextConfig;
