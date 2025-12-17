@@ -27,7 +27,7 @@ function BackgroundImage() {
   return (
     <div>
         <Image className='relative object-cover h-screen lg:hidden' src={landing} alt='' />
-        <div className='Imagetext ml-[5%] absolute top-[75%]'>
+        <div className='Imagetext ml-[5%] absolute top-[80%]'>
         <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
