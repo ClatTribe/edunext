@@ -65,7 +65,7 @@ const ScholarshipRecommend: React.FC<ScholarshipRecommendProps> = ({
         return
       }
 
-      const { data, error: profileError } = await supabase
+      const { data, error: profileError } = await supabase!
         .from("admit_profiles")
         .select("target_state, degree, program")
         .eq("user_id", (user as { id: string }).id)
@@ -129,7 +129,7 @@ const ScholarshipRecommend: React.FC<ScholarshipRecommendProps> = ({
         return
       }
 
-      const { data, error: supabaseError } = await supabase
+      const { data, error: supabaseError } = await supabase!
         .from("scholarship")
         .select("*")
         .order("deadline", { ascending: true })
