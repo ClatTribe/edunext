@@ -4,7 +4,7 @@ import { Check, X } from 'lucide-react';
 
 export const PainPoints: React.FC = () => {
   return (
-    <section className="py-24 bg-slate-950 relative overflow-hidden">
+    <section className="pt-12 pb-18 bg-slate-950 relative overflow-hidden">
       {/* Glow Effects */}
       <div className="absolute w-[600px] h-[600px] bg-indigo-600/10 top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 blur-[120px] rounded-full" />
       
