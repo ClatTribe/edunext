@@ -23,8 +23,8 @@ const secondary = "#C77808"; // Sky Blue
 function BackgroundImage() {
   const { user } = useAuth();
   return (
-    <div className='h-screen'>
-        <img className='relative h-full object-cover lg:hidden' src='https://res.cloudinary.com/daetdadtt/image/upload/v1765956344/landing_1_optimized_500_y3ndnn.png' alt='' />
+    <div className='h-screen sm:hidden'>
+        <img className='relative h-full object-cover ' src='https://res.cloudinary.com/daetdadtt/image/upload/v1765956344/landing_1_optimized_500_y3ndnn.png' alt='' />
         <div className='Imagetext ml-[5%] absolute top-[55%]'>
         <motion.div
       initial={{ opacity: 0, y: 20 }}

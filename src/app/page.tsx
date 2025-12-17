@@ -409,7 +409,7 @@ export default function Hero() {
       ></div>
 
       <img
-        src="https://res.cloudinary.com/daetdadtt/image/upload/v1765632272/file_ew0uf0.webp"
+        src="https://res.cloudinary.com/daetdadtt/image/upload/v1765957021/en_ntufks.webp"
         alt="MBA Student Success"
         className="w-full h-full object-cover rounded-2xl shadow-2xl transition-all duration-700"
       />
