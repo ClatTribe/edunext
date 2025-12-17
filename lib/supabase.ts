@@ -56,8 +56,9 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Get environment variables with fallbacks for build time
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Suppress specific warnings in development
 const originalWarn = console.warn;
@@ -84,7 +85,15 @@ declare global {
 }
 
 // Use global window object to store singleton
-const getSupabaseClient = (): SupabaseClient => {
+const getSupabaseClient = (): SupabaseClient | null => {
+  // Return null if credentials are missing (during build)
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Supabase credentials not configured');
+    }
+    return null;
+  }
+
   if (typeof window !== 'undefined') {
     // Browser: Store on window to survive hot reloads
     if (!window.__supabaseClient) {

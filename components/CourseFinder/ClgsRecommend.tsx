@@ -75,7 +75,12 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         setLoadingProfile(false)
         return
       }
-
+      if (!supabase) {
+      console.error('Supabase client not initialized')
+      setUserProfile(null)
+      setLoadingProfile(false)
+      return
+    }
       const { data, error: profileError } = await supabase
         .from("admit_profiles")
         .select("target_state, degree, test_scores")
@@ -348,6 +353,12 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         onLoadingChange(false)
         return
       }
+      if (!supabase) {
+      onErrorChange("Database connection not available")
+      onRecommendedCoursesChange([])
+      onLoadingChange(false)
+      return
+    }
 
       // Fetch all courses in batches - NOW INCLUDING is_priority
       let allCourses: Course[] = []
