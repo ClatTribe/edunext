@@ -1,5 +1,5 @@
 {
-  "name": "eduportal",
+  "name": "edunext",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,8 @@
   "dependencies": {
     "@fontsource/lato": "^5.2.7",
     "@fontsource/montserrat": "^5.2.8",
+    "@portabletext/react": "^4.0.3",
+    "@sanity/image-url": "^2.0.2",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
@@ -20,6 +22,7 @@
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.544.0",
     "next": "^16.0.7",
+    "next-sanity": "^11.7.0-canary.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.5.1",
