@@ -68,38 +68,38 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
   }, [loadingProfile, viewMode])
 
   const fetchUserProfile = async () => {
-    try {
-      setLoadingProfile(true)
-      if (!user || typeof user !== 'object' || !('id' in user)) {
-        setUserProfile(null)
-        setLoadingProfile(false)
-        return
-      }
-      if (!supabase) {
+  try {
+    setLoadingProfile(true)
+    if (!user || typeof user !== 'object' || !('id' in user)) {
+      setUserProfile(null)
+      setLoadingProfile(false)
+      return
+    }
+    if (!supabase) {
       console.error('Supabase client not initialized')
       setUserProfile(null)
       setLoadingProfile(false)
       return
     }
-      const { data, error: profileError } = await supabase
-        .from("admit_profiles")
-        .select("target_state, degree, test_scores")
-        .eq("user_id", (user as { id: string }).id)
-        .single()
+    const { data, error: profileError } = await supabase!
+      .from("admit_profiles")
+      .select("target_state, degree, test_scores")
+      .eq("user_id", (user as { id: string }).id)
+      .single()
 
-      if (profileError) {
-        console.error("Profile fetch error:", profileError)
-        setUserProfile(null)
-      } else if (data) {
-        setUserProfile(data)
-      }
-    } catch (err) {
-      console.error("Error fetching profile:", err)
+    if (profileError) {
+      console.error("Profile fetch error:", profileError)
       setUserProfile(null)
-    } finally {
-      setLoadingProfile(false)
+    } else if (data) {
+      setUserProfile(data)
     }
+  } catch (err) {
+    console.error("Error fetching profile:", err)
+    setUserProfile(null)
+  } finally {
+    setLoadingProfile(false)
   }
+}
 
   const normalizeStateName = (state: string): string => {
     return state.toLowerCase().trim().replace(/\s+/g, " ")
@@ -354,11 +354,11 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
         return
       }
       if (!supabase) {
-      onErrorChange("Database connection not available")
-      onRecommendedCoursesChange([])
-      onLoadingChange(false)
-      return
-    }
+        onErrorChange("Database connection not available")
+        onRecommendedCoursesChange([])
+        onLoadingChange(false)
+        return
+      }
 
       // Fetch all courses in batches - NOW INCLUDING is_priority
       let allCourses: Course[] = []
@@ -367,7 +367,7 @@ const ClgsRecommend: React.FC<ClgsRecommendProps> = ({
       let hasMore = true
 
       while (hasMore) {
-        const { data, error: supabaseError } = await supabase
+        const { data, error: supabaseError } = await supabase!
           .from("courses")
           .select(
             'id, Rank, "College Name", Location, City, State, Approvals, "CD Score", "Course Fees", "Average Package", "Highest Package", "Placement %", "Placement Score", "User Rating", "User Reviews", Ranking, Specialization, "Application Link", scholarship, entrance_exam, is_priority'
