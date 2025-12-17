@@ -27,7 +27,7 @@ function BackgroundImage() {
   return (
     <div>
         <Image className='relative object-cover h-[700px] lg:hidden' src={landing} alt='' />
-        <div className='Imagetext ml-[5%] absolute top-[75%]'>
+        <div className='Imagetext ml-[5%] absolute top-[55%]'>
         <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -74,7 +74,7 @@ function BackgroundImage() {
             backgroundClip: 'text'
           }}>Without the Noise.</span>
         </motion.h1>
-          {/* <motion.p
+          <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
@@ -83,22 +83,22 @@ function BackgroundImage() {
               >
                 EduNext helps you find the right course, secure scholarships, and
                 connect with alumni—all while keeping your data 100% private.
-              </motion.p> */}
-              {/* <motion.div
+              </motion.p>
+              <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
     >
       <Link href={user ? "/home" : "/register"}>
         <button
-          className="sm:px-8 sm:py-4 p-[15px] font-semibold rounded-full text-lg inline-flex items-center gap-2 cursor-pointer shadow-xl hover:-translate-y-1 transition-all"
-          style={{ backgroundColor: primary, color: "white" }}
+          className="sm:px-8 h-[45px] whitespace-nowrap sm:py-4 p-4 font-bold rounded-lg transition-all flex items-center justify-center gap-2 group shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:scale-105"
+          style={{ backgroundColor: primary, color: "black" }}
         >
           {user ? "Go to Dashboard" : "Get Started"}
           <ArrowRight size={20} />
         </button>
       </Link>
-    </motion.div> */}
+    </motion.div>
         </div>
     </div>
   )
