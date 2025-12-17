@@ -46,25 +46,25 @@ const useCollegeComparison = ({ user, courses }: CollegeComparisonProps) => {
 
   // Fetch compare colleges from database (for logged-in users)
   const fetchCompareCollegesFromDB = async () => {
-    if (!user || courses.length === 0) return
+  if (!user || courses.length === 0) return
 
-    try {
-      const { data: compareData, error: compareError } = await supabase
-        .from("compare_colleges")
-        .select("college_id")
-        .eq("user_id", user.id)
+  try {
+    const { data: compareData, error: compareError } = await supabase!
+      .from("compare_colleges")
+      .select("college_id")
+      .eq("user_id", user.id)
 
-      if (compareError) throw compareError
+    if (compareError) throw compareError
 
-      if (compareData && compareData.length > 0) {
-        const collegeIds = compareData.map(item => item.college_id)
-        const selectedColleges = courses.filter(c => collegeIds.includes(c.id))
-        setCompareColleges(selectedColleges)
-      }
-    } catch (err) {
-      console.error("Error fetching compare colleges:", err)
+    if (compareData && compareData.length > 0) {
+      const collegeIds = compareData.map(item => item.college_id)
+      const selectedColleges = courses.filter(c => collegeIds.includes(c.id))
+      setCompareColleges(selectedColleges)
     }
+  } catch (err) {
+    console.error("Error fetching compare colleges:", err)
   }
+}
 
   // Fetch compare colleges from localStorage (for non-logged-in users)
   const fetchCompareCollegesFromLocalStorage = () => {
@@ -88,21 +88,21 @@ const useCollegeComparison = ({ user, courses }: CollegeComparisonProps) => {
     if (exists) {
       // Remove from compare
       if (user) {
-        try {
-          const { error } = await supabase
-            .from("compare_colleges")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("college_id", course.id)
+  try {
+    const { error } = await supabase!
+      .from("compare_colleges")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("college_id", course.id)
 
-          if (error) throw error
+    if (error) throw error
 
-          setCompareColleges(prev => prev.filter(c => c.id !== course.id))
-        } catch (err) {
-          console.error("Error removing from compare:", err)
-          alert("Failed to remove from comparison. Please try again.")
-        }
-      } else {
+    setCompareColleges(prev => prev.filter(c => c.id !== course.id))
+  } catch (err) {
+    console.error("Error removing from compare:", err)
+    alert("Failed to remove from comparison. Please try again.")
+  }
+} else {
         // Remove from localStorage
         const storedIds = JSON.parse(localStorage.getItem('compareColleges') || '[]')
         const updatedIds = storedIds.filter((id: number) => id !== course.id)
@@ -117,29 +117,29 @@ const useCollegeComparison = ({ user, courses }: CollegeComparisonProps) => {
       }
 
       if (user) {
-        try {
-          const { error } = await supabase
-            .from("compare_colleges")
-            .insert({
-              user_id: user.id,
-              college_id: course.id
-            })
+  try {
+    const { error } = await supabase!
+      .from("compare_colleges")
+      .insert({
+        user_id: user.id,
+        college_id: course.id
+      })
 
-          if (error) {
-            // Check if it's a duplicate error
-            if (error.code === '23505') {
-              console.log("College already in comparison")
-              return
-            }
-            throw error
-          }
+    if (error) {
+      // Check if it's a duplicate error
+      if (error.code === '23505') {
+        console.log("College already in comparison")
+        return
+      }
+      throw error
+    }
 
-          setCompareColleges(prev => [...prev, course])
-        } catch (err) {
-          console.error("Error adding to compare:", err)
-          alert("Failed to add to comparison. Please try again.")
-        }
-      } else {
+    setCompareColleges(prev => [...prev, course])
+  } catch (err) {
+    console.error("Error adding to compare:", err)
+    alert("Failed to add to comparison. Please try again.")
+  }
+} else {
         // Add to localStorage
         const storedIds = JSON.parse(localStorage.getItem('compareColleges') || '[]')
         storedIds.push(course.id)
@@ -154,27 +154,27 @@ const useCollegeComparison = ({ user, courses }: CollegeComparisonProps) => {
   }
 
   const removeFromCompare = async (courseId: number) => {
-    if (user) {
-      try {
-        const { error } = await supabase
-          .from("compare_colleges")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("college_id", courseId)
+  if (user) {
+    try {
+      const { error } = await supabase!
+        .from("compare_colleges")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("college_id", courseId)
 
-        if (error) throw error
+      if (error) throw error
 
-        setCompareColleges(prev => prev.filter(c => c.id !== courseId))
-      } catch (err) {
-        console.error("Error removing from compare:", err)
-      }
-    } else {
-      const storedIds = JSON.parse(localStorage.getItem('compareColleges') || '[]')
-      const updatedIds = storedIds.filter((id: number) => id !== courseId)
-      localStorage.setItem('compareColleges', JSON.stringify(updatedIds))
       setCompareColleges(prev => prev.filter(c => c.id !== courseId))
+    } catch (err) {
+      console.error("Error removing from compare:", err)
     }
+  } else {
+    const storedIds = JSON.parse(localStorage.getItem('compareColleges') || '[]')
+    const updatedIds = storedIds.filter((id: number) => id !== courseId)
+    localStorage.setItem('compareColleges', JSON.stringify(updatedIds))
+    setCompareColleges(prev => prev.filter(c => c.id !== courseId))
   }
+}
 
   const isInCompare = (courseId: number) => {
     return compareColleges.some(c => c.id === courseId)
