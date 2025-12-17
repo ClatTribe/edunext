@@ -25,8 +25,8 @@ const secondary = "#C77808"; // Sky Blue
 function BackgroundImage() {
   const { user } = useAuth();
   return (
-    <div>
-        <Image className='relative object-cover h-[700px] lg:hidden' src={landing} alt='' />
+    <div className='h-screen'>
+        <Image className='relative h-full object-cover lg:hidden' src={landing} alt='' />
         <div className='Imagetext ml-[5%] absolute top-[55%]'>
         <motion.div
       initial={{ opacity: 0, y: 20 }}
