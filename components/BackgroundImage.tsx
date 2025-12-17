@@ -26,7 +26,7 @@ function BackgroundImage() {
   const { user } = useAuth();
   return (
     <div>
-        <Image className='relative object-cover h-[650px] lg:hidden' src={landing} alt='' />
+        <Image className='relative object-cover h-[700px] lg:hidden' src={landing} alt='' />
         <div className='Imagetext ml-[5%] absolute top-[75%]'>
         <motion.div
       initial={{ opacity: 0, y: 20 }}
