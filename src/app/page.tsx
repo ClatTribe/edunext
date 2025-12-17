@@ -18,6 +18,7 @@ import {Features} from "../../components/Features";
 import TrustSection from "../../components/TrustSection";
 import { PainPoints } from "../../components/PainPoints";
 import TrainRoadmap from "../../components/TrainRoadmap";
+import BackgroundImage from '../../components/BackgroundImage'
 
 // BRAND COLORS - Updated to match provided scheme
 const primary = "#F59E0B"; // Indigo
@@ -94,7 +95,7 @@ const Navbar: React.FC = () => {
             alt="EduNext Logo"
             width={32}
             height={32}
-            className="h-12 w-40   object-contain"
+            className="h-12 w-40  object-contain"
           />
         </Link>
 
@@ -298,10 +299,10 @@ export default function Hero() {
   return (
     <>
       <Navbar />
-
+      <BackgroundImage/>
       {/* HERO SECTION */}
-      <section className="relative pt-36 pb-20 overflow-hidden" style={{ backgroundColor: bgDark }}>
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-20" 
+      <section className=" relative pt-5 sm:pt-36 pb-20 overflow-hidden" style={{ backgroundColor: bgDark }}>
+        <div className="absolute hidden sm:block inset-0 z-0 pointer-events-none opacity-20" 
           style={{
             backgroundImage: 'linear-gradient(to right, rgba(99, 102, 241, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(99, 102, 241, 0.1) 1px, transparent 1px)',
             backgroundSize: '4rem 4rem'
@@ -309,7 +310,7 @@ export default function Hero() {
         />
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
-          <div className="flex flex-col md:flex-row items-center gap-10 mb-12 sm:mb-20">
+          <div className="sm:flex hidden flex-col md:flex-row items-center gap-10 mb-12 sm:mb-20">
   {/* LEFT SIDE - Text Content */}
   <motion.div
     initial={{ opacity: 0, x: -50 }}
