@@ -1,5 +1,6 @@
 // src/app/blogs/[slug]/page.tsx
 'use client'; // This is a client component
+export const dynamic = 'force-dynamic'; 
 
 import { useEffect, useState } from 'react';
 import { PortableText } from '@portabletext/react';
