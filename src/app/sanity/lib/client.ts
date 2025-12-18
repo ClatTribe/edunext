@@ -13,17 +13,15 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: process.env.NODE_ENV === 'production', 
-  // Add the token for previewing drafts/private content
+  useCdn: false, // ← CHANGE THIS LINE - Now always false
   token: process.env.SANITY_API_READ_TOKEN, 
 });
 
-// Add helper for live queries if you plan to use them with 'use client' components
 export const liveClient = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: false, // Live queries never use the CDN
-  token: process.env.SANITY_API_READ_TOKEN, // Requires token
+  useCdn: false,
+  token: process.env.SANITY_API_READ_TOKEN,
   perspective: 'previewDrafts',
 });
