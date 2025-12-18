@@ -52,10 +52,43 @@ const components = {
     h2: ({ children }: any) => <h2 className="text-2xl font-bold mt-6 mb-3">{children}</h2>,
     h3: ({ children }: any) => <h3 className="text-xl font-bold mt-4 mb-2">{children}</h3>,
     normal: ({ children }: any) => <p className="mb-4 leading-relaxed">{children}</p>,
+    blockquote: ({ children }: any) => (
+      <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-700">
+        {children}
+      </blockquote>
+    ),
   },
+  
+  // THIS IS THE KEY PART YOU WERE MISSING!
+  list: {
+    bullet: ({ children }: any) => (
+      <ul className="list-disc list-outside ml-6 mb-4 space-y-2">{children}</ul>
+    ),
+    number: ({ children }: any) => (
+      <ol className="list-decimal list-outside ml-6 mb-4 space-y-2">{children}</ol>
+    ),
+  },
+  
+  listItem: {
+    bullet: ({ children }: any) => <li className="leading-relaxed">{children}</li>,
+    number: ({ children }: any) => <li className="leading-relaxed">{children}</li>,
+  },
+  
   marks: {
+    strong: ({ children }: any) => <strong className="font-bold">{children}</strong>,
+    em: ({ children }: any) => <em className="italic">{children}</em>,
+    code: ({ children }: any) => (
+      <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
+        {children}
+      </code>
+    ),
     link: ({ children, value }: any) => (
-      <a href={value.href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+      <a 
+        href={value.href} 
+        className="text-blue-600 hover:underline" 
+        target="_blank" 
+        rel="noopener noreferrer"
+      >
         {children}
       </a>
     ),
@@ -76,13 +109,12 @@ async function getPost(slug: string): Promise<Post | null> {
   return post;
 }
 
-// CRITICAL FIX: Await params in Next.js 15+
 export default async function PostPage({ 
   params 
 }: { 
   params: Promise<{ slug: string }> 
 }) {
-  const { slug } = await params; // <-- THIS IS THE FIX
+  const { slug } = await params;
   const post = await getPost(slug);
 
   if (!post) {

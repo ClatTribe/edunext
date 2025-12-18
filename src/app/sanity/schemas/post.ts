@@ -1,4 +1,6 @@
-export default {
+import { defineType } from 'sanity';
+
+export default defineType({
   name: 'post',
   title: 'Blog Post',
   type: 'document',
@@ -7,7 +9,7 @@ export default {
       name: 'title',
       title: 'Title',
       type: 'string',
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule) => Rule.required(),
     },
     {
       name: 'slug',
@@ -17,7 +19,7 @@ export default {
         source: 'title',
         maxLength: 96,
       },
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule) => Rule.required(),
     },
     {
       name: 'excerpt',
@@ -32,7 +34,14 @@ export default {
       type: 'array',
       of: [
         { type: 'block' },
-        { type: 'table' },
+        { 
+          type: 'table',
+          title: 'Simple Table'
+        },
+        { 
+          type: 'enhancedTable',
+          title: 'Enhanced Table (with preview)'
+        },
         {
           type: 'image',
           options: { hotspot: true },
@@ -59,4 +68,4 @@ export default {
       subtitle: 'publishedAt',
     },
   },
-};
+});

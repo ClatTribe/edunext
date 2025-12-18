@@ -424,7 +424,7 @@ export default function Hero() {
           {/* FEATURES + PREVIEW */}
           <div className="text-center mt-5 mb-10 relative z-10">
            <h2 className="text-4xl  md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-5xl mx-auto
-  bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
+  bg-linear-to-r from-[#FCD34D] to-[#F59E0B]
   bg-clip-text text-transparent">
   Our features
 </h2>
