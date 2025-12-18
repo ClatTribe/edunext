@@ -29,6 +29,7 @@
     "react-dom": "19.1.0",
     "recharts": "^3.5.1",
     "sanity": "^5.0.1",
+    "styled-components": "^6.1.19",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.1.13"
   },

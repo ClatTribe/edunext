@@ -1,16 +1,15 @@
-import { defineType, defineField } from 'sanity';
-
-export default defineType({
+export default {
   name: 'post',
   title: 'Blog Post',
   type: 'document',
   fields: [
-    defineField({
+    {
       name: 'title',
       title: 'Title',
       type: 'string',
-    }),
-    defineField({
+      validation: (Rule: any) => Rule.required(),
+    },
+    {
       name: 'slug',
       title: 'Slug',
       type: 'slug',
@@ -18,26 +17,46 @@ export default defineType({
         source: 'title',
         maxLength: 96,
       },
-    }),
-    // This is the main content area where you will paste from Word
-    defineField({
+      validation: (Rule: any) => Rule.required(),
+    },
+    {
+      name: 'excerpt',
+      title: 'Excerpt',
+      type: 'text',
+      rows: 3,
+      description: 'Short description for the blog list page',
+    },
+    {
       name: 'content',
       title: 'Content',
       type: 'array',
       of: [
+        { type: 'block' },
+        { type: 'table' },
         {
-          type: 'block', // Standard paragraphs, H1-H6, lists, bold/italics
-          styles: [{title: 'Normal', value: 'normal'}, {title: 'H2', value: 'h2'}],
-          lists: [{title: 'Bullet', value: 'bullet'}, {title: 'Numbered', value: 'number'}],
-          marks: {
-            decorators: [{title: 'Strong', value: 'strong'}, {title: 'Emphasis', value: 'em'}],
-            annotations: [{title: 'URL', name: 'link', type: 'object', fields: [{type: 'url', name: 'href'}]}],
-          },
-        },
-        {
-          type: 'table', // <-- This adds the ability to insert tables
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            {
+              name: 'alt',
+              type: 'string',
+              title: 'Alternative text',
+            },
+          ],
         },
       ],
-    }),
+    },
+    {
+      name: 'publishedAt',
+      title: 'Published at',
+      type: 'datetime',
+      initialValue: () => new Date().toISOString(),
+    },
   ],
-});
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'publishedAt',
+    },
+  },
+};

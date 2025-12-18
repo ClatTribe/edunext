@@ -1,24 +1,24 @@
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 import { visionTool } from '@sanity/vision';
-import { table } from '@sanity/table'; // Import the table plugin
-import post from './schemas/post'; // Import your schema
+import { table } from '@sanity/table';
+import post from './schemas/post';
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID as string;
-const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET as string;
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET!;
 
 export default defineConfig({
-  basePath: '/studio', // Studio will live at /studio route in Next.js
+  basePath: '/studio',
   projectId,
   dataset,
   name: 'edunext-studio',
-  title: 'EDUNEXT Dashboard',
+  title: 'EduNext Blog Dashboard',
   plugins: [
-    structureTool(), 
-    visionTool(), 
-    table() // <-- Enable the table tool visually
+    structureTool(),
+    visionTool(),
+    table()
   ],
   schema: {
-    types: [post], // Add your post schema here
+    types: [post],
   },
 });
