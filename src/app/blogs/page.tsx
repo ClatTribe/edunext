@@ -43,12 +43,12 @@ export default async function BlogIndexPage() {
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-4">
             <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center"
+              className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{ backgroundColor: accentColor }}
             >
-              <BookOpen className="text-white" size={24} />
+              <BookOpen className="text-white" size={20} />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white">
+            <h1 className="text-2xl md:text-4xl font-bold text-white">
               Latest Blog Posts
             </h1>
           </div>
