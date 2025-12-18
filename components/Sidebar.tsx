@@ -80,8 +80,8 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
   const handleLogout = async () => {
     try {
-      setIsLoggingOut(true);
       await onSignOut();
+      setIsLoggingOut(true);
       router.push("/register");
     } catch (error) {
       console.error("Logout error:", error);
@@ -222,7 +222,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
               <div className="flex items-center gap-2 min-w-0">
                 <div className="text-sm text-slate-400 shrink-0">Welcome,</div>
                 <div 
-                  className="font-semibold truncate"
+                  className="font-semibold truncate lowercase first-letter:uppercase"
                   style={{ color: accentColor }}
                 >
                   {userName}
@@ -386,7 +386,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
           {/* Logout Button - Always visible at bottom */}
           <div 
-            className="p-4 pt-0 border-t"
+            className="p-3  pt-0 border-t"
             style={{ 
               borderColor: borderColor,
               background: `linear-gradient(to bottom, ${primaryBg}, ${secondaryBg})`
@@ -400,7 +400,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
               disabled={isLoggingOut}
               onMouseEnter={() => setIsLogoutHovered(true)}
               onMouseLeave={() => setIsLogoutHovered(false)}
-              className="flex items-center justify-between gap-3 p-3 w-full text-left rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex  mt-3 items-center justify-between gap-3 p-3 w-full text-left rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor: secondaryBg,
                 borderColor: borderColor,
@@ -408,7 +408,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
                 color: accentColor,
               }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 ">
                 {isLoggingOut ? (
                   <div 
                     className="animate-spin rounded-full h-4 w-4 border-b-2"
