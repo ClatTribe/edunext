@@ -39,7 +39,8 @@ export const useSavedCourses = (user: unknown) => {
     if (!user || typeof user !== 'object' || !('id' in user)) return
     
     try {
-      const { data, error } = await supabase
+      // Line 42 - Add ! here
+      const { data, error } = await supabase!
         .from("shortlist_builder")
         .select("course_id")
         .eq("user_id", (user as { id: string }).id)
@@ -70,7 +71,8 @@ export const useSavedCourses = (user: unknown) => {
     try {
       const isSaved = savedCourses.has(course.id)
       if (isSaved) {
-        const { error } = await supabase
+        // Line 73 - Add ! here
+        const { error } = await supabase!
           .from("shortlist_builder")
           .delete()
           .eq("user_id", userId)
@@ -85,7 +87,8 @@ export const useSavedCourses = (user: unknown) => {
           return newSet
         })
       } else {
-        const { error } = await supabase.from("shortlist_builder").insert({
+        // Line 88 - Add ! here
+        const { error } = await supabase!.from("shortlist_builder").insert({
           user_id: userId,
           item_type: "course",
           course_id: course.id,
