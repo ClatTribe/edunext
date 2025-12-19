@@ -18,12 +18,12 @@ export const metadata: Metadata = {
   description: "Find Your Perfect College, scholarships, and connect with admits",
     icons: {
     icon: [
-      { url: '/favion.png', sizes: '48x48', type: 'image/png' },
-      { url: '/favion.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favion.png', sizes: '16x16', type: 'image/png' },
+      { url: '/Edu.png', sizes: '48x48', type: 'image/png' },
+      { url: '/Edu.png', sizes: '32x32', type: 'image/png' },
+      { url: '/Edu.png', sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/favion.png',
-    shortcut: '/favion.png',
+    apple: '/Edu.png',
+    shortcut: '/Edu.png',
   },
 };
 
