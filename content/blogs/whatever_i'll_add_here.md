@@ -47,7 +47,7 @@ Nested numbered lists:
 
 ## Mixed Lists
 
-Combining bullets and numbers:
+**Combining bullets and numbers:**
 1. **Phase 1: Planning**
    - Define objectives
    - Identify stakeholders

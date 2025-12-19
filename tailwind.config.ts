@@ -1,18 +1,24 @@
 // tailwind.config.ts
+import type { Config } from 'tailwindcss';
 
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+const config: Config = {
   content: [
-    // This is the standard configuration for Next.js App Router:
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        montserrat: ['var(--font-montserrat)', 'sans-serif'],
+        lato: ['var(--font-lato)', 'sans-serif'],
+      },
+    },
   },
   plugins: [
     require('tailwind-scrollbar'),
-    require('@tailwindcss/typography'), // <-- ADD THIS LINE
+    require('@tailwindcss/typography'),
   ],
-}
+};
+
+export default config;

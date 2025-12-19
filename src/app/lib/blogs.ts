@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { marked } from 'marked';
+import { remark } from 'remark';
+import html from 'remark-html';
+import remarkGfm from 'remark-gfm';
+import { cache } from 'react'; // Optional: Use for App Router performance
 
 const blogsDirectory = path.join(process.cwd(), 'content/blogs');
 
@@ -16,33 +19,29 @@ export interface BlogPost {
   content: string;
 }
 
-// Configure marked for better table support
-marked.setOptions({
-  gfm: true, // GitHub Flavored Markdown (tables)
-  breaks: true,
-});
-
-export function getAllBlogSlugs() {
-  const fileNames = fs.readdirSync(blogsDirectory);
-  return fileNames
-    .filter((fileName) => fileName.endsWith('.md'))
-    .map((fileName) => ({
-      slug: fileName.replace(/\.md$/, ''),
-    }));
-}
-
-export async function getBlogBySlug(slug: string): Promise<BlogPost> {
+// Wrapping with cache prevents redundant file reads if the same 
+// slug is requested in generateMetadata and the Page component.
+export const getBlogBySlug = cache(async (slug: string): Promise<BlogPost> => {
   const fullPath = path.join(blogsDirectory, `${slug}.md`);
+  
+  if (!fs.existsSync(fullPath)) {
+    throw new Error(`Blog post not found: ${slug}`);
+  }
+  
   const fileContents = fs.readFileSync(fullPath, 'utf8');
-
   const { data, content } = matter(fileContents);
 
-  // Convert markdown to HTML using marked
-  const contentHtml = marked(content);
+  // Process markdown to HTML
+  const processedContent = await remark()
+    .use(remarkGfm)
+    .use(html)
+    .process(content);
+    
+  const contentHtml = processedContent.toString();
 
   return {
     slug,
-    content: contentHtml as string,
+    content: contentHtml,
     title: data.title || 'Untitled',
     date: data.date || new Date().toISOString(),
     author: data.author,
@@ -50,6 +49,14 @@ export async function getBlogBySlug(slug: string): Promise<BlogPost> {
     coverImage: data.coverImage,
     tags: data.tags || [],
   };
+});
+
+export function getAllBlogSlugs() {
+  if (!fs.existsSync(blogsDirectory)) return [];
+  const fileNames = fs.readdirSync(blogsDirectory);
+  return fileNames
+    .filter((fileName) => fileName.endsWith('.md'))
+    .map((fileName) => ({ slug: fileName.replace(/\.md$/, '') }));
 }
 
 export async function getAllBlogs(): Promise<BlogPost[]> {
@@ -57,6 +64,7 @@ export async function getAllBlogs(): Promise<BlogPost[]> {
   const blogs = await Promise.all(
     slugs.map(({ slug }) => getBlogBySlug(slug))
   );
-
-  return blogs.sort((a, b) => (a.date > b.date ? -1 : 1));
+  
+  // Sorts by date descending (Newest first)
+  return blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }

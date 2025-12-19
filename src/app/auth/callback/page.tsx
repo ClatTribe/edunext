@@ -156,7 +156,7 @@ const processUserSession = async (user: AuthUser) => {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#eaf2ff] to-[#cddfff] p-8">
+    <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-[#eaf2ff] to-[#cddfff] p-8">
   <div className="max-w-4xl w-full">
     <div className="bg-white rounded-lg shadow-2xl p-8">
       <div className="text-center mb-6">
