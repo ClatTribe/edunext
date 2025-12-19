@@ -1,8 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Remove the experimental.turbo section - it's not needed in Next.js 16
-  // Turbopack is now built-in and doesn't require this configuration
+  // Add images configuration for Cloudinary
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+    ],
+  },
   
   // Webpack config for fallbacks
   webpack: (config, { isServer }) => {

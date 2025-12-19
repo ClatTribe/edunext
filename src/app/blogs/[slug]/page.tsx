@@ -1,244 +1,96 @@
-export const revalidate = 0;
-import { client } from '../../sanity/lib/client';
-import { PortableText } from '@portabletext/react';
+import { getBlogBySlug, getAllBlogSlugs } from '../../lib/blogs';
+// import { getBlogBySlug } from '@/app/lib/blogs';
 import { notFound } from 'next/navigation';
-import { urlForImage } from '../../sanity/lib/image';
-import { Calendar, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import Image from 'next/image';
 
-interface Post {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  content: any[];
-  publishedAt?: string;
+interface BlogPageProps {
+  params: Promise<{
+    slug: string;
+  }>;
 }
 
-const accentColor = '#F59E0B';
-const primaryBg = '#050818';
-const secondaryBg = '#0F172B';
-const borderColor = 'rgba(245, 158, 11, 0.15)';
-
-const components = {
-  types: {
-    table: ({ value }: { value: any }) => (
-      <div className="overflow-x-auto my-6">
-        <table className="min-w-full rounded-lg overflow-hidden" style={{ border: `1px solid ${borderColor}` }}>
-          <tbody>
-            {value.rows.map((row: any, i: number) => (
-              <tr key={i} style={{ borderBottom: `1px solid ${borderColor}` }}>
-                {row.cells.map((cell: string, j: number) => (
-                  <td key={j} className="p-3 text-slate-300" style={{ borderRight: `1px solid ${borderColor}` }}>
-                    {cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    ),
-    image: ({ value }: { value: any }) => {
-      if (!value?.asset?._ref) return null;
-      return (
-        <div className="my-8">
-          <img
-            src={urlForImage(value).url()}
-            alt={value.alt || 'Blog image'}
-            className="rounded-xl w-full shadow-2xl"
-            style={{ border: `1px solid ${borderColor}` }}
-          />
-          {value.alt && (
-            <p className="text-sm text-slate-500 text-center mt-3">{value.alt}</p>
-          )}
-        </div>
-      );
-    },
-  },
-  block: {
-    h1: ({ children }: any) => (
-      <h1 className="text-3xl md:text-4xl font-bold mt-8 mb-4 text-white">
-        {children}
-      </h1>
-    ),
-    h2: ({ children }: any) => (
-      <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-3 text-white">
-        {children}
-      </h2>
-    ),
-    h3: ({ children }: any) => (
-      <h3 className="text-xl md:text-2xl font-bold mt-4 mb-2 text-white">
-        {children}
-      </h3>
-    ),
-    normal: ({ children }: any) => (
-      <p className="mb-4 leading-relaxed text-slate-300">
-        {children}
-      </p>
-    ),
-    blockquote: ({ children }: any) => (
-      <blockquote 
-        className="pl-6 italic my-6 text-slate-400 rounded-r-lg py-4"
-        style={{ 
-          borderLeft: `4px solid ${accentColor}`,
-          backgroundColor: 'rgba(245, 158, 11, 0.05)'
-        }}
-      >
-        {children}
-      </blockquote>
-    ),
-  },
-  
-  list: {
-    bullet: ({ children }: any) => (
-      <ul className="list-disc list-outside ml-6 mb-4 space-y-2 text-slate-300">
-        {children}
-      </ul>
-    ),
-    number: ({ children }: any) => (
-      <ol className="list-decimal list-outside ml-6 mb-4 space-y-2 text-slate-300">
-        {children}
-      </ol>
-    ),
-  },
-  
-  listItem: {
-    bullet: ({ children }: any) => (
-      <li className="leading-relaxed text-slate-300">
-        {children}
-      </li>
-    ),
-    number: ({ children }: any) => (
-      <li className="leading-relaxed text-slate-300">
-        {children}
-      </li>
-    ),
-  },
-  
-  marks: {
-    strong: ({ children }: any) => (
-      <strong className="font-bold text-white">
-        {children}
-      </strong>
-    ),
-    em: ({ children }: any) => (
-      <em className="italic text-slate-300">
-        {children}
-      </em>
-    ),
-    code: ({ children }: any) => (
-      <code 
-        className="px-2 py-1 rounded text-sm font-mono"
-        style={{ 
-          backgroundColor: secondaryBg,
-          color: accentColor,
-          border: `1px solid ${borderColor}`
-        }}
-      >
-        {children}
-      </code>
-    ),
-    link: ({ children, value }: any) => (
-      <a 
-        href={value.href}
-        className="hover:underline transition-all font-medium"
-        style={{ color: accentColor }}
-        target="_blank" 
-        rel="noopener noreferrer"
-      >
-        {children}
-      </a>
-    ),
-  },
-};
-
-async function getPost(slug: string): Promise<Post | null> {
-  const post = await client.fetch(
-    `*[_type == "post" && slug.current == $slug][0] {
-      _id,
-      title,
-      slug,
-      content,
-      publishedAt
-    }`,
-    { slug }
-  );
-  return post;
+export async function generateStaticParams() {
+  const slugs = getAllBlogSlugs();
+  return slugs.map(({ slug }) => ({
+    slug: slug,
+  }));
 }
 
-export default async function PostPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
-  const { slug } = await params;
-  const post = await getPost(slug);
+export async function generateMetadata({ params }: BlogPageProps) {
+  const resolvedParams = await params;
+  try {
+    const blog = await getBlogBySlug(resolvedParams.slug);
+    
+    return {
+      title: blog.title,
+      description: blog.excerpt || `Read ${blog.title}`,
+    };
+  } catch (error) {
+    return {
+      title: 'Blog Post Not Found',
+    };
+  }
+}
 
-  if (!post) {
+export default async function BlogPage({ params }: BlogPageProps) {
+  const resolvedParams = await params;
+  let blog;
+  
+  try {
+    blog = await getBlogBySlug(resolvedParams.slug);
+  } catch (error) {
     notFound();
   }
 
   return (
-    <div 
-      className="min-h-screen w-full"
-      style={{ backgroundColor: primaryBg }}
-    >
-      <article className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
-        {/* Back Button */}
-        <Link 
-          href="/blogs"
-          className="inline-flex items-center gap-2 mb-8 text-slate-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft size={20} />
-          <span>Back to all posts</span>
-        </Link>
-
-        {/* Post Header */}
-        <div 
-          className="rounded-2xl shadow-xl p-8 md:p-10 mb-8 backdrop-blur-xl"
-          style={{ 
-            backgroundColor: secondaryBg,
-            border: `1px solid ${borderColor}`
-          }}
-        >
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 text-white">
-            {post.title}
-          </h1>
-          
-          {post.publishedAt && (
-            <div className="flex items-center gap-2 text-slate-400">
-              <Calendar size={18} />
-              <p>
-                {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
-            </div>
-          )}
+    <article className="container mx-auto px-4 py-8 max-w-4xl">
+      <header className="mb-8">
+        <h1 className="text-5xl font-bold mb-4">{blog.title}</h1>
+        
+        <div className="flex flex-wrap gap-4 text-gray-600 mb-4">
+          <time dateTime={blog.date}>
+            {new Date(blog.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </time>
+          {blog.author && <span>By {blog.author}</span>}
         </div>
         
-        {/* Post Content */}
-        <div 
-          className="rounded-2xl shadow-xl p-8 md:p-10 backdrop-blur-xl"
-          style={{ 
-            backgroundColor: secondaryBg,
-            border: `1px solid ${borderColor}`
-          }}
-        >
-          <div className="prose prose-lg max-w-none">
-            <PortableText value={post.content} components={components} />
+        {blog.tags && blog.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {blog.tags.map((tag: string) => (
+              <span
+                key={tag}
+                className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
-        </div>
-      </article>
-    </div>
-  );
-}
+        )}
+      </header>
 
-export async function generateStaticParams() {
-  const posts = await client.fetch(`*[_type == "post"]{ slug }`);
-  return posts.map((post: any) => ({
-    slug: post.slug.current,
-  }));
+      {blog.coverImage && (
+        <div className="relative w-full h-96 mb-8 rounded-lg overflow-hidden">
+          <Image
+            src={blog.coverImage}
+            alt={blog.title}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      <div
+        className="prose prose-lg prose-slate max-w-none
+          prose-table:w-full prose-table:border-collapse
+          prose-th:border prose-th:border-gray-300 prose-th:bg-gray-100 prose-th:p-3 prose-th:text-left
+          prose-td:border prose-td:border-gray-300 prose-td:p-3
+          prose-tr:even:bg-gray-50"
+        dangerouslySetInnerHTML={{ __html: blog.content }}
+      />
+    </article>
+  );
 }
