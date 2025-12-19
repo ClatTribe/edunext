@@ -16,7 +16,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: BlogPageProps) {
-  const { slug } = await params; // Destructure here for cleaner code
+  const { slug } = await params;
   try {
     const blog = await getBlogBySlug(slug);
     return {
@@ -39,19 +39,31 @@ export default async function BlogPage({ params }: BlogPageProps) {
   }
 
   return (
-    <article className="container mx-auto px-4 py-12 max-w-4xl">
-      <header className="mb-12">
-        {/* Using font-montserrat utility if needed, though global.css handles it */}
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-slate-900 leading-tight">
+    <article className="container mx-auto px-4 py-8 max-w-4xl">
+      
+      {/* IMAGE CHANGE: Increased from h-72 to h-96 (384px height) */}
+      {blog.coverImage && (
+        <div className="relative w-full h-96 aspect-video mb-8 rounded-lg overflow-hidden shadow-lg">
+          <Image
+            src={blog.coverImage}
+            alt={blog.title}
+            fill
+            priority
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      {/* HEADER SECTION: Title, Date, Author, Tags */}
+      <header className="mb-8">
+        {/* <h1 className="text-3xl md:text-4xl font-extrabold mb-4 text-slate-900 leading-tight">
           {blog.title}
-        </h1>
+        </h1> */}
         
-        <div className="flex items-center gap-4 text-slate-500 mb-6">
+        <div className="flex items-center gap-4 text-slate-500 mb-4 text-sm md:text-base">
           <time className="font-medium">
             {new Date(blog.date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
+              year: 'numeric', month: 'long', day: 'numeric',
             })}
           </time>
           {blog.author && (
@@ -76,25 +88,9 @@ export default async function BlogPage({ params }: BlogPageProps) {
         )}
       </header>
 
-      {blog.coverImage && (
-        <div className="relative aspect-video w-full mb-12 rounded-2xl overflow-hidden shadow-xl">
-          <Image
-            src={blog.coverImage}
-            alt={blog.title}
-            fill
-            priority // Better for LCP (Largest Contentful Paint)
-            className="object-cover"
-          />
-        </div>
-      )}
-
-      {/* 
-          CLEANED UP CLASSES:
-          Since we moved table borders and fonts to globals.css,
-          we only need the base prose classes here.
-      */}
+      {/* CONTENT AREA: Uses prose-base size for content below the H1 */}
       <div
-        className="prose prose-lg prose-slate max-w-none 
+        className="prose prose-base prose-slate max-w-none 
           prose-headings:scroll-mt-20 
           prose-img:rounded-xl 
           prose-pre:bg-slate-900"
