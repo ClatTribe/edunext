@@ -12,9 +12,9 @@ import {
   ThumbsUp,
   Menu,
   X,
-  Calculator,
   FileCheck,
   TrendingUp,
+  SearchCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -60,6 +60,11 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       icon: TrendingUp,
       label: "Cat Percentile Predictor",
       path: "/cat-percentile-predictor",
+    },
+    {
+      icon: SearchCheck,
+      label: "Cat College Predictor",
+      path: "/cat-college-predictor",
     },
     {
       icon: FileCheck,
