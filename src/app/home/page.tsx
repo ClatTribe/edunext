@@ -9,7 +9,7 @@ import {
   TrendingUp, 
   AlertCircle, 
   Target,
-  Sparkles,
+  SearchCheck,
   ArrowRight,
   User,
   CheckCircle2,
@@ -562,7 +562,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
     <Target style={{ color: accentColor }} size={24} />
     <h2 className="text-xl md:text-2xl font-semibold text-white">Our Tools</h2>
   </div>
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
     {/* Cat Percentile Predictor */}
     <button 
       onClick={() => router.push('/cat-percentile-predictor')}
@@ -589,6 +589,39 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       />
       <div className="flex-1 min-w-0">
         <div className="font-bold text-white mb-0.5 text-sm md:text-base">Cat Percentile Predictor</div>
+        <div className="text-xs text-slate-400 truncate">Predict your CAT score</div>
+      </div>
+      <ArrowRight 
+        style={{ color: accentColor }}
+        className="group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
+      />
+    </button>
+    <button 
+      onClick={() => router.push('/cat-college-predictor')}
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
+      style={{ 
+        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+        border: `1px solid ${borderColor}`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = `0 10px 30px rgba(99, 102, 241, 0.2)`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <SearchCheck
+        style={{ color: accentColor }}
+        className="flex-shrink-0" 
+        size={24} 
+      />
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">Cat College Predictor</div>
         <div className="text-xs text-slate-400 truncate">Predict your CAT score</div>
       </div>
       <ArrowRight 

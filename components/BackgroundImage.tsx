@@ -63,7 +63,7 @@ function BackgroundImage() {
             backgroundClip: 'text'
           }}
         >
-          Your Dream MBA College
+          Find Dream MBA Colleges
           <br />
           <span style={{ 
             background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`,
