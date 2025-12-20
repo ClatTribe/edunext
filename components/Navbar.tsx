@@ -42,23 +42,26 @@ export const Navbar: React.FC = () => {
         {/* DESKTOP MENU */}
         <div className="hidden md:flex items-center gap-10">
           <a
-            href="#features"
-            className="text-sm font-medium text-slate-600 hover:text-[#2f61ce] transition-colors"
+            href="/blogs"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
-            Features
+            Blogs
           </a>
-          <a
+          {/* <a
             href="#mission"
-            className="text-sm font-medium text-slate-600 hover:text-[#2f61ce] transition-colors"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
             Our Mission
           </a>
           <a
             href="#trust"
-            className="text-sm font-medium text-slate-600 hover:text-[#2f61ce] transition-colors"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
             Why Us
-          </a>
+          </a> */}
 
           {/* AUTH BLOCK */}
           {user ? (
@@ -133,26 +136,26 @@ export const Navbar: React.FC = () => {
           )}
 
           <a
-            href="#features"
-            className="text-lg font-medium text-slate-800"
-            onClick={() => setMobileMenuOpen(false)}
+            href="/blogs"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
-            Features
+            Blogs
           </a>
-          <a
+          {/* <a
             href="#mission"
-            className="text-lg font-medium text-slate-800"
-            onClick={() => setMobileMenuOpen(false)}
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
             Our Mission
           </a>
           <a
             href="#trust"
-            className="text-lg font-medium text-slate-800"
-            onClick={() => setMobileMenuOpen(false)}
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
           >
             Why Us
-          </a>
+          </a> */}
 
           <hr className="border-slate-200" />
 

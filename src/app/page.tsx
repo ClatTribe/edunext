@@ -102,18 +102,18 @@ const Navbar: React.FC = () => {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
           <a
-            href="#features"
+            href="/blogs"
             className="text-sm font-medium transition-colors cursor-pointer"
             style={{ color: "#94a3b8" }}
           >
-            Features
+            Blogs
           </a>
-          <a
+          {/* <a
             href="#mission"
             className="text-sm font-medium transition-colors cursor-pointer"
             style={{ color: "#94a3b8" }}
           >
-            Our Mission
+            Our
           </a>
           <a
             href="#trust"
@@ -121,7 +121,7 @@ const Navbar: React.FC = () => {
             style={{ color: "#94a3b8" }}
           >
             Why Us
-          </a>
+          </a> */}
 
           {user ? (
             <>
@@ -209,13 +209,13 @@ const Navbar: React.FC = () => {
           )}
 
           <a
-            href="#features"
+            href="/blogs"
             className="text-lg font-medium cursor-pointer"
             style={{ color: "#f8fafc" }}
           >
-            Features
+            Blogs
           </a>
-          <a
+          {/* <a
             href="#mission"
             className="text-lg font-medium cursor-pointer"
             style={{ color: "#f8fafc" }}
@@ -228,7 +228,7 @@ const Navbar: React.FC = () => {
             style={{ color: "#f8fafc" }}
           >
             Why Us
-          </a>
+          </a> */}
 
           <hr style={{ borderColor: "rgba(99, 102, 241, 0.1)" }} />
 
