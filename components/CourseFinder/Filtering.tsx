@@ -146,16 +146,83 @@ const FilterComponent: React.FC<FilterProps> = ({ courses, viewMode, onFilterCha
   const [selectedCollegeName, setSelectedCollegeName] = useState("")
   const [selectedBudgets, setSelectedBudgets] = useState<string[]>([])
 
+  // Read URL parameters on component mount
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search)
+  const cityParam = params.get('city')
+  const stateParam = params.get('state')
+  
+  if (cityParam) {
+    setSelectedCity(cityParam)
+  }
+  if (stateParam && indianStates.includes(stateParam)) {
+    setSelectedStates([stateParam])
+  }
+}, [])
+
+// Update URL when city or state filters change
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search)
+  
+  if (selectedCity) {
+    params.set('city', selectedCity)
+  } else {
+    params.delete('city')
+  }
+  
+  if (selectedStates.length === 1) {
+    params.set('state', selectedStates[0])
+  } else {
+    params.delete('state')
+  }
+  
+  const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+  window.history.replaceState({}, '', newUrl)
+}, [searchQuery, courses, selectedCity, selectedStates])
+
+useEffect(() => {
+  if (!searchQuery) return
+  
+  const query = searchQuery.trim()
+  const params = new URLSearchParams(window.location.search)
+  
+  // Check if search matches a state
+  const matchedState = indianStates.find(state => 
+    state.toLowerCase() === query.toLowerCase()
+  )
+  
+  // Check if search matches a city
+  const allCities = Array.from(new Set(courses.map((c) => c.City).filter((c): c is string => Boolean(c))))
+  const matchedCity = allCities.find(city =>  // ✅ NOW USING allCities INSTEAD
+  city.toLowerCase() === query.toLowerCase()
+)
+  
+  if (matchedCity) {
+    params.set('city', matchedCity)
+    setSelectedCity(matchedCity)
+  } else if (matchedState) {
+    params.set('state', matchedState)
+    setSelectedStates([matchedState])
+  }
+  
+  const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+  window.history.replaceState({}, '', newUrl)
+}, [searchQuery, courses])
+
+
   const applyFilters = useCallback(() => {
     let filtered = [...courses]
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (course) =>
-          course.Specialization?.toLowerCase().includes(query) || course["College Name"]?.toLowerCase().includes(query)
-      )
-    }
+   if (searchQuery) {
+  const query = searchQuery.toLowerCase()
+  filtered = filtered.filter(
+    (course) =>
+      // course.Specialization?.toLowerCase().includes(query) || 
+      course["College Name"]?.toLowerCase().includes(query) ||
+      course.City?.toLowerCase().includes(query) ||
+      course.State?.toLowerCase().includes(query)
+  )
+}
 
     if (selectedStates.length > 0) {
       filtered = filtered.filter((course) => {

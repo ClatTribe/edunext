@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { useAuth } from "../../../contexts/AuthContext"
+import { useRouter } from 'next/navigation';
 import DefaultLayout from "../defaultLayout"
 import Pagination from "../../../components/CourseFinder/Pagination"
 import FilterComponent from "../../../components/CourseFinder/Filtering"
@@ -76,6 +77,14 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
   } = CollegeComparison({ user, courses })
 
   const perPage = 15
+
+  const router = useRouter();
+
+useEffect(() => {
+  if (!loading && !user) {
+    router.push('/register');
+  }
+}, [user, loading, router]);
 
   const shuffledCourses = useMemo(() => {
     if (filteredCourses.length === 0) return []

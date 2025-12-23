@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import DefaultLayout from '../defaultLayout';
+import { supabase } from '../../../lib/supabase';
 import { 
   GraduationCap,
   Search,
@@ -227,9 +228,14 @@ const CollegePredictor: React.FC = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
   
-  const [percentile, setPercentile] = useState<number | ''>('');
+  const [phone, setPhone] = useState<string>('');
+  const [percentile, setPercentile] = useState<string>('');
+  const [currentPercentile, setCurrentPercentile] = useState<string>('');
   const [predictions, setPredictions] = useState<PredictionResult[]>([]);
   const [searched, setSearched] = useState(false);
+  const [isDataSaved, setIsDataSaved] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{phone?: string, percentile?: string}>({});
 
   // Authentication check
   useEffect(() => {
@@ -238,50 +244,171 @@ const CollegePredictor: React.FC = () => {
     }
   }, [user, loading, router]);
 
-  const handleSearch = () => {
-    if (percentile === '' || percentile < 0 || percentile > 100) {
-      return;
+  // Check if user has already saved data
+  useEffect(() => {
+    const checkExistingData = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('cat_predictor_data')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking existing data:', error);
+          return;
+        }
+
+        if (data) {
+          setIsDataSaved(true);
+          setPhone(data.phone);
+          setPercentile(data.percentile.toString());
+          setCurrentPercentile(data.percentile.toString());
+        }
+      } catch (error) {
+        console.error('Error checking existing data:', error);
+      }
+    };
+
+    checkExistingData();
+  }, [user]);
+
+  // Get user's full name from auth metadata
+  const getUserName = () => {
+    if (!user) return 'User';
+    
+    const metadata = user.user_metadata;
+    if (metadata?.full_name) return metadata.full_name;
+    if (metadata?.name) return metadata.name;
+    
+    if (user.email) {
+      return user.email.split('@')[0];
     }
     
-    const p = Number(percentile);
-    
-    // Calculate predictions
-    const results: PredictionResult[] = colleges.map(college => {
-      let chance = AdmissionChance.NONE;
-      const diff = p - college.cutoff;
+    return 'User';
+  };
 
-      if (diff >= 2) {
-        chance = AdmissionChance.HIGH;
-      } else if (diff >= 0) {
-        chance = AdmissionChance.MODERATE;
-      } else if (diff >= -2) {
-        chance = AdmissionChance.LOW;
+  const validateForm = () => {
+    const newErrors: {phone?: string, percentile?: string} = {};
+
+    if (!phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^[6-9]\d{9}$/.test(phone.trim())) {
+      newErrors.phone = 'Enter a valid 10-digit Indian mobile number';
+    }
+
+    if (!percentile.trim()) {
+      newErrors.percentile = 'Percentile is required';
+    } else {
+      const p = parseFloat(percentile);
+      if (isNaN(p) || p < 0 || p > 100) {
+        newErrors.percentile = 'Please enter a valid percentile (0-100)';
       }
+    }
 
-      return {
-        ...college,
-        chance,
-        matchScore: p
-      };
-    }).filter(r => r.chance !== AdmissionChance.NONE);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    // Sort by chance first, then by cutoff
-    results.sort((a, b) => {
-      const chanceWeight = {
-        [AdmissionChance.HIGH]: 3,
-        [AdmissionChance.MODERATE]: 2,
-        [AdmissionChance.LOW]: 1,
-        [AdmissionChance.NONE]: 0
-      };
+  const handleSearch = async () => {
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    setSearched(false);
+
+    try {
+      // If data not saved yet, save it to database
+      if (!isDataSaved && user?.id) {
+        const userName = getUserName();
+        
+        const { error } = await supabase
+          .from('cat_predictor_data')
+          .insert({
+            user_id: user.id,
+            username: userName,
+            phone: phone.trim(),
+            percentile: parseFloat(percentile),
+            submitted_at: new Date().toISOString()
+          });
+
+        if (error) {
+          console.error('Submission error:', error);
+          alert(`Submission failed: ${error.message || 'Please try again'}`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        setIsDataSaved(true);
+      }
       
-      if (chanceWeight[a.chance] !== chanceWeight[b.chance]) {
-        return chanceWeight[b.chance] - chanceWeight[a.chance];
-      }
-      return a.cutoff - b.cutoff;
-    });
+      // Always update current percentile for fresh search
+      setCurrentPercentile(percentile);
 
-    setPredictions(results);
-    setSearched(true);
+      // Calculate predictions based on percentile (SAME LOGIC AS FIRST CODE)
+      const p = parseFloat(percentile);
+      
+      const results: PredictionResult[] = colleges.map(college => {
+        let chance = AdmissionChance.NONE;
+        const diff = p - college.cutoff;
+
+        // HIGH: percentile is 2+ above cutoff
+        if (diff >= 2) {
+          chance = AdmissionChance.HIGH;
+        } 
+        // MODERATE: percentile is between cutoff and cutoff+2
+        else if (diff >= 0) {
+          chance = AdmissionChance.MODERATE;
+        } 
+        // LOW: percentile is within 2 below cutoff
+        else if (diff >= -2) {
+          chance = AdmissionChance.LOW;
+        }
+
+        return {
+          ...college,
+          chance,
+          matchScore: p
+        };
+      }).filter(r => r.chance !== AdmissionChance.NONE);
+
+      // Sort: FIRST BY CHANCE (LOW->MODERATE->HIGH), THEN BY CUTOFF
+      results.sort((a, b) => {
+        const chanceWeight = {
+          [AdmissionChance.LOW]: 1,      // Ambitious - shown first
+          [AdmissionChance.MODERATE]: 2,  // Competitive - shown second
+          [AdmissionChance.HIGH]: 3,      // High Probability - shown last
+          [AdmissionChance.NONE]: 0
+        };
+        
+        if (chanceWeight[a.chance] !== chanceWeight[b.chance]) {
+          return chanceWeight[a.chance] - chanceWeight[b.chance];
+        }
+        return b.cutoff - a.cutoff;
+      });
+
+      setPredictions(results);
+      setSearched(true);
+
+    } catch (error) {
+      console.error('Error processing form:', error);
+      alert('An unexpected error occurred. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: 'phone' | 'percentile', value: string) => {
+    if (field === 'phone') {
+      setPhone(value);
+    } else {
+      setPercentile(value);
+    }
+    
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   // Loading state
@@ -334,51 +461,108 @@ const CollegePredictor: React.FC = () => {
               Where will your <span className="text-[#F59E0B]">percentile</span> take you?
             </h1>
             <p className="text-slate-400 max-w-2xl text-sm sm:text-base mx-auto px-4">
-              Enter your CAT percentile to instantly see which B-Schools are within your reach
+              Enter your details and CAT percentile to instantly see which B-Schools are within your reach
             </p>
           </div>
 
-          {/* Input Section */}
-          <div className="max-w-xl mx-auto">
+          {/* Input Form */}
+          <div className="max-w-4xl mx-auto">
             <div className="p-4 sm:p-6 rounded-xl shadow-lg backdrop-blur-xl relative group" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
               <div className="absolute -inset-0.5 bg-[#F59E0B]/20 rounded-2xl blur opacity-0 group-hover:opacity-50 transition duration-500"></div>
-              <div className="relative">
-                <label htmlFor="percentile" className="block text-sm sm:text-base font-medium text-white mb-2 sm:mb-3">
-                  Your CAT Percentile
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <div className="relative flex-1">
+              <div className="relative space-y-4">
+                
+                {/* User Info */}
+                <div className="mb-4">
+                  <p className="text-white font-semibold">Welcome, <span className="text-[#F59E0B]">{getUserName()}</span></p>
+                </div>
+
+                {/* Form Fields - Horizontal on large screens */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Phone Number */}
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-white mb-2">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      className="block w-full rounded-lg py-2.5 px-3 sm:px-4 text-white placeholder:text-slate-500 text-base"
+                      style={{ 
+                        backgroundColor: primaryBg, 
+                        border: errors.phone ? '2px solid #ef4444' : `2px solid ${borderColor}`,
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => !errors.phone && (e.target.style.border = `2px solid ${accentColor}`)}
+                      onBlur={(e) => !errors.phone && (e.target.style.border = `2px solid ${borderColor}`)}
+                      placeholder="10-digit number"
+                      value={phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      maxLength={10}
+                      disabled={isDataSaved || isSubmitting}
+                    />
+                    {errors.phone && (
+                      <p className="mt-1 text-xs text-red-400">{errors.phone}</p>
+                    )}
+                  </div>
+
+                  {/* Percentile */}
+                  <div>
+                    <label htmlFor="percentile" className="block text-sm font-medium text-white mb-2">
+                      Your CAT Percentile *
+                    </label>
                     <input
                       type="number"
                       id="percentile"
-                      className="block w-full rounded-lg py-2.5 sm:py-3 px-3 sm:px-4 text-white placeholder:text-slate-500 text-lg sm:text-xl font-semibold"
+                      className="block w-full rounded-lg py-2.5 px-3 sm:px-4 text-white placeholder:text-slate-500 text-base"
                       style={{ 
                         backgroundColor: primaryBg, 
-                        border: `2px solid ${borderColor}`,
+                        border: errors.percentile ? '2px solid #ef4444' : `2px solid ${borderColor}`,
                         outline: 'none'
                       }}
-                      onFocus={(e) => e.target.style.border = `2px solid ${accentColor}`}
-                      onBlur={(e) => e.target.style.border = `2px solid ${borderColor}`}
+                      onFocus={(e) => !errors.percentile && (e.target.style.border = `2px solid ${accentColor}`)}
+                      onBlur={(e) => !errors.percentile && (e.target.style.border = `2px solid ${borderColor}`)}
                       placeholder="Enter percentile (0-100)"
                       value={percentile}
-                      onChange={(e) => setPercentile(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      onChange={(e) => handleInputChange('percentile', e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                       min="0"
                       max="100"
                       step="0.01"
+                      disabled={isSubmitting}
                     />
+                    {errors.percentile && (
+                      <p className="mt-1 text-xs text-red-400">{errors.percentile}</p>
+                    )}
                   </div>
-                  <button 
-                    onClick={handleSearch}
-                    className="flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base transition-all text-white shadow-lg hover:opacity-90 w-full sm:w-auto"
-                    style={{ backgroundColor: accentColor }}
-                  >
-                    <Search className="h-4 w-4" />
-                    Predict
-                  </button>
+
+                  {/* Submit Button */}
+                  <div className="flex items-end">
+                    <button 
+                      onClick={handleSearch}
+                      disabled={isSubmitting}
+                      className="w-full flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base transition-all text-white shadow-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: accentColor }}
+                    >
+                                            {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {isDataSaved ? 'Searching...' : 'Submitting...'}
+                        </>
+                      ) : (
+                        <>
+                          <Search className="h-4 w-4" />
+                          {isDataSaved ? 'Search Colleges' : 'Submit & Search'}
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <p className="text-slate-500 text-xs mt-2">
-                  * Enter your overall CAT percentile to see colleges within your reach
+
+                <p className="text-slate-500 text-xs">
+                  * Your phone number will be saved once. You can change your percentile anytime to see different predictions.
                 </p>
               </div>
             </div>
@@ -393,7 +577,7 @@ const CollegePredictor: React.FC = () => {
                   Your College Matches
                 </h2>
                 <p className="text-base sm:text-lg font-semibold" style={{ color: accentColor }}>
-                  {predictions.length} B-Schools found for {percentile}% percentile
+                  {predictions.length} B-Schools found for {currentPercentile}% percentile
                 </p>
               </div>
 
@@ -418,7 +602,7 @@ const CollegePredictor: React.FC = () => {
               </div>
               <p className="text-lg font-medium text-white">No colleges found</p>
               <p className="text-slate-400 mt-2 px-4">
-                Based on a percentile of <span className="font-semibold text-[#F59E0B]">{percentile}%</span>, no colleges match your criteria.<br/>
+                Based on a percentile of <span className="font-semibold text-[#F59E0B]">{currentPercentile}%</span>, no colleges match your criteria.<br/>
                 Try a different percentile to see more options.
               </p>
             </div>
@@ -430,7 +614,7 @@ const CollegePredictor: React.FC = () => {
                 <GraduationCap className="w-12 h-12 sm:w-16 sm:h-16 text-[#F59E0B]" />
               </div>
               <p className="text-lg sm:text-xl font-semibold text-white mb-2">
-                Enter your percentile to get started
+                Enter your details to get started
               </p>
               <p className="text-slate-400 text-sm sm:text-base px-4">
                 Discover which B-Schools match your CAT performance
