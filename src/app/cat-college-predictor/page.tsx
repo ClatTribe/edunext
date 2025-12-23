@@ -1,7 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../contexts/AuthContext';
 import DefaultLayout from '../defaultLayout';
 import { supabase } from '../../../lib/supabase';
 import { 
@@ -225,9 +223,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, index }) => {
 
 // Main Component
 const CollegePredictor: React.FC = () => {
-  const router = useRouter();
-  const { user, loading } = useAuth();
-  
+  const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [percentile, setPercentile] = useState<string>('');
   const [currentPercentile, setCurrentPercentile] = useState<string>('');
@@ -235,25 +231,34 @@ const CollegePredictor: React.FC = () => {
   const [searched, setSearched] = useState(false);
   const [isDataSaved, setIsDataSaved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{phone?: string, percentile?: string}>({});
+  const [recordId, setRecordId] = useState<string>('');
+  const [errors, setErrors] = useState<{name?: string, phone?: string, percentile?: string}>({});
 
-  // Authentication check
+  // Load saved data from localStorage on mount
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/register');
+    const savedPhone = localStorage.getItem('cat_predictor_phone');
+    const savedName = localStorage.getItem('cat_predictor_name');
+    const savedRecordId = localStorage.getItem('cat_predictor_record_id');
+    
+    if (savedPhone && savedName && savedRecordId) {
+      setPhone(savedPhone);
+      setName(savedName);
+      setRecordId(savedRecordId);
+      setIsDataSaved(true);
     }
-  }, [user, loading, router]);
+  }, []);
 
-  // Check if user has already saved data
+  // Check if user has already saved data based on phone number
   useEffect(() => {
     const checkExistingData = async () => {
-      if (!user?.id) return;
+      if (!phone || phone.length !== 10) return;
+      if (isDataSaved) return; // Don't check if already loaded from localStorage
 
       try {
         const { data, error } = await supabase
           .from('cat_predictor_data')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('phone', phone.trim())
           .single();
 
         if (error && error.code !== 'PGRST116') {
@@ -263,35 +268,38 @@ const CollegePredictor: React.FC = () => {
 
         if (data) {
           setIsDataSaved(true);
-          setPhone(data.phone);
-          setPercentile(data.percentile.toString());
-          setCurrentPercentile(data.percentile.toString());
+          setName(data.name || '');
+          setRecordId(data.id);
+          
+          // Save to localStorage for persistence
+          localStorage.setItem('cat_predictor_phone', phone.trim());
+          localStorage.setItem('cat_predictor_name', data.name || '');
+          localStorage.setItem('cat_predictor_record_id', data.id);
+          
+          if (data.percentile) {
+            setPercentile(data.percentile.toString());
+            setCurrentPercentile(data.percentile.toString());
+          }
         }
       } catch (error) {
         console.error('Error checking existing data:', error);
       }
     };
 
-    checkExistingData();
-  }, [user]);
-
-  // Get user's full name from auth metadata
-  const getUserName = () => {
-    if (!user) return 'User';
-    
-    const metadata = user.user_metadata;
-    if (metadata?.full_name) return metadata.full_name;
-    if (metadata?.name) return metadata.name;
-    
-    if (user.email) {
-      return user.email.split('@')[0];
+    // Only check when phone is complete (10 digits)
+    if (phone.length === 10) {
+      checkExistingData();
     }
-    
-    return 'User';
-  };
+  }, [phone, isDataSaved]);
 
   const validateForm = () => {
-    const newErrors: {phone?: string, percentile?: string} = {};
+    const newErrors: {name?: string, phone?: string, percentile?: string} = {};
+
+    if (!name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
 
     if (!phone.trim()) {
       newErrors.phone = 'Phone number is required';
@@ -320,18 +328,17 @@ const CollegePredictor: React.FC = () => {
 
     try {
       // If data not saved yet, save it to database
-      if (!isDataSaved && user?.id) {
-        const userName = getUserName();
-        
-        const { error } = await supabase
+      if (!isDataSaved) {
+        const { data, error } = await supabase
           .from('cat_predictor_data')
           .insert({
-            user_id: user.id,
-            username: userName,
+            name: name.trim(),
             phone: phone.trim(),
             percentile: parseFloat(percentile),
             submitted_at: new Date().toISOString()
-          });
+          })
+          .select()
+          .single();
 
         if (error) {
           console.error('Submission error:', error);
@@ -341,12 +348,31 @@ const CollegePredictor: React.FC = () => {
         }
 
         setIsDataSaved(true);
+        setRecordId(data.id);
+        
+        // Save to localStorage for persistence across refreshes
+        localStorage.setItem('cat_predictor_phone', phone.trim());
+        localStorage.setItem('cat_predictor_name', name.trim());
+        localStorage.setItem('cat_predictor_record_id', data.id);
+      } else {
+        // Update only percentile if data already exists
+        const { error } = await supabase
+          .from('cat_predictor_data')
+          .update({
+            percentile: parseFloat(percentile),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', recordId);
+
+        if (error) {
+          console.error('Update error:', error);
+        }
       }
       
       // Always update current percentile for fresh search
       setCurrentPercentile(percentile);
 
-      // Calculate predictions based on percentile (SAME LOGIC AS FIRST CODE)
+      // Calculate predictions based on percentile
       const p = parseFloat(percentile);
       
       const results: PredictionResult[] = colleges.map(college => {
@@ -376,9 +402,9 @@ const CollegePredictor: React.FC = () => {
       // Sort: FIRST BY CHANCE (LOW->MODERATE->HIGH), THEN BY CUTOFF
       results.sort((a, b) => {
         const chanceWeight = {
-          [AdmissionChance.LOW]: 1,      // Ambitious - shown first
-          [AdmissionChance.MODERATE]: 2,  // Competitive - shown second
-          [AdmissionChance.HIGH]: 3,      // High Probability - shown last
+          [AdmissionChance.LOW]: 1,
+          [AdmissionChance.MODERATE]: 2,
+          [AdmissionChance.HIGH]: 3,
           [AdmissionChance.NONE]: 0
         };
         
@@ -399,8 +425,10 @@ const CollegePredictor: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: 'phone' | 'percentile', value: string) => {
-    if (field === 'phone') {
+  const handleInputChange = (field: 'name' | 'phone' | 'percentile', value: string) => {
+    if (field === 'name') {
+      setName(value);
+    } else if (field === 'phone') {
       setPhone(value);
     } else {
       setPercentile(value);
@@ -410,22 +438,6 @@ const CollegePredictor: React.FC = () => {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <DefaultLayout>
-        <div className="flex items-center justify-center h-full min-h-screen" style={{ backgroundColor: primaryBg }}>
-          <div className="text-xl flex items-center gap-2" style={{ color: accentColor }}>
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: accentColor }}></div>
-            Loading...
-          </div>
-        </div>
-      </DefaultLayout>
-    );
-  }
-
-  if (!user) return null;
 
   return (
     <DefaultLayout>
@@ -466,18 +478,39 @@ const CollegePredictor: React.FC = () => {
           </div>
 
           {/* Input Form */}
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="p-4 sm:p-6 rounded-xl shadow-lg backdrop-blur-xl relative group" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
               <div className="absolute -inset-0.5 bg-[#F59E0B]/20 rounded-2xl blur opacity-0 group-hover:opacity-50 transition duration-500"></div>
               <div className="relative space-y-4">
-                
-                {/* User Info */}
-                <div className="mb-4">
-                  <p className="text-white font-semibold">Welcome, <span className="text-[#F59E0B]">{getUserName()}</span></p>
-                </div>
 
-                {/* Form Fields - Horizontal on large screens */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Form Fields - Grid layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                  {/* Name */}
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      className="block w-full rounded-lg py-2.5 px-3 sm:px-4 text-white placeholder:text-slate-500 text-base"
+                      style={{ 
+                        backgroundColor: primaryBg, 
+                        border: errors.name ? '2px solid #ef4444' : `2px solid ${borderColor}`,
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => !errors.name && (e.target.style.border = `2px solid ${accentColor}`)}
+                      onBlur={(e) => !errors.name && (e.target.style.border = `2px solid ${borderColor}`)}
+                      placeholder="Enter your name"
+                      value={name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      disabled={isDataSaved || isSubmitting}
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-xs text-red-400">{errors.name}</p>
+                    )}
+                  </div>
+
                   {/* Phone Number */}
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-white mb-2">
@@ -521,7 +554,7 @@ const CollegePredictor: React.FC = () => {
                       }}
                       onFocus={(e) => !errors.percentile && (e.target.style.border = `2px solid ${accentColor}`)}
                       onBlur={(e) => !errors.percentile && (e.target.style.border = `2px solid ${borderColor}`)}
-                      placeholder="Enter percentile (0-100)"
+                      placeholder="0-100"
                       value={percentile}
                       onChange={(e) => handleInputChange('percentile', e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -543,7 +576,7 @@ const CollegePredictor: React.FC = () => {
                       className="w-full flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base transition-all text-white shadow-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ backgroundColor: accentColor }}
                     >
-                                            {isSubmitting ? (
+                      {isSubmitting ? (
                         <>
                           <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -562,7 +595,7 @@ const CollegePredictor: React.FC = () => {
                 </div>
 
                 <p className="text-slate-500 text-xs">
-                  * Your phone number will be saved once. You can change your percentile anytime to see different predictions.
+                  * Your name and phone number will be saved once and cannot be changed. You can update your percentile anytime to see different predictions.
                 </p>
               </div>
             </div>
