@@ -30,7 +30,7 @@ const QuickActionCard: React.FC<{
   description: string; 
   badge?: string;
 }> = ({ icon: Icon, title, description, badge }) => (
-  <button className="p-6 rounded-2xl flex flex-col items-center text-center gap-3 transition-all group border border-[#1a1f2e] hover:border-[#F59E0B]/30" 
+  <button className="cursor-pointer p-6 rounded-2xl flex flex-col items-center text-center gap-3 transition-all group border border-[#1a1f2e] hover:border-[#F59E0B]/30" 
     style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)' }}>
     <div className="relative">
       <div className="p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300" 
@@ -202,27 +202,35 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
       {/* Main Feature Grid - "What to do" */}
       <section className="py-12 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <Link href="/find-colleges" className="">
           <QuickActionCard 
             icon={FileSearch} 
             title="College Finder" 
             description="Find your perfect stream based on actual grades"
-          />
+            />
+          </Link>
+          <Link href="/cat-college-predictor" className="  block">
           <QuickActionCard 
             icon={Calculator} 
-            title="Call Predictor" 
+            title="Cat Predictor" 
             description="Check your chances for IIMs and top non-IIMs"
             badge="NEW"
           />
+          </Link>
+          <Link href="/find-scholarships" className="  block">
           <QuickActionCard 
             icon={Trophy} 
             title="Scholarships" 
             description="Match with 1000+ financial aid opportunities"
           />
+          </Link>
+          <Link href="/previous-year-students" className="  block">
           <QuickActionCard 
             icon={Users} 
             title="Talk to Alumni" 
             description="Connect with students from your dream college"
           />
+          </Link>
         </div>
       </section>
 
