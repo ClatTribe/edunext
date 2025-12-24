@@ -80,11 +80,11 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
   const router = useRouter();
 
-useEffect(() => {
-  if (!loading && !user) {
-    router.push('/register');
-  }
-}, [user, loading, router]);
+// useEffect(() => {
+//   if (!loading && !user) {
+//     router.push('/register');
+//   }
+// }, [user, loading, router]);
 
   const shuffledCourses = useMemo(() => {
     if (filteredCourses.length === 0) return []
