@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Search, 
@@ -74,7 +74,7 @@ const CollegeCard: React.FC<{ college: College }> = ({ college }) => (
       <img src={college.imageUrl} alt={college.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 text-xs">
         <Trophy className="w-3 h-3 text-[#F59E0B]" />
-        <span>#{college.id} NIRF</span>
+        {/* <span>#{college.id} NIRF</span> */}
       </div>
     </div>
     <div className="p-5">
@@ -98,6 +98,55 @@ const CollegeCard: React.FC<{ college: College }> = ({ college }) => (
   </div>
 );
 
+// Typing Animation Component
+const TypingAnimation = () => {
+  const phrases = [
+    '4 Lakh Reviews',
+    '2000+ Colleges',
+    '250 Exams'
+  ];
+  
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [displayText, setDisplayText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  useEffect(() => {
+    const currentPhrase = phrases[currentPhraseIndex];
+    const typingSpeed = isDeleting ? 50 : 100;
+    const pauseTime = 2000;
+    
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        if (displayText.length < currentPhrase.length) {
+          setDisplayText(currentPhrase.slice(0, displayText.length + 1));
+        } else {
+          setTimeout(() => setIsDeleting(true), pauseTime);
+        }
+      } else {
+        if (displayText.length > 0) {
+          setDisplayText(currentPhrase.slice(0, displayText.length - 1));
+        } else {
+          setIsDeleting(false);
+          setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
+        }
+      }
+    }, typingSpeed);
+    
+    return () => clearTimeout(timer);
+  }, [displayText, isDeleting, currentPhraseIndex]);
+  
+  return (
+    <p className="text-white max-w-2xl mx-auto text-lg md:text-xl lg:text-3xl sm:text-xl leading-relaxed mb-10">
+      Find Over{' '}
+      <span className="text-[#F59E0B] font-bold">
+        {displayText}
+        <span className="animate-pulse">|</span>
+      </span>
+      {' '}in India
+    </p>
+  );
+};
+
 // Hero Section Component
 const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -108,139 +157,134 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   const featuredColleges: College[] = [
     { id: '1', name: 'IIM Ahmedabad', location: 'Ahmedabad, Gujarat', rating: 4.9, tags: ['CAT', 'Global Rank #1'], imageUrl: 'https://res.cloudinary.com/daetdadtt/image/upload/v1766476599/iima_ije8kq.jpg' },
     { id: '2', name: 'IIM Bangalore', location: 'Bangalore, Karnataka', rating: 4.8, tags: ['CAT', 'Innovation'], imageUrl: 'https://res.cloudinary.com/daetdadtt/image/upload/v1766476601/iimb_aksvxh.jpg' },
-    { id: '3', name: 'XLRI Jamshedpur', location: 'Jamshedpur, Jharkhand', rating: 4.7, tags: ['XAT', 'Legacy'], imageUrl: 'https://res.cloudinary.com/daetdadtt/image/upload/v1766476600/xlri_vjkfz4.webp' },
-    { id: '4', name: 'FMS Delhi', location: 'Delhi, Delhi', rating: 4.6, tags: ['CAT', 'Best ROI'], imageUrl: 'https://res.cloudinary.com/daetdadtt/image/upload/v1766476601/FMS_Delhi_lsy3ia.jpg' },
+    { id: '3', name: 'Chandigarh University', location: 'Chandigarh, Punjab', rating: 4.7, tags: ['XAT', 'Legacy'], imageUrl: 'https://res.cloudinary.com/daetdadtt/image/upload/v1766558377/CU_e1aozd.jpg' },
+    { id: '4', name: 'Amity Noida', location: 'Noida, Uttar Pradesh', rating: 4.6, tags: ['CAT', 'Best ROI'], imageUrl: 'https://res.cloudinary.com/daetdadtt/image/upload/v1766558375/download_1_vb2xaq.jpg' },
   ];
 
   // Handle Search Navigation
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
     
-    const query = searchQuery.trim();
+    const query = searchQuery.trim().toLowerCase();
     
-    // Check if it matches a state
-    const matchedState = indianStates.find(state => 
-      state.toLowerCase() === query.toLowerCase()
-    );
+    // Flexible state matching - checks if state contains query OR query contains state
+    const matchedState = indianStates.find(state => {
+      const stateLower = state.toLowerCase();
+      return stateLower.includes(query) || query.includes(stateLower);
+    });
     
-    // Check if it matches a city
-    const matchedCity = allCities.find(city => 
-      city.toLowerCase() === query.toLowerCase()
-    );
+    // Flexible city matching
+    const matchedCity = allCities.find(city => {
+      const cityLower = city.toLowerCase();
+      return cityLower.includes(query) || query.includes(cityLower);
+    });
     
     if (matchedCity) {
       window.location.href = `/find-colleges?city=${encodeURIComponent(matchedCity)}`;
     } else if (matchedState) {
       window.location.href = `/find-colleges?state=${encodeURIComponent(matchedState)}`;
     } else {
-      // General search
-      // window.location.href = `/find-colleges?search=${encodeURIComponent(query)}`;
+      // Fallback: pass the search term to find-colleges page
+      window.location.href = `/find-colleges?search=${encodeURIComponent(searchQuery)}`;
     }
   };
 
   return (
     <>
       {/* Hero Section - Search First */}
-     <section className="relative px-6 max-w-7xl mx-auto pt-20 md:pt-0 lg:pt-0 sm:pt-0 overflow-hidden">
-  {/* Background Image */}
-  <div className="absolute inset-0 w-full h-full pointer-events-none">
-    <img 
-      src="https://res.cloudinary.com/daetdadtt/image/upload/v1766552235/uuhuu_optimized_8000_tlzvby.png"
-      alt=""
-      className="w-full h-full object-cover opacity-20"
-    />
-    {/* Overlay gradient to blend image with background */}
-    <div className="absolute inset-0 bg-gradient-to-b from-dark-900/60 via-dark-900/80 to-dark-900"></div>
-  </div>
-
-  {/* Background Gradients */}
-  <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#F59E0B]/5 blur-[120px] rounded-full pointer-events-none z-10" />
-  <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none z-10" />
-
-  <div className="text-center mb-12 relative z-20">
-    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-bold mb-6 animate-pulse">
-      <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
-      NEW: ADMIT FINDER 2.0 IS LIVE
-    </div>
-    <h1 className="text-2xl md:text-4xl lg:text-5xl sm:text-2xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-      Find Your Dream MBA <br />
-      <span className="text-[#F59E0B]">Without the Noise.</span>
-    </h1>
-    <p className="text-white max-w-2xl mx-auto text-lg leading-relaxed mb-10">
-      EduNext uses verified student data and AI matching to help you find the right course, secure scholarships, and connect with alumni.
-    </p>
-
-    {/* Search Box */}
-    <div className="max-w-3xl mx-auto relative group">
-      <div className="glass-card search-shadow rounded-2xl p-2 flex flex-col md:flex-row items-center gap-2 border border-[#F59E0B]/30 focus-within:border-[#F59E0B] transition-all">
-        <div className="flex-1 flex items-center px-4 w-full relative">
-          <Search className="text-slate-400 w-5 h-5 mr-3" />
-          <input 
-            type="text" 
-            placeholder="Search 2000+ Colleges, Exams or MBA Specializations..."
-            className="bg-transparent border-none outline-none w-full text-white py-3 text-base placeholder:text-slate-500"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+      <section className="relative px-6 max-w-7xl mx-auto pt-20 md:pt-0 lg:pt-0 sm:pt-0 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none">
+          <img 
+            src="https://res.cloudinary.com/daetdadtt/image/upload/v1766552235/uuhuu_optimized_8000_tlzvby.png"
+            alt=""
+            className="w-full h-full object-cover opacity-20"
           />
-          {searchQuery && (
-            <button 
-              onClick={() => setSearchQuery('')}
-              className="text-slate-400 hover:text-white transition-colors ml-2"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          {/* Overlay gradient to blend image with background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-900/60 via-dark-900/80 to-dark-900"></div>
         </div>
-        <button 
-          onClick={handleSearch}
-          className="w-full md:w-auto bg-[#F59E0B] text-dark-900 px-8 py-3.5 rounded-xl font-bold text-base hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg"
-        >
-          Search
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
-      {/* <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs font-medium text-slate-500">
-        <span>Trending:</span>
-        <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">Top MBA Rankings</button>
-        <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">CAT Preparation Tips</button>
-        <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">Distance MBA Colleges</button>
-      </div> */}
-    </div>
-  </div>
-</section>
+
+        {/* Background Gradients */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#F59E0B]/5 blur-[120px] rounded-full pointer-events-none z-10" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none z-10" />
+
+        <div className="text-center mb-12 relative z-20">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-bold mb-6 animate-pulse">
+            <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+            NEW: ADMIT FINDER 2.0 IS LIVE
+          </div>
+          <h1 className="text-xl md:text-4xl lg:text-5xl sm:text-2xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+            Find Dream MBA Colleges <br />
+            <span className="text-[#F59E0B]">Without the Noise.</span>
+          </h1>
+          
+          <TypingAnimation />
+
+          {/* Search Box */}
+          <div className="max-w-3xl mx-auto relative group">
+            <div className="glass-card search-shadow rounded-2xl p-2 flex flex-col md:flex-row items-center gap-2 border border-[#F59E0B]/30 focus-within:border-[#F59E0B] transition-all">
+              <div className="flex-1 flex items-center px-4 w-full relative">
+                <Search className="text-slate-400 w-5 h-5 mr-3" />
+                <input 
+                  type="text" 
+                  placeholder="Search 2000+ Colleges, Exams or MBA Specializations..."
+                  className="bg-transparent border-none outline-none w-full text-white py-3 text-base placeholder:text-slate-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="text-slate-400 hover:text-white transition-colors ml-2"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+              <button 
+                onClick={handleSearch}
+                className="w-full md:w-auto bg-[#F59E0B] text-dark-900 px-8 py-3.5 rounded-xl font-bold text-base hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                Search
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Main Feature Grid - "What to do" */}
       <section className="py-12 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <Link href="/find-colleges" className="">
-          <QuickActionCard 
-            icon={FileSearch} 
-            title="College Finder" 
-            description="Find your perfect stream based on actual grades"
+            <QuickActionCard 
+              icon={FileSearch} 
+              title="Find MBA Colleges" 
+              description="Find your perfect stream based on actual grades"
             />
           </Link>
-          <Link href="/cat-college-predictor" className="  block">
-          <QuickActionCard 
-            icon={Calculator} 
-            title="Cat Predictor" 
-            description="Check your chances for IIMs and top non-IIMs"
-            badge="NEW"
-          />
+          <Link href="/cat-college-predictor" className="block">
+            <QuickActionCard 
+              icon={Calculator} 
+              title="Cat Call Predictor" 
+              description="Check your chances for IIMs and top non-IIMs"
+              badge="NEW"
+            />
           </Link>
-          <Link href="/find-scholarships" className="  block">
-          <QuickActionCard 
-            icon={Trophy} 
-            title="Scholarships" 
-            description="Match with 1000+ financial aid opportunities"
-          />
+          <Link href="/find-scholarships" className="block">
+            <QuickActionCard 
+              icon={Trophy} 
+              title="Scholarships" 
+              description="Match with 1000+ financial aid opportunities"
+            />
           </Link>
-          <Link href="/previous-year-students" className="  block">
-          <QuickActionCard 
-            icon={Users} 
-            title="Talk to Alumni" 
-            description="Connect with students from your dream college"
-          />
+          <Link href="/previous-year-students" className="block">
+            <QuickActionCard 
+              icon={Users} 
+              title="Talk to Alumni" 
+              description="Connect with students from your dream college"
+            />
           </Link>
         </div>
       </section>
