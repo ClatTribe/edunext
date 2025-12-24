@@ -140,7 +140,7 @@ const TypingAnimation = () => {
       Find Over{' '}
       <span className="text-[#F59E0B] font-bold">
         {displayText}
-        <span className="animate-pulse">|</span>
+        {/* <span className="animate-pulse">|</span> */}
       </span>
       {' '}in India
     </p>
