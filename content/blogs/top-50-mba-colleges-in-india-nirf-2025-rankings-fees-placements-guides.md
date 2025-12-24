@@ -4,7 +4,7 @@ slug: "top-50-mba-colleges-in-india-nirf-2025-rankings"
 date: "2024-12-21"
 author: "EduNext"
 excerpt: "A comprehensive guide to the top 50 MBA colleges in India based on NIRF 2025 rankings, including entrance exams, fees, placements, and ROI analysis"
-coverImage: "https://res.cloudinary.com/daetdadtt/image/upload/v1766225586/WhatsApp_Image_2025-12-19_at_19.20.58_sub31s.jpg"
+coverImage: "https://res.cloudinary.com/daetdadtt/image/upload/v1766553270/WhatsApp_Image_2025-12-20_at_17.49.01_pmc9as.jpg"
 tags: ["MBA", "education", "colleges", "career", "NIRF"]
 ---
 

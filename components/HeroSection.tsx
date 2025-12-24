@@ -141,63 +141,74 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   return (
     <>
       {/* Hero Section - Search First */}
-      <section className="relative px-6 max-w-7xl mx-auto pt-20 md:pt-0 lg:pt-0 sm:pt-0">
-        {/* Background Gradients */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#F59E0B]/5 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
+     <section className="relative px-6 max-w-7xl mx-auto pt-20 md:pt-0 lg:pt-0 sm:pt-0 overflow-hidden">
+  {/* Background Image */}
+  <div className="absolute inset-0 w-full h-full pointer-events-none">
+    <img 
+      src="https://res.cloudinary.com/daetdadtt/image/upload/v1766552235/uuhuu_optimized_8000_tlzvby.png"
+      alt=""
+      className="w-full h-full object-cover opacity-20"
+    />
+    {/* Overlay gradient to blend image with background */}
+    <div className="absolute inset-0 bg-gradient-to-b from-dark-900/60 via-dark-900/80 to-dark-900"></div>
+  </div>
 
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-bold mb-6 animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
-            NEW: ADMIT FINDER 2.0 IS LIVE
-          </div>
-          <h1 className="text-2xl md:text-4xl lg:text-5xl sm:text-2xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-            Find Your Dream MBA <br />
-            <span className="text-[#F59E0B]">Without the Noise.</span>
-          </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed mb-10">
-            EduNext uses verified student data and AI matching to help you find the right course, secure scholarships, and connect with alumni.
-          </p>
+  {/* Background Gradients */}
+  <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#F59E0B]/5 blur-[120px] rounded-full pointer-events-none z-10" />
+  <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none z-10" />
 
-          {/* Search Box */}
-          <div className="max-w-3xl mx-auto relative group">
-            <div className="glass-card search-shadow rounded-2xl p-2 flex flex-col md:flex-row items-center gap-2 border border-[#F59E0B]/30 focus-within:border-[#F59E0B] transition-all">
-              <div className="flex-1 flex items-center px-4 w-full relative">
-                <Search className="text-slate-400 w-5 h-5 mr-3" />
-                <input 
-                  type="text" 
-                  placeholder="Search 2000+ Colleges, Exams or MBA Specializations..."
-                  className="bg-transparent border-none outline-none w-full text-white py-3 text-base placeholder:text-slate-500"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery('')}
-                    className="text-slate-400 hover:text-white transition-colors ml-2"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-              <button 
-                onClick={handleSearch}
-                className="w-full md:w-auto bg-[#F59E0B] text-dark-900 px-8 py-3.5 rounded-xl font-bold text-base hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg"
-              >
-                Search
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs font-medium text-slate-500">
-              <span>Trending:</span>
-              <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">Top MBA Rankings</button>
-              <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">CAT Preparation Tips</button>
-              <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">Distance MBA Colleges</button>
-            </div>
-          </div>
+  <div className="text-center mb-12 relative z-20">
+    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-bold mb-6 animate-pulse">
+      <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+      NEW: ADMIT FINDER 2.0 IS LIVE
+    </div>
+    <h1 className="text-2xl md:text-4xl lg:text-5xl sm:text-2xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+      Find Your Dream MBA <br />
+      <span className="text-[#F59E0B]">Without the Noise.</span>
+    </h1>
+    <p className="text-white max-w-2xl mx-auto text-lg leading-relaxed mb-10">
+      EduNext uses verified student data and AI matching to help you find the right course, secure scholarships, and connect with alumni.
+    </p>
+
+    {/* Search Box */}
+    <div className="max-w-3xl mx-auto relative group">
+      <div className="glass-card search-shadow rounded-2xl p-2 flex flex-col md:flex-row items-center gap-2 border border-[#F59E0B]/30 focus-within:border-[#F59E0B] transition-all">
+        <div className="flex-1 flex items-center px-4 w-full relative">
+          <Search className="text-slate-400 w-5 h-5 mr-3" />
+          <input 
+            type="text" 
+            placeholder="Search 2000+ Colleges, Exams or MBA Specializations..."
+            className="bg-transparent border-none outline-none w-full text-white py-3 text-base placeholder:text-slate-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="text-slate-400 hover:text-white transition-colors ml-2"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
-      </section>
+        <button 
+          onClick={handleSearch}
+          className="w-full md:w-auto bg-[#F59E0B] text-dark-900 px-8 py-3.5 rounded-xl font-bold text-base hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg"
+        >
+          Search
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+      {/* <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs font-medium text-slate-500">
+        <span>Trending:</span>
+        <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">Top MBA Rankings</button>
+        <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">CAT Preparation Tips</button>
+        <button className="hover:text-[#F59E0B] underline decoration-[#F59E0B]/30">Distance MBA Colleges</button>
+      </div> */}
+    </div>
+  </div>
+</section>
 
       {/* Main Feature Grid - "What to do" */}
       <section className="py-12 px-6 max-w-7xl mx-auto">
