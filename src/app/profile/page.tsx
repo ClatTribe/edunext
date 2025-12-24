@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect, useCallback, useMemo } from "react"
+import { useRouter } from 'next/navigation';
 import {
   Award,
   Trophy,
@@ -221,6 +222,7 @@ Section.displayName = "Section"
 
 const ProfilePage = () => {
   const { user } = useAuth()
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(!cachedFormData)
   const [saving, setSaving] = useState(false)
@@ -266,6 +268,17 @@ const ProfilePage = () => {
       verified: false,
     },
   )
+
+useEffect(() => {
+    // Only redirect after we've confirmed there's no user
+    const timer = setTimeout(() => {
+      if (!user) {
+        router.push('/register');
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [user, router]);
 
   const getDefaultFormData = useCallback(
     (): FormData => ({
@@ -702,6 +715,18 @@ const ProfilePage = () => {
   }, [])
 
   const scoreInfo = useMemo(() => getScoreColor(eduScore), [eduScore, getScoreColor])
+    if (!user) {
+    return (
+      <DefaultLayout>
+        <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: primaryBg }}>
+          <div className="text-lg sm:text-xl flex items-center gap-2" style={{ color: accentColor }}>
+            <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2" style={{ borderColor: accentColor }}></div>
+            Checking authentication...
+          </div>
+        </div>
+      </DefaultLayout>
+    );
+  }
 
   if (loading) {
     return (
