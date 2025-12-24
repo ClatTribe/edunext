@@ -373,23 +373,59 @@ const CollegePredictor: React.FC = () => {
       setCurrentPercentile(percentile);
 
       // Calculate predictions based on percentile
+      // Calculate predictions based on percentile
       const p = parseFloat(percentile);
       
+      // List of colleges that should only appear for percentile 0-60
+      const lowPercentileColleges = [
+        "Alliance University, Bengaluru",
+        "ASM-IBMR, Pune",
+        "Doon Business School, Dehradun",
+        "FOSTIIMA Business School, New Delhi",
+        "GNIOT, Greater Noida",
+        "GITAM Business School, Telangana",
+        "IIBS, Bangalore",
+        "ISBN, Pune",
+        "ISME, Bengaluru",
+        "Jaipuria Institute of Management",
+        "SIES Graduate School of Technology College, Navi Mumbai",
+        "IIEBM, Indus Business School, Pune",
+        "Vijaybhoomi University, Karjat, Greater Mumbai"
+      ];
+      
       const results: PredictionResult[] = colleges.map(college => {
+        // Check if this is a low-percentile-only college
+        const isLowPercentileCollege = lowPercentileColleges.includes(college.name);
+        
+        // If it's a low-percentile college and user's percentile is above 60, exclude it
+        if (isLowPercentileCollege && p > 60) {
+          return {
+            ...college,
+            chance: AdmissionChance.NONE,
+            matchScore: p
+          };
+        }
+        
         let chance = AdmissionChance.NONE;
-        const diff = p - college.cutoff;
-
-        // HIGH: percentile is 2+ above cutoff
-        if (diff >= 2) {
-          chance = AdmissionChance.HIGH;
-        } 
-        // MODERATE: percentile is between cutoff and cutoff+2
-        else if (diff >= 0) {
-          chance = AdmissionChance.MODERATE;
-        } 
-        // LOW: percentile is within 2 below cutoff
-        else if (diff >= -2) {
+        
+        // For low-percentile colleges in 0-60 range, always show as LOW (Ambitious)
+        if (isLowPercentileCollege && p <= 60) {
           chance = AdmissionChance.LOW;
+        } else {
+          const diff = p - college.cutoff;
+
+          // HIGH: percentile is 2+ above cutoff
+          if (diff >= 2) {
+            chance = AdmissionChance.HIGH;
+          } 
+          // MODERATE: percentile is between cutoff and cutoff+2
+          else if (diff >= 0) {
+            chance = AdmissionChance.MODERATE;
+          } 
+          // LOW: percentile is within 2 below cutoff
+          else if (diff >= -2) {
+            chance = AdmissionChance.LOW;
+          }
         }
 
         return {
