@@ -90,10 +90,10 @@ const CollegeCard: React.FC<{ college: College }> = ({ college }) => (
           </span>
         ))}
       </div>
-      <button className="w-full py-2.5 rounded-xl border border-[#F59E0B]/20 text-[#F59E0B] font-semibold text-sm hover:bg-[#F59E0B] hover:text-black transition-all flex items-center justify-center gap-2">
+      {/* <button className="w-full py-2.5 rounded-xl border border-[#F59E0B]/20 text-[#F59E0B] font-semibold text-sm hover:bg-[#F59E0B] hover:text-black transition-all flex items-center justify-center gap-2">
         View Details
         <ArrowRight className="w-4 h-4" />
-      </button>
+      </button> */}
     </div>
   </div>
 );
@@ -102,7 +102,7 @@ const CollegeCard: React.FC<{ college: College }> = ({ college }) => (
 const TypingAnimation = () => {
   const phrases = [
     '4 Lakh Reviews',
-    '2000+ Colleges',
+    '2000+ MBA Colleges',
     '250 Exams'
   ];
   
@@ -256,7 +256,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
 
       {/* Main Feature Grid - "What to do" */}
       <section className="py-12 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
           <Link href="/find-colleges" className="">
             <QuickActionCard 
               icon={FileSearch} 
@@ -267,7 +267,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
           <Link href="/cat-college-predictor" className="block">
             <QuickActionCard 
               icon={Calculator} 
-              title="Cat Call Predictor" 
+              title="CAT Call Predictor" 
               description="Check your chances for IIMs and top non-IIMs"
               badge="NEW"
             />

@@ -58,12 +58,12 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
   const toolOptions = [
     {
       icon: TrendingUp,
-      label: "Cat Percentile Predictor",
+      label: "CAT Percentile Predictor",
       path: "/cat-percentile-predictor",
     },
     {
       icon: SearchCheck,
-      label: "Cat College Predictor",
+      label: "CAT College Predictor",
       path: "/cat-college-predictor",
     },
     {
