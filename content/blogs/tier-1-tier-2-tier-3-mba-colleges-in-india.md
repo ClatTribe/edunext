@@ -1,6 +1,7 @@
 ---
 title: "Tier 1, Tier 2 & Tier 3 MBA Colleges in India: What's the Difference?"
 date: "2024-12-21"
+lastModified: "2025-12-29"
 author: "EduNext"
 excerpt: "A comprehensive guide to understanding MBA college tiers in India, including fees, placements, and how to choose the right tier for your profile"
 coverImage: "https://res.cloudinary.com/daetdadtt/image/upload/v1766225587/WhatsApp_Image_2025-12-19_at_18.25.14_pzpfye.jpg"

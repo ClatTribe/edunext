@@ -4,7 +4,7 @@ import matter from 'gray-matter';
 import { remark } from 'remark';
 import html from 'remark-html';
 import remarkGfm from 'remark-gfm';
-import { cache } from 'react'; // Optional: Use for App Router performance
+import { cache } from 'react';
 
 const blogsDirectory = path.join(process.cwd(), 'content/blogs');
 
@@ -12,6 +12,7 @@ export interface BlogPost {
   slug: string;
   title: string;
   date: string;
+  lastModified?: string; // ADDED: To support the SEO freshness field
   author?: string;
   excerpt?: string;
   coverImage?: string;
@@ -19,8 +20,6 @@ export interface BlogPost {
   content: string;
 }
 
-// Wrapping with cache prevents redundant file reads if the same 
-// slug is requested in generateMetadata and the Page component.
 export const getBlogBySlug = cache(async (slug: string): Promise<BlogPost> => {
   const fullPath = path.join(blogsDirectory, `${slug}.md`);
   
@@ -31,7 +30,6 @@ export const getBlogBySlug = cache(async (slug: string): Promise<BlogPost> => {
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const { data, content } = matter(fileContents);
 
-  // Process markdown to HTML
   const processedContent = await remark()
     .use(remarkGfm)
     .use(html)
@@ -44,6 +42,7 @@ export const getBlogBySlug = cache(async (slug: string): Promise<BlogPost> => {
     content: contentHtml,
     title: data.title || 'Untitled',
     date: data.date || new Date().toISOString(),
+    lastModified: data.lastModified, // ADDED: Extracts lastModified from Markdown YAML
     author: data.author,
     excerpt: data.excerpt,
     coverImage: data.coverImage,
@@ -65,6 +64,9 @@ export async function getAllBlogs(): Promise<BlogPost[]> {
     slugs.map(({ slug }) => getBlogBySlug(slug))
   );
   
-  // Sorts by date descending (Newest first)
-  return blogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return blogs.sort((a, b) => {
+    const timeA = new Date(a.date || 0).getTime();
+    const timeB = new Date(b.date || 0).getTime();
+    return timeB - timeA;
+  });
 }

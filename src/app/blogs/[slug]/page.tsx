@@ -1,6 +1,7 @@
 import { getBlogBySlug, getAllBlogSlugs } from '../../lib/blogs';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import { Metadata } from 'next';
 
 interface BlogPageProps {
   params: Promise<{
@@ -15,13 +16,42 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: BlogPageProps) {
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
   const { slug } = await params;
   try {
     const blog = await getBlogBySlug(slug);
+    
     return {
-      title: `${blog.title} | Blog`,
+      title: `${blog.title} | EduNext`,
       description: blog.excerpt || `Read ${blog.title}`,
+      alternates: {
+        canonical: `https://www.edunext.co.in/blog/${slug}`,
+      },
+      openGraph: {
+        title: blog.title,
+        description: blog.excerpt,
+        url: `https://www.edunext.co.in/blog/${slug}`,
+        siteName: 'EduNext',
+        type: 'article',
+        publishedTime: blog.date,
+        // FIXED: Added fallback for lastModified
+        modifiedTime: blog.lastModified ?? blog.date,
+        images: [
+          {
+            // FIXED: Added fallback for coverImage to prevent 'undefined' error
+            url: blog.coverImage ?? "/default-og.jpg",
+            width: 1200,
+            height: 630,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: blog.title,
+        description: blog.excerpt,
+        // FIXED: Added fallback for coverImage
+        images: [blog.coverImage ?? "/default-og.jpg"],
+      },
     };
   } catch {
     return { title: 'Blog Post Not Found' };
@@ -75,10 +105,23 @@ export default async function BlogPage({ params }: BlogPageProps) {
           
           <div className="flex items-center gap-3 sm:gap-4 text-slate-400 mb-3 sm:mb-4 text-sm md:text-base flex-wrap">
             <time className="font-medium">
-              {new Date(blog.date).toLocaleDateString('en-US', {
+              Published: {new Date(blog.date).toLocaleDateString('en-US', {
                 year: 'numeric', month: 'long', day: 'numeric',
               })}
             </time>
+            
+            {/* FIXED: Added lastModified display */}
+            {blog.lastModified && (
+              <>
+                <span className="text-slate-600">•</span>
+                <span className="text-[#F59E0B] font-semibold italic">
+                  Updated: {new Date(blog.lastModified).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                  })}
+                </span>
+              </>
+            )}
+
             {blog.author && (
               <>
                 <span className="text-slate-600">•</span>
@@ -106,7 +149,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
           )}
         </header>
 
-        {/* Content Area with Enhanced Styling */}
+        {/* Content Area */}
         <div
           className="prose prose-lg prose-invert max-w-none
             prose-headings:font-montserrat prose-headings:font-bold prose-headings:text-white prose-headings:mt-8 prose-headings:mb-4

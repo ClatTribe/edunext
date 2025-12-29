@@ -1,2 +1,18 @@
+# Default rules for all crawlers
 User-agent: *
+
+# Allow crawling of all public content
 Allow: /
+
+# Disallow sensitive/private areas:
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /api/
+Disallow: /_next/
+
+# Sitemap location
+Sitemap: https://www.edunext.co.in/sitemap.xml
