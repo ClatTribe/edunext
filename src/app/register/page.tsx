@@ -355,4 +355,4 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
   );
 };
 
-export default RegisterPage;
+export default RegisterPage; 
