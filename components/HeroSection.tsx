@@ -290,7 +290,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
             NEW: ADMIT FINDER 2.0 IS LIVE
           </div>
           <h1 className="text-xl md:text-4xl lg:text-5xl sm:text-2xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-            Find Dream MBA Colleges test <br />
+            Find Dream MBA Colleges <br />
             <span className="text-[#F59E0B]">Without the Noise.</span>
           </h1>
 
