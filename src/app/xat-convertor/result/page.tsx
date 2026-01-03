@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import DefaultLayout from "../../defaultLayout";
 import Leaderboard from "../../../../components/XAT/Leaderboard";
 import ScoreGraph from "../../../../components/XAT/ScoreGraph";
@@ -14,12 +14,13 @@ const borderColor = "rgba(245, 158, 11, 0.15)";
 
 const score = (c: number, w: number) => c - w * 0.25;
 
-export default function ZATResultPage() {
+function ResultContent() {
   const p = useSearchParams();
 
-  const [vc, vw] = p.get("valr")!.split(",").map(Number);
-  const [dc, dw] = p.get("dm")!.split(",").map(Number);
-  const [qc, qw] = p.get("qa")!.split(",").map(Number);
+  // Safe parameter extraction with fallbacks
+  const [vc, vw] = (p.get("valr") || "0,0").split(",").map(Number);
+  const [dc, dw] = (p.get("dm") || "0,0").split(",").map(Number);
+  const [qc, qw] = (p.get("qa") || "0,0").split(",").map(Number);
 
   // Get user details from URL
   const userName = p.get("name") || "Anonymous";
@@ -40,7 +41,6 @@ export default function ZATResultPage() {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        // Small delay to ensure data is committed to database
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         const { data, error } = await supabase
@@ -48,7 +48,7 @@ export default function ZATResultPage() {
           .select(
             "name, valr_correct, valr_wrong, dm_correct, dm_wrong, qa_correct, qa_wrong"
           )
-          .eq("show_in_leaderboard", true) // ✅ FILTER FOR LEADERBOARD ENTRIES ONLY
+          .eq("show_in_leaderboard", true)
           .order("created_at", { ascending: false })
           .limit(100);
 
@@ -61,7 +61,6 @@ export default function ZATResultPage() {
           return;
         }
 
-        // Calculate total score for each student
         const scoresWithRank = data.map((student: any) => {
           const valrScore = score(
             student.valr_correct || 0,
@@ -77,10 +76,8 @@ export default function ZATResultPage() {
           };
         });
 
-        // Sort by score descending
         scoresWithRank.sort((a, b) => b.score - a.score);
 
-        // Add rank
         const rankedData = scoresWithRank.map((student, index) => ({
           rank: index + 1,
           name: student.name,
@@ -88,8 +85,6 @@ export default function ZATResultPage() {
         }));
 
         console.log("Top 10 leaderboard:", rankedData.slice(0, 10));
-
-        // Take top 10
         setLeaderboardData(rankedData.slice(0, 10));
       } catch (err) {
         console.error("Error fetching leaderboard:", err);
@@ -101,7 +96,7 @@ export default function ZATResultPage() {
 
     fetchLeaderboard();
   }, []);
-  // Prepare data for graph with 3 sections
+
   const graphData = [
     {
       section: "VALR",
@@ -155,10 +150,8 @@ export default function ZATResultPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content - Takes 2 columns on large screens */}
             <div className="lg:col-span-2 space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Left side - Overall Score Circle */}
                 <div
                   className="rounded-2xl p-6"
                   style={{
@@ -209,7 +202,6 @@ export default function ZATResultPage() {
                   </div>
                 </div>
 
-                {/* Right side - Score Card Table with 4 sections */}
                 <div
                   className="rounded-2xl overflow-hidden"
                   style={{
@@ -291,11 +283,9 @@ export default function ZATResultPage() {
                 </div>
               </div>
 
-              {/* Performance Graph - Full width below score cards */}
               <ScoreGraph data={graphData} />
             </div>
 
-            {/* Leaderboard Sidebar - Takes 1 column on large screens */}
             <div className="lg:col-span-1">
               {loadingLeaderboard ? (
                 <div
@@ -315,5 +305,18 @@ export default function ZATResultPage() {
         </div>
       </div>
     </DefaultLayout>
+  );
+}
+
+// Main component with Suspense wrapper
+export default function ZATResultPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ backgroundColor: primaryBg }} className="min-h-screen flex items-center justify-center">
+        <p className="text-white">Loading results...</p>
+      </div>
+    }>
+      <ResultContent />
+    </Suspense>
   );
 }
