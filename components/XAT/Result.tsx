@@ -2,10 +2,10 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import DefaultLayout from "../../defaultLayout";
-import Leaderboard from "../../../../components/XAT/Leaderboard";
-import ScoreGraph from "../../../../components/XAT/ScoreGraph";
-import { supabase } from "../../../../lib/supabase";
+import DefaultLayout from '@/app/defaultLayout';
+import Leaderboard from "./Leaderboard";
+import ScoreGraph from "./ScoreGraph";
+import { supabase } from "../../lib/supabase";
 
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
