@@ -523,7 +523,7 @@ export default function PasteXATResponse() {
 
         // Navigate to results page
         router.push(
-          `/xat-convertor/result?valr=${fetchedScores.valr.c},${fetchedScores.valr.w}&dm=${fetchedScores.dm.c},${fetchedScores.dm.w}&qa=${fetchedScores.qa.c},${fetchedScores.qa.w}&name=${encodeURIComponent(name)}&mobile=${mobile}&email=${encodeURIComponent(email)}&category=${category}&city=${encodeURIComponent(city)}`
+          `/xat-score-calculator-2026/result?valr=${fetchedScores.valr.c},${fetchedScores.valr.w}&dm=${fetchedScores.dm.c},${fetchedScores.dm.w}&qa=${fetchedScores.qa.c},${fetchedScores.qa.w}&name=${encodeURIComponent(name)}&mobile=${mobile}&email=${encodeURIComponent(email)}&category=${category}&city=${encodeURIComponent(city)}`
         );
       } catch (err) {
         console.error("Submission error:", err);
