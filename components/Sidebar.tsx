@@ -15,6 +15,7 @@ import {
   FileCheck,
   TrendingUp,
   SearchCheck,
+  Calculator,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -65,6 +66,11 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       icon: SearchCheck,
       label: "CAT College Predictor",
       path: "/cat-college-predictor",
+    },
+    {
+      icon: Calculator,
+      label: "XAT Score Calculator",
+      path: "/xat-score-calculator-2026",
     },
     {
       icon: FileCheck,
