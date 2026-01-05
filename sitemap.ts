@@ -3,14 +3,14 @@ import { MetadataRoute } from 'next';
 import { getAllBlogs } from '@/app/lib/blogs';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://www.edunext.co.in';
+  const baseUrl = 'https://www.getedunext.com';
 
   // Fetch all your blogs using the library function
   const blogs = await getAllBlogs();
 
   // Create sitemap entries for your blog posts
   const blogUrls = blogs.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
+    url: `${baseUrl}/blogs/${post.slug}`,
     // Use lastModified if it exists, otherwise use the original date
     lastModified: new Date(post.lastModified || post.date),
     changeFrequency: 'weekly' as const,

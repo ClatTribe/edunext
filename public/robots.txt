@@ -12,7 +12,6 @@ Disallow: /account
 Disallow: /login
 Disallow: /register
 Disallow: /api/
-Disallow: /_next/
 
 # Sitemap location
-Sitemap: https://www.edunext.co.in/sitemap.xml
+Sitemap: https://www.getedunext.com/sitemap.xml

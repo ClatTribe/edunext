@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
       title: `${blog.title} | EduNext`,
       description: blog.excerpt || `Read ${blog.title}`,
       alternates: {
-        canonical: `https://www.edunext.co.in/blog/${slug}`,
+        canonical: `https://www.getedunext.com/blogs/${slug}`,
       },
       openGraph: {
         title: blog.title,
         description: blog.excerpt,
-        url: `https://www.edunext.co.in/blog/${slug}`,
+        url: `https://www.getedunext.com/blogs/${slug}`,
         siteName: 'EduNext',
         type: 'article',
         publishedTime: blog.date,
