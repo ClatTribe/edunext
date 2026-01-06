@@ -2,9 +2,7 @@
 
 import React, { useState } from 'react';
 import { 
-  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play, ChevronDown, ChevronRight,
-  AudioLines,
-  Clock
+  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play, AudioLines, Clock
 } from 'lucide-react';
 
 interface LightLayoutProps {
@@ -215,7 +213,7 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
       </aside>
 
       {/* Main Content */}
-      <main className="md:ml-64 pt-[73px] min-h-screen flex flex-col" style={{ backgroundColor: lightBg }}>
+     <main className="md:ml-64 pt-[73px] min-h-screen flex flex-col" style={{ backgroundColor: lightBg }}>
         <div className="flex-1">
           {children}
         </div>
