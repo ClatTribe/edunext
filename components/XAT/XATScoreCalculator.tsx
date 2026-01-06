@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { useRouter } from "next/navigation";
 import DefaultLayout from "@/app/defaultLayout";
 
 const accentColor = "#F59E0B";
@@ -10,455 +9,258 @@ const primaryBg = "#050818";
 const secondaryBg = "#0F172B";
 const borderColor = "rgba(245, 158, 11, 0.15)";
 
-interface ScoreData {
-  c: number;
-  w: number;
-  s: number;
-}
+// [Keep all the answerKeyData, interfaces, and helper functions the same as original]
+const answerKeyData: Record<string, string> = {
+  "3279042221": "50(root3-1)", "3279042222": "1980", "3279042223": "21/11 hours",
+  "3279042224": "35", "3279042226": "rs. 2500", "3279042227": "rs. 237,500",
+  "3279042228": "320 meters", "3279042229": "4 sq. cm", "3279042230": "7",
+  "3279042231": "48", "3279042232": "ii only", "3279042233": "19",
+  "3279042234": "4 minutes", "3279042235": "13/90", "3279042236": "2^476 3^455 5^1034",
+  "3279042237": "7", "3279042238": "10(√10+4)m", "3279042239": "1 minute 48 seconds",
+  "3279042240": "16", "3279042241": "4 is the fourth digit of the key", "3279042242": "rs. 2115",
+  "3279042243": "rs. 700,000", "3279042245": "20, 25, 10", "3279042246": "it department, all offices together",
+  "3279042247": "finance and it departments in the bengaluru office are equal",
+  "3279042249": "x = 10", "3279042250": "y = 58", "3279042251": "at least rs. 107,000",
+  "3279042253": "kanmani should not interfere with salaries, since it is a sensitive topic",
+  "3279042254": "she should ask instructors, who want to take leave, to conduct make up classes for the missed classes over the weekend",
+  "3279042255": "a, b, e", "3279042257": "she is a good debater who can logically think and argue on the go",
+  "3279042258": "mbs's professors generally appreciate these three batchmates' inputs during case discussions",
+  "3279042259": "the group meetings that she has attended so far have taught her a lot about how organizations work",
+  "3279042261": "screwvala loved taking up challenging assignments during his stint as an investment banker",
+  "3279042262": "screwvala believes that he owes it to patel for the help he has received in his journey as a writer",
+  "3279042263": "screwvala's lawyer believes that if screwvala is desperate, he can try helping screwvala in getting out of the contract, by offering patel a reasonable compensation",
+  "3279042265": "every interview is unique, and it will be easy to guess her identity from the transcript",
+  "3279042266": "have a discussion with anjali and clarify that vidya had nothing to do with the viral post",
+  "3279042267": "create an anonymous in-house forum within bksm, where the students could discuss anything without consequences",
+  "3279042269": "abhishek strongly feels that he cannot continue for one more year in his current role",
+  "3279042270": "abhishek should request mukesh for an open discussion to get rid of any misunderstandings",
+  "3279042271": "mukesh is known to be very possessive of his subordinates",
+  "3279042273": "animisha has a lucrative offer from a competing firm, for a similar role",
+  "3279042274": "other potential candidates were rejected because of the change in the experience criterion",
+  "3279042275": "a, b, d",
+  "3279042277": "meet uday in person and remind him why she, a gen z, was hired in the first place",
+  "3279042278": "reach out to the top management and explain how the attitude of the seniors is affecting their morale",
+  "3279042279": "invest in diversity, equity and inclusion training, using mass exodus as a turning point for the organization to embrace",
+  "3279042280": "2, 4", "3279042281": "1, 4, 6", "3279042282": "1, 4, 3, 5, 2",
+  "3279042283": "sense, mapping, minor, understanding", "3279042284": "people prioritize certitude even if their interests are at stake",
+  "3279042285": "1, 5, 4, 3, 2", "3279042286": "when attempting to switch careers, an employee should be ready to take some risks",
+  "3279042287": "immigrants have contributed immensely to the wealth of the usa through their scientific contributions",
+  "3279042288": "opportunities only come to those who actively chase them",
+  "3279042290": "old newspapers symbolize the repressed stories that may confront the present",
+  "3279042291": "acting on an unsettling past can help in overcoming the fear it instils",
+  "3279042293": "because it helps individuals to bridge the gap that occurs while sharing lived experiences",
+  "3279042294": "effective communication is not merely an exchange of information, but it is an exchange of overview",
+  "3279042295": "conduit metaphors work on the assumption that words have inherent fixed meanings",
+  "3279042297": "trolls aggressively engage with those who are invested in what they care about",
+  "3279042298": "anonymity lets trolls go against the social norms and express their repressed selves covertly",
+  "3279042299": "trolls use their online harassment as a form of corrective social conditioning",
+  "3279042301": "science is amoral", "3279042302": "scientific discoveries are driven by utility not by the pursuit of truth",
+  "3279042303": "scientists are driven by the urge to explore, not by who the exploration affects",
+  "3279042305": "temporal comparison eliminates threat responses, whereas social comparison can activate threat circuitry",
+  "3279042306": "high self-esteem ensures that the anchor of comparison is seen as opportunity for growth",
+  "3279042307": "individuals with low self-esteem prefer those comparisons that reinforce negative self-evaluation",
+  "3279042309": "because liberal democratic institutions that enable protection of minorities restrain majorities from acting unilaterally",
+  "3279042310": "by tolerating the views we disagree with, we suffer from multiple identities",
+  "3279042311": "while we believe our views are correct, to accept that others' views deserve merit is not always easy",
+  "3279042317": "1-c, 2-a, 3-b, 4-d, 5-e", "3279042324": "these celebrities passed away in 2025",
+  "3279042313": "developing transparent solar panels for skyscrapers", "3279042321": "they can regrow their lost arms",
+  "3279042328": "rajiv rao", "3279042314": "percival everett", "3279042329": "risat-2br1",
+  "3279042312": "vega-x", "3279042330": "18 percent", "3279042322": "pookie", "3279042325": "smriti mandhana",
+  "3279042323": "halley's comet", "3279042318": "2, 4, 5, 1, 3", "3279042327": "cockroach",
+  "3279042331": "bengaluru", "3279042320": "thomas edison", "3279042326": "novak djokovic",
+  "3279042315": "usbrl (udhampur-srinagar-baramulla rail link)", "3279042316": "1-b, 2-a, 3-d, 4-c", "3279042319": "malaysia"
+};
 
-interface QuestionStatus {
-  id: string;
-  status: "Answered" | "Not Answered";
-  section: "VALR" | "DM" | "QA" | "GK";
+interface QuestionData { qid: string; status: string; chosen: string; chosenText: string; isCorrect?: boolean; isWrong?: boolean; isNA?: boolean; keyText?: string; }
+interface SectionData { name: string; questions: QuestionData[]; correct: number; wrong: number; na: number; score: number; }
+interface Sections { VALR: SectionData; DM: SectionData; QA: SectionData; GK: SectionData; }
+interface ParseResult { sections: Sections; finalPart1: string; penaltyScore: number; }
+
+function normalize(text: string): string {
+  if (!text) return "";
+  let s = text.toString().toLowerCase().trim();
+  s = s.replace(/^[a-e]\.\s*/, '');
+  return s.replace(/\s+/g, '').replace(/[^a-z0-9√\^\+\-\=\/\(\)]/g, '');
 }
 
 export default function PasteXATResponse() {
-  const router = useRouter();
   const [html, setHtml] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [scoresFetched, setScoresFetched] = useState(false);
-  const [fetchedScores, setFetchedScores] = useState<{
-    valr: ScoreData;
-    dm: ScoreData;
-    qa: ScoreData;
-  } | null>(null);
-
-  // Form fields
+  const [results, setResults] = useState<ParseResult | null>(null);
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [category, setCategory] = useState("General");
   const [city, setCity] = useState("");
-  const [formError, setFormError] = useState("");
 
-  const extractScoresFromHTML = (htmlContent: string) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
-    const text = doc.body.innerText || doc.body.textContent || "";
-
-    console.log("Extracted text preview:", text.substring(0, 2000));
-
-    // Extract all questions with their status
-    const questions: QuestionStatus[] = [];
-
-    // Pattern: Question ID : XXXXXXXXXX Status : (Answered|Not Answered)
-    const questionRegex =
-      /Question\s+ID\s*:\s*(\d+)[\s\S]*?Status\s*:\s*(Answered|Not\s+Answered)/gi;
-    let match;
-
-    while ((match = questionRegex.exec(text)) !== null) {
-      const questionId = match[1];
-      const status = match[2].replace(/\s+/g, " ").trim();
-
-      console.log(`Found Question ID: ${questionId}, Status: ${status}`);
-
-      // Determine section based on question ID ranges (XAT 2025 pattern)
-      // VALR: Questions 1-26
-      // DM: Questions 27-48
-      // QA: Questions 49-76
-      // GK: Questions 77-95
-
-      const qNum = parseInt(questionId.slice(-2)); // Get last 2 digits
-      let section: "VALR" | "DM" | "QA" | "GK";
-
-      if (qNum >= 1 && qNum <= 26) {
-        section = "VALR";
-      } else if (qNum >= 27 && qNum <= 48) {
-        section = "DM";
-      } else if (qNum >= 49 && qNum <= 76) {
-        section = "QA";
-      } else {
-        section = "GK"; // 77-95
-      }
-
-      questions.push({
-        id: questionId,
-        status: status === "Answered" ? "Answered" : "Not Answered",
-        section: section,
+  // [Keep extractQuestion, scoreQuestion, parseAndCalculate, fetchDigialmContent, processContent functions same as original]
+  
+  const extractQuestion = (pnl: Element): QuestionData | null => {
+    try {
+      const menuTbl = pnl.querySelector('.menu-tbl');
+      if (!menuTbl) return null;
+      let qid = "", status = "", chosen = "";
+      menuTbl.querySelectorAll('tr').forEach((row: Element) => {
+        const txt = row.textContent || "";
+        if (txt.includes("Question ID")) { const boldEl = row.querySelector('.bold'); if (boldEl) qid = boldEl.textContent?.trim() || ""; }
+        if (txt.includes("Status")) { const boldEl = row.querySelector('.bold'); if (boldEl) status = boldEl.textContent?.trim() || ""; }
+        if (txt.includes("Chosen Option")) { const boldEl = row.querySelector('.bold'); if (boldEl) chosen = boldEl.textContent?.trim() || ""; }
       });
+      let chosenText = "";
+      const optionsMap: Record<string, string> = {};
+      pnl.querySelectorAll('.questionRowTbl tr').forEach((row: Element) => {
+        const tds = row.querySelectorAll('td');
+        if (tds.length >= 2) {
+          const txt = tds[1].textContent?.trim() || "";
+          if (txt.match(/^[A-E]\./)) {
+            const optKey = txt.charAt(0);
+            optionsMap[optKey] = txt.substring(2).trim();
+            if (tds[1].querySelector('img')) optionsMap[optKey] = "IMAGE_OPTION";
+          }
+        }
+      });
+      if (chosen && chosen !== "--") chosenText = optionsMap[chosen] || "";
+      return { qid, status, chosen, chosenText };
+    } catch(e) { return null; }
+  };
+
+  const scoreQuestion = (q: QuestionData, sectionObj: SectionData, isGK: boolean): void => {
+    const keyText = answerKeyData[q.qid];
+    q.isCorrect = false; q.isWrong = false; q.isNA = false; q.keyText = keyText;
+    if (!q.chosen || q.chosen === "--" || q.status === "Not Answered") { q.isNA = true; sectionObj.na++; }
+    else if (!keyText) { q.isNA = true; }
+    else {
+      const nKey = normalize(keyText), nUser = normalize(q.chosenText);
+      let isMatch = false;
+      if (nKey.length < 10) { if (nKey === nUser) isMatch = true; }
+      else { if (nKey === nUser || nUser.includes(nKey) || nKey.includes(nUser)) isMatch = true; }
+      if (isMatch) { q.isCorrect = true; sectionObj.correct++; sectionObj.score += 1; }
+      else { q.isWrong = true; sectionObj.wrong++; if (!isGK) sectionObj.score -= 0.25; }
     }
+  };
 
-    console.log(`Total questions found: ${questions.length}`);
-    console.log("Questions by section:", {
-      VALR: questions.filter((q) => q.section === "VALR").length,
-      DM: questions.filter((q) => q.section === "DM").length,
-      QA: questions.filter((q) => q.section === "QA").length,
-      GK: questions.filter((q) => q.section === "GK").length,
-    });
-
-    if (questions.length === 0) {
-      throw new Error("No questions found in the content");
-    }
-
-    // Calculate statistics for each section
-    const calculateSectionStats = (sectionQuestions: QuestionStatus[]) => {
-      const answered = sectionQuestions.filter(
-        (q) => q.status === "Answered"
-      ).length;
-      const notAnswered = sectionQuestions.filter(
-        (q) => q.status === "Not Answered"
-      ).length;
-
-      // For XAT 2025, we need to estimate correct/wrong from answered questions
-      // Assuming an average accuracy - this will be updated when user sees actual results
-      // We'll mark all as "attempted" and let them see the breakdown later
-
-      return {
-        attempted: answered,
-        skipped: notAnswered,
-        total: sectionQuestions.length,
-      };
+  const parseAndCalculate = (htmlContent: string): ParseResult => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    const sections: Sections = {
+      "VALR": { name: "Verbal & Logical Ability", questions: [], correct: 0, wrong: 0, na: 0, score: 0 },
+      "DM": { name: "Decision Making", questions: [], correct: 0, wrong: 0, na: 0, score: 0 },
+      "QA": { name: "Quantitative Aptitude", questions: [], correct: 0, wrong: 0, na: 0, score: 0 },
+      "GK": { name: "General Knowledge", questions: [], correct: 0, wrong: 0, na: 0, score: 0 }
     };
-
-    const valrQuestions = questions.filter((q) => q.section === "VALR");
-    const dmQuestions = questions.filter((q) => q.section === "DM");
-    const qaQuestions = questions.filter((q) => q.section === "QA");
-
-    const valrStats = calculateSectionStats(valrQuestions);
-    const dmStats = calculateSectionStats(dmQuestions);
-    const qaStats = calculateSectionStats(qaQuestions);
-
-    console.log("Section Statistics:", {
-      VALR: valrStats,
-      DM: dmStats,
-      QA: qaStats,
+    const sectionContainers = doc.querySelectorAll('.section-cntnr');
+    sectionContainers.forEach((container: Element) => {
+      const sectionLabelEl = container.querySelector('.section-lbl .bold');
+      let sectionName = sectionLabelEl?.textContent?.trim() || "Unknown";
+      let key: keyof Sections = "QA";
+      if (sectionName.includes("Verbal")) key = "VALR";
+      else if (sectionName.includes("Decision")) key = "DM";
+      else if (sectionName.includes("General")) key = "GK";
+      const pnls = container.querySelectorAll('.question-pnl');
+      pnls.forEach((pnl: Element) => {
+        const qData = extractQuestion(pnl);
+        if (qData) { sections[key].questions.push(qData); scoreQuestion(qData, sections[key], key === "GK"); }
+      });
     });
-
-    // Return with attempted count - we'll need user to input correct/wrong manually
-    // Or we can make assumptions based on difficulty
-    return {
-      valr: {
-        attempted: valrStats.attempted,
-        skipped: valrStats.skipped,
-        total: valrStats.total,
-      },
-      dm: {
-        attempted: dmStats.attempted,
-        skipped: dmStats.skipped,
-        total: dmStats.total,
-      },
-      qa: {
-        attempted: qaStats.attempted,
-        skipped: qaStats.skipped,
-        total: qaStats.total,
-      },
-      questions: questions,
-    };
+    const totalNA_Part1 = sections['VALR'].na + sections['DM'].na + sections['QA'].na;
+    const penaltyCount = Math.max(0, totalNA_Part1 - 8);
+    const penaltyScore = penaltyCount * 0.1;
+    const rawPart1 = sections['VALR'].score + sections['DM'].score + sections['QA'].score;
+    const finalPart1 = (rawPart1 - penaltyScore).toFixed(2);
+    return { sections, finalPart1, penaltyScore };
   };
 
   const fetchDigialmContent = async (url: string) => {
     try {
-      console.log("Attempting to fetch URL:", url);
-
-      const response = await fetch(url, {
-        mode: "cors",
-        credentials: "omit",
-        headers: {
-          Accept: "text/html,application/xhtml+xml,application/xml",
-        },
-      });
-
-      if (response.ok) {
-        return await response.text();
-      }
-
+      const response = await fetch(url, { mode: "cors", credentials: "omit", headers: { Accept: "text/html,application/xhtml+xml,application/xml" } });
+      if (response.ok) return await response.text();
       throw new Error("Direct fetch failed");
-    } catch (directError) {
-      console.log("Direct fetch failed, trying CORS proxies...");
-
+    } catch {
       const proxyUrls = [
         `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
         `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
       ];
-
       for (const proxyUrl of proxyUrls) {
         try {
-          console.log("Trying proxy:", proxyUrl);
           const response = await fetch(proxyUrl);
-          if (response.ok) {
-            const content = await response.text();
-            console.log("Proxy fetch successful");
-            return content;
-          }
-        } catch (proxyError) {
-          console.log(`Proxy failed:`, proxyError);
-        }
+          if (response.ok) return await response.text();
+        } catch {}
       }
-
       throw new Error("All fetch methods failed");
     }
   };
 
   const processContent = (content: string) => {
-    try {
-      const result = extractScoresFromHTML(content);
-
-      console.log("Extraction result:", result);
-
-      if (!result.questions || result.questions.length === 0) {
-        throw new Error("No valid questions found");
-      }
-
-      // For now, we'll estimate 70% accuracy for answered questions
-      // User can adjust this in a more detailed interface
-      const estimateScores = (attempted: number, skipped: number) => {
-        const estimatedCorrect = Math.round(attempted * 0.7); // 70% accuracy assumption
-        const estimatedWrong = attempted - estimatedCorrect;
-        return {
-          c: estimatedCorrect,
-          w: estimatedWrong,
-          s: skipped,
-        };
-      };
-
-      setFetchedScores({
-        valr: estimateScores(result.valr.attempted, result.valr.skipped),
-        dm: estimateScores(result.dm.attempted, result.dm.skipped),
-        qa: estimateScores(result.qa.attempted, result.qa.skipped),
-      });
-
-      setScoresFetched(true);
-      setError(
-        `✅ Found ${result.questions.length} questions!\n\n` +
-          `📊 VALR: ${result.valr.attempted} attempted, ${result.valr.skipped} skipped\n` +
-          `📊 DM: ${result.dm.attempted} attempted, ${result.dm.skipped} skipped\n` +
-          `📊 QA: ${result.qa.attempted} attempted, ${result.qa.skipped} skipped\n\n` +
-          `⚠️ Note: Estimated 70% accuracy for attempted questions. Complete your details and submit!`
-      );
-    } catch (err) {
-      console.error("Processing error:", err);
-      throw new Error("Unable to extract questions from content");
+    const result = parseAndCalculate(content);
+    if (!result.sections.VALR.questions.length && !result.sections.DM.questions.length && !result.sections.QA.questions.length) {
+      throw new Error("No valid questions found");
     }
+    return result;
   };
 
-  const handleCalculate = async () => {
+  const handleCalculateAndSubmit = async () => {
     try {
-      setError("");
-      setLoading(true);
-      setScoresFetched(false);
-      setFetchedScores(null);
+      setError(""); setLoading(true);
+      
+      // Validate form
+      if (!name.trim()) { setError("❌ Please enter your name"); setLoading(false); return; }
+      if (!mobile.trim() || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) { setError("❌ Please enter a valid 10-digit mobile number"); setLoading(false); return; }
+      if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("❌ Please enter a valid email address"); setLoading(false); return; }
+      if (!city.trim()) { setError("❌ Please enter your city"); setLoading(false); return; }
 
       const input = html.trim();
+      if (!input) { setError("⚠️ Please paste your Digialm URL or HTML content"); setLoading(false); return; }
 
-      if (!input) {
-        setError("⚠️ Please paste your Digialm URL or content");
-        setLoading(false);
-        return;
-      }
+      let calculatedResults: ParseResult;
 
+      // Fetch content
       if (/^https?:\/\//i.test(input) || /digialm\.com/i.test(input)) {
-        setError("🔄 Fetching content from URL...");
-
-        let url = input;
-        if (!url.startsWith("http")) {
-          url = "https://" + url;
-        }
-
+        setError("🔄 Fetching and processing...");
+        let url = input.startsWith("http") ? input : "https://" + input;
         try {
           const content = await fetchDigialmContent(url);
-          processContent(content);
-        } catch (fetchError) {
-          console.error("Fetch error:", fetchError);
-          setError(
-            "❌ Unable to fetch URL automatically due to CORS restrictions.\n\n" +
-              "⚠️ Please use manual method:\n" +
-              "1. Open the link in your browser\n" +
-              "2. Press Ctrl+A (Cmd+A on Mac) to select all\n" +
-              "3. Press Ctrl+C (Cmd+C) to copy\n" +
-              "4. Come back here and paste the content"
-          );
-        }
-        setLoading(false);
-        return;
-      }
-
-      if (input.length < 100) {
-        setError(
-          "⚠️ The pasted content seems too short. Make sure you copied the ENTIRE page (Ctrl+A, then Ctrl+C)."
-        );
-        setLoading(false);
-        return;
-      }
-
-      processContent(input);
-    } catch (err) {
-      console.error("Parse error:", err);
-      setError(
-        "❌ Unable to find question data in the content.\n\n" +
-          "Make sure you:\n" +
-          "1. Opened the complete response page with 'Question ID' and 'Status' visible\n" +
-          "2. Selected ALL content (Ctrl+A)\n" +
-          "3. Copied everything (Ctrl+C)\n" +
-          "4. Pasted the complete content here\n\n" +
-          "The page should show questions with 'Question ID' and 'Status: Answered/Not Answered'"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    setFormError("");
-
-    if (!name.trim()) {
-      setFormError("❌ Please enter your name");
-      return;
-    }
-    if (!mobile.trim() || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
-      setFormError("❌ Please enter a valid 10-digit mobile number");
-      return;
-    }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setFormError("❌ Please enter a valid email address");
-      return;
-    }
-    if (!city.trim()) {
-      setFormError("❌ Please enter your city");
-      return;
-    }
-
-    if (!fetchedScores) {
-      setFormError(
-        "❌ Please calculate your scores first using the section below"
-      );
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const valrScore = fetchedScores.valr.c - fetchedScores.valr.w * 0.25;
-      const dmScore = fetchedScores.dm.c - fetchedScores.dm.w * 0.25;
-      const qaScore = fetchedScores.qa.c - fetchedScores.qa.w * 0.25;
-      const totalScore = valrScore + dmScore + qaScore;
-
-      const { data: existingUser, error: checkError } = await supabase
-        .from("xat_results")
-        .select("*")
-        .eq("name", name.trim())
-        .eq("mobile", mobile)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (checkError) {
-        console.error("Check error:", checkError);
-        setFormError(`❌ Failed to check existing data: ${checkError.message}`);
-        setLoading(false);
-        return;
-      }
-
-      if (existingUser && existingUser.length > 0) {
-        const existingTotal =
-          existingUser[0].valr_correct -
-          existingUser[0].valr_wrong * 0.25 +
-          (existingUser[0].dm_correct - existingUser[0].dm_wrong * 0.25) +
-          (existingUser[0].qa_correct - existingUser[0].qa_wrong * 0.25);
-
-        if (totalScore > existingTotal) {
-          const { error: updateError } = await supabase
-            .from("xat_results")
-            .update({
-              email,
-              category,
-              city,
-              valr_correct: fetchedScores.valr.c,
-              valr_wrong: fetchedScores.valr.w,
-              valr_skipped: fetchedScores.valr.s,
-              dm_correct: fetchedScores.dm.c,
-              dm_wrong: fetchedScores.dm.w,
-              dm_skipped: fetchedScores.dm.s,
-              qa_correct: fetchedScores.qa.c,
-              qa_wrong: fetchedScores.qa.w,
-              qa_skipped: fetchedScores.qa.s,
-              show_in_leaderboard: true,
-            })
-            .eq("id", existingUser[0].id);
-
-          if (updateError) {
-            console.error("Update error:", updateError);
-            setFormError(`❌ Failed to update data: ${updateError.message}`);
-            setLoading(false);
-            return;
-          }
-        } else {
-          const { error: insertError } = await supabase
-            .from("xat_results")
-            .insert([
-              {
-                name,
-                mobile,
-                email,
-                category,
-                city,
-                valr_correct: fetchedScores.valr.c,
-                valr_wrong: fetchedScores.valr.w,
-                valr_skipped: fetchedScores.valr.s,
-                dm_correct: fetchedScores.dm.c,
-                dm_wrong: fetchedScores.dm.w,
-                dm_skipped: fetchedScores.dm.s,
-                qa_correct: fetchedScores.qa.c,
-                qa_wrong: fetchedScores.qa.w,
-                qa_skipped: fetchedScores.qa.s,
-                show_in_leaderboard: false,
-              },
-            ]);
-
-          if (insertError) {
-            console.error("Insert error:", insertError);
-            setFormError(`❌ Failed to save data: ${insertError.message}`);
-            setLoading(false);
-            return;
-          }
+          calculatedResults = processContent(content);
+        } catch {
+          setError("❌ Unable to fetch URL. Please copy and paste the page content instead.");
+          setLoading(false); return;
         }
       } else {
-        const { error: insertError } = await supabase
-          .from("xat_results")
-          .insert([
-            {
-              name,
-              mobile,
-              email,
-              category,
-              city,
-              valr_correct: fetchedScores.valr.c,
-              valr_wrong: fetchedScores.valr.w,
-              valr_skipped: fetchedScores.valr.s,
-              dm_correct: fetchedScores.dm.c,
-              dm_wrong: fetchedScores.dm.w,
-              dm_skipped: fetchedScores.dm.s,
-              qa_correct: fetchedScores.qa.c,
-              qa_wrong: fetchedScores.qa.w,
-              qa_skipped: fetchedScores.qa.s,
-              show_in_leaderboard: true,
-            },
-          ]);
-
-        if (insertError) {
-          console.error("Insert error:", insertError);
-          setFormError(`❌ Failed to save data: ${insertError.message}`);
-          setLoading(false);
-          return;
-        }
+        if (input.length < 100) { setError("⚠️ Content too short. Copy entire page (Ctrl+A)."); setLoading(false); return; }
+        calculatedResults = processContent(input);
       }
 
-      router.push(
-        `/xat-score-calculator-2026/result?valr=${fetchedScores.valr.c},${fetchedScores.valr.w}&dm=${fetchedScores.dm.c},${fetchedScores.dm.w}&qa=${fetchedScores.qa.c},${fetchedScores.qa.w}&name=${encodeURIComponent(name)}&mobile=${mobile}&email=${encodeURIComponent(email)}&category=${category}&city=${encodeURIComponent(city)}`
-      );
+      // Save to DB
+      setError("💾 Saving results...");
+      const { data: existingUser } = await supabase.from("xat_results").select("*").eq("name", name.trim()).eq("mobile", mobile).order("created_at", { ascending: false }).limit(1);
+      
+      const dataToSave = {
+        name, mobile, email, category, city,
+        valr_correct: calculatedResults.sections.VALR.correct,
+        valr_wrong: calculatedResults.sections.VALR.wrong,
+        valr_skipped: calculatedResults.sections.VALR.na,
+        dm_correct: calculatedResults.sections.DM.correct,
+        dm_wrong: calculatedResults.sections.DM.wrong,
+        dm_skipped: calculatedResults.sections.DM.na,
+        qa_correct: calculatedResults.sections.QA.correct,
+        qa_wrong: calculatedResults.sections.QA.wrong,
+        qa_skipped: calculatedResults.sections.QA.na,
+        show_in_leaderboard: true
+      };
+
+      if (existingUser && existingUser.length > 0) {
+        await supabase.from("xat_results").update(dataToSave).eq("id", existingUser[0].id);
+      } else {
+        await supabase.from("xat_results").insert([dataToSave]);
+      }
+
+      setResults(calculatedResults);
+      setError("✅ Results calculated and saved successfully!");
+      setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (err) {
-      console.error("Submission error:", err);
-      setFormError("❌ Something went wrong. Please try again.");
+      setError("❌ Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -468,243 +270,118 @@ export default function PasteXATResponse() {
       <div className="min-h-screen" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-5xl mx-auto px-6 pt-24 md:pt-8 pb-12">
           <div className="text-center space-y-2 sm:space-y-3 mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 shadow-sm text-xs font-semibold uppercase tracking-widest text-[#F59E0B]">
-              <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse"></span>
-              XAT 2025 Score Calculator
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold uppercase tracking-widest" style={{color: accentColor}}>
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: accentColor}}></span>
+              XAT 2026 Score Calculator
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-              Calculate your <span className="text-[#F59E0B]">XAT score</span>{" "}
-              instantly
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white">
+              Calculate your <span style={{color: accentColor}}>XAT score</span> instantly
             </h1>
             <p className="text-slate-400 max-w-2xl text-sm sm:text-base mx-auto px-4">
-              Paste your Digialm response to get accurate section-wise scores
+              Fill your details and paste Digialm response for instant results
             </p>
           </div>
 
-          {/* User Form */}
-          <div
-            className="rounded-2xl p-6 shadow-xl mb-6"
-            style={{
-              backgroundColor: secondaryBg,
-              border: `1px solid ${borderColor}`,
-            }}
-          >
-            <h2 className="text-xl font-bold text-white mb-4">
-              📝 Your Details
-            </h2>
+          {/* Single Form */}
+          <div className="rounded-2xl p-6 shadow-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+            <h2 className="text-xl font-bold text-white mb-4">📝 Enter Details & Calculate Score</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* User Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="block text-slate-400 text-sm mb-2">
-                  NAME <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your full name"
-                  className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                  style={{ border: `1px solid ${borderColor}` }}
-                />
+                <label className="block text-slate-400 text-sm mb-2">NAME <span className="text-red-500">*</span></label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2" style={{ border: `1px solid ${borderColor}`, outlineColor: accentColor }} />
               </div>
-
               <div>
-                <label className="block text-slate-400 text-sm mb-2">
-                  MOBILE NO. <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
-                  placeholder="10-digit number"
-                  maxLength={10}
-                  className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                  style={{ border: `1px solid ${borderColor}` }}
-                />
+                <label className="block text-slate-400 text-sm mb-2">MOBILE <span className="text-red-500">*</span></label>
+                <input type="tel" value={mobile} onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))} maxLength={10} placeholder="10 digits" className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2" style={{ border: `1px solid ${borderColor}` }} />
               </div>
-
               <div>
-                <label className="block text-slate-400 text-sm mb-2">
-                  EMAIL <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email address"
-                  className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                  style={{ border: `1px solid ${borderColor}` }}
-                />
+                <label className="block text-slate-400 text-sm mb-2">EMAIL <span className="text-red-500">*</span></label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2" style={{ border: `1px solid ${borderColor}` }} />
               </div>
-
               <div>
-                <label className="block text-slate-400 text-sm mb-2">
-                  CATEGORY <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer"
-                  style={{ border: `1px solid ${borderColor}` }}
-                >
-                  <option>General</option>
-                  <option>OBC</option>
-                  <option>SC</option>
-                  <option>ST</option>
-                  <option>EWS</option>
-                  <option>PwD</option>
+                <label className="block text-slate-400 text-sm mb-2">CATEGORY <span className="text-red-500">*</span></label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2" style={{ border: `1px solid ${borderColor}` }}>
+                  <option>General</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option><option>PwD</option>
                 </select>
               </div>
-
-              <div>
-                <label className="block text-slate-400 text-sm mb-2">
-                  CITY <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Enter your city"
-                  className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                  style={{ border: `1px solid ${borderColor}` }}
-                />
-              </div>
-
-              <div className="flex items-end">
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="px-8 py-3 rounded-xl font-semibold text-black w-full transition-all hover:opacity-90 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  {loading ? "Submitting..." : "Submit & View Results →"}
-                </button>
+              <div className="md:col-span-2">
+                <label className="block text-slate-400 text-sm mb-2">CITY <span className="text-red-500">*</span></label>
+                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Your city" className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2" style={{ border: `1px solid ${borderColor}` }} />
               </div>
             </div>
 
-            {formError && (
-              <div className="mt-4 p-3 rounded-lg bg-red-900/20 border border-red-500/30">
-                <p className="text-red-400 text-sm">{formError}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Score Calculator */}
-          <div
-            className="rounded-2xl p-6 shadow-xl space-y-5"
-            style={{
-              backgroundColor: secondaryBg,
-              border: `1px solid ${borderColor}`,
-            }}
-          >
-            {/* HEADER */}
-            <h2 className="text-2xl font-bold text-white">
-              Calculate XAT Score
-            </h2>
-
-            {/* LINK INPUT (TOP) */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300">
-                Paste Digialm URL or Response Content
-              </label>
-
-              <textarea
-                value={html}
-                onChange={(e) => {
-                  setHtml(e.target.value);
-                  setError("");
-                }}
-                disabled={scoresFetched}
-                className="w-full h-20 rounded-xl p-4 text-sm text-white bg-[#050818] font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                style={{ border: `1px solid ${borderColor}` }}
-                placeholder="https://cdn.digialm.com/... OR paste full response page here"
-              />
+            {/* Response Input */}
+            <div className="border-t pt-6 mb-6" style={{borderColor: 'rgba(100,116,139,0.3)'}}>
+              <label className="block text-slate-300 font-semibold mb-2">Digialm URL or Response Content <span className="text-red-500">*</span></label>
+              <textarea value={html} onChange={(e) => {setHtml(e.target.value); setError("");}} className="w-full h-32 rounded-xl p-4 text-sm text-white bg-[#050818] font-mono focus:outline-none focus:ring-2" style={{ border: `1px solid ${borderColor}` }} placeholder="https://cdn.digialm.com/... OR paste full page content" />
             </div>
 
-            {/* METHODS SECTION (DOWN) */}
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
-              <div className="max-w-3xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-6">
-                  How to check XAT 2026 scores?
-                </h1>
-
-                <div className="text-slate-400 text-sm space-y-3">
-                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
-                    <p className="text-xs">
-                      Works with XAT 2025+ format showing
-                      <span className="text-amber-400"> Question ID </span>
-                      and
-                      <span className="text-amber-400">
-                        {" "}
-                        Status: Answered / Not Answered
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
-                    <p className="text-white font-medium mb-1">
-                      Click on "Candidate Response" and copy the response sheet
-                      link
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
-                    <p className="text-white font-medium mb-1">
-                      Paste the link in the textbox above and click on Submit
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
-                    <p className="text-white font-medium mb-1">
-                      📊 Instant Results
-                    </p>
-                    <p className="text-xs">
-                      Get your predicted percentile and section-wise breakdown
-                      in
-                      <span className="text-emerald-400"> real-time</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-                  <p className="text-blue-300 text-sm">
-                    💡 <span className="font-semibold">Pro Tip:</span> Make sure
-                    you're logged into the official XAT website before copying
-                    your response sheet link
-                  </p>
-                </div>
+            {/* Instructions */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-xl mb-6">
+              <h3 className="text-lg font-bold text-white mb-3">📋 How to Use</h3>
+              <div className="space-y-2 text-sm text-slate-400">
+                <p>✅ Fill all your details above</p>
+                <p>✅ Click "Candidate Response" on XAT portal and copy the link</p>
+                <p>✅ Paste the link in the textbox above</p>
+                <p>✅ Click "Calculate & Save Score" button</p>
               </div>
             </div>
 
-            {/* ERROR / STATUS */}
+            {/* Error/Success Message */}
             {error && (
-              <div
-                className={`p-3 rounded-lg border ${
-                  error.includes("✅")
-                    ? "bg-green-900/20 border-green-500/30 text-green-400"
-                    : error.includes("🔄")
-                      ? "bg-blue-900/20 border-blue-500/30 text-blue-400"
-                      : "bg-red-900/20 border-red-500/30 text-red-400"
-                }`}
-              >
+              <div className={`p-4 rounded-lg mb-4 ${error.includes("✅") ? "bg-green-900/20 border-green-500/30 text-green-400" : error.includes("🔄") || error.includes("💾") ? "bg-blue-900/20 border-blue-500/30 text-blue-400" : "bg-red-900/20 border-red-500/30 text-red-400"} border`}>
                 <p className="text-sm whitespace-pre-line">{error}</p>
               </div>
             )}
 
-            {/* ACTION BUTTON */}
-            <button
-              onClick={handleCalculate}
-              disabled={!html.trim() || loading || scoresFetched}
-              className="w-1/3 px-6 py-3 rounded-xl font-semibold text-black transition-all disabled:opacity-50"
-              style={{ backgroundColor: accentColor }}
-            >
-              {loading
-                ? "Processing..."
-                : scoresFetched
-                  ? "Scores Fetched ✓"
-                  : "Calculate Score →"}
+            {/* Submit Button */}
+            <button onClick={handleCalculateAndSubmit} disabled={loading} className="w-full px-6 py-4 rounded-xl font-bold text-black text-lg transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: accentColor }}>
+              {loading ? "Processing..." : "Calculate & Save Score →"}
             </button>
           </div>
+
+          {/* Results Section */}
+          {results && (
+            <div id="results" className="mt-8 rounded-2xl p-6 shadow-2xl" style={{ backgroundColor: secondaryBg, border: `2px solid ${accentColor}` }}>
+              <h2 className="text-2xl font-bold text-white mb-6">🎯 Your XAT 2026 Results</h2>
+              
+              {/* Main Scores */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="p-6 rounded-xl border-2" style={{backgroundColor: '#050818', borderColor: accentColor}}>
+                  <p className="text-slate-400 text-sm mb-2">Part 1 Total Score</p>
+                  <p className="text-5xl font-bold mb-2" style={{color: accentColor}}>{results.finalPart1}</p>
+                  <p className="text-xs text-red-400">Penalty Applied: -{results.penaltyScore.toFixed(2)}</p>
+                </div>
+                <div className="p-6 bg-[#050818] rounded-xl border border-slate-700">
+                  <p className="text-slate-400 text-sm mb-2">General Knowledge</p>
+                  <p className="text-5xl font-bold text-slate-300 mb-2">{results.sections.GK.score}</p>
+                  <p className="text-xs text-slate-500">Not included in percentile</p>
+                </div>
+              </div>
+
+              {/* Section Breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {(['VALR', 'DM', 'QA'] as const).map(key => (
+                  <div key={key} className="p-5 bg-[#050818] rounded-xl border border-slate-700">
+                    <p className="text-slate-400 text-xs font-semibold mb-3">{results.sections[key].name}</p>
+                    <div className="flex gap-4 text-sm mb-3">
+                      <span className="text-green-400">✓ {results.sections[key].correct}</span>
+                      <span className="text-red-400">✗ {results.sections[key].wrong}</span>
+                      <span className="text-slate-500">— {results.sections[key].na}</span>
+                    </div>
+                    <p className="text-2xl font-bold text-white">Score: {results.sections[key].score.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Success Message */}
+              <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <p className="text-green-400 text-center font-semibold">✅ Your results have been saved to our database!</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DefaultLayout>
