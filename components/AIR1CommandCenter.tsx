@@ -52,38 +52,39 @@ export const AIR1CommandCenter: React.FC = () => {
           >
             Study Materials Used
           </h2>
-          <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
             {/* Left: Phone Screenshot */}
             <div className="w-full md:w-auto flex justify-center">
               <img
                 src="https://res.cloudinary.com/daetdadtt/image/upload/v1767689500/WhatsApp_Image_2026-01-06_at_14.14.55_lwhwnk.jpg"
                 alt="Study Materials"
-                className="rounded-xl shadow-lg max-w-xs w-full h-auto border-2 border-purple-200"
+                className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
               />
             </div>
 
             {/* Right: Resource */}
-            <div className="w-full md:w-96">
-              <div className="bg-white rounded-xl p-6 shadow-lg border-2 border-purple-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-8 h-1 rounded"
-                    style={{ backgroundColor: accentColor }}
-                  ></div>
-                  <span className="text-4xl text-yellow-500 font-bold">550</span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4">
-                  PYQs practiced from this resource
-                </p>
-                <button
-                  onClick={() => openPDF("ipmat_2019_Question_Paper-1.pdf")}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md"
+            <div className="w-full md:w-auto flex flex-col items-center md:items-start">
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-12 h-1.5 rounded"
                   style={{ backgroundColor: accentColor }}
-                >
-                  <ExternalLink size={18} />
-                  View PDF Resource
-                </button>
+                ></div>
+                <span className="text-5xl text-yellow-500 font-bold">550</span>
               </div>
+              <p className="text-gray-700 text-base mb-5 font-medium">
+                PYQs practiced from this resource
+              </p>
+              <button
+                onClick={() => openPDF("ipmat_2019_Question_Paper-1.pdf")}
+                className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-lg text-base font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink size={20} />
+                View PDF Resource
+              </button>
+              <p className="text-gray-500 text-xs mt-2 italic">
+                The exact paper that helped secure AIR 1
+              </p>
             </div>
           </div>
         </div>
@@ -96,37 +97,38 @@ export const AIR1CommandCenter: React.FC = () => {
           >
             Questions He Found Challenging
           </h2>
-          <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
             {/* Left: Phone Screenshot */}
             <div className="w-full md:w-auto flex justify-center">
               <img
                 src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691017/WhatsApp_Image_2026-01-06_at_14.17.06_k1bdpw.jpg"
                 alt="Challenging Questions"
-                className="rounded-xl shadow-lg max-w-xs w-full h-auto border-2 border-purple-200"
+                className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
               />
             </div>
 
             {/* Right: Resource */}
-            <div className="w-full md:w-96">
-              <div className="bg-white rounded-xl p-6 shadow-lg border-2 border-purple-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-8 h-1 rounded"
-                    style={{ backgroundColor: accentColor }}
-                  ></div>
-                  <span className="text-4xl">💡</span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4">
-                  Questions that tested him the most
-                </p>
-                <button
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md"
+            <div className="w-full md:w-auto flex flex-col items-center md:items-start">
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-12 h-1.5 rounded"
                   style={{ backgroundColor: accentColor }}
-                >
-                  <ExternalLink size={18} />
-                  Access Resource
-                </button>
+                ></div>
+                <span className="text-5xl">💡</span>
               </div>
+              <p className="text-gray-700 text-base mb-5 font-medium">
+                Questions that tested him the most
+              </p>
+              <button
+                className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-lg text-base font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink size={20} />
+                Access Resource
+              </button>
+              <p className="text-gray-500 text-xs mt-2 italic">
+                Master the toughest questions with this collection
+              </p>
             </div>
           </div>
         </div>
@@ -139,37 +141,38 @@ export const AIR1CommandCenter: React.FC = () => {
           >
             Time Table
           </h2>
-          <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
             {/* Left: Phone Screenshot */}
             <div className="w-full md:w-auto flex justify-center">
               <img
                 src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691018/WhatsApp_Image_2026-01-06_at_14.17.21_xyzjtt.jpg"
                 alt="Time Table"
-                className="rounded-xl shadow-lg max-w-xs w-full h-auto border-2 border-purple-200"
+                className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
               />
             </div>
 
             {/* Right: Resource */}
-            <div className="w-full md:w-96">
-              <div className="bg-white rounded-xl p-6 shadow-lg border-2 border-purple-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-8 h-1 rounded"
-                    style={{ backgroundColor: accentColor }}
-                  ></div>
-                  <span className="text-4xl">📅</span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4">
-                  Daily schedule followed by AIR 1
-                </p>
-                <button
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md"
+            <div className="w-full md:w-auto flex flex-col items-center md:items-start">
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-12 h-1.5 rounded"
                   style={{ backgroundColor: accentColor }}
-                >
-                  <ExternalLink size={18} />
-                  View Schedule
-                </button>
+                ></div>
+                <span className="text-5xl">📅</span>
               </div>
+              <p className="text-gray-700 text-base mb-5 font-medium">
+                Daily schedule followed by AIR 1
+              </p>
+              <button
+                className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-lg text-base font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink size={20} />
+                View Schedule
+              </button>
+              <p className="text-gray-500 text-xs mt-2 italic">
+                Follow the exact routine that led to success
+              </p>
             </div>
           </div>
         </div>
