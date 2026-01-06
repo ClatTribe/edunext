@@ -213,8 +213,23 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
       </aside>
 
       {/* Main Content */}
-      <main className="md:ml-64 pt-[73px] min-h-screen" style={{ backgroundColor: lightBg }}>
-        {children}
+     <main className="md:ml-64 pt-[73px] min-h-screen flex flex-col" style={{ backgroundColor: lightBg }}>
+        <div className="flex-1">
+          {children}
+        </div>
+        
+        {/* Footer */}
+        <footer 
+          className="py-8 text-center border-t"
+          style={{ 
+            // backgroundColor: '#1a1a2e',
+            borderColor: 'rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <p className="text-gray-600 text-sm font-medium">
+            BY IPM CAREERS • DESIGNED FOR THE NEXT AIR 1
+          </p>
+        </footer>
       </main>
     </div>
   );
