@@ -299,11 +299,12 @@ export default function PasteXATResponse() {
         show_in_leaderboard: true
       };
 
-      if (existingUser && existingUser.length > 0) {
-        await supabase.from("xat_results").update(dataToSave).eq("id", existingUser[0].id);
-      } else {
-        await supabase.from("xat_results").insert([dataToSave]);
-      }
+      // if (existingUser && existingUser.length > 0) {
+      //   await supabase.from("xat_results").update(dataToSave).eq("id", existingUser[0].id);
+      // } else {
+      //   await supabase.from("xat_results").insert([dataToSave]);
+      // }
+      await supabase.from("xat_results").insert([dataToSave]);
 
       setResults(calculatedResults);
       setError("✅ Results calculated and saved successfully!");
