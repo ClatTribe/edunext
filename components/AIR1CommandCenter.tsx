@@ -31,7 +31,7 @@ export const AIR1CommandCenter: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-yellow-50">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 to-yellow-50">
       <div className="max-w-6xl mx-auto px-4 py-10">
         {/* Header */}
         <div className="text-center mb-12">
