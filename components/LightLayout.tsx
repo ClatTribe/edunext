@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { 
-  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play, ChevronDown, ChevronRight
+  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play, ChevronDown, ChevronRight,
+  AudioLines,
+  Clock
 } from 'lucide-react';
 
 interface LightLayoutProps {
@@ -46,18 +48,18 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
         { href: '/try/cut-offs/iim-sirmaur', label: 'IIM SIRMAUR BMS 2025 CUT-OFF' }      ]
     },
     { 
-      href: '/try/quantitative-analysis', 
-      label: 'Quantitative Analysis', 
-      icon: <Calculator className="w-5 h-5" />
+      href: '/try/AIR1mind-journals', 
+      label: 'AIR1mindjournals', 
+      icon: <AudioLines className="w-5 h-5" />
     },
     { 
-      href: '/try/numbers', 
-      label: 'Numbers', 
-      icon: <BarChart3 className="w-5 h-5" />
+      href: '/try/Hourglass-System', 
+      label: 'Hourglass System', 
+      icon: <Clock className="w-5 h-5" />
     },
     { 
-      href: '/try/averages', 
-      label: 'Averages', 
+      href: '/try/forms-deadlines', 
+      label: 'Forms and Deadlines', 
       icon: <BarChart3 className="w-5 h-5" />
     },
     { 
@@ -291,8 +293,23 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
       </aside>
 
       {/* Main Content */}
-      <main className="md:ml-64 pt-[73px] min-h-screen" style={{ backgroundColor: lightBg }}>
-        {children}
+      <main className="md:ml-64 pt-[73px] min-h-screen flex flex-col" style={{ backgroundColor: lightBg }}>
+        <div className="flex-1">
+          {children}
+        </div>
+        
+        {/* Footer */}
+        <footer 
+          className="py-8 text-center border-t"
+          style={{ 
+            // backgroundColor: '#1a1a2e',
+            borderColor: 'rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <p className="text-gray-600 text-sm font-medium">
+            BY IPM CAREERS • DESIGNED FOR THE NEXT AIR 1
+          </p>
+        </footer>
       </main>
     </div>
   );

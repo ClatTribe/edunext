@@ -10,6 +10,9 @@ import IIMShillongCutoffTable from "../../../components/cut-offs/IIMShillongCuto
 import IIMRanchiCutoffTable from "../../../components/cut-offs/IIMRanchiCutoffTable";
 import IIMBodhgayaCutoffTable from "../../../components/cut-offs/IIMBodhgayaCutoffTable";
 import IIMSirmaurCutoffTable from "../../../components/cut-offs/IIMSirmaurCutoffTable";
+import MindsetLogsPage from "../../../components/AIR1mindjournals";
+import HourglassSystemPage from "../../../components/HourglassSystem";
+import FormandanddeadlinesPage from "../../../components/FormsandDeadlines";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("/try/video-analysis");
@@ -33,8 +36,12 @@ export default function App() {
         return <IIMBodhgayaCutoffTable />;
       case "/try/cut-offs/iim-sirmaur":
         return <IIMSirmaurCutoffTable />;
-      case "/try/numbers":
-      case "/try/averages":
+      case "/try/AIR1mind-journals":
+        return <MindsetLogsPage />;
+      case "/try/Hourglass-System":
+        return <HourglassSystemPage />;
+      case "/try/forms-deadlines":
+        return <FormandanddeadlinesPage />;
       case "/try/reading-comprehension":
       case "/try/root-words":
         return (
