@@ -622,24 +622,13 @@ export default function PasteXATResponse() {
             </div>
 
             {/* METHODS SECTION (DOWN) */}
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+            <div className="bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
               <div className="max-w-3xl mx-auto">
                 <h1 className="text-3xl font-bold text-white mb-6">
                   How to check XAT 2026 scores?
                 </h1>
 
                 <div className="text-slate-400 text-sm space-y-3">
-                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
-                    <p className="text-xs">
-                      Works with XAT 2025+ format showing
-                      <span className="text-amber-400"> Question ID </span>
-                      and
-                      <span className="text-amber-400">
-                        {" "}
-                        Status: Answered / Not Answered
-                      </span>
-                    </p>
-                  </div>
 
                   <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
                     <p className="text-white font-medium mb-1">
