@@ -2,13 +2,9 @@
 
 import React, { useState } from 'react';
 import { 
-<<<<<<< HEAD
   Menu, X, BarChart3, FileText, BookOpen, Calculator, Play, ChevronDown, ChevronRight,
   AudioLines,
   Clock
-=======
-  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play
->>>>>>> 16f3d916a127d368a80e198ceccd322d88e9ee8e
 } from 'lucide-react';
 
 interface LightLayoutProps {
