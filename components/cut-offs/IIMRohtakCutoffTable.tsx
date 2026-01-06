@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const primaryColor = '#823588';
 const secondaryColor = '#F2AD00';
@@ -67,8 +67,6 @@ const yearlyData = {
   ] as DataOtherYears[],
 };
 
-const years = [2025, 2024, 2023, 2022, 2021] as const;
-
 interface TooltipProps {
   active?: boolean;
   payload?: Array<{
@@ -79,9 +77,13 @@ interface TooltipProps {
   }>;
 }
 
-const IIMRohtakCutoff = () => {
-  const [selectedYear, setSelectedYear] = useState<typeof years[number]>(2025);
-  const currentData = yearlyData[selectedYear];
+interface IIMRohtakCutoffProps {
+  selectedYear?: number;
+}
+
+const IIMRohtakCutoff = ({ selectedYear: propYear }: IIMRohtakCutoffProps = {}) => {
+  const selectedYear = propYear ?? 2025;
+  const currentData = yearlyData[selectedYear as keyof typeof yearlyData];
 
   const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
@@ -115,28 +117,8 @@ const IIMRohtakCutoff = () => {
           <p className="text-gray-600 text-lg">Comprehensive Analysis of Admission Statistics</p>
         </div>
 
-        {/* Year Dropdown */}
-        <div className="max-w-md mx-auto mb-8">
-          <label className="block text-sm font-semibold mb-2" style={{ color: primaryColor }}>
-            Select Year
-          </label>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value) as typeof years[number])}
-            className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all"
-            style={{ 
-              borderColor: primaryColor,
-              backgroundColor: 'white'
-            }}
-          >
-            {years.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </div>
-
         {/* Stats Card - Only for 2025 */}
-        {selectedYear === 2025 && totalCandidates && (
+        {/* {selectedYear === 2025 && totalCandidates && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="rounded-2xl p-6 shadow-lg transform hover:scale-105 transition-transform"
                  style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentPurple})` }}>
@@ -149,7 +131,7 @@ const IIMRohtakCutoff = () => {
               <p className="text-white text-4xl font-bold">{totalCandidates.toLocaleString()}</p>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Bar Chart Section - Only for 2025 */}
         {selectedYear === 2025 ? (
