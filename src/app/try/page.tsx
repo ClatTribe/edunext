@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { LightLayout } from "../../../components/LightLayout";
 import { VideoAnalysisPage } from "../../../components/VideoAnalysisPage";
 import { StudyMaterialsPage } from "../../../components/StudyMaterialsPage";
+<<<<<<< HEAD
 import IIMIndoreCutoffTable from "../../../components/cut-offs/IIMIndoreCutoffTable";
 import IIMRohtakCutoffTable from "../../../components/cut-offs/IIMRohtakCutoffTable";
 import IIMShillongCutoffTable from "../../../components/cut-offs/IIMShillongCutoffTable";
@@ -13,6 +14,9 @@ import IIMSirmaurCutoffTable from "../../../components/cut-offs/IIMSirmaurCutoff
 import MindsetLogsPage from "../../../components/AIR1mindjournals";
 import HourglassSystemPage from "../../../components/HourglassSystem";
 import FormandanddeadlinesPage from "../../../components/FormsandDeadlines";
+=======
+import UnifiedCutoffsPage from "../../../components/cut-offs/UnifiedCutoffsPage"; // NEW IMPORT
+>>>>>>> 16f3d916a127d368a80e198ceccd322d88e9ee8e
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("/try/video-analysis");
@@ -23,6 +27,7 @@ export default function App() {
         return <VideoAnalysisPage />;
       case "/try/study-materials":
         return <StudyMaterialsPage />;
+<<<<<<< HEAD
       case "/try/Cut-offs":
       case "/try/cut-offs/iim-indore":
         return <IIMIndoreCutoffTable />;
@@ -42,6 +47,12 @@ export default function App() {
         return <HourglassSystemPage />;
       case "/try/forms-deadlines":
         return <FormandanddeadlinesPage />;
+=======
+      case "/try/cut-offs": // SINGLE ROUTE NOW
+        return <UnifiedCutoffsPage />;
+      case "/try/numbers":
+      case "/try/averages":
+>>>>>>> 16f3d916a127d368a80e198ceccd322d88e9ee8e
       case "/try/reading-comprehension":
       case "/try/root-words":
         return (

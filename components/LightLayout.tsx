@@ -2,9 +2,13 @@
 
 import React, { useState } from 'react';
 import { 
+<<<<<<< HEAD
   Menu, X, BarChart3, FileText, BookOpen, Calculator, Play, ChevronDown, ChevronRight,
   AudioLines,
   Clock
+=======
+  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play
+>>>>>>> 16f3d916a127d368a80e198ceccd322d88e9ee8e
 } from 'lucide-react';
 
 interface LightLayoutProps {
@@ -15,7 +19,6 @@ interface LightLayoutProps {
 
 export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, onNavigate }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cutOffsExpanded, setCutOffsExpanded] = useState(false);
 
   const primaryColor = '#823588';
   const secondaryColor = '#F2AD00';
@@ -37,15 +40,7 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
     { 
       href: '/try/cut-offs', 
       label: 'Cut-offs', 
-      icon: <Calculator className="w-5 h-5" />,
-      hasSubmenu: true,
-      submenu: [
-        { href: '/try/cut-offs/iim-indore', label: 'IIM INDORE IPM 2025 CUT-OFF' },
-        { href: '/try/cut-offs/iim-rohtak', label: 'IIM ROHTAK 2025 CUT-OFF' },
-        { href: '/try/cut-offs/iim-shillong', label: 'IIM SHILLONG 2025 CUT-OFF' },
-        { href: '/try/cut-offs/iim-ranchi', label: 'IIM RANCHI 2025 CUT-OFF' },
-        { href: '/try/cut-offs/iim-bodhgaya', label: 'IIM BODHGAYA 2025 CUT-OFF' },
-        { href: '/try/cut-offs/iim-sirmaur', label: 'IIM SIRMAUR BMS 2025 CUT-OFF' }      ]
+      icon: <Calculator className="w-5 h-5" />
     },
     { 
       href: '/try/AIR1mind-journals', 
@@ -168,56 +163,22 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
                 Learning Modules
               </div>
               {sidebarItems.map((item) => (
-                <div key={item.href}>
-                  <button
-                    onClick={() => {
-                      if (item.hasSubmenu) {
-                        setCutOffsExpanded(!cutOffsExpanded);
-                      } else {
-                        handleNavClick(item.href);
-                      }
-                    }}
-                    className={`w-full flex items-center justify-between gap-3 py-3 px-4 rounded-lg font-medium transition-all duration-200 text-left ${
-                      isActive(item.href)
-                        ? 'text-gray-900 shadow-lg'
-                        : 'text-white'
-                    }`}
-                    style={isActive(item.href) ? { 
-                      backgroundColor: secondaryColor,
-                      boxShadow: `0 4px 14px ${secondaryColor}40`
-                    } : {}}
-                  >
-                    <div className="flex items-center gap-3">
-                      {item.icon}
-                      {item.label}
-                    </div>
-                    {item.hasSubmenu && (
-                      cutOffsExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
-                    )}
-                  </button>
-                  
-                  {/* Mobile Submenu */}
-                  {item.hasSubmenu && cutOffsExpanded && (
-                    <div className="ml-8 mt-1 space-y-1">
-                      {item.submenu?.map((subItem) => (
-                        <button
-                          key={subItem.href}
-                          onClick={() => handleNavClick(subItem.href)}
-                          className={`w-full text-left py-2 px-4 rounded-lg text-sm transition-all duration-200 ${
-                            isActive(subItem.href)
-                              ? 'text-gray-900 font-medium'
-                              : 'text-white/80 hover:text-white'
-                          }`}
-                          style={isActive(subItem.href) ? { 
-                            backgroundColor: secondaryColor
-                          } : {}}
-                        >
-                          {subItem.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <button
+                  key={item.href}
+                  onClick={() => handleNavClick(item.href)}
+                  className={`w-full flex items-center gap-3 py-3 px-4 rounded-lg font-medium transition-all duration-200 text-left ${
+                    isActive(item.href)
+                      ? 'text-gray-900 shadow-lg'
+                      : 'text-white'
+                  }`}
+                  style={isActive(item.href) ? { 
+                    backgroundColor: secondaryColor,
+                    boxShadow: `0 4px 14px ${secondaryColor}40`
+                  } : {}}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
               ))}
             </div>
           </div>
@@ -237,57 +198,22 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
             Learning Modules
           </div>
           {sidebarItems.map((item) => (
-            <div key={item.href}>
-              <button
-                onClick={() => {
-                  if (item.hasSubmenu) {
-                    setCutOffsExpanded(!cutOffsExpanded);
-                  } else {
-                    handleNavClick(item.href);
-                  }
-                }}
-                className={`w-full flex items-center justify-between gap-3 py-3 px-4 rounded-lg font-medium transition-all duration-200 text-left ${
-                  isActive(item.href)
-                    ? 'text-gray-900 shadow-md'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-                style={isActive(item.href) ? { 
-                  backgroundColor: secondaryColor,
-                  boxShadow: `0 4px 14px ${secondaryColor}40`
-                } : {}}
-              >
-                <div className="flex items-center gap-3">
-                  {item.icon}
-                  <span className="text-sm">{item.label}</span>
-                </div>
-                {item.hasSubmenu && (
-                  cutOffsExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
-                )}
-              </button>
-              
-              {/* Desktop Submenu */}
-              {item.hasSubmenu && cutOffsExpanded && (
-                <div className="ml-8 mt-1 space-y-1">
-                  {item.submenu?.map((subItem) => (
-                    <button
-                      key={subItem.href}
-                      onClick={() => handleNavClick(subItem.href)}
-                      className={`w-full text-left py-2 px-4 rounded-lg text-sm transition-all duration-200 ${
-                        isActive(subItem.href)
-                          ? 'text-gray-900 font-medium'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      }`}
-                      style={isActive(subItem.href) ? { 
-                        backgroundColor: secondaryColor,
-                        color: '#1F2937'
-                      } : {}}
-                    >
-                      {subItem.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <button
+              key={item.href}
+              onClick={() => handleNavClick(item.href)}
+              className={`w-full flex items-center gap-3 py-3 px-4 rounded-lg font-medium transition-all duration-200 text-left ${
+                isActive(item.href)
+                  ? 'text-gray-900 shadow-md'
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+              style={isActive(item.href) ? { 
+                backgroundColor: secondaryColor,
+                boxShadow: `0 4px 14px ${secondaryColor}40`
+              } : {}}
+            >
+              {item.icon}
+              <span className="text-sm">{item.label}</span>
+            </button>
           ))}
         </div>
       </aside>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const primaryColor = '#823588';
@@ -127,8 +127,6 @@ const trendData = [
   { year: '2025', General: 333, EWS: 300, 'NC-OBC': 280, SC: 235, ST: 190, PwD: 230 },
 ];
 
-const years = [2025, 2024, 2023, 2022] as const;
-
 interface TooltipProps {
   active?: boolean;
   payload?: Array<{
@@ -146,9 +144,13 @@ const Cell = ({ value }: { value: number | null }) => (
   </td>
 );
 
-const IIMBodhgayaCutoff = () => {
-  const [selectedYear, setSelectedYear] = useState<typeof years[number]>(2025);
-  const currentData = yearlyData[selectedYear];
+interface IIMBodhgayaCutoffProps {
+  selectedYear?: number;
+}
+
+const IIMBodhgayaCutoff = ({ selectedYear: propYear }: IIMBodhgayaCutoffProps = {}) => {
+  const selectedYear = propYear ?? 2025;
+  const currentData = yearlyData[selectedYear as keyof typeof yearlyData];
 
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
@@ -177,26 +179,6 @@ const IIMBodhgayaCutoff = () => {
             IIM Bodh Gaya IPM Cutoff Data
           </h1>
           <p className="text-gray-600 text-lg">Historical Cutoff Analysis (2022-2025)</p>
-        </div>
-
-        {/* Year Selector */}
-        <div className="max-w-md mx-auto mb-8">
-          <label className="block text-sm font-semibold mb-2" style={{ color: primaryColor }}>
-            Select Year
-          </label>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value) as typeof years[number])}
-            className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all"
-            style={{ 
-              borderColor: primaryColor,
-              backgroundColor: 'white'
-            }}
-          >
-            {years.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
         </div>
 
         {/* Bar Chart Section */}
@@ -258,56 +240,6 @@ const IIMBodhgayaCutoff = () => {
             </LineChart>
           </ResponsiveContainer>
         </div>
-
-        {/* Summary Table for All Years */}
-        {/* <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-t-4 mb-8" style={{ borderColor: primaryColor }}>
-          <div className="p-6 border-b" style={{ backgroundColor: `${primaryColor}10` }}>
-            <h2 className="text-2xl font-bold" style={{ color: primaryColor }}>
-              Summary Table for All Years (2022-2025)
-            </h2>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ backgroundColor: primaryColor }}>
-                  <th className="px-6 py-4 text-center text-white font-semibold text-sm">Year</th>
-                  <th className="px-6 py-4 text-center text-white font-semibold text-sm">General</th>
-                  <th className="px-6 py-4 text-center text-white font-semibold text-sm">EWS</th>
-                  <th className="px-6 py-4 text-center text-white font-semibold text-sm">NC-OBC</th>
-                  <th className="px-6 py-4 text-center text-white font-semibold text-sm">SC</th>
-                  <th className="px-6 py-4 text-center text-white font-semibold text-sm">ST</th>
-                  <th className="px-6 py-4 text-center text-white font-semibold text-sm">PwD</th>
-                </tr>
-              </thead>
-              <tbody>
-                {years.map((year, index) => {
-                  const data = yearlyData[year].cutoffs;
-                  return (
-                    <tr
-                      key={year}
-                      className={`border-b transition-colors ${
-                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                      } hover:bg-purple-50`}
-                    >
-                      <td className="px-6 py-4 text-center font-bold text-gray-800">{year}</td>
-                      <td className="px-6 py-4 text-center text-gray-700">{data[0].score}</td>
-                      <td className="px-6 py-4 text-center text-gray-700">{data[1].score}</td>
-                      <td className="px-6 py-4 text-center text-gray-700">{data[2].score}</td>
-                      <td className="px-6 py-4 text-center text-gray-700">{data[3].score}</td>
-                      <td className="px-6 py-4 text-center text-gray-700">{data[4].score}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="font-bold" style={{ color: secondaryColor }}>
-                          {data[5].score}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div> */}
 
         {/* Detailed 2025 Table */}
         {selectedYear === 2025 && currentData.detailed && (
