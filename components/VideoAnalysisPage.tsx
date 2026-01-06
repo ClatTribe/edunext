@@ -43,6 +43,18 @@ export const VideoAnalysisPage: React.FC = () => {
       url: "https://youtu.be/wXakzp9DQYo",
       description: "Build vocabulary through understanding root words",
     },
+    {
+      id: 6,
+      title: "IPMAT 2023 Solutions Part 1",
+      url: "https://youtu.be/COMWsh7rIE0",
+      description: "IPMAT Indore 2023 QA SA Solutions || IPMAT 2023 Solutions Part 1",
+    },
+    {
+      id: 7,
+      title: "IPMAT 2023 Solutions Part 2",
+      url: "https://youtu.be/OpngTNZGUw8",
+      description: "IPMAT Indore 2023 QA MCQ Solutions || IPMAT 2023 Solutions Part 2 (A)",
+    },
   ];
 
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
@@ -55,7 +67,7 @@ export const VideoAnalysisPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-yellow-50">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 to-yellow-50">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-purple-200/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-yellow-200/20 rounded-full blur-3xl"></div>
