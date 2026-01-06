@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
-import DefaultLayout from '@/app/defaultLayout';
+import DefaultLayout from "@/app/defaultLayout";
 
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
@@ -14,6 +14,12 @@ interface ScoreData {
   c: number;
   w: number;
   s: number;
+}
+
+interface QuestionStatus {
+  id: string;
+  status: "Answered" | "Not Answered";
+  section: "VALR" | "DM" | "QA" | "GK";
 }
 
 export default function PasteXATResponse() {
@@ -36,165 +42,158 @@ export default function PasteXATResponse() {
   const [city, setCity] = useState("");
   const [formError, setFormError] = useState("");
 
-  const parseSectionStats = (text: string, sectionName: string) => {
-    const sectionRegex = new RegExp(`Section\\s*:\\s*${sectionName}`, "i");
-    const sectionIndex = text.search(sectionRegex);
+  const extractScoresFromHTML = (htmlContent: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, "text/html");
+    const text = doc.body.innerText || doc.body.textContent || "";
 
-    if (sectionIndex === -1) {
-      return { correct: 0, wrong: 0 };
-    }
+    console.log("Extracted text preview:", text.substring(0, 2000));
 
-    let sectionEnd = text.length;
-    const nextSections = [
-      /Section\s*:\s*English Comprehension/i,
-      /Section\s*:\s*Logical Reasoning/i,
-      /Section\s*:\s*Quantitative Ability/i,
-      /Section\s*:\s*General Knowledge/i,
-    ];
+    // Extract all questions with their status
+    const questions: QuestionStatus[] = [];
 
-    for (const nextRegex of nextSections) {
-      const nextIndex = text.substring(sectionIndex + 100).search(nextRegex);
-      if (nextIndex !== -1) {
-        const absoluteIndex = sectionIndex + 100 + nextIndex;
-        if (absoluteIndex < sectionEnd) {
-          sectionEnd = absoluteIndex;
-        }
+    // Pattern: Question ID : XXXXXXXXXX Status : (Answered|Not Answered)
+    const questionRegex =
+      /Question\s+ID\s*:\s*(\d+)[\s\S]*?Status\s*:\s*(Answered|Not\s+Answered)/gi;
+    let match;
+
+    while ((match = questionRegex.exec(text)) !== null) {
+      const questionId = match[1];
+      const status = match[2].replace(/\s+/g, " ").trim();
+
+      console.log(`Found Question ID: ${questionId}, Status: ${status}`);
+
+      // Determine section based on question ID ranges (XAT 2025 pattern)
+      // VALR: Questions 1-26
+      // DM: Questions 27-48
+      // QA: Questions 49-76
+      // GK: Questions 77-95
+
+      const qNum = parseInt(questionId.slice(-2)); // Get last 2 digits
+      let section: "VALR" | "DM" | "QA" | "GK";
+
+      if (qNum >= 1 && qNum <= 26) {
+        section = "VALR";
+      } else if (qNum >= 27 && qNum <= 48) {
+        section = "DM";
+      } else if (qNum >= 49 && qNum <= 76) {
+        section = "QA";
+      } else {
+        section = "GK"; // 77-95
       }
+
+      questions.push({
+        id: questionId,
+        status: status === "Answered" ? "Answered" : "Not Answered",
+        section: section,
+      });
     }
 
-    const sectionText = text.substring(sectionIndex, sectionEnd);
+    console.log(`Total questions found: ${questions.length}`);
+    console.log("Questions by section:", {
+      VALR: questions.filter((q) => q.section === "VALR").length,
+      DM: questions.filter((q) => q.section === "DM").length,
+      QA: questions.filter((q) => q.section === "QA").length,
+      GK: questions.filter((q) => q.section === "GK").length,
+    });
 
-    const correctMatch = sectionText.match(/Correct\s*:?\s*(\d+)/i);
-    const wrongMatch = sectionText.match(/Wrong\s*:?\s*(\d+)/i);
+    if (questions.length === 0) {
+      throw new Error("No questions found in the content");
+    }
 
-    if (correctMatch && wrongMatch) {
+    // Calculate statistics for each section
+    const calculateSectionStats = (sectionQuestions: QuestionStatus[]) => {
+      const answered = sectionQuestions.filter(
+        (q) => q.status === "Answered"
+      ).length;
+      const notAnswered = sectionQuestions.filter(
+        (q) => q.status === "Not Answered"
+      ).length;
+
+      // For XAT 2025, we need to estimate correct/wrong from answered questions
+      // Assuming an average accuracy - this will be updated when user sees actual results
+      // We'll mark all as "attempted" and let them see the breakdown later
+
       return {
-        correct: parseInt(correctMatch[1]),
-        wrong: parseInt(wrongMatch[1]),
+        attempted: answered,
+        skipped: notAnswered,
+        total: sectionQuestions.length,
       };
-    }
+    };
 
-    const answeredMatches = sectionText.match(/Status\s*:\s*Answered/gi) || [];
-    const answered = answeredMatches.length;
-    const correct = Math.round(answered * 0.7);
-    const wrong = answered - correct;
+    const valrQuestions = questions.filter((q) => q.section === "VALR");
+    const dmQuestions = questions.filter((q) => q.section === "DM");
+    const qaQuestions = questions.filter((q) => q.section === "QA");
 
-    return { correct, wrong };
-  };
+    const valrStats = calculateSectionStats(valrQuestions);
+    const dmStats = calculateSectionStats(dmQuestions);
+    const qaStats = calculateSectionStats(qaQuestions);
 
-  const extract = (text: string, keys: string[]) => {
-    for (const k of keys) {
-      const patterns = [
-        new RegExp(
-          `Section\\s*:\\s*${k}[\\s\\S]{0,500}?Answered\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Not\\s+Answered\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-        new RegExp(
-          `Section\\s*:\\s*${k}[\\s\\S]{0,500}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)[\\s\\S]{0,500}?Total\\s+Questions?\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-        new RegExp(
-          `Section\\s*:\\s*${k}[\\s\\S]{0,500}?Answered\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-        new RegExp(
-          `Section\\s*:\\s*${k}[\\s\\S]{0,500}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-        new RegExp(
-          `${k}[\\s\\S]{0,500}?Answered\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Not\\s+Answered\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-        new RegExp(
-          `${k}[\\s\\S]{0,500}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)[\\s\\S]{0,500}?Total\\s+Questions?\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-        new RegExp(
-          `${k}[\\s\\S]{0,500}?Answered\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-        new RegExp(
-          `${k}[\\s\\S]{0,500}?Correct\\s*:?\\s*(\\d+)[\\s\\S]{0,200}?Wrong\\s*:?\\s*(\\d+)`,
-          "i"
-        ),
-      ];
+    console.log("Section Statistics:", {
+      VALR: valrStats,
+      DM: dmStats,
+      QA: qaStats,
+    });
 
-      for (let i = 0; i < patterns.length; i++) {
-        const m = text.match(patterns[i]);
-        if (m) {
-          let answered = 0,
-            notAnswered = 0,
-            correct = 0,
-            wrong = 0,
-            total = 0;
-
-          if (i === 0 || i === 4) {
-            answered = +m[1];
-            notAnswered = +m[2];
-            correct = +m[3];
-            wrong = +m[4];
-            total = answered + notAnswered;
-          } else if (i === 1 || i === 5) {
-            correct = +m[1];
-            wrong = +m[2];
-            total = +m[3];
-            answered = correct + wrong;
-            notAnswered = total - answered;
-          } else if (i === 2 || i === 6) {
-            answered = +m[1];
-            correct = +m[2];
-            wrong = +m[3];
-            notAnswered = 0;
-            total = answered;
-          } else if (i === 3 || i === 7) {
-            correct = +m[1];
-            wrong = +m[2];
-            answered = correct + wrong;
-            notAnswered = 0;
-            total = answered;
-          }
-
-          const skipped =
-            notAnswered > 0 ? notAnswered : Math.max(0, total - answered);
-
-          console.log(
-            `Found ${k}: Correct=${correct}, Wrong=${wrong}, Skipped=${skipped}, Total=${total}`
-          );
-          return { c: correct, w: wrong, s: skipped, total };
-        }
-      }
-    }
-    return { c: 0, w: 0, s: 0, total: 0 };
+    // Return with attempted count - we'll need user to input correct/wrong manually
+    // Or we can make assumptions based on difficulty
+    return {
+      valr: {
+        attempted: valrStats.attempted,
+        skipped: valrStats.skipped,
+        total: valrStats.total,
+      },
+      dm: {
+        attempted: dmStats.attempted,
+        skipped: dmStats.skipped,
+        total: dmStats.total,
+      },
+      qa: {
+        attempted: qaStats.attempted,
+        skipped: qaStats.skipped,
+        total: qaStats.total,
+      },
+      questions: questions,
+    };
   };
 
   const fetchDigialmContent = async (url: string) => {
     try {
+      console.log("Attempting to fetch URL:", url);
+
       const response = await fetch(url, {
         mode: "cors",
         credentials: "omit",
+        headers: {
+          Accept: "text/html,application/xhtml+xml,application/xml",
+        },
       });
 
-      if (!response.ok) {
-        throw new Error("Direct fetch failed");
+      if (response.ok) {
+        return await response.text();
       }
 
-      return await response.text();
+      throw new Error("Direct fetch failed");
     } catch (directError) {
-      console.log("Direct fetch failed, trying proxy methods...");
+      console.log("Direct fetch failed, trying CORS proxies...");
 
       const proxyUrls = [
         `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
         `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
       ];
 
       for (const proxyUrl of proxyUrls) {
         try {
+          console.log("Trying proxy:", proxyUrl);
           const response = await fetch(proxyUrl);
           if (response.ok) {
-            return await response.text();
+            const content = await response.text();
+            console.log("Proxy fetch successful");
+            return content;
           }
         } catch (proxyError) {
-          console.log(`Proxy ${proxyUrl} failed`);
+          console.log(`Proxy failed:`, proxyError);
         }
       }
 
@@ -202,86 +201,46 @@ export default function PasteXATResponse() {
     }
   };
 
-  const processContent = (text: string) => {
-    const doc = new DOMParser().parseFromString(text, "text/html");
-    const extractedText = doc.body.innerText.replace(/\s+/g, " ");
+  const processContent = (content: string) => {
+    try {
+      const result = extractScoresFromHTML(content);
 
-    console.log("Extracted text preview:", extractedText.substring(0, 500));
+      console.log("Extraction result:", result);
 
-    const valr = extract(extractedText, [
-      "Verbal Ability and Logical Reasoning",
-      "Verbal and Logical Reasoning",
-      "VALR",
-      "Verbal Ability",
-      "English Language",
-    ]);
+      if (!result.questions || result.questions.length === 0) {
+        throw new Error("No valid questions found");
+      }
 
-    const dm = extract(extractedText, [
-      "Decision Making",
-      "DM",
-      "Decision Making and Analytical Reasoning",
-    ]);
+      // For now, we'll estimate 70% accuracy for answered questions
+      // User can adjust this in a more detailed interface
+      const estimateScores = (attempted: number, skipped: number) => {
+        const estimatedCorrect = Math.round(attempted * 0.7); // 70% accuracy assumption
+        const estimatedWrong = attempted - estimatedCorrect;
+        return {
+          c: estimatedCorrect,
+          w: estimatedWrong,
+          s: skipped,
+        };
+      };
 
-    const qa = extract(extractedText, [
-      "Quantitative Ability and Data Interpretation",
-      "Quantitative Ability & Data Interpretation",
-      "Quantitative Ability",
-      "Quant and DI",
-      "QA & DI",
-      "QA",
-      "Math",
-    ]);
-
-    console.log("Extracted XAT scores:", { valr, dm, qa });
-
-    if (valr.c > 0 || dm.c > 0 || qa.c > 0) {
       setFetchedScores({
-        valr: { c: valr.c, w: valr.w, s: valr.s },
-        dm: { c: dm.c, w: dm.w, s: dm.s },
-        qa: { c: qa.c, w: qa.w, s: qa.s },
+        valr: estimateScores(result.valr.attempted, result.valr.skipped),
+        dm: estimateScores(result.dm.attempted, result.dm.skipped),
+        qa: estimateScores(result.qa.attempted, result.qa.skipped),
       });
+
       setScoresFetched(true);
       setError(
-        "✅ Scores fetched successfully! Please complete your details above and submit."
+        `✅ Found ${result.questions.length} questions!\n\n` +
+          `📊 VALR: ${result.valr.attempted} attempted, ${result.valr.skipped} skipped\n` +
+          `📊 DM: ${result.dm.attempted} attempted, ${result.dm.skipped} skipped\n` +
+          `📊 QA: ${result.qa.attempted} attempted, ${result.qa.skipped} skipped\n\n` +
+          `⚠️ Note: Estimated 70% accuracy for attempted questions. Complete your details and submit!`
       );
-      return;
+    } catch (err) {
+      console.error("Processing error:", err);
+      throw new Error("Unable to extract questions from content");
     }
-
-    const englishComp = parseSectionStats(
-      extractedText,
-      "English Comprehension"
-    );
-    const logicalReasoning = parseSectionStats(
-      extractedText,
-      "Logical Reasoning"
-    );
-    const quantitative = parseSectionStats(
-      extractedText,
-      "Quantitative Ability"
-    );
-
-    console.log("Parsed alternate sections:", {
-      englishComp,
-      logicalReasoning,
-      quantitative,
-    });
-
-    const totalCorrect =
-      englishComp.correct + logicalReasoning.correct + quantitative.correct;
-
-    if (totalCorrect === 0) {
-      throw new Error("No score data found");
-    }
-
-    setFetchedScores({
-      valr: { c: englishComp.correct, w: englishComp.wrong, s: 0 },
-      dm: { c: logicalReasoning.correct, w: logicalReasoning.wrong, s: 0 },
-      qa: { c: quantitative.correct, w: quantitative.wrong, s: 0 },
-    });
-    setScoresFetched(true);
-    setError(
-      "✅ Scores fetched successfully! Please complete your details above and submit."
-    );
   };
 
   const handleCalculate = async () => {
@@ -293,15 +252,32 @@ export default function PasteXATResponse() {
 
       const input = html.trim();
 
-      if (/^https?:\/\//i.test(input)) {
+      if (!input) {
+        setError("⚠️ Please paste your Digialm URL or content");
+        setLoading(false);
+        return;
+      }
+
+      if (/^https?:\/\//i.test(input) || /digialm\.com/i.test(input)) {
         setError("🔄 Fetching content from URL...");
 
+        let url = input;
+        if (!url.startsWith("http")) {
+          url = "https://" + url;
+        }
+
         try {
-          const content = await fetchDigialmContent(input);
+          const content = await fetchDigialmContent(url);
           processContent(content);
         } catch (fetchError) {
+          console.error("Fetch error:", fetchError);
           setError(
-            "❌ Unable to fetch URL automatically due to CORS restrictions.\n\n⚠️ Please use manual method:\n1. Open the link in your browser\n2. Press Ctrl+A (Cmd+A on Mac) to select all\n3. Press Ctrl+C (Cmd+C) to copy\n4. Come back here and paste the content\n\nThis method works 100% of the time!"
+            "❌ Unable to fetch URL automatically due to CORS restrictions.\n\n" +
+              "⚠️ Please use manual method:\n" +
+              "1. Open the link in your browser\n" +
+              "2. Press Ctrl+A (Cmd+A on Mac) to select all\n" +
+              "3. Press Ctrl+C (Cmd+C) to copy\n" +
+              "4. Come back here and paste the content"
           );
         }
         setLoading(false);
@@ -320,7 +296,13 @@ export default function PasteXATResponse() {
     } catch (err) {
       console.error("Parse error:", err);
       setError(
-        "❌ Unable to find score data in the content.\n\nMake sure you:\n1. Opened the complete response page\n2. Selected ALL content (Ctrl+A)\n3. Copied everything (Ctrl+C)\n4. Pasted the complete content here\n\nTip: The page should contain sections like 'Verbal Ability', 'Decision Making', etc."
+        "❌ Unable to find question data in the content.\n\n" +
+          "Make sure you:\n" +
+          "1. Opened the complete response page with 'Question ID' and 'Status' visible\n" +
+          "2. Selected ALL content (Ctrl+A)\n" +
+          "3. Copied everything (Ctrl+C)\n" +
+          "4. Pasted the complete content here\n\n" +
+          "The page should show questions with 'Question ID' and 'Status: Answered/Not Answered'"
       );
     } finally {
       setLoading(false);
@@ -330,7 +312,6 @@ export default function PasteXATResponse() {
   const handleSubmit = async () => {
     setFormError("");
 
-    // Validate form fields
     if (!name.trim()) {
       setFormError("❌ Please enter your name");
       return;
@@ -348,149 +329,70 @@ export default function PasteXATResponse() {
       return;
     }
 
-    // If scores not fetched yet, calculate them first
     if (!fetchedScores) {
-      if (!html.trim()) {
-        setFormError(
-          "❌ Please paste your Digialm response content in the section below"
-        );
-        return;
-      }
+      setFormError(
+        "❌ Please calculate your scores first using the section below"
+      );
+      return;
+    }
 
-      try {
-        setLoading(true);
-        setError("🔄 Calculating scores...");
+    try {
+      setLoading(true);
 
-        const input = html.trim();
+      const valrScore = fetchedScores.valr.c - fetchedScores.valr.w * 0.25;
+      const dmScore = fetchedScores.dm.c - fetchedScores.dm.w * 0.25;
+      const qaScore = fetchedScores.qa.c - fetchedScores.qa.w * 0.25;
+      const totalScore = valrScore + dmScore + qaScore;
 
-        // Try to fetch if it's a URL
-        if (/^https?:\/\//i.test(input)) {
-          try {
-            const content = await fetchDigialmContent(input);
-            processContent(content);
-          } catch (fetchError) {
-            setFormError(
-              "❌ Unable to fetch URL. Please paste the page content directly."
-            );
-            setLoading(false);
-            return;
-          }
-        } else if (input.length < 100) {
-          setFormError(
-            "⚠️ The pasted content seems too short. Make sure you copied the ENTIRE page."
-          );
-          setLoading(false);
-          return;
-        } else {
-          processContent(input);
-        }
+      const { data: existingUser, error: checkError } = await supabase
+        .from("xat_results")
+        .select("*")
+        .eq("name", name.trim())
+        .eq("mobile", mobile)
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-        // Wait a moment for processContent to set fetchedScores
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      } catch (err) {
-        console.error("Parse error:", err);
-        setFormError("❌ Unable to find score data in the content.");
+      if (checkError) {
+        console.error("Check error:", checkError);
+        setFormError(`❌ Failed to check existing data: ${checkError.message}`);
         setLoading(false);
         return;
       }
-    }
 
-    // Now save to database and redirect
-    if (fetchedScores) {
-      try {
-        setLoading(true);
+      if (existingUser && existingUser.length > 0) {
+        const existingTotal =
+          existingUser[0].valr_correct -
+          existingUser[0].valr_wrong * 0.25 +
+          (existingUser[0].dm_correct - existingUser[0].dm_wrong * 0.25) +
+          (existingUser[0].qa_correct - existingUser[0].qa_wrong * 0.25);
 
-        const valrScore = fetchedScores.valr.c - fetchedScores.valr.w * 0.25;
-        const dmScore = fetchedScores.dm.c - fetchedScores.dm.w * 0.25;
-        const qaScore = fetchedScores.qa.c - fetchedScores.qa.w * 0.25;
-        const totalScore = valrScore + dmScore + qaScore;
+        if (totalScore > existingTotal) {
+          const { error: updateError } = await supabase
+            .from("xat_results")
+            .update({
+              email,
+              category,
+              city,
+              valr_correct: fetchedScores.valr.c,
+              valr_wrong: fetchedScores.valr.w,
+              valr_skipped: fetchedScores.valr.s,
+              dm_correct: fetchedScores.dm.c,
+              dm_wrong: fetchedScores.dm.w,
+              dm_skipped: fetchedScores.dm.s,
+              qa_correct: fetchedScores.qa.c,
+              qa_wrong: fetchedScores.qa.w,
+              qa_skipped: fetchedScores.qa.s,
+              show_in_leaderboard: true,
+            })
+            .eq("id", existingUser[0].id);
 
-        // ✅ NEW: Check if user already exists (by name + mobile)
-        const { data: existingUser, error: checkError } = await supabase
-          .from("xat_results")
-          .select("*")
-          .eq("name", name.trim())
-          .eq("mobile", mobile)
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        if (checkError) {
-          console.error("Check error:", checkError);
-          setFormError(
-            `❌ Failed to check existing data: ${checkError.message}`
-          );
-          setLoading(false);
-          return;
-        }
-
-        if (existingUser && existingUser.length > 0) {
-          // ✅ User exists - check if new score is better
-          const existingTotal =
-            existingUser[0].valr_correct -
-            existingUser[0].valr_wrong * 0.25 +
-            (existingUser[0].dm_correct - existingUser[0].dm_wrong * 0.25) +
-            (existingUser[0].qa_correct - existingUser[0].qa_wrong * 0.25);
-
-          if (totalScore > existingTotal) {
-            // ✅ New score is better - update existing record
-            const { error: updateError } = await supabase
-              .from("xat_results")
-              .update({
-                email,
-                category,
-                city,
-                valr_correct: fetchedScores.valr.c,
-                valr_wrong: fetchedScores.valr.w,
-                valr_skipped: fetchedScores.valr.s,
-                dm_correct: fetchedScores.dm.c,
-                dm_wrong: fetchedScores.dm.w,
-                dm_skipped: fetchedScores.dm.s,
-                qa_correct: fetchedScores.qa.c,
-                qa_wrong: fetchedScores.qa.w,
-                qa_skipped: fetchedScores.qa.s,
-                show_in_leaderboard: true,
-              })
-              .eq("id", existingUser[0].id);
-
-            if (updateError) {
-              console.error("Update error:", updateError);
-              setFormError(`❌ Failed to update data: ${updateError.message}`);
-              setLoading(false);
-              return;
-            }
-          } else {
-            // ✅ Score is not better - insert without showing in leaderboard
-            const { error: insertError } = await supabase
-              .from("xat_results")
-              .insert([
-                {
-                  name,
-                  mobile,
-                  email,
-                  category,
-                  city,
-                  valr_correct: fetchedScores.valr.c,
-                  valr_wrong: fetchedScores.valr.w,
-                  valr_skipped: fetchedScores.valr.s,
-                  dm_correct: fetchedScores.dm.c,
-                  dm_wrong: fetchedScores.dm.w,
-                  dm_skipped: fetchedScores.dm.s,
-                  qa_correct: fetchedScores.qa.c,
-                  qa_wrong: fetchedScores.qa.w,
-                  qa_skipped: fetchedScores.qa.s,
-                  show_in_leaderboard: false,
-                },
-              ]);
-
-            if (insertError) {
-              console.error("Insert error:", insertError);
-              setFormError(`❌ Failed to save data: ${insertError.message}`);
-              setLoading(false);
-              return;
-            }
+          if (updateError) {
+            console.error("Update error:", updateError);
+            setFormError(`❌ Failed to update data: ${updateError.message}`);
+            setLoading(false);
+            return;
           }
         } else {
-          // ✅ New user - insert with leaderboard flag
           const { error: insertError } = await supabase
             .from("xat_results")
             .insert([
@@ -509,7 +411,7 @@ export default function PasteXATResponse() {
                 qa_correct: fetchedScores.qa.c,
                 qa_wrong: fetchedScores.qa.w,
                 qa_skipped: fetchedScores.qa.s,
-                show_in_leaderboard: true,
+                show_in_leaderboard: false,
               },
             ]);
 
@@ -520,16 +422,44 @@ export default function PasteXATResponse() {
             return;
           }
         }
+      } else {
+        const { error: insertError } = await supabase
+          .from("xat_results")
+          .insert([
+            {
+              name,
+              mobile,
+              email,
+              category,
+              city,
+              valr_correct: fetchedScores.valr.c,
+              valr_wrong: fetchedScores.valr.w,
+              valr_skipped: fetchedScores.valr.s,
+              dm_correct: fetchedScores.dm.c,
+              dm_wrong: fetchedScores.dm.w,
+              dm_skipped: fetchedScores.dm.s,
+              qa_correct: fetchedScores.qa.c,
+              qa_wrong: fetchedScores.qa.w,
+              qa_skipped: fetchedScores.qa.s,
+              show_in_leaderboard: true,
+            },
+          ]);
 
-        // Navigate to results page
-        router.push(
-          `/xat-score-calculator-2026/result?valr=${fetchedScores.valr.c},${fetchedScores.valr.w}&dm=${fetchedScores.dm.c},${fetchedScores.dm.w}&qa=${fetchedScores.qa.c},${fetchedScores.qa.w}&name=${encodeURIComponent(name)}&mobile=${mobile}&email=${encodeURIComponent(email)}&category=${category}&city=${encodeURIComponent(city)}`
-        );
-      } catch (err) {
-        console.error("Submission error:", err);
-        setFormError("❌ Something went wrong. Please try again.");
-        setLoading(false);
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          setFormError(`❌ Failed to save data: ${insertError.message}`);
+          setLoading(false);
+          return;
+        }
       }
+
+      router.push(
+        `/xat-score-calculator-2026/result?valr=${fetchedScores.valr.c},${fetchedScores.valr.w}&dm=${fetchedScores.dm.c},${fetchedScores.dm.w}&qa=${fetchedScores.qa.c},${fetchedScores.qa.w}&name=${encodeURIComponent(name)}&mobile=${mobile}&email=${encodeURIComponent(email)}&category=${category}&city=${encodeURIComponent(city)}`
+      );
+    } catch (err) {
+      console.error("Submission error:", err);
+      setFormError("❌ Something went wrong. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -538,18 +468,20 @@ export default function PasteXATResponse() {
       <div className="min-h-screen" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-5xl mx-auto px-6 pt-24 md:pt-8 pb-12">
           <div className="text-center space-y-2 sm:space-y-3 mb-6">
-  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 shadow-sm text-xs font-semibold uppercase tracking-widest text-[#F59E0B]">
-    <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse"></span>
-    XAT 2025 Score Calculator
-  </div>
-  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-    Calculate your <span className="text-[#F59E0B]">XAT score</span> instantly
-  </h1>
-  <p className="text-slate-400 max-w-2xl text-sm sm:text-base mx-auto px-4">
-    Paste your Digialm response to get accurate section-wise scores and percentile predictions
-  </p>
-</div>
-          {/* User Information Form - ALWAYS ON TOP */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 shadow-sm text-xs font-semibold uppercase tracking-widest text-[#F59E0B]">
+              <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse"></span>
+              XAT 2025 Score Calculator
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
+              Calculate your <span className="text-[#F59E0B]">XAT score</span>{" "}
+              instantly
+            </h1>
+            <p className="text-slate-400 max-w-2xl text-sm sm:text-base mx-auto px-4">
+              Paste your Digialm response to get accurate section-wise scores
+            </p>
+          </div>
+
+          {/* User Form */}
           <div
             className="rounded-2xl p-6 shadow-xl mb-6"
             style={{
@@ -615,12 +547,12 @@ export default function PasteXATResponse() {
                   className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer"
                   style={{ border: `1px solid ${borderColor}` }}
                 >
-                  <option value="General">General</option>
-                  <option value="OBC">OBC</option>
-                  <option value="SC">SC</option>
-                  <option value="ST">ST</option>
-                  <option value="EWS">EWS</option>
-                  <option value="PwD">PwD</option>
+                  <option>General</option>
+                  <option>OBC</option>
+                  <option>SC</option>
+                  <option>ST</option>
+                  <option>EWS</option>
+                  <option>PwD</option>
                 </select>
               </div>
 
@@ -640,23 +572,13 @@ export default function PasteXATResponse() {
 
               <div className="flex items-end">
                 <button
-  onClick={handleSubmit}
-  disabled={loading}
-  className="mt-6 px-6 sm:px-8 py-3 rounded-xl font-semibold text-black w-full md:w-auto transition-all hover:opacity-90 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-  style={{ backgroundColor: accentColor }}
->
-  {loading ? (
-    <>
-      <svg className="animate-spin h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      Submitting...
-    </>
-  ) : (
-    <>Submit & View Results →</>
-  )}
-</button>
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="px-8 py-3 rounded-xl font-semibold text-black w-full transition-all hover:opacity-90 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  {loading ? "Submitting..." : "Submit & View Results →"}
+                </button>
               </div>
             </div>
 
@@ -665,94 +587,115 @@ export default function PasteXATResponse() {
                 <p className="text-red-400 text-sm">{formError}</p>
               </div>
             )}
-
-            {!scoresFetched && (
-              <div className="mt-4 p-3 rounded-lg bg-blue-900/20 border border-blue-500/30">
-                <p className="text-blue-400 text-sm">
-                  ℹ️ Please calculate your scores using the section below before
-                  submitting
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* XAT Response Paste Section - BELOW FORM */}
+          {/* Score Calculator */}
           <div
-            className="rounded-2xl p-6 shadow-xl"
+            className="rounded-2xl p-6 shadow-xl space-y-5"
             style={{
               backgroundColor: secondaryBg,
               border: `1px solid ${borderColor}`,
             }}
           >
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              XAT Score Calculator
-            </h1>
+            {/* HEADER */}
+            <h2 className="text-2xl font-bold text-white">
+              Calculate XAT Score
+            </h2>
 
-            <div className="text-slate-400 mb-4 text-sm">
-              <p className="font-semibold mb-2">📋 Two ways to use:</p>
+            {/* LINK INPUT (TOP) */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-300">
+                Paste Digialm URL or Response Content
+              </label>
 
-              <div className="mb-3 p-3 bg-[#050818] rounded-lg">
-                <p className="text-white font-medium mb-1">
-                  Method 1: Paste URL (Automatic) 🔗
-                </p>
-                <p className="text-xs">
-                  Simply paste your Digialm CDN link and click Calculate
-                </p>
-              </div>
+              <textarea
+                value={html}
+                onChange={(e) => {
+                  setHtml(e.target.value);
+                  setError("");
+                }}
+                disabled={scoresFetched}
+                className="w-full h-20 rounded-xl p-4 text-sm text-white bg-[#050818] font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                style={{ border: `1px solid ${borderColor}` }}
+                placeholder="https://cdn.digialm.com/... OR paste full response page here"
+              />
+            </div>
 
-              <div className="p-3 bg-[#050818] rounded-lg">
-                <p className="text-white font-medium mb-1">
-                  Method 2: Copy-Paste Content (100% Reliable) ✅
-                </p>
-                <ol className="space-y-1 ml-4 text-xs">
-                  <li>1. Open your Digialm response link</li>
-                  <li>
-                    2. Press{" "}
-                    <kbd className="px-2 py-1 bg-slate-700 rounded text-xs mx-1">
-                      Ctrl + A
-                    </kbd>{" "}
-                    to select all
-                  </li>
-                  <li>
-                    3. Press{" "}
-                    <kbd className="px-2 py-1 bg-slate-700 rounded text-xs mx-1">
-                      Ctrl + C
-                    </kbd>{" "}
-                    to copy
-                  </li>
-                  <li>4. Paste here and click Calculate</li>
-                </ol>
+            {/* METHODS SECTION (DOWN) */}
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+              <div className="max-w-3xl mx-auto">
+                <h1 className="text-3xl font-bold text-white mb-6">
+                  How to check XAT 2026 scores?
+                </h1>
+
+                <div className="text-slate-400 text-sm space-y-3">
+                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
+                    <p className="text-xs">
+                      Works with XAT 2025+ format showing
+                      <span className="text-amber-400"> Question ID </span>
+                      and
+                      <span className="text-amber-400">
+                        {" "}
+                        Status: Answered / Not Answered
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
+                    <p className="text-white font-medium mb-1">
+                      Click on "Candidate Response" and copy the response sheet
+                      link
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
+                    <p className="text-white font-medium mb-1">
+                      Paste the link in the textbox above and click on Submit
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#050818] rounded-lg border border-slate-700/50">
+                    <p className="text-white font-medium mb-1">
+                      📊 Instant Results
+                    </p>
+                    <p className="text-xs">
+                      Get your predicted percentile and section-wise breakdown
+                      in
+                      <span className="text-emerald-400"> real-time</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+                  <p className="text-blue-300 text-sm">
+                    💡 <span className="font-semibold">Pro Tip:</span> Make sure
+                    you're logged into the official XAT website before copying
+                    your response sheet link
+                  </p>
+                </div>
               </div>
             </div>
 
-            <textarea
-              value={html}
-              onChange={(e) => {
-                setHtml(e.target.value);
-                setError("");
-              }}
-              disabled={scoresFetched}
-              className="w-full h-64 rounded-xl p-4 text-sm text-white bg-[#050818] font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ border: `1px solid ${borderColor}` }}
-              placeholder="Paste your Digialm URL OR the complete page content here...&#10;&#10;Example URL:&#10;https://cdn.digialm.com//per/g01/pub/1345/...&#10;&#10;OR paste the full page content with sections like:&#10;- English Comprehension&#10;- Verbal Ability&#10;- Decision Making&#10;- Quantitative Ability"
-            />
-
+            {/* ERROR / STATUS */}
             {error && (
               <div
-                className={`mt-3 p-3 rounded-lg ${error.includes("🔄") ? "bg-blue-900/20 border-blue-500/30" : error.includes("✅") ? "bg-green-900/20 border-green-500/30" : "bg-red-900/20 border-red-500/30"} border`}
+                className={`p-3 rounded-lg border ${
+                  error.includes("✅")
+                    ? "bg-green-900/20 border-green-500/30 text-green-400"
+                    : error.includes("🔄")
+                      ? "bg-blue-900/20 border-blue-500/30 text-blue-400"
+                      : "bg-red-900/20 border-red-500/30 text-red-400"
+                }`}
               >
-                <p
-                  className={`${error.includes("🔄") ? "text-blue-400" : error.includes("✅") ? "text-green-400" : "text-red-400"} text-sm whitespace-pre-line`}
-                >
-                  {error}
-                </p>
+                <p className="text-sm whitespace-pre-line">{error}</p>
               </div>
             )}
 
+            {/* ACTION BUTTON */}
             <button
               onClick={handleCalculate}
               disabled={!html.trim() || loading || scoresFetched}
-              className="mt-5 px-6 py-3 rounded-xl font-semibold text-black w-full md:w-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+              className="w-1/3 px-6 py-3 rounded-xl font-semibold text-black transition-all disabled:opacity-50"
               style={{ backgroundColor: accentColor }}
             >
               {loading
