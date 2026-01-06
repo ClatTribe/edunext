@@ -598,6 +598,39 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       />
     </button>
     <button 
+      onClick={() => router.push('/xat-score-calculator-2026')}
+      className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
+      style={{ 
+        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+        border: `1px solid ${borderColor}`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = `0 10px 30px rgba(99, 102, 241, 0.2)`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <TrendingUp 
+        style={{ color: accentColor }}
+        className="flex-shrink-0" 
+        size={24} 
+      />
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-white mb-0.5 text-sm md:text-base">XAT Score Calculator</div>
+        <div className="text-xs text-slate-400 truncate">Check your XAT score</div>
+      </div>
+      <ArrowRight 
+        style={{ color: accentColor }}
+        className="group-hover:translate-x-1 transition-transform flex-shrink-0" 
+        size={18} 
+      />
+    </button>
+    <button 
       onClick={() => router.push('/cat-college-predictor')}
       className="group p-3 md:p-4 rounded-xl transition-all text-left hover:shadow-lg backdrop-blur-sm flex items-center gap-3"
       style={{ 
