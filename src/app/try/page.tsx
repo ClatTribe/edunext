@@ -5,6 +5,9 @@ import { LightLayout } from "../../../components/LightLayout";
 import { VideoAnalysisPage } from "../../../components/VideoAnalysisPage";
 import { StudyMaterialsPage } from "../../../components/StudyMaterialsPage";
 import UnifiedCutoffsPage from "../../../components/cut-offs/UnifiedCutoffsPage"; // NEW IMPORT
+import MindsetLogsPage from "../../../components/AIR1mindjournals";
+import HourglassSystemPage from "../../../components/HourglassSystem";
+import FormandanddeadlinesPage from "../../../components/FormsandDeadlines";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("/try/video-analysis");
@@ -17,6 +20,12 @@ export default function App() {
         return <StudyMaterialsPage />;
       case "/try/cut-offs": // SINGLE ROUTE NOW
         return <UnifiedCutoffsPage />;
+      case "/try/AIR1mind-journals":
+        return <MindsetLogsPage />;
+      case "/try/Hourglass-System":
+        return <HourglassSystemPage />;
+      case "/try/forms-deadlines":
+        return <FormandanddeadlinesPage />;  
       case "/try/numbers":
       case "/try/averages":
       case "/try/reading-comprehension":

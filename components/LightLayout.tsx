@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { 
-  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play
+  Menu, X, BarChart3, FileText, BookOpen, Calculator, Play, AudioLines, Clock
 } from 'lucide-react';
 
 interface LightLayoutProps {
@@ -37,18 +37,18 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
       icon: <Calculator className="w-5 h-5" />
     },
     { 
-      href: '/try/quantitative-analysis', 
-      label: 'Quantitative Analysis', 
-      icon: <Calculator className="w-5 h-5" />
+      href: '/try/AIR1mind-journals', 
+      label: 'AIR1mindjournals', 
+      icon: <AudioLines className="w-5 h-5" />
     },
     { 
-      href: '/try/numbers', 
-      label: 'Numbers', 
-      icon: <BarChart3 className="w-5 h-5" />
+      href: '/try/Hourglass-System', 
+      label: 'Hourglass System', 
+      icon: <Clock className="w-5 h-5" />
     },
     { 
-      href: '/try/averages', 
-      label: 'Averages', 
+      href: '/try/forms-deadlines', 
+      label: 'Forms and Deadlines', 
       icon: <BarChart3 className="w-5 h-5" />
     },
     { 
