@@ -8,6 +8,7 @@ import UnifiedCutoffsPage from "../../../components/cut-offs/UnifiedCutoffsPage"
 import MindsetLogsPage from "../../../components/AIR1mindjournals";
 import HourglassSystemPage from "../../../components/HourglassSystem";
 import FormandanddeadlinesPage from "../../../components/FormsandDeadlines";
+import AIR1CommandCenterPage from "../../../components/AIR1CommandCenter";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("/try/video-analysis");
@@ -26,6 +27,8 @@ export default function App() {
         return <HourglassSystemPage />;
       case "/try/forms-deadlines":
         return <FormandanddeadlinesPage />;  
+      case "/try/AIR1-command-center":
+        return <AIR1CommandCenterPage />;  
       case "/try/numbers":
       case "/try/averages":
       case "/try/reading-comprehension":

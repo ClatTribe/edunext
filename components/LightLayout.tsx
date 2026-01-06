@@ -60,6 +60,11 @@ export const LightLayout: React.FC<LightLayoutProps> = ({ children, activePage, 
       href: '/try/root-words', 
       label: 'Root Words', 
       icon: <FileText className="w-5 h-5" />
+    },
+    { 
+      href: '/try/AIR1-command-center', 
+      label: 'AIR1 Command Center', 
+      icon: <FileText className="w-5 h-5" />
     }
   ];
 
