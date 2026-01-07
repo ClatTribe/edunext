@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 const AIR1CommandCenter = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -15,6 +15,7 @@ const AIR1CommandCenter = () => {
   const accentColor = "#7e22ce";
   const brandDark = "#3b0764";
   const brandAccent = "#d8b4fe";
+  const goldColor = "#f3ad00";
 
   const comparisonImages = [
     "https://res.cloudinary.com/daetdadtt/image/upload/v1767691350/1_kiwmno.jpg",
@@ -119,7 +120,7 @@ const AIR1CommandCenter = () => {
         <div
           className="rounded-3xl p-10 text-center shadow-2xl"
           style={{
-            background: `#823588`,
+            background: "#823588",
             color: "white",
           }}
         >
@@ -139,7 +140,7 @@ const AIR1CommandCenter = () => {
       </section>
 
       {/* Subheading and CTA */}
-      <section className="max-w-4xl mx-auto px-6 pb-20 text-center">
+      <section className="max-w-4xl mx-auto px-6 pb-4 text-center">
         <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
           Nikhilesh Sanka didn't just study hard. He built a system. <br />
           Download the exact command center used by AIR 1.
@@ -147,7 +148,7 @@ const AIR1CommandCenter = () => {
       </section>
 
       {/* Stats Grid Section */}
-      <section id="stats-section" className="max-w-6xl mx-auto px-6 py-16">
+      <section id="stats-section" className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Story Text */}
           <div className="space-y-6">
@@ -179,7 +180,7 @@ const AIR1CommandCenter = () => {
           <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 text-center">
             <div
               className="text-7xl font-black mb-4"
-              style={{ color: accentColor }}
+              style={{ color: "#823588" }}
             >
               {counter}
             </div>
@@ -187,7 +188,7 @@ const AIR1CommandCenter = () => {
               Total Score (AIR 1)
             </div>
             <div className="text-lg font-bold text-green-600">
-              ▲ 72 Marks higher than cutoff
+              ▲ 128 Marks higher than cutoff
             </div>
           </div>
         </div>
@@ -196,7 +197,7 @@ const AIR1CommandCenter = () => {
       {/* Quote Strip */}
       <section
         className="py-16 relative overflow-hidden"
-        style={{ backgroundColor: brandDark }}
+        style={{ backgroundColor: "#823588" }}
       >
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-2xl md:text-3xl text-white font-light italic opacity-90 mb-4">
@@ -299,126 +300,232 @@ const AIR1CommandCenter = () => {
         </div>
       </section>
 
-      {/* Study Materials Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+<section className="max-w-7xl mx-auto px-6 py-16">
         <h2
-          className="text-4xl font-black text-center mb-12"
+          className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
         >
           Study Materials Used
         </h2>
-        <div className="flex flex-col md:flex-row gap-12 items-center justify-center bg-white rounded-3xl p-10 shadow-xl">
-          <div className="w-full md:w-auto flex justify-center">
-            <img
-              src="https://res.cloudinary.com/daetdadtt/image/upload/v1767689500/WhatsApp_Image_2026-01-06_at_14.14.55_lwhwnk.jpg"
-              alt="Study Materials"
-              className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
-            />
-          </div>
-          <div className="w-full md:w-auto flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-16 h-2 rounded"
-                style={{ backgroundColor: accentColor }}
-              ></div>
-              <span className="text-6xl text-yellow-500 font-black">550</span>
+        <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
+          {/* Decorative Elements */}
+          <div 
+            className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: accentColor }}
+          ></div>
+          <div 
+            className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: goldColor }}
+          ></div>
+          
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
+            {/* Image */}
+            <div className="w-full md:w-5/12 flex justify-center">
+              <div className="relative group">
+                <div 
+                  className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+                <img
+                  src="https://res.cloudinary.com/daetdadtt/image/upload/v1767689500/WhatsApp_Image_2026-01-06_at_14.14.55_lwhwnk.jpg"
+                  alt="Study Materials"
+                  className="relative rounded-2xl shadow-xl max-h-80 w-full object-cover border-4 border-white"
+                />
+              </div>
             </div>
-            <p className="text-gray-700 text-lg mb-6 font-semibold">
-              PYQs practiced from this resource
-            </p>
-            <button
-              onClick={() => openPDF("ipmat_2019_Question_Paper-1.pdf")}
-              className="flex items-center justify-center gap-3 px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              <ExternalLink size={22} />
-              View PDF Resource
-            </button>
-            <p className="text-gray-500 text-sm mt-3 italic">
-              The exact paper that helped secure AIR 1
-            </p>
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <ArrowRight 
+                size={48} 
+                className="animate-pulse"
+                style={{ color: accentColor, strokeWidth: 3 }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="w-full md:w-5/12 flex flex-col items-center md:items-start space-y-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-1.5 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+              </div>
+              
+              <div className="text-center md:text-left">
+                <div 
+                  className="text-8xl font-black mb-2 tracking-tighter"
+                  style={{ color: goldColor }}
+                >
+                  550
+                </div>
+                <p className="text-gray-600 text-xl font-bold mb-2">
+                  PYQs practiced from this resource
+                </p>
+                <p className="text-gray-400 text-sm italic">
+                  The exact paper that helped secure AIR 1
+                </p>
+              </div>
+
+              <button
+                onClick={() => openPDF("ipmat_2019_Question_Paper-1.pdf")}
+                className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink size={24} className="group-hover:rotate-12 transition-transform" />
+                View PDF Resource
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Challenging Questions Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+      <section className="max-w-7xl mx-auto px-6 py-16">
         <h2
-          className="text-4xl font-black text-center mb-12"
+          className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
         >
           Questions He Found Challenging
         </h2>
-        <div className="flex flex-col md:flex-row gap-12 items-center justify-center bg-white rounded-3xl p-10 shadow-xl">
-          <div className="w-full md:w-auto flex justify-center">
-            <img
-              src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691017/WhatsApp_Image_2026-01-06_at_14.17.06_k1bdpw.jpg"
-              alt="Challenging Questions"
-              className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
-            />
-          </div>
-          <div className="w-full md:w-auto flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-16 h-2 rounded"
-                style={{ backgroundColor: accentColor }}
-              ></div>
-              <span className="text-6xl">💡</span>
+        <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
+          {/* Decorative Elements */}
+          <div 
+            className="absolute top-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: goldColor }}
+          ></div>
+          <div 
+            className="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: accentColor }}
+          ></div>
+          
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
+            {/* Image */}
+            <div className="w-full md:w-5/12 flex justify-center">
+              <div className="relative group">
+                <div 
+                  className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+                <img
+                  src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691017/WhatsApp_Image_2026-01-06_at_14.17.06_k1bdpw.jpg"
+                  alt="Challenging Questions"
+                  className="relative rounded-2xl shadow-xl max-h-80 w-full object-cover border-4 border-white"
+                />
+              </div>
             </div>
-            <p className="text-gray-700 text-lg mb-6 font-semibold">
-              Questions that tested him the most
-            </p>
-            <button
-              className="flex items-center justify-center gap-3 px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              <ExternalLink size={22} />
-              Access Resource
-            </button>
-            <p className="text-gray-500 text-sm mt-3 italic">
-              Master the toughest questions with this collection
-            </p>
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <ArrowRight 
+                size={48} 
+                className="animate-pulse"
+                style={{ color: accentColor, strokeWidth: 3 }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="w-full md:w-5/12 flex flex-col items-center md:items-start space-y-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-1.5 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+              </div>
+              
+              <div className="text-center md:text-left">
+                <div className="text-8xl mb-2">💡</div>
+                <p className="text-gray-600 text-xl font-bold mb-2">
+                  Questions that tested him the most
+                </p>
+                <p className="text-gray-400 text-sm italic">
+                  Master the toughest questions with this collection
+                </p>
+              </div>
+
+              <button
+                className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink size={24} className="group-hover:rotate-12 transition-transform" />
+                Access Resource
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Time Table Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+      <section className="max-w-7xl mx-auto px-6 py-16">
         <h2
-          className="text-4xl font-black text-center mb-12"
+          className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
         >
           Time Table
         </h2>
-        <div className="flex flex-col md:flex-row gap-12 items-center justify-center bg-white rounded-3xl p-10 shadow-xl">
-          <div className="w-full md:w-auto flex justify-center">
-            <img
-              src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691018/WhatsApp_Image_2026-01-06_at_14.17.21_xyzjtt.jpg"
-              alt="Time Table"
-              className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
-            />
-          </div>
-          <div className="w-full md:w-auto flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-16 h-2 rounded"
-                style={{ backgroundColor: accentColor }}
-              ></div>
-              <span className="text-6xl">📅</span>
+        <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
+          {/* Decorative Elements */}
+          <div 
+            className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: accentColor }}
+          ></div>
+          <div 
+            className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: goldColor }}
+          ></div>
+          
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
+            {/* Image */}
+            <div className="w-full md:w-5/12 flex justify-center">
+              <div className="relative group">
+                <div 
+                  className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+                <img
+                  src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691018/WhatsApp_Image_2026-01-06_at_14.17.21_xyzjtt.jpg"
+                  alt="Time Table"
+                  className="relative rounded-2xl shadow-xl max-h-80 w-full object-cover border-4 border-white"
+                />
+              </div>
             </div>
-            <p className="text-gray-700 text-lg mb-6 font-semibold">
-              Daily schedule followed by AIR 1
-            </p>
-            <button
-              className="flex items-center justify-center gap-3 px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              <ExternalLink size={22} />
-              View Schedule
-            </button>
-            <p className="text-gray-500 text-sm mt-3 italic">
-              Follow the exact routine that led to success
-            </p>
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <ArrowRight 
+                size={48} 
+                className="animate-pulse"
+                style={{ color: accentColor, strokeWidth: 3 }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="w-full md:w-5/12 flex flex-col items-center md:items-start space-y-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-1.5 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+              </div>
+              
+              <div className="text-center md:text-left">
+                <div className="text-8xl mb-2">📅</div>
+                <p className="text-gray-600 text-xl font-bold mb-2">
+                  Daily schedule followed by AIR 1
+                </p>
+                <p className="text-gray-400 text-sm italic">
+                  Follow the exact routine that led to success
+                </p>
+              </div>
+
+              <button
+                className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink size={24} className="group-hover:rotate-12 transition-transform" />
+                View Schedule
+              </button>
+            </div>
           </div>
         </div>
       </section>
