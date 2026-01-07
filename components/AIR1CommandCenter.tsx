@@ -241,7 +241,7 @@ const AIR1CommandCenter = () => {
               The rigid daily schedule that balanced Board exams with IPMAT
               prep. No burnout, just calculated slots.
             </p>
-            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
+            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-[#823588] group-hover:text-white transition-all duration-300">
               <strong>Example Routine:</strong>
               <br />
               06:00 - Vocab Drills
@@ -267,7 +267,7 @@ const AIR1CommandCenter = () => {
               He didn't solve random books. He solved these specific 550 PYQs
               that have the highest repetition probability.
             </p>
-            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
+            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-[#823588] group-hover:text-white transition-all duration-300">
               <strong>Includes:</strong>
               <br />
               - The "Logarithm Trap" PDF
@@ -292,7 +292,7 @@ const AIR1CommandCenter = () => {
               Stop flying blind. Compare your current mock scores against
               Nikhilesh's scores in February 2025.
             </p>
-            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
+            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-[#823588] group-hover:text-white transition-all duration-300">
               <strong>Benchmarks:</strong>
               <br />
               Feb Score: 180 (Him) vs ??? (You)
@@ -546,61 +546,110 @@ const AIR1CommandCenter = () => {
       </section>
 
       {/* AIR 1 vs You Carousel Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2
-          className="text-4xl font-black text-center mb-12"
-          style={{ color: accentColor }}
-        >
-          AIR 1 vs You
-        </h2>
-        <div className="flex flex-col items-center">
-          <div className="relative w-full max-w-3xl mb-8">
-            <img
-              src={comparisonImages[currentSlide]}
-              alt={`Comparison ${currentSlide + 1}`}
-              className="rounded-2xl shadow-2xl w-full h-auto border-2 border-purple-200"
-            />
-
-            <button
-              onClick={prevSlide}
-              disabled={currentSlide === 0}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-purple-100 transition-all"
+  <section className="max-w-7xl mx-auto px-6 py-16">
+        <div className="text-center mb-12">
+          <div className="inline-block">
+            <h2
+              className="text-5xl font-bold mb-3"
               style={{ color: accentColor }}
             >
-              <ChevronLeft size={28} />
-            </button>
+              AIR 1 vs You
+            </h2>
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-1 w-20 rounded-full" style={{ backgroundColor: goldColor }} />
+              <span className="text-sm text-gray-500 font-medium">See the difference</span>
+              <div className="h-1 w-20 rounded-full" style={{ backgroundColor: goldColor }} />
+            </div>
+          </div>
+        </div>
 
-            <button
-              onClick={nextSlide}
-              disabled={currentSlide === comparisonImages.length - 1}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-purple-100 transition-all"
-              style={{ color: accentColor }}
-            >
-              <ChevronRight size={28} />
-            </button>
+        <div className="relative bg-gradient-to-br from-purple-50 to-white rounded-3xl p-8 md:p-12 shadow-xl overflow-hidden border border-purple-100">
+          {/* Decorative elements */}
+          <div
+            className="absolute top-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-5"
+            style={{ backgroundColor: accentColor }}
+          />
+          <div
+            className="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-5"
+            style={{ backgroundColor: goldColor }}
+          />
 
-            <div className="flex justify-center gap-3 mt-6">
+          <div className="flex flex-col items-center relative z-10">
+            {/* Carousel Container */}
+            <div className="relative w-full max-w-4xl mb-8">
+              {/* Image with enhanced styling */}
+              <div className="relative">
+                <div
+                  className="absolute -inset-3 rounded-3xl blur-2xl opacity-20"
+                  style={{ backgroundColor: accentColor }}
+                />
+                <img
+                  src={comparisonImages[currentSlide]}
+                  alt={`Comparison ${currentSlide + 1}`}
+                  className="relative rounded-2xl shadow-2xl w-full h-auto border-4 border-white"
+                />
+                
+                {/* Slide counter badge */}
+                <div className="absolute top-4 right-4 bg-white rounded-full px-4 py-2 shadow-lg">
+                  <span className="text-sm font-bold" style={{ color: accentColor }}>
+                    {currentSlide + 1} / {comparisonImages.length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              <button
+                onClick={prevSlide}
+                disabled={currentSlide === 0}
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 md:p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-all duration-300"
+                style={{ color: accentColor }}
+              >
+                <ChevronLeft size={24} className="md:w-7 md:h-7" />
+              </button>
+
+              <button
+                onClick={nextSlide}
+                disabled={currentSlide === comparisonImages.length - 1}
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 md:p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-all duration-300"
+                style={{ color: accentColor }}
+              >
+                <ChevronRight size={24} className="md:w-7 md:h-7" />
+              </button>
+            </div>
+
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 mb-8">
               {comparisonImages.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className="w-3 h-3 rounded-full transition-all"
+                  className="transition-all duration-300 rounded-full"
                   style={{
-                    backgroundColor:
-                      currentSlide === index ? accentColor : "#d1d5db",
+                    width: currentSlide === index ? '32px' : '12px',
+                    height: '12px',
+                    backgroundColor: currentSlide === index ? accentColor : '#d1d5db',
                   }}
+                  aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>
-          </div>
 
-          <div className="w-full max-w-md">
-            <button
-              className="w-full px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              View Detailed Comparison
-            </button>
+            {/* CTA Button */}
+            <div className="w-full max-w-md">
+              <button
+                className="group w-full flex items-center justify-center gap-3 px-8 py-5 text-white rounded-xl text-lg font-bold hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <span>View Detailed Comparison</span>
+                <ArrowRight 
+                  size={20} 
+                  className="group-hover:translate-x-1 transition-transform duration-300"
+                />
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-3 italic">
+                ✓ Performance metrics • ✓ Study patterns • ✓ Success factors
+              </p>
+            </div>
           </div>
         </div>
       </section>
