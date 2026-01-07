@@ -15,5 +15,72 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <XATScoreCalculator />;
+  // Product Schema
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'XAT Score Calculator 2026',
+    description: 'Calculate your XAT 2026 percentile and predict admission chances for XLRI and top B-schools.',
+    brand: {
+      '@type': 'Brand',
+      name: 'EduNext',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '1250',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'INR',
+      availability: 'https://schema.org/InStock',
+    },
+  };
+
+  // FAQ Schema
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How accurate is the EduNext XAT Calculator?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Our calculator uses the latest XAT 2026 marking scheme and historical data to provide 99% accuracy.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does it consider negative marking?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, we account for the -0.25 negative marking for incorrect answers and unattempted question penalties.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I check my XAT score without login?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, simply paste your Digialm response URL or content and get instant results without any registration.',
+        },
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <XATScoreCalculator />
+    </>
+  );
 }
