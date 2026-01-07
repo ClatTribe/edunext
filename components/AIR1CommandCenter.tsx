@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+} from "lucide-react";
 
 const AIR1CommandCenter = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -12,7 +17,7 @@ const AIR1CommandCenter = () => {
     seconds: 0,
   });
 
-  const accentColor = "#7e22ce";
+  const accentColor = "#823588";
   const brandDark = "#3b0764";
   const brandAccent = "#d8b4fe";
   const goldColor = "#f3ad00";
@@ -210,7 +215,7 @@ const AIR1CommandCenter = () => {
       </section>
 
       {/* Command Center Cards */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
+      <section className="max-w-6xl mx-auto px-6 py-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-black text-gray-900 mb-4">
             The Command Center
@@ -220,7 +225,7 @@ const AIR1CommandCenter = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
+        <div className="grid md:grid-cols-3 gap-8 mb-10">
           {/* Card 1: Time Table */}
           <div className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-purple-300 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group">
             <div
@@ -300,7 +305,8 @@ const AIR1CommandCenter = () => {
         </div>
       </section>
 
-<section className="max-w-7xl mx-auto px-6 py-16">
+      {/* Study Materials Used */}
+      <section className="max-w-7xl mx-auto px-6 py-8">
         <h2
           className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
@@ -309,20 +315,20 @@ const AIR1CommandCenter = () => {
         </h2>
         <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
           {/* Decorative Elements */}
-          <div 
+          <div
             className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
             style={{ backgroundColor: accentColor }}
           ></div>
-          <div 
+          <div
             className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
             style={{ backgroundColor: goldColor }}
           ></div>
-          
+
           <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
             {/* Image */}
             <div className="w-full md:w-5/12 flex justify-center">
               <div className="relative group">
-                <div 
+                <div
                   className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
                   style={{ backgroundColor: accentColor }}
                 ></div>
@@ -336,8 +342,8 @@ const AIR1CommandCenter = () => {
 
             {/* Arrow */}
             <div className="hidden md:flex items-center justify-center">
-              <ArrowRight 
-                size={48} 
+              <ArrowRight
+                size={48}
                 className="animate-pulse"
                 style={{ color: accentColor, strokeWidth: 3 }}
               />
@@ -351,9 +357,9 @@ const AIR1CommandCenter = () => {
                   style={{ backgroundColor: accentColor }}
                 ></div>
               </div>
-              
+
               <div className="text-center md:text-left">
-                <div 
+                <div
                   className="text-8xl font-black mb-2 tracking-tighter"
                   style={{ color: goldColor }}
                 >
@@ -372,7 +378,10 @@ const AIR1CommandCenter = () => {
                 className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
                 style={{ backgroundColor: accentColor }}
               >
-                <ExternalLink size={24} className="group-hover:rotate-12 transition-transform" />
+                <ExternalLink
+                  size={24}
+                  className="group-hover:rotate-12 transition-transform"
+                />
                 View PDF Resource
               </button>
             </div>
@@ -386,24 +395,24 @@ const AIR1CommandCenter = () => {
           className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
         >
-          Questions He Found Challenging
+          Questions Difficult to solve
         </h2>
         <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
           {/* Decorative Elements */}
-          <div 
+          <div
             className="absolute top-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
             style={{ backgroundColor: goldColor }}
           ></div>
-          <div 
+          <div
             className="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
             style={{ backgroundColor: accentColor }}
           ></div>
-          
+
           <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
             {/* Image */}
             <div className="w-full md:w-5/12 flex justify-center">
               <div className="relative group">
-                <div 
+                <div
                   className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
                   style={{ backgroundColor: accentColor }}
                 ></div>
@@ -417,8 +426,8 @@ const AIR1CommandCenter = () => {
 
             {/* Arrow */}
             <div className="hidden md:flex items-center justify-center">
-              <ArrowRight 
-                size={48} 
+              <ArrowRight
+                size={48}
                 className="animate-pulse"
                 style={{ color: accentColor, strokeWidth: 3 }}
               />
@@ -432,7 +441,7 @@ const AIR1CommandCenter = () => {
                   style={{ backgroundColor: accentColor }}
                 ></div>
               </div>
-              
+
               <div className="text-center md:text-left">
                 <div className="text-8xl mb-2">💡</div>
                 <p className="text-gray-600 text-xl font-bold mb-2">
@@ -447,7 +456,10 @@ const AIR1CommandCenter = () => {
                 className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
                 style={{ backgroundColor: accentColor }}
               >
-                <ExternalLink size={24} className="group-hover:rotate-12 transition-transform" />
+                <ExternalLink
+                  size={24}
+                  className="group-hover:rotate-12 transition-transform"
+                />
                 Access Resource
               </button>
             </div>
@@ -465,20 +477,20 @@ const AIR1CommandCenter = () => {
         </h2>
         <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
           {/* Decorative Elements */}
-          <div 
+          <div
             className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
             style={{ backgroundColor: accentColor }}
           ></div>
-          <div 
+          <div
             className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
             style={{ backgroundColor: goldColor }}
           ></div>
-          
+
           <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
             {/* Image */}
             <div className="w-full md:w-5/12 flex justify-center">
               <div className="relative group">
-                <div 
+                <div
                   className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
                   style={{ backgroundColor: accentColor }}
                 ></div>
@@ -492,8 +504,8 @@ const AIR1CommandCenter = () => {
 
             {/* Arrow */}
             <div className="hidden md:flex items-center justify-center">
-              <ArrowRight 
-                size={48} 
+              <ArrowRight
+                size={48}
                 className="animate-pulse"
                 style={{ color: accentColor, strokeWidth: 3 }}
               />
@@ -507,7 +519,7 @@ const AIR1CommandCenter = () => {
                   style={{ backgroundColor: accentColor }}
                 ></div>
               </div>
-              
+
               <div className="text-center md:text-left">
                 <div className="text-8xl mb-2">📅</div>
                 <p className="text-gray-600 text-xl font-bold mb-2">
@@ -522,7 +534,10 @@ const AIR1CommandCenter = () => {
                 className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
                 style={{ backgroundColor: accentColor }}
               >
-                <ExternalLink size={24} className="group-hover:rotate-12 transition-transform" />
+                <ExternalLink
+                  size={24}
+                  className="group-hover:rotate-12 transition-transform"
+                />
                 View Schedule
               </button>
             </div>
@@ -587,29 +602,6 @@ const AIR1CommandCenter = () => {
               View Detailed Comparison
             </button>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16 mb-12">
-        <div
-          className="rounded-3xl p-16 text-center text-white shadow-2xl"
-          style={{
-            background: `linear-gradient(135deg, ${accentColor}, ${brandDark})`,
-          }}
-        >
-          <h2 className="text-4xl font-black mb-6">
-            Ready to Engineer Your Rank?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join the only cohort that teaches the AIR 1 methodology.
-          </p>
-          <button
-            className="bg-white px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-            style={{ color: accentColor }}
-          >
-            Start Free Trial
-          </button>
         </div>
       </section>
     </div>

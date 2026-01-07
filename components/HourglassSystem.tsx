@@ -60,27 +60,6 @@ export default function HourglassSystemPage() {
           </p>
         </header>
 
-        {/* Countdown */}
-        <section
-          className="rounded-3xl p-10 text-center mb-16 shadow-2xl"
-          style={{
-            background: `linear-gradient(135deg, ${PURPLE}, #5a1b61)`,
-            color: "white",
-          }}
-        >
-          <p className="opacity-90 mb-6">Countdown to IPMAT 2026</p>
-
-          <div className="flex justify-center gap-4 flex-wrap mb-6">
-            <TimerBlock label="Days" value={timeLeft.days} />
-            <TimerBlock label="Hours" value={timeLeft.hours} />
-            <TimerBlock label="Minutes" value={timeLeft.minutes} />
-            <TimerBlock label="Seconds" value={timeLeft.seconds} />
-          </div>
-
-          <p className="font-semibold text-yellow-300">
-            May 4, 2026 • Saturday
-          </p>
-        </section>
 
         {/* Hero */}
         <section className="bg-white border-2 border-purple-200 rounded-3xl p-10 mb-16 shadow">
