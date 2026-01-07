@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import DefaultLayout from "@/app/defaultLayout";
 import Leaderboard from "./Leaderboard";
+import XATScoreGraph from "./XATScoreGraph";
 
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
@@ -453,6 +454,9 @@ export default function PasteXATResponse() {
               </div>
             </div>
           </div>
+            <div className="mt-6">
+              <XATScoreGraph />
+            </div>
         </div>
       </div>
     </DefaultLayout>
