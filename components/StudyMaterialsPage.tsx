@@ -103,28 +103,6 @@ export const StudyMaterialsPage: React.FC = () => {
         uploadDate: "2024-03-10",
         size: "30 MB",
       },
-
-      // ================= CHEAT SHEETS =================
-      {
-        id: "8",
-        title: "Cheat Sheet – Quantitative Ability",
-        fileName: "Cheat Sheet QA.pdf",
-        section: "CHEAT_SHEET",
-        description: "Quick revision formulas for Quantitative Ability.",
-        uploadDate: "2024-03-10",
-        size: "30 MB",
-        featured: true,
-      },
-      {
-        id: "9",
-        title: "Cheat Sheet – Verbal Ability",
-        fileName: "Cheat Sheet VA.pdf",
-        section: "CHEAT_SHEET",
-        description: "Quick revision notes for Verbal Ability.",
-        uploadDate: "2024-03-10",
-        size: "30 MB",
-        featured: true,
-      },
     ];
 
     setStudyMaterials(materials);

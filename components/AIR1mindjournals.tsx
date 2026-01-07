@@ -121,12 +121,8 @@ export default function MindsetLogsPage() {
           >
             AIR 1 MIND JOURNALS
           </span>
-
-          <h1
-            className="text-4xl md:text-5xl font-bold mt-6"
-            style={{ color: ACCENT }}
-          >
-            Unfiltered Voice Notes
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900">
+            <span className="text-[#823588]">Unfiltered Voice Notes</span>
           </h1>
           <p className="text-gray-600 max-w-xl mx-auto mt-4">
             Raw audio clips from AIR 1’s private prep diary. The mindset behind
@@ -189,7 +185,6 @@ export default function MindsetLogsPage() {
             );
           })}
         </div>
-
       </div>
 
       {/* Player */}
