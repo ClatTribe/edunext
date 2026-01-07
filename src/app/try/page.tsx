@@ -9,6 +9,7 @@ import MindsetLogsPage from "../../../components/AIR1mindjournals";
 import HourglassSystemPage from "../../../components/HourglassSystem";
 import FormandanddeadlinesPage from "../../../components/FormsandDeadlines";
 import AIR1CommandCenterPage from "../../../components/AIR1CommandCenter";
+import CheatSheetsPage from "../../../components/CheatSheet";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("/try/video-analysis");
@@ -16,7 +17,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case "/try/video-analysis":
-        return <VideoAnalysisPage />;
+        // return <VideoAnalysisPage />;
       case "/try/study-materials":
         return <StudyMaterialsPage />;
       case "/try/cut-offs": // SINGLE ROUTE NOW
@@ -31,7 +32,8 @@ export default function App() {
         return <AIR1CommandCenterPage />;  
       case "/try/numbers":
       case "/try/averages":
-      case "/try/reading-comprehension":
+      case "/try/cheat-sheets":
+        return <CheatSheetsPage />;
       case "/try/root-words":
         return (
           <div className="min-h-screen bg-gradient-to-br from-purple-50 to-yellow-50 flex items-center justify-center">
