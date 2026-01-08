@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import DefaultLayout from "@/app/defaultLayout";
 import Leaderboard from "./Leaderboard";
 import XATScoreGraph from "./XATScoreGraph";
+import PercentileCalculator from "./PercentileCalculator";
 
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
@@ -98,7 +99,6 @@ export default function PasteXATResponse() {
   const [city, setCity] = useState("");
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
 
-  // Fetch leaderboard data
   useEffect(() => {
     fetchLeaderboard();
   }, []);
@@ -132,7 +132,6 @@ export default function PasteXATResponse() {
           };
         });
 
-        // Sort by score and assign ranks
         calculated.sort((a, b) => b.score - a.score);
         const top10 = calculated.slice(0, 10).map((entry, index) => ({
           rank: index + 1,
@@ -254,8 +253,6 @@ export default function PasteXATResponse() {
   const handleCalculateAndSubmit = async () => {
     try {
       setError(""); setLoading(true);
-      
-      // Validate form
       if (!name.trim()) { setError("❌ Please enter your name"); setLoading(false); return; }
       if (!mobile.trim() || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) { setError("❌ Please enter a valid 10-digit mobile number"); setLoading(false); return; }
       if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("❌ Please enter a valid email address"); setLoading(false); return; }
@@ -265,8 +262,6 @@ export default function PasteXATResponse() {
       if (!input) { setError("⚠️ Please paste your Digialm URL or HTML content"); setLoading(false); return; }
 
       let calculatedResults: ParseResult;
-
-      // Fetch content
       if (/^https?:\/\//i.test(input) || /digialm\.com/i.test(input)) {
         setError("🔄 Fetching and processing...");
         let url = input.startsWith("http") ? input : "https://" + input;
@@ -282,10 +277,7 @@ export default function PasteXATResponse() {
         calculatedResults = processContent(input);
       }
 
-      // Save to DB
       setError("💾 Saving results...");
-      const { data: existingUser } = await supabase.from("xat_results").select("*").eq("name", name.trim()).eq("mobile", mobile).order("created_at", { ascending: false }).limit(1);
-      
       const dataToSave = {
         name, mobile, email, category, city,
         valr_correct: calculatedResults.sections.VALR.correct,
@@ -299,20 +291,11 @@ export default function PasteXATResponse() {
         qa_skipped: calculatedResults.sections.QA.na,
         show_in_leaderboard: true
       };
-
-      // if (existingUser && existingUser.length > 0) {
-      //   await supabase.from("xat_results").update(dataToSave).eq("id", existingUser[0].id);
-      // } else {
-      //   await supabase.from("xat_results").insert([dataToSave]);
-      // }
       await supabase.from("xat_results").insert([dataToSave]);
 
       setResults(calculatedResults);
       setError("✅ Results calculated and saved successfully!");
-      
-      // Refresh leaderboard
       await fetchLeaderboard();
-      
       setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (err) {
       setError("❌ Something went wrong. Please try again.");
@@ -333,20 +316,12 @@ export default function PasteXATResponse() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white">
               Calculate your <span style={{color: accentColor}}>XAT score</span> instantly
             </h1>
-            <p className="text-slate-400 max-w-2xl text-sm sm:text-base mx-auto px-4">
-              Fill your details and paste Digialm response for instant results
-            </p>
           </div>
 
-          {/* Main Grid Layout - Form on left, Leaderboard on right */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Form and Results */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Form */}
               <div className="rounded-2xl p-6 shadow-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
                 <h2 className="text-xl font-bold text-white mb-4">📝 Enter Details & Calculate Score</h2>
-
-                {/* User Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
                     <label className="block text-slate-400 text-sm mb-2">NAME <span className="text-red-500">*</span></label>
@@ -372,13 +347,11 @@ export default function PasteXATResponse() {
                   </div>
                 </div>
 
-                {/* Response Input */}
                 <div className="border-t pt-6 mb-6" style={{borderColor: 'rgba(100,116,139,0.3)'}}>
                   <label className="block text-slate-300 font-semibold mb-2">Digialm URL or Response Content <span className="text-red-500">*</span></label>
                   <textarea value={html} onChange={(e) => {setHtml(e.target.value); setError("");}} className="w-full h-32 rounded-xl p-4 text-sm text-white bg-[#050818] font-mono focus:outline-none focus:ring-2" style={{ border: `1px solid ${borderColor}` }} placeholder="https://cdn.digialm.com/... OR paste full page content" />
                 </div>
 
-                {/* Instructions */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-xl mb-6">
                   <h3 className="text-lg font-bold text-white mb-3">📋 How to Use</h3>
                   <div className="space-y-2 text-sm text-slate-400">
@@ -389,62 +362,18 @@ export default function PasteXATResponse() {
                   </div>
                 </div>
 
-                {/* Error/Success Message */}
                 {error && (
                   <div className={`p-4 rounded-lg mb-4 ${error.includes("✅") ? "bg-green-900/20 border-green-500/30 text-green-400" : error.includes("🔄") || error.includes("💾") ? "bg-blue-900/20 border-blue-500/30 text-blue-400" : "bg-red-900/20 border-red-500/30 text-red-400"} border`}>
                     <p className="text-sm whitespace-pre-line">{error}</p>
                   </div>
                 )}
 
-                {/* Submit Button */}
                 <button onClick={handleCalculateAndSubmit} disabled={loading} className="w-full px-6 py-4 rounded-xl font-bold text-black text-lg transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: accentColor }}>
                   {loading ? "Processing..." : "Calculate & Save Score →"}
                 </button>
               </div>
-
-              {/* Results Section */}
-              {results && (
-                <div id="results" className="rounded-2xl p-6 shadow-2xl" style={{ backgroundColor: secondaryBg, border: `2px solid ${accentColor}` }}>
-                  <h2 className="text-2xl font-bold text-white mb-6">🎯 Your XAT 2026 Results</h2>
-                  
-                  {/* Main Scores */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="p-6 rounded-xl border-2" style={{backgroundColor: '#050818', borderColor: accentColor}}>
-                      <p className="text-slate-400 text-sm mb-2">Part 1 Total Score</p>
-                      <p className="text-5xl font-bold mb-2" style={{color: accentColor}}>{results.finalPart1}</p>
-                      <p className="text-xs text-red-400">Penalty Applied: -{results.penaltyScore.toFixed(2)}</p>
-                    </div>
-                    <div className="p-6 bg-[#050818] rounded-xl border border-slate-700">
-                      <p className="text-slate-400 text-sm mb-2">General Knowledge</p>
-                      <p className="text-5xl font-bold text-slate-300 mb-2">{results.sections.GK.score}</p>
-                      <p className="text-xs text-slate-500">Not included in percentile</p>
-                    </div>
-                  </div>
-
-                  {/* Section Breakdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {(['VALR', 'DM', 'QA'] as const).map(key => (
-                      <div key={key} className="p-5 bg-[#050818] rounded-xl border border-slate-700">
-                        <p className="text-slate-400 text-xs font-semibold mb-3">{results.sections[key].name}</p>
-                        <div className="flex gap-4 text-sm mb-3">
-                          <span className="text-green-400">✓ {results.sections[key].correct}</span>
-                          <span className="text-red-400">✗ {results.sections[key].wrong}</span>
-                          <span className="text-slate-500">— {results.sections[key].na}</span>
-                        </div>
-                        <p className="text-2xl font-bold text-white">Score: {results.sections[key].score.toFixed(2)}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Success Message */}
-                  <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
-                    <p className="text-green-400 text-center font-semibold">✅ Your results have been saved to our database!</p>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Right Column - Leaderboard (Sticky) */}
             <div className="lg:col-span-1">
               <div className="lg:sticky lg:top-8">
                 <Leaderboard 
@@ -454,9 +383,53 @@ export default function PasteXATResponse() {
               </div>
             </div>
           </div>
-            <div className="mt-6">
-              <XATScoreGraph />
+
+          {results && (
+            <div id="results" className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+              <div className="rounded-2xl p-6 shadow-2xl" style={{ backgroundColor: secondaryBg, border: `2px solid ${accentColor}` }}>
+                <h2 className="text-2xl font-bold text-white mb-6">🎯 Your XAT 2026 Results</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="p-6 rounded-xl border-2" style={{backgroundColor: '#050818', borderColor: accentColor}}>
+                    <p className="text-slate-400 text-sm mb-2">Part 1 Total Score</p>
+                    <p className="text-5xl font-bold mb-2" style={{color: accentColor}}>{results.finalPart1}</p>
+                    <p className="text-xs text-red-400">Penalty Applied: -{results.penaltyScore.toFixed(2)}</p>
+                  </div>
+                  <div className="p-6 bg-[#050818] rounded-xl border border-slate-700">
+                    <p className="text-slate-400 text-sm mb-2">General Knowledge</p>
+                    <p className="text-5xl font-bold text-slate-300 mb-2">{results.sections.GK.score}</p>
+                    <p className="text-xs text-slate-500">Not included in percentile</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {(['VALR', 'DM', 'QA'] as const).map(key => (
+                    <div key={key} className="p-5 bg-[#050818] rounded-xl border border-slate-700">
+                      <p className="text-slate-400 text-xs font-semibold mb-3">{results.sections[key].name}</p>
+                      <div className="flex gap-4 text-sm mb-3">
+                        <span className="text-green-400">✓ {results.sections[key].correct}</span>
+                        <span className="text-red-400">✗ {results.sections[key].wrong}</span>
+                        <span className="text-slate-500">— {results.sections[key].na}</span>
+                      </div>
+                      <p className="text-2xl font-bold text-white">Score: {results.sections[key].score.toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                  <p className="text-green-400 text-center font-semibold">✅ Your results have been saved to our database!</p>
+                </div>
+              </div>
+
+              {/* <PercentileCalculator 
+                userScore={parseFloat(results.finalPart1)} 
+                userName={name}
+              /> */}
             </div>
+          )}
+
+          <div className="mt-6">
+            <XATScoreGraph />
+          </div>
         </div>
       </div>
     </DefaultLayout>

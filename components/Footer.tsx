@@ -14,16 +14,16 @@ const Footer: React.FC = () => {
 
         {/* Links Section */}
         <div className="flex gap-8 text-sm text-slate-500">
-          <Link href="/privacy" className="hover:text-white transition-colors">
+          {/* <Link href="/privacy" className="hover:text-white transition-colors">
             Privacy Policy
-          </Link>
-          <Link href="/terms" className="hover:text-white transition-colors">
+          </Link> */}
+          {/* <Link href="/terms" className="hover:text-white transition-colors">
             Terms of Service
-          </Link>
-          <Link href="/about" className="hover:text-white transition-colors">
+          </Link> */}
+          {/* <Link href="/about" className="hover:text-white transition-colors">
             About Us
-          </Link>
-          <Link href="/contact" className="hover:text-white transition-colors">
+          </Link> */}
+          <Link href="/contact-us" className="hover:text-white transition-colors">
             Contact Us
           </Link>
           <Link href="/blogs" className="hover:text-white transition-colors">

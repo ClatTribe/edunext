@@ -57,6 +57,13 @@ const Navbar: React.FC = () => {
           >
             Blogs
           </a>
+          <a
+            href="/contact-us"
+            className="text-sm font-medium transition-colors cursor-pointer"
+            style={{ color: "#94a3b8" }}
+          >
+            Contact Us
+          </a>
 
           {user ? (
             <>
