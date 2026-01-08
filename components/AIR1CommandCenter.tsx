@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+} from "lucide-react";
 
 const AIR1CommandCenter = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -12,9 +17,10 @@ const AIR1CommandCenter = () => {
     seconds: 0,
   });
 
-  const accentColor = "#7e22ce";
+  const accentColor = "#823588";
   const brandDark = "#3b0764";
   const brandAccent = "#d8b4fe";
+  const goldColor = "#f3ad00";
 
   const comparisonImages = [
     "https://res.cloudinary.com/daetdadtt/image/upload/v1767691350/1_kiwmno.jpg",
@@ -119,7 +125,7 @@ const AIR1CommandCenter = () => {
         <div
           className="rounded-3xl p-10 text-center shadow-2xl"
           style={{
-            background: `#823588`,
+            background: "#823588",
             color: "white",
           }}
         >
@@ -139,7 +145,7 @@ const AIR1CommandCenter = () => {
       </section>
 
       {/* Subheading and CTA */}
-      <section className="max-w-4xl mx-auto px-6 pb-20 text-center">
+      <section className="max-w-4xl mx-auto px-6 pb-4 text-center">
         <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
           Nikhilesh Sanka didn't just study hard. He built a system. <br />
           Download the exact command center used by AIR 1.
@@ -147,7 +153,7 @@ const AIR1CommandCenter = () => {
       </section>
 
       {/* Stats Grid Section */}
-      <section id="stats-section" className="max-w-6xl mx-auto px-6 py-16">
+      <section id="stats-section" className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Story Text */}
           <div className="space-y-6">
@@ -179,7 +185,7 @@ const AIR1CommandCenter = () => {
           <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 text-center">
             <div
               className="text-7xl font-black mb-4"
-              style={{ color: accentColor }}
+              style={{ color: "#823588" }}
             >
               {counter}
             </div>
@@ -187,7 +193,7 @@ const AIR1CommandCenter = () => {
               Total Score (AIR 1)
             </div>
             <div className="text-lg font-bold text-green-600">
-              ▲ 72 Marks higher than cutoff
+              ▲ 128 Marks higher than cutoff
             </div>
           </div>
         </div>
@@ -196,7 +202,7 @@ const AIR1CommandCenter = () => {
       {/* Quote Strip */}
       <section
         className="py-16 relative overflow-hidden"
-        style={{ backgroundColor: brandDark }}
+        style={{ backgroundColor: "#823588" }}
       >
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-2xl md:text-3xl text-white font-light italic opacity-90 mb-4">
@@ -209,7 +215,7 @@ const AIR1CommandCenter = () => {
       </section>
 
       {/* Command Center Cards */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
+      <section className="max-w-6xl mx-auto px-6 py-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-black text-gray-900 mb-4">
             The Command Center
@@ -219,7 +225,7 @@ const AIR1CommandCenter = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
+        <div className="grid md:grid-cols-3 gap-8 mb-10">
           {/* Card 1: Time Table */}
           <div className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-purple-300 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group">
             <div
@@ -235,7 +241,7 @@ const AIR1CommandCenter = () => {
               The rigid daily schedule that balanced Board exams with IPMAT
               prep. No burnout, just calculated slots.
             </p>
-            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
+            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-[#823588] group-hover:text-white transition-all duration-300">
               <strong>Example Routine:</strong>
               <br />
               06:00 - Vocab Drills
@@ -261,7 +267,7 @@ const AIR1CommandCenter = () => {
               He didn't solve random books. He solved these specific 550 PYQs
               that have the highest repetition probability.
             </p>
-            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
+            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-[#823588] group-hover:text-white transition-all duration-300">
               <strong>Includes:</strong>
               <br />
               - The "Logarithm Trap" PDF
@@ -286,7 +292,7 @@ const AIR1CommandCenter = () => {
               Stop flying blind. Compare your current mock scores against
               Nikhilesh's scores in February 2025.
             </p>
-            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
+            <div className="bg-gray-50 -mx-8 -mb-8 p-6 mt-auto border-t border-gray-200 text-sm text-gray-700 group-hover:bg-[#823588] group-hover:text-white transition-all duration-300">
               <strong>Benchmarks:</strong>
               <br />
               Feb Score: 180 (Him) vs ??? (You)
@@ -299,210 +305,352 @@ const AIR1CommandCenter = () => {
         </div>
       </section>
 
-      {/* Study Materials Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+      {/* Study Materials Used */}
+      <section className="max-w-7xl mx-auto px-6 py-8">
         <h2
-          className="text-4xl font-black text-center mb-12"
+          className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
         >
           Study Materials Used
         </h2>
-        <div className="flex flex-col md:flex-row gap-12 items-center justify-center bg-white rounded-3xl p-10 shadow-xl">
-          <div className="w-full md:w-auto flex justify-center">
-            <img
-              src="https://res.cloudinary.com/daetdadtt/image/upload/v1767689500/WhatsApp_Image_2026-01-06_at_14.14.55_lwhwnk.jpg"
-              alt="Study Materials"
-              className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
-            />
-          </div>
-          <div className="w-full md:w-auto flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-16 h-2 rounded"
-                style={{ backgroundColor: accentColor }}
-              ></div>
-              <span className="text-6xl text-yellow-500 font-black">550</span>
+        <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
+          {/* Decorative Elements */}
+          <div
+            className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: accentColor }}
+          ></div>
+          <div
+            className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: goldColor }}
+          ></div>
+
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
+            {/* Image */}
+            <div className="w-full md:w-5/12 flex justify-center">
+              <div className="relative group">
+                <div
+                  className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+                <img
+                  src="https://res.cloudinary.com/daetdadtt/image/upload/v1767689500/WhatsApp_Image_2026-01-06_at_14.14.55_lwhwnk.jpg"
+                  alt="Study Materials"
+                  className="relative rounded-2xl shadow-xl max-h-80 w-full object-cover border-4 border-white"
+                />
+              </div>
             </div>
-            <p className="text-gray-700 text-lg mb-6 font-semibold">
-              PYQs practiced from this resource
-            </p>
-            <button
-              onClick={() => openPDF("ipmat_2019_Question_Paper-1.pdf")}
-              className="flex items-center justify-center gap-3 px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              <ExternalLink size={22} />
-              View PDF Resource
-            </button>
-            <p className="text-gray-500 text-sm mt-3 italic">
-              The exact paper that helped secure AIR 1
-            </p>
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <ArrowRight
+                size={48}
+                className="animate-pulse"
+                style={{ color: accentColor, strokeWidth: 3 }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="w-full md:w-5/12 flex flex-col items-center md:items-start space-y-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-1.5 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+              </div>
+
+              <div className="text-center md:text-left">
+                <div
+                  className="text-8xl font-black mb-2 tracking-tighter"
+                  style={{ color: goldColor }}
+                >
+                  550
+                </div>
+                <p className="text-gray-600 text-xl font-bold mb-2">
+                  PYQs practiced from this resource
+                </p>
+                <p className="text-gray-400 text-sm italic">
+                  The exact paper that helped secure AIR 1
+                </p>
+              </div>
+
+              <button
+                onClick={() => openPDF("ipmat_2019_Question_Paper-1.pdf")}
+                className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink
+                  size={24}
+                  className="group-hover:rotate-12 transition-transform"
+                />
+                View PDF Resource
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Challenging Questions Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+      <section className="max-w-7xl mx-auto px-6 py-16">
         <h2
-          className="text-4xl font-black text-center mb-12"
+          className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
         >
-          Questions He Found Challenging
+          Questions Difficult to solve
         </h2>
-        <div className="flex flex-col md:flex-row gap-12 items-center justify-center bg-white rounded-3xl p-10 shadow-xl">
-          <div className="w-full md:w-auto flex justify-center">
-            <img
-              src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691017/WhatsApp_Image_2026-01-06_at_14.17.06_k1bdpw.jpg"
-              alt="Challenging Questions"
-              className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
-            />
-          </div>
-          <div className="w-full md:w-auto flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-16 h-2 rounded"
-                style={{ backgroundColor: accentColor }}
-              ></div>
-              <span className="text-6xl">💡</span>
+        <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
+          {/* Decorative Elements */}
+          <div
+            className="absolute top-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: goldColor }}
+          ></div>
+          <div
+            className="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: accentColor }}
+          ></div>
+
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
+            {/* Image */}
+            <div className="w-full md:w-5/12 flex justify-center">
+              <div className="relative group">
+                <div
+                  className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+                <img
+                  src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691017/WhatsApp_Image_2026-01-06_at_14.17.06_k1bdpw.jpg"
+                  alt="Challenging Questions"
+                  className="relative rounded-2xl shadow-xl max-h-80 w-full object-cover border-4 border-white"
+                />
+              </div>
             </div>
-            <p className="text-gray-700 text-lg mb-6 font-semibold">
-              Questions that tested him the most
-            </p>
-            <button
-              className="flex items-center justify-center gap-3 px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              <ExternalLink size={22} />
-              Access Resource
-            </button>
-            <p className="text-gray-500 text-sm mt-3 italic">
-              Master the toughest questions with this collection
-            </p>
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <ArrowRight
+                size={48}
+                className="animate-pulse"
+                style={{ color: accentColor, strokeWidth: 3 }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="w-full md:w-5/12 flex flex-col items-center md:items-start space-y-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-1.5 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+              </div>
+
+              <div className="text-center md:text-left">
+                <div className="text-8xl mb-2">💡</div>
+                <p className="text-gray-600 text-xl font-bold mb-2">
+                  Questions that tested him the most
+                </p>
+                <p className="text-gray-400 text-sm italic">
+                  Master the toughest questions with this collection
+                </p>
+              </div>
+
+              <button
+                className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink
+                  size={24}
+                  className="group-hover:rotate-12 transition-transform"
+                />
+                Access Resource
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Time Table Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+      <section className="max-w-7xl mx-auto px-6 py-16">
         <h2
-          className="text-4xl font-black text-center mb-12"
+          className="text-5xl font-black text-center mb-16 tracking-tight"
           style={{ color: accentColor }}
         >
           Time Table
         </h2>
-        <div className="flex flex-col md:flex-row gap-12 items-center justify-center bg-white rounded-3xl p-10 shadow-xl">
-          <div className="w-full md:w-auto flex justify-center">
-            <img
-              src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691018/WhatsApp_Image_2026-01-06_at_14.17.21_xyzjtt.jpg"
-              alt="Time Table"
-              className="rounded-xl shadow-lg max-h-96 w-auto object-cover border-2 border-purple-200"
-            />
-          </div>
-          <div className="w-full md:w-auto flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-16 h-2 rounded"
-                style={{ backgroundColor: accentColor }}
-              ></div>
-              <span className="text-6xl">📅</span>
+        <div className="relative bg-white rounded-3xl p-12 shadow-2xl overflow-hidden">
+          {/* Decorative Elements */}
+          <div
+            className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: accentColor }}
+          ></div>
+          <div
+            className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+            style={{ backgroundColor: goldColor }}
+          ></div>
+
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-between relative z-10">
+            {/* Image */}
+            <div className="w-full md:w-5/12 flex justify-center">
+              <div className="relative group">
+                <div
+                  className="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-40 transition"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+                <img
+                  src="https://res.cloudinary.com/daetdadtt/image/upload/v1767691018/WhatsApp_Image_2026-01-06_at_14.17.21_xyzjtt.jpg"
+                  alt="Time Table"
+                  className="relative rounded-2xl shadow-xl max-h-80 w-full object-cover border-4 border-white"
+                />
+              </div>
             </div>
-            <p className="text-gray-700 text-lg mb-6 font-semibold">
-              Daily schedule followed by AIR 1
-            </p>
-            <button
-              className="flex items-center justify-center gap-3 px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              <ExternalLink size={22} />
-              View Schedule
-            </button>
-            <p className="text-gray-500 text-sm mt-3 italic">
-              Follow the exact routine that led to success
-            </p>
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <ArrowRight
+                size={48}
+                className="animate-pulse"
+                style={{ color: accentColor, strokeWidth: 3 }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="w-full md:w-5/12 flex flex-col items-center md:items-start space-y-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-1.5 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                ></div>
+              </div>
+
+              <div className="text-center md:text-left">
+                <div className="text-8xl mb-2">📅</div>
+                <p className="text-gray-600 text-xl font-bold mb-2">
+                  Daily schedule followed by AIR 1
+                </p>
+                <p className="text-gray-400 text-sm italic">
+                  Follow the exact routine that led to success
+                </p>
+              </div>
+
+              <button
+                className="group flex items-center justify-center gap-3 px-10 py-5 text-white rounded-2xl text-lg font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <ExternalLink
+                  size={24}
+                  className="group-hover:rotate-12 transition-transform"
+                />
+                View Schedule
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* AIR 1 vs You Carousel Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2
-          className="text-4xl font-black text-center mb-12"
-          style={{ color: accentColor }}
-        >
-          AIR 1 vs You
-        </h2>
-        <div className="flex flex-col items-center">
-          <div className="relative w-full max-w-3xl mb-8">
-            <img
-              src={comparisonImages[currentSlide]}
-              alt={`Comparison ${currentSlide + 1}`}
-              className="rounded-2xl shadow-2xl w-full h-auto border-2 border-purple-200"
-            />
-
-            <button
-              onClick={prevSlide}
-              disabled={currentSlide === 0}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-purple-100 transition-all"
+  <section className="max-w-7xl mx-auto px-6 py-16">
+        <div className="text-center mb-12">
+          <div className="inline-block">
+            <h2
+              className="text-5xl font-bold mb-3"
               style={{ color: accentColor }}
             >
-              <ChevronLeft size={28} />
-            </button>
+              AIR 1 vs You
+            </h2>
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-1 w-20 rounded-full" style={{ backgroundColor: goldColor }} />
+              <span className="text-sm text-gray-500 font-medium">See the difference</span>
+              <div className="h-1 w-20 rounded-full" style={{ backgroundColor: goldColor }} />
+            </div>
+          </div>
+        </div>
 
-            <button
-              onClick={nextSlide}
-              disabled={currentSlide === comparisonImages.length - 1}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-purple-100 transition-all"
-              style={{ color: accentColor }}
-            >
-              <ChevronRight size={28} />
-            </button>
+        <div className="relative bg-gradient-to-br from-purple-50 to-white rounded-3xl p-8 md:p-12 shadow-xl overflow-hidden border border-purple-100">
+          {/* Decorative elements */}
+          <div
+            className="absolute top-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-5"
+            style={{ backgroundColor: accentColor }}
+          />
+          <div
+            className="absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-5"
+            style={{ backgroundColor: goldColor }}
+          />
 
-            <div className="flex justify-center gap-3 mt-6">
+          <div className="flex flex-col items-center relative z-10">
+            {/* Carousel Container */}
+            <div className="relative w-full max-w-4xl mb-8">
+              {/* Image with enhanced styling */}
+              <div className="relative">
+                <div
+                  className="absolute -inset-3 rounded-3xl blur-2xl opacity-20"
+                  style={{ backgroundColor: accentColor }}
+                />
+                <img
+                  src={comparisonImages[currentSlide]}
+                  alt={`Comparison ${currentSlide + 1}`}
+                  className="relative rounded-2xl shadow-2xl w-full h-auto border-4 border-white"
+                />
+                
+                {/* Slide counter badge */}
+                <div className="absolute top-4 right-4 bg-white rounded-full px-4 py-2 shadow-lg">
+                  <span className="text-sm font-bold" style={{ color: accentColor }}>
+                    {currentSlide + 1} / {comparisonImages.length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              <button
+                onClick={prevSlide}
+                disabled={currentSlide === 0}
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 md:p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-all duration-300"
+                style={{ color: accentColor }}
+              >
+                <ChevronLeft size={24} className="md:w-7 md:h-7" />
+              </button>
+
+              <button
+                onClick={nextSlide}
+                disabled={currentSlide === comparisonImages.length - 1}
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 md:p-3 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-all duration-300"
+                style={{ color: accentColor }}
+              >
+                <ChevronRight size={24} className="md:w-7 md:h-7" />
+              </button>
+            </div>
+
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 mb-8">
               {comparisonImages.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className="w-3 h-3 rounded-full transition-all"
+                  className="transition-all duration-300 rounded-full"
                   style={{
-                    backgroundColor:
-                      currentSlide === index ? accentColor : "#d1d5db",
+                    width: currentSlide === index ? '32px' : '12px',
+                    height: '12px',
+                    backgroundColor: currentSlide === index ? accentColor : '#d1d5db',
                   }}
+                  aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>
-          </div>
 
-          <div className="w-full max-w-md">
-            <button
-              className="w-full px-8 py-4 text-white rounded-xl text-lg font-bold hover:opacity-90 hover:scale-105 transition-all shadow-lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              View Detailed Comparison
-            </button>
+            {/* CTA Button */}
+            <div className="w-full max-w-md">
+              <button
+                className="group w-full flex items-center justify-center gap-3 px-8 py-5 text-white rounded-xl text-lg font-bold hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl"
+                style={{ backgroundColor: accentColor }}
+              >
+                <span>View Detailed Comparison</span>
+                <ArrowRight 
+                  size={20} 
+                  className="group-hover:translate-x-1 transition-transform duration-300"
+                />
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-3 italic">
+                ✓ Performance metrics • ✓ Study patterns • ✓ Success factors
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16 mb-12">
-        <div
-          className="rounded-3xl p-16 text-center text-white shadow-2xl"
-          style={{
-            background: `linear-gradient(135deg, ${accentColor}, ${brandDark})`,
-          }}
-        >
-          <h2 className="text-4xl font-black mb-6">
-            Ready to Engineer Your Rank?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join the only cohort that teaches the AIR 1 methodology.
-          </p>
-          <button
-            className="bg-white px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-            style={{ color: accentColor }}
-          >
-            Start Free Trial
-          </button>
         </div>
       </section>
     </div>

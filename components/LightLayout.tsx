@@ -58,11 +58,11 @@ export const LightLayout: React.FC<LightLayoutProps> = ({
       label: "AIR1 Mind Journals",
       icon: <AudioLines className="w-5 h-5" />,
     },
-    {
-      href: "/try/Hourglass-System",
-      label: "Hourglass System",
-      icon: <Clock className="w-5 h-5" />,
-    },
+    // {
+    //   href: "/try/Hourglass-System",
+    //   label: "Hourglass System",
+    //   icon: <Clock className="w-5 h-5" />,
+    // },
     {
       href: "/try/forms-deadlines",
       label: "Forms and Deadlines",

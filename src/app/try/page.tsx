@@ -25,7 +25,7 @@ export default function App() {
       case "/try/AIR1mind-journals":
         return <MindsetLogsPage />;
       case "/try/Hourglass-System":
-        return <HourglassSystemPage />;
+        // return <HourglassSystemPage />;
       case "/try/forms-deadlines":
         return <FormandanddeadlinesPage />;  
       case "/try/AIR1-command-center":
