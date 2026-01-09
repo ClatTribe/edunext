@@ -28,7 +28,7 @@ export default function Page() {
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.8',
-      ratingCount: '1250',
+      ratingCount: '60225',
     },
     offers: {
       '@type': 'Offer',
