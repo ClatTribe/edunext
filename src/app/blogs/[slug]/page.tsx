@@ -34,11 +34,9 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
         siteName: 'EduNext',
         type: 'article',
         publishedTime: blog.date,
-        // FIXED: Added fallback for lastModified
         modifiedTime: blog.lastModified ?? blog.date,
         images: [
           {
-            // FIXED: Added fallback for coverImage to prevent 'undefined' error
             url: blog.coverImage ?? "/default-og.jpg",
             width: 1200,
             height: 630,
@@ -49,7 +47,6 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
         card: 'summary_large_image',
         title: blog.title,
         description: blog.excerpt,
-        // FIXED: Added fallback for coverImage
         images: [blog.coverImage ?? "/default-og.jpg"],
       },
     };
@@ -110,7 +107,6 @@ export default async function BlogPage({ params }: BlogPageProps) {
               })}
             </time>
             
-            {/* FIXED: Added lastModified display */}
             {blog.lastModified && (
               <>
                 <span className="text-slate-600">•</span>
@@ -148,6 +144,19 @@ export default async function BlogPage({ params }: BlogPageProps) {
             </div>
           )}
         </header>
+
+        {/* Audio Player */}
+        {blog.audioUrl && (
+          <div className="mb-8 p-4 rounded-lg border border-[rgba(245,158,11,0.15)] bg-[#0F172B]">
+            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+              🎧 Listen to this article
+            </h3>
+            <audio controls className="w-full">
+              <source src={blog.audioUrl} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+        )}
 
         {/* Content Area */}
         <div

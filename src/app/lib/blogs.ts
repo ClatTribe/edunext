@@ -12,10 +12,11 @@ export interface BlogPost {
   slug: string;
   title: string;
   date: string;
-  lastModified?: string; // ADDED: To support the SEO freshness field
+  lastModified?: string;
   author?: string;
   excerpt?: string;
   coverImage?: string;
+  audioUrl?: string; // ADDED: For audio file support
   tags?: string[];
   content: string;
 }
@@ -42,10 +43,11 @@ export const getBlogBySlug = cache(async (slug: string): Promise<BlogPost> => {
     content: contentHtml,
     title: data.title || 'Untitled',
     date: data.date || new Date().toISOString(),
-    lastModified: data.lastModified, // ADDED: Extracts lastModified from Markdown YAML
+    lastModified: data.lastModified,
     author: data.author,
     excerpt: data.excerpt,
     coverImage: data.coverImage,
+    audioUrl: data.audioUrl, // ADDED: Extracts audioUrl from Markdown YAML
     tags: data.tags || [],
   };
 });

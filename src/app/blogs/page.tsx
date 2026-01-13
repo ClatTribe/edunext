@@ -6,7 +6,7 @@ import BlogCard from './BlogCard';
 export const revalidate = 3600; 
 
 export const metadata = {
-  title: 'Blog Posts | Your Site Name',
+  title: 'Blog Posts | EduNext',
   description: 'Read our latest insights and articles.',
 };
 
