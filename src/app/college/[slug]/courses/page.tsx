@@ -2,12 +2,10 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { BookOpen, Clock, IndianRupee, GraduationCap, Loader2, AlertCircle } from "lucide-react"
+import { GraduationCap, Loader2, AlertCircle, ArrowRight } from "lucide-react"
 
 const accentColor = '#F59E0B'
-const primaryBg = '#050818'
-const secondaryBg = '#0F172B'
-const borderColor = 'rgba(245, 158, 11, 0.15)'
+const primaryBg = '#060818'
 
 export default function CoursesPage() {
   const params = useParams()
@@ -64,102 +62,60 @@ export default function CoursesPage() {
     ? JSON.parse(college.microsite_data) 
     : college.microsite_data
 
-  const courses = micrositeData?.courses_offered_list || []
   const popularCourses = micrositeData?.popular_courses_table || []
 
   return (
-    <div className="min-h-screen p-4 sm:p-6" style={{ backgroundColor: primaryBg }}>
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Courses Offered</h1>
-
-        {/* Courses Grid */}
-        {courses.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8">
-            {courses.map((course: any, index: number) => (
-              <div
-                key={index}
-                className="rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all backdrop-blur-xl"
-                style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+    <div className="min-h-screen p-4 sm:p-8" style={{ backgroundColor: primaryBg }}>
+      <div className="max-w-7xl mx-auto space-y-24">
+        
+        <div className="text-center space-y-6">
+          <h3 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter">
+            Academic <span style={{ color: accentColor }}>Portfolio.</span>
+          </h3>
+          <p className="text-slate-500 font-black uppercase text-[11px] tracking-[0.6em]">
+            Premium courses directly pulled from the 2025 curriculum data.
+          </p>
+        </div>
+        
+        {popularCourses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {popularCourses.map((c: any, i: number) => (
+              <div 
+                key={i} 
+                className="group p-8 sm:p-12 rounded-[4.5rem] bg-white/5 border border-white/5 hover:bg-[#F59E0B]/5 hover:border-[#F59E0B]/30 transition-all relative overflow-hidden shadow-2xl"
               >
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-3">{course.name}</h3>
-                
-                {course.meta_info && (
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {course.meta_info.map((info: string, i: number) => (
-                      <span
-                        key={i}
-                        className="text-xs px-3 py-1 rounded-full"
-                        style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#818cf8' }}
-                      >
-                        {info}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="space-y-2 text-sm">
-                  {course.total_fees && (
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <IndianRupee size={16} style={{ color: accentColor }} />
-                      <span className="font-semibold">{course.total_fees}</span>
-                    </div>
-                  )}
-                  
-                  {course.eligibility && (
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <GraduationCap size={16} style={{ color: accentColor }} />
-                      <span>Eligibility: {course.eligibility}</span>
-                    </div>
-                  )}
+                <div className="w-20 h-20 bg-[#060818] rounded-3xl flex items-center justify-center text-4xl mb-12 border border-white/10 group-hover:scale-110 transition-all" style={{ color: accentColor }}>
+                  <GraduationCap className="w-10 h-10" />
                 </div>
-
-                {course.url && (
-                  <a
-                    href={course.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-medium transition-colors"
-                    style={{ color: accentColor }}
-                  >
-                    View Details →
-                  </a>
-                )}
+                
+                <h4 className="text-xl sm:text-2xl font-black text-white mb-4 leading-tight group-hover:text-[#F59E0B] transition-colors">
+                  {c.course_name}
+                </h4>
+                
+                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-12">
+                  Requirement: {c.eligibility}
+                </p>
+                
+                <div className="pt-10 border-t border-white/10 flex justify-between items-end">
+                  <div>
+                    <div className="text-[10px] text-slate-600 font-black uppercase tracking-widest mb-1">
+                      Estimated Fees
+                    </div>
+                    <div className="text-white font-black text-xl sm:text-2xl">
+                      {c.fees}
+                    </div>
+                  </div>
+                  <button className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#F59E0B] hover:text-[#060818] transition-all">
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 rounded-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-            <BookOpen size={48} className="mx-auto text-slate-600 mb-4" />
-            <p className="text-slate-400">No courses information available</p>
-          </div>
-        )}
-
-        {/* Popular Courses Table */}
-        {popularCourses.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">Popular Courses</h2>
-            <div className="rounded-xl overflow-hidden backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${borderColor}` }}>
-                      <th className="text-left p-4 text-slate-300 font-semibold">Course</th>
-                      <th className="text-left p-4 text-slate-300 font-semibold">Fees</th>
-                      <th className="text-left p-4 text-slate-300 font-semibold">Eligibility</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {popularCourses.map((course: any, index: number) => (
-                      <tr key={index} style={{ borderBottom: `1px solid ${borderColor}` }} className="hover:bg-slate-800/30 transition">
-                        <td className="p-4 text-white font-medium">{course.course_name}</td>
-                        <td className="p-4 text-slate-300">{course.fees}</td>
-                        <td className="p-4 text-slate-300">{course.eligibility || '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          <div className="text-center py-20 rounded-[4rem] bg-white/5 border border-white/10">
+            <GraduationCap className="w-16 h-16 mx-auto text-slate-600 mb-6" />
+            <p className="text-slate-400 font-semibold text-lg">No courses information available</p>
           </div>
         )}
       </div>

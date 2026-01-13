@@ -5,9 +5,7 @@ import { usePathname, useParams } from 'next/navigation'
 import { BookOpen, DollarSign, Building2, Phone, Home, TrendingUp } from "lucide-react"
 
 const accentColor = '#F59E0B'
-const primaryBg = '#050818'
-const secondaryBg = '#0F172B'
-const borderColor = 'rgba(245, 158, 11, 0.15)'
+const primaryBg = '#060818'
 
 export default function CollegeLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -25,10 +23,10 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: primaryBg }}>
-      {/* Sticky Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl" style={{ backgroundColor: `${secondaryBg}ee`, borderBottom: `1px solid ${borderColor}` }}>
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-2">
+      {/* Sticky Navigation - New UI Style */}
+      <nav className="sticky top-0 z-50 bg-[#060818]/95 backdrop-blur-3xl border-b border-white/10 py-5 px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto flex justify-center">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             {navItems.map((item) => {
               const fullPath = `/college/${slug}${item.path}`
               const isActive = pathname === fullPath
@@ -38,13 +36,15 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
                 <Link
                   key={item.name}
                   href={fullPath}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all whitespace-nowrap text-xs sm:text-sm font-medium ${
-                    isActive ? 'shadow-lg' : ''
+                  className={`flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-3xl transition-all whitespace-nowrap font-black uppercase tracking-widest ${
+                    isActive 
+                      ? 'shadow-lg scale-105' 
+                      : 'hover:bg-white/5'
                   }`}
                   style={
                     isActive
-                      ? { backgroundColor: accentColor, color: 'white' }
-                      : { backgroundColor: 'transparent', color: '#94a3b8' }
+                      ? { backgroundColor: accentColor, color: primaryBg, fontSize: '11px' }
+                      : { backgroundColor: 'transparent', color: '#64748b', fontSize: '11px' }
                   }
                 >
                   <Icon size={16} className="shrink-0" />
