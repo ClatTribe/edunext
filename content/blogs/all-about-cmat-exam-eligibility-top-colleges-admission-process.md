@@ -1,12 +1,12 @@
 ---
-title: "All About CMAT | A Complete Guide to the CMAT Exam, Eligibility, Top Colleges, and Admission Process"
+title: "CMAT 2026: About CMAT, Exam Dates, Admit Card, Exam Pattern & Top Colleges"
 date: "2026-01-14"
-lastModified: "2026-01-16"
+lastModified: "2026-01-16" # ADD THIS LINE (Use the current date whenever you update)
 author: "Edu Next"
-excerpt: "A Complete Guide to the CMAT Exam, Eligibility, Top Colleges, and Admission Process"
-coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1768313505/Blue_and_Gold_Modern_Financial_Consulting_Pitch_Deck_Presentation_4_woadm1.png"
+excerpt: "All about CMAT Exam 2026, Eligibility, Top Colleges, and Admission Process"
+coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1768569792/Blue_and_Gold_Modern_Financial_Consulting_Pitch_Deck_Presentation_5_larky4.png"
 audioUrl: "https://res.cloudinary.com/daetdadtt/video/upload/v1768324505/CMAT_%E0%A4%B8%E0%A5%8D%E0%A4%95%E0%A5%8B%E0%A4%B0_%E0%A4%B8%E0%A5%87_%E0%A4%9C%E0%A5%8D%E0%A4%AF%E0%A4%BE%E0%A4%A6%E0%A4%BE_%E0%A4%9C%E0%A4%BC%E0%A4%B0%E0%A5%82%E0%A4%B0%E0%A5%80_%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A5%8B%E0%A4%AB%E0%A4%BE%E0%A4%87%E0%A4%B2_ztfp8r.mp4"
-tags: ["CMAT","MBA", "CMAT Exam", "All about CMAT", "CMAT Colleges", "CMAT Admission Process"]
+tags: ["CMAT","CMAT 2026", "CMAT Exam", "All about CMAT", "CMAT Colleges", "CMAT 2026 Admit Card"]
 ---
 # CMAT 2026: About CMAT, Exam Dates, Admit Card, Exam Pattern & Top Colleges
 
