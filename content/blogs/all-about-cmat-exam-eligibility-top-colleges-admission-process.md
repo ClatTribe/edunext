@@ -5,7 +5,7 @@ lastModified: "2026-01-16" # ADD THIS LINE (Use the current date whenever you up
 author: "Edu Next"
 excerpt: "All about CMAT Exam 2026, Eligibility, Top Colleges, and Admission Process"
 coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1768569792/Blue_and_Gold_Modern_Financial_Consulting_Pitch_Deck_Presentation_5_larky4.png"
-audioUrl: "https://player.cloudinary.com/embed/?cloud_name=daetdadtt&public_id=CMAT_2026_%E0%A4%9F%E0%A5%89%E0%A4%AA_%E0%A4%95%E0%A5%89%E0%A4%B2%E0%A5%87%E0%A4%9C_%E0%A4%94%E0%A4%B0_%E0%A4%B0%E0%A4%A3%E0%A4%A8%E0%A5%80%E0%A4%A4%E0%A4%BF_yfgznr"
+audioUrl: "https://res.cloudinary.com/daetdadtt/video/upload/CMAT_2026_टॉप_कॉलेज_और_रणनीति_yfgznr.mp4"
 tags: ["CMAT","CMAT 2026", "CMAT Exam", "All about CMAT", "CMAT Colleges", "CMAT 2026 Admit Card"]
 ---
 # CMAT 2026: About CMAT, Exam Dates, Admit Card, Exam Pattern & Top Colleges
