@@ -3,7 +3,7 @@ title: "JEE Main 2026: Admit Card, Exam Dates, Syllabus & Eligibility"
 date: "2026-01-23"
 lastModified: "2026-01-23"
 author: "Edu Next"
-excerpt: "Know everything about JEE Main 2026 – exam dates, admit card details, syllabus, eligibility criteria and latest updates for aspirants."
+excerpt: "Know everything about JEE Main 2026 – exam dates, admit card details, syllabus, eligibility criteria and latest updates for aspirants." 
 coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1769092565/Blue_and_Gold_Modern_Financial_Consulting_Pitch_Deck_Presentation_6_1_bcwjsn.png"
 audioUrl: "https://res.cloudinary.com/dduzrmc4b/video/upload/JEE_Mains_2026_%E0%A4%94%E0%A4%B0_75__%E0%A4%B5%E0%A4%BE%E0%A4%B2%E0%A4%BE_%E0%A4%AA%E0%A5%87%E0%A4%82%E0%A4%9A_1_yvqf64.mp4"
 tags: ["JEE Main","JEE Main Admit Card 2026", "JEE Main 2026", "JEE Main Exam", "JEE Main Exam Date"]

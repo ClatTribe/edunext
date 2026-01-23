@@ -6,11 +6,11 @@ author: "Edu Next"
 excerpt: "All about CMAT Exam 2026, Eligibility, Top Colleges, and Admission Process"
 coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1768569792/Blue_and_Gold_Modern_Financial_Consulting_Pitch_Deck_Presentation_5_larky4.png"
 audioUrl: "https://res.cloudinary.com/daetdadtt/video/upload/CMAT_2026_टॉप_कॉलेज_और_रणनीति_yfgznr.mp4"
-tags: ["CMAT","CMAT 2026", "CMAT Exam", "All about CMAT", "CMAT Colleges", "CMAT 2026 Admit Card"] 
+tags: ["CMAT","CMAT 2026", "CMAT Exam", "All about CMAT", "CMAT Colleges", "CMAT 2026 Admit Card"]
 ---
 # CMAT 2026: About CMAT, Exam Dates, Admit Card, Exam Pattern & Top Colleges
 
-### What is CMAT? 
+### What is CMAT?
 
 The Common Management Admission Test (CMAT) is among the most significant national, level MBA entrance examinations in India. It is held by the National Testing Agency (NTA). Annually, lakhs of MBA hopefuls appear in the CMAT exam to fetch a seat in an AICTE, approved MBA/PGDM college in India.
 
