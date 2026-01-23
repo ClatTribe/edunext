@@ -60,11 +60,10 @@ export default function CollegePage() {
     )
   }
 
-  const micrositeData = typeof college.microsite_data === 'string' 
-    ? JSON.parse(college.microsite_data) 
-    : college.microsite_data
+const micrositeData = college.microsite_data || {}
 
-  const advantages = micrositeData?.advantages || []
+const advantages = micrositeData?.advantages || []
+const aboutText = college.about || micrositeData?.about || "Information not available"
 
   return (
     <div className="min-h-screen p-4 sm:p-8" style={{ backgroundColor: primaryBg }}>
@@ -78,7 +77,7 @@ export default function CollegePage() {
                 Institutional <span style={{ color: accentColor }}>Vision.</span>
               </h3>
               <p className="text-lg sm:text-xl text-slate-400 leading-loose font-medium italic pl-6 sm:pl-10" style={{ borderLeft: `10px solid ${accentColor}` }}>
-                {micrositeData?.about_section?.full_text || "Information not available"}
+                {aboutText}
               </p>
             </div>
             

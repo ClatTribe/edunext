@@ -2,10 +2,20 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { IndianRupee, Loader2 } from "lucide-react"
+import { IndianRupee, Loader2, Wallet, Info } from "lucide-react"
 
-const accentColor = '#F59E0B'
-const primaryBg = '#060818'
+// Consistent Color Palette
+const accentColor = '#F59E0B';
+const primaryBg = '#050818'; 
+const secondaryBg = '#0F172B';
+const borderColor = 'rgba(245, 158, 11, 0.15)';
+
+interface CourseFee {
+  course: string
+  eligibility: string
+  fees: string
+  hostelFees?: string
+}
 
 export default function FeesPage() {
   const params = useParams()
@@ -43,65 +53,117 @@ export default function FeesPage() {
     ? JSON.parse(college.microsite_data) 
     : college?.microsite_data
 
-  const popularCourses = micrositeData?.popular_courses_table || []
+  const feesData = micrositeData?.fees?.[0] || { headers: [], rows: [] }
+  const rows = feesData.rows || []
+
+  const courses: CourseFee[] = rows.map((row: any[]) => ({
+    course: row[0] || 'N/A',
+    eligibility: row[1] || 'N/A',
+    fees: row[2] || 'N/A',
+    hostelFees: row[3] || undefined
+  }))
 
   return (
-    <div className="min-h-screen p-4 sm:p-8" style={{ backgroundColor: primaryBg }}>
+    <div className="min-h-screen p-6 sm:p-12" style={{ backgroundColor: primaryBg }}>
       <div className="max-w-7xl mx-auto space-y-16">
         
-        <div className="text-center space-y-6">
-          <h1 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter flex items-center justify-center gap-4">
-            <IndianRupee className="w-10 h-10 sm:w-12 sm:h-12" style={{ color: accentColor }} />
-            Fee Structure
+        {/* Header Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-[1px] w-12" style={{ backgroundColor: accentColor }}></div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em]" style={{ color: accentColor }}>
+              Financial Breakdown
+            </span>
+          </div>
+          <h1 className="text-4xl sm:text-6xl font-black text-white uppercase tracking-tighter leading-none">
+            Fee <br />
+            <span style={{ color: accentColor }}>Structure.</span>
           </h1>
-          <p className="text-slate-500 font-black uppercase text-[10px] sm:text-[11px] tracking-[0.6em]">
-            Investment in Excellence
-          </p>
         </div>
 
-        {popularCourses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
-            {popularCourses.map((course: any, index: number) => (
+        {courses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {courses.map((course, index) => (
               <div
                 key={index}
-                className="p-8 sm:p-10 rounded-[4rem] backdrop-blur-xl hover:shadow-2xl transition-all bg-white/5 border border-white/10 hover:bg-[#F59E0B]/5 hover:border-[#F59E0B]/30 space-y-6"
+                className="group relative p-8 rounded-[2.5rem] border transition-all duration-500 hover:-translate-y-2 overflow-hidden shadow-2xl flex flex-col justify-between"
+                style={{ 
+                  backgroundColor: secondaryBg,
+                  borderColor: borderColor
+                }}
               >
-                <div className="w-16 h-16 bg-[#060818] rounded-[2rem] flex items-center justify-center border border-white/10 mb-6" style={{ color: accentColor }}>
-                  <IndianRupee className="w-8 h-8" />
-                </div>
-                
-                <h3 className="text-lg sm:text-xl font-black text-white leading-tight">
-                  {course.course_name}
-                </h3>
-                
-                <div className="space-y-3 pt-4 border-t border-white/10">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mb-2">
-                      Total Fees
-                    </p>
-                    <p className="text-2xl sm:text-3xl font-black" style={{ color: accentColor }}>
-                      {course.fees}
-                    </p>
-                  </div>
+                {/* Visual Accent */}
+                <div className="absolute -right-12 -top-12 w-32 h-32 blur-[80px] rounded-full opacity-10 transition-opacity group-hover:opacity-30" style={{ backgroundColor: accentColor }}></div>
 
-                  {course.eligibility && course.eligibility !== '-' && (
-                    <div>
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mb-1">
-                        Eligibility
+                <div>
+                  {/* Icon */}
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-8 border transition-all duration-500 group-hover:bg-amber-400 group-hover:text-black" 
+                    style={{ 
+                      backgroundColor: primaryBg, 
+                      borderColor: borderColor,
+                      color: accentColor 
+                    }}>
+                    <Wallet className="w-6 h-6" />
+                  </div>
+                  
+                  {/* Course Title */}
+                  <h3 className="text-xl font-bold text-white mb-6 leading-tight group-hover:text-amber-400 transition-colors">
+                    {course.course}
+                  </h3>
+                  
+                  {/* Details List */}
+                  <div className="space-y-5">
+                    {/* Main Fee */}
+                    <div className="p-4 rounded-2xl bg-black/40 border border-white/5 group-hover:border-amber-400/20 transition-colors">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">
+                        Total Course Fee
                       </p>
-                      <p className="text-sm text-slate-300 font-semibold">
-                        {course.eligibility}
+                      <p className="text-2xl font-black text-white flex items-center gap-1">
+                        <span className="text-sm" style={{ color: accentColor }}>₹</span>
+                        {course.fees}
                       </p>
                     </div>
-                  )}
+
+                    {/* Meta Info */}
+                    <div className="px-1 space-y-4">
+                      {course.eligibility && course.eligibility !== '-' && (
+                        <div className="flex items-start gap-3">
+                          <Info className="w-4 h-4 mt-0.5 opacity-40 text-white" />
+                          <div>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Eligibility</p>
+                            <p className="text-xs text-slate-300 font-medium">{course.eligibility}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {course.hostelFees && (
+                        <div className="flex items-start gap-3">
+                          <div className="w-4 h-4 flex items-center justify-center">
+                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
+                          </div>
+                          <div>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Accommodation</p>
+                            <p className="text-xs text-slate-300 font-medium">{course.hostelFees}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Link Decor */}
+                <div className="mt-10 pt-6 border-t border-white/5 flex justify-end">
+                   <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" style={{ color: accentColor }}>
+                     Full Details →
+                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 rounded-[4rem] bg-white/5 border border-white/10">
-            <IndianRupee className="w-16 h-16 mx-auto text-slate-600 mb-6" />
-            <p className="text-slate-400 font-semibold text-lg">Fee information not available</p>
+          <div className="text-center py-32 rounded-[3rem] border-2 border-dashed" style={{ borderColor: borderColor, backgroundColor: secondaryBg }}>
+            <IndianRupee className="w-16 h-16 mx-auto mb-6 opacity-20" style={{ color: accentColor }} />
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Fee structure data is currently being updated</p>
           </div>
         )}
       </div>

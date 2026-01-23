@@ -5,7 +5,7 @@ const fs = require('fs');
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 
 // ==================== CONFIGURATION ====================
-const JSON_FILE_PATH = './colleges-data.json';  // Your JSON file path
+const JSON_FILE_PATH = './college_data.jsonl';  // Your JSON file path
 
 // ==================== HELPER FUNCTIONS ====================
 function generateSlug(name) {
@@ -33,14 +33,18 @@ async function importColleges() {
   try {
     console.log('🚀 Starting import...\n');
 
-    // 1. Read and parse JSON file
-    let fileContent = fs.readFileSync(JSON_FILE_PATH, 'utf8');
+    // 1. Read and parse JSONL file (line by line)
+    const fileContent = fs.readFileSync(JSON_FILE_PATH, 'utf8');
+    const lines = fileContent.trim().split('\n');
     
-    // Remove trailing commas (common JSON error)
-    fileContent = fileContent.replace(/,(\s*[}\]])/g, '$1');
-    
-    let collegesData = JSON.parse(fileContent);
-    collegesData = cleanJsonData(collegesData);
+    const collegesData = lines.map(line => {
+      try {
+        return JSON.parse(line);
+      } catch (e) {
+        console.error('Failed to parse line:', line);
+        return null;
+      }
+    }).filter(Boolean);
 
     console.log(`✅ Found ${collegesData.length} colleges\n`);
 
@@ -63,21 +67,36 @@ async function importColleges() {
 
     for (let i = 0; i < collegesData.length; i++) {
       const college = collegesData[i];
-      const name = college.name || college['College Name'] || 'Unknown College';
-      const slug = generateSlug(name);
+      const title = college.title || 'Unknown College';
+      const slug = generateSlug(title);
 
       try {
-        // Prepare data for insertion
+        // Prepare data for insertion (mapping to new schema)
         const insertData = {
-          id: college.id || null, // Include the id from JSON if present
           slug: slug,
-          college_name: name,
+          college_name: title, // Keep for backward compatibility
+          title: title,
           url: college.url || null,
-          location: college.location || null,
-          microsite_data: college
+          location: college.address?.streetAddress || null,
+          about: college.about || null,
+          contact: college.contact || null,
+          email: college.email || null,
+          address: college.address || null,
+          info_tables: college.info_tables || null,
+          fees: college.fees || null,
+          courses: college.courses || null,
+          placement: college.placement || null,
+          reviews: college.reviews || null,
+          cutoff: college.cutoff || null,
+          ranking: college.ranking || null,
+          admission: college.admission || null,
+          scholarship: college.scholarship || null,
+          microsite_data: college, // Store complete JSON as backup
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
 
-        console.log(`📝 Inserting: ${name} (slug: ${slug})`);
+        console.log(`📝 Inserting: ${title} (slug: ${slug})`);
 
         const { data, error } = await supabase
           .from('college_microsites')
@@ -89,11 +108,11 @@ async function importColleges() {
         }
 
         success++;
-        console.log(`✅ [${i + 1}/${collegesData.length}] ${name}\n`);
+        console.log(`✅ [${i + 1}/${collegesData.length}] ${title}\n`);
 
       } catch (err) {
         failed++;
-        const errorMsg = `${name}: ${err.message}`;
+        const errorMsg = `${title}: ${err.message}`;
         errors.push(errorMsg);
         console.log(`❌ [${i + 1}/${collegesData.length}] ${errorMsg}\n`);
       }
