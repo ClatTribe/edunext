@@ -55,10 +55,11 @@ Here are some reasons that make CMAT a wise choice for MBA aspirants:
 
 | CMAT 2026 Event | Date |
 | --- | --- |
-| CMAT 2026 Admit Card Release Date | 19th January 2026 (Expected) |
-| CMAT 2026 Exam Date | 25th January 2026 |
+| CMAT 2026 Admit Card Release Date | 22 January 2026 (Expected) |
+| CMAT 2026 Exam Date | 25 January 2026 |
 | CMAT 2026 Answer Key Release | To be announced (Likely early February 2026) |
 | Last Date to Challenge Answer Key | To be announced with answer key release |
+
 ### CMAT 2026 Eligibility Criteria
 
 | Eligibility Factor | Details |
@@ -106,7 +107,7 @@ Here are some reasons that make CMAT a wise choice for MBA aspirants:
 | Innovation & Entrepreneurship | 20 |
 | Total | 100 Questions |
 
-### CMAT 2026 Admit Card Keydetails
+### CMAT 2026 Admit Card Release Date
 The CMAT 2026 admit card is expected to be released by **22 January 2026**.  
 
 | Step No. | Process to Download CMAT 2026 Admit Card |
