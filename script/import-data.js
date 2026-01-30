@@ -5,7 +5,7 @@ const fs = require('fs');
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 
 // ==================== CONFIGURATION ====================
-const JSON_FILE_PATH = './college_data.jsonl';  // Your JSON file path
+const JSON_FILE_PATH = './universities_data (1).jsonl_61170';  // Your JSON file path
 
 // ==================== HELPER FUNCTIONS ====================
 function generateSlug(name) {
