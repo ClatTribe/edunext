@@ -17,7 +17,7 @@ const AIR1CommandCenter = () => {
     seconds: 0,
   });
 
-  const accentColor = "#823588";
+  const accentColor = "#f3ad00";
   const brandDark = "#3b0764";
   const brandAccent = "#d8b4fe";
   const goldColor = "#f3ad00";
