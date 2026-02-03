@@ -42,14 +42,16 @@ export const Features: React.FC<FeaturesProps> = ({ activeTab = 'courses' }) => 
 
   // Complete dummy data for courses
   const courses: Course[] = [
-    { id: 1, "College Name": "IIM Ahmedabad", City: "Ahmedabad", State: "Gujarat" },
-    { id: 2, "College Name": "IIM Bangalore", City: "Bangalore", State: "Karnataka" },
-    { id: 3, "College Name": "XLRI Jamshedpur", City: "Jamshedpur", State: "Jharkhand" },
-    { id: 4, "College Name": "FMS Delhi", City: "Delhi", State: "Delhi" },
-    { id: 5, "College Name": "IIM Calcutta", City: "Kolkata", State: "West Bengal" },
-    { id: 6, "College Name": "IIM Lucknow", City: "Lucknow", State: "Uttar Pradesh" },
-    { id: 7, "College Name": "SPJIMR Mumbai", City: "Mumbai", State: "Maharashtra" },
-    { id: 8, "College Name": "MDI Gurgaon", City: "Gurgaon", State: "Haryana" }
+  { id: 1, "College Name": "IIM Ahmedabad", City: "Ahmedabad", State: "Gujarat" },
+  { id: 2, "College Name": "IIT Bombay", City: "Mumbai", State: "Maharashtra" },
+  { id: 3, "College Name": "IIT Delhi", City: "New Delhi", State: "Delhi" },
+  { id: 4, "College Name": "IIM Bangalore", City: "Bangalore", State: "Karnataka" },
+  { id: 5, "College Name": "AIIMS Delhi", City: "New Delhi", State: "Delhi" },
+  { id: 6, "College Name": "IIT Madras", City: "Chennai", State: "Tamil Nadu" },
+  { id: 7, "College Name": "IISc Bangalore", City: "Bangalore", State: "Karnataka" },
+  { id: 8, "College Name": "BITS Pilani", City: "Pilani", State: "Rajasthan" },
+  { id: 9, "College Name": "Delhi University", City: "Delhi", State: "Delhi" },
+  { id: 10, "College Name": "IIM Calcutta", City: "Kolkata", State: "West Bengal" }
   ];
 
   // Complete dummy data for scholarships with shorter names
@@ -169,7 +171,7 @@ export const Features: React.FC<FeaturesProps> = ({ activeTab = 'courses' }) => 
             </div>
 
             <h3 className="text-xl md:text-2xl lg:text-3xl font-serif font-bold text-white mb-1 tracking-tight">
-              Find Your Dream MBA College
+              Find Your Dream College
             </h3>
             <p className="text-xs md:text-sm text-slate-400">
               Explore Programs and Institutes Across India

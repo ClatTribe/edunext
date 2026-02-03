@@ -7,80 +7,59 @@ import {
   MapPin,
   GraduationCap,
   IndianRupee,
+  BookOpen,
 } from "lucide-react"
+import { parseSearchQuery, isBudgetInRange } from "../../utils/data"
 
 // --- Interfaces and Constants ---
 
 interface Course {
   id: number
-  "College Name": string | null
-  City?: string | null
-  State?: string | null
-  Specialization?: string | null
-  "Average Package"?: string | null
+  slug?: string
+  card_detail?: {
+    college_name?: string
+    location?: string
+    rating?: string
+    review_count?: string
+    avg_package?: string
+    high_package?: string
+    fees?: string
+    ranking?: string
+    approvals?: string
+    scholarship?: string
+    entrance_exam?: string
+    courses?: string[]
+  }
 }
 
 interface FilterProps {
-  courses: Course[]
-  viewMode: "all" | "recommended"
-  onFilterChange: (filtered: Course[]) => void
+  onSearchChange: (query: string) => void
+  onManualFilterChange: (filters: ManualFilters) => void
+  initialQuery?: string
+  allColleges?: Course[]
+}
+
+export interface ManualFilters {
+  states: string[]
+  city: string
+  collegeName: string
+  budgets: string[]
+  exams: string[]
+  courses: string[]
 }
 
 // Color scheme matching the home page
-const accentColor = '#F59E0B';
-const primaryBg = '#050818'; // Very dark navy blue
-const secondaryBg = '#0F172B'; // Slightly lighter navy
-const borderColor = 'rgba(245, 158, 11, 0.15)';
-
-const cityToStatesMapping: Record<string, string[]> = {
-  "New Delhi": ["Delhi NCR"],
-  Delhi: ["Delhi NCR"],
-  Gurugram: ["Haryana", "Delhi NCR"],
-  Gurgaon: ["Haryana", "Delhi NCR"],
-  Noida: ["Uttar Pradesh", "Delhi NCR"],
-  "Greater Noida": ["Uttar Pradesh", "Delhi NCR"],
-  Ghaziabad: ["Uttar Pradesh", "Delhi NCR"],
-  Faridabad: ["Haryana", "Delhi NCR"],
-  Meerut: ["Uttar Pradesh", "Delhi NCR"],
-}
+const accentColor = '#F59E0B'
+const primaryBg = '#050818'
+const secondaryBg = '#0F172B'
+const borderColor = 'rgba(245, 158, 11, 0.15)'
 
 const indianStates = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-  "Delhi NCR",
-  "Jammu and Kashmir",
-  "Ladakh",
-  "Puducherry",
-  "Chandigarh",
-  "Andaman and Nicobar Islands",
-  "Dadra and Nagar Haveli and Daman and Diu",
-  "Lakshadweep",
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi NCR",
+  "Jammu and Kashmir", "Ladakh", "Puducherry", "Chandigarh",
 ]
 
 const BUDGET_OPTIONS = [
@@ -91,178 +70,117 @@ const BUDGET_OPTIONS = [
   "Above 20 Lakh",
 ]
 
-const parseBudgetToLakhs = (budgetStr: string | null | undefined): number | null => {
-  if (!budgetStr) return null
-
-  const cleanStr = budgetStr.replace(/[₹,]/g, "").trim().toLowerCase()
-
-  if (cleanStr.includes("lakh")) {
-    const lakhMatch = cleanStr.match(/(\d+(\.\d+)?)\s*lakh/)
-    return lakhMatch ? parseFloat(lakhMatch[1]) : null
-  }
-
-  const rupeeMatch = cleanStr.match(/(\d+)/)
-  if (rupeeMatch) {
-    const rupees = parseInt(rupeeMatch[1], 10)
-    if (rupees > 10000) {
-      return rupees / 100000
-    }
-  }
-
-  return null
-}
-
-const isBudgetInRange = (packageStr: string | null | undefined, selectedRanges: string[]): boolean => {
-  if (selectedRanges.length === 0) return true 
-
-  const pkgLakhs = parseBudgetToLakhs(packageStr)
-  if (pkgLakhs === null) return false
-
-  return selectedRanges.some(range => {
-    switch (range) {
-      case "Less than 5 Lakh":
-        return pkgLakhs <= 5
-      case "5 - 10 Lakh":
-        return pkgLakhs > 5 && pkgLakhs <= 10
-      case "10 - 15 Lakh":
-        return pkgLakhs > 10 && pkgLakhs <= 15
-      case "15 - 20 Lakh":
-        return pkgLakhs > 15 && pkgLakhs <= 20
-      case "Above 20 Lakh":
-        return pkgLakhs > 20
-      default:
-        return false
-    }
-  })
-}
+const COMMON_EXAMS = [
+  'CAT', 'XAT', 'CMAT', 'MAT', 'GMAT', 'NMAT', 'SNAP', 'ATMA', 'JEE', 'GATE','TANCET' 
+]
 
 // --- Component Definition ---
 
-const FilterComponent: React.FC<FilterProps> = ({ courses, viewMode, onFilterChange }) => {
-  const [searchQuery, setSearchQuery] = useState("")
+const FilterComponent: React.FC<FilterProps> = ({ 
+  onSearchChange, 
+  onManualFilterChange,
+  initialQuery = "",
+  allColleges = []
+}) => {
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [showFilters, setShowFilters] = useState(false)
   const [selectedStates, setSelectedStates] = useState<string[]>([])
   const [selectedCity, setSelectedCity] = useState("")
   const [selectedCollegeName, setSelectedCollegeName] = useState("")
   const [selectedBudgets, setSelectedBudgets] = useState<string[]>([])
+  const [selectedExams, setSelectedExams] = useState<string[]>([])
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([])
+  const [availableCourses, setAvailableCourses] = useState<string[]>([])
 
-  // Read URL parameters on component mount
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search)
-  const cityParam = params.get('city')
-  const stateParam = params.get('state')
-  
-  if (cityParam) {
-    setSelectedCity(cityParam)
-  }
-  if (stateParam && indianStates.includes(stateParam)) {
-    setSelectedStates([stateParam])
-  }
-}, [])
-
-// Update URL when city or state filters change
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search)
-  
-  if (selectedCity) {
-    params.set('city', selectedCity)
-  } else {
-    params.delete('city')
-  }
-  
-  if (selectedStates.length === 1) {
-    params.set('state', selectedStates[0])
-  } else {
-    params.delete('state')
-  }
-  
-  const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
-  window.history.replaceState({}, '', newUrl)
-}, [searchQuery, courses, selectedCity, selectedStates])
-
-useEffect(() => {
-  if (!searchQuery) return
-  
-  const query = searchQuery.trim()
-  const params = new URLSearchParams(window.location.search)
-  
-  // Check if search matches a state
-  const matchedState = indianStates.find(state => 
-    state.toLowerCase() === query.toLowerCase()
-  )
-  
-  // Check if search matches a city
-  const allCities = Array.from(new Set(courses.map((c) => c.City).filter((c): c is string => Boolean(c))))
-  const matchedCity = allCities.find(city =>  // ✅ NOW USING allCities INSTEAD
-  city.toLowerCase() === query.toLowerCase()
-)
-  
-  if (matchedCity) {
-    params.set('city', matchedCity)
-    setSelectedCity(matchedCity)
-  } else if (matchedState) {
-    params.set('state', matchedState)
-    setSelectedStates([matchedState])
-  }
-  
-  const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
-  window.history.replaceState({}, '', newUrl)
-}, [searchQuery, courses])
-
-
-  const applyFilters = useCallback(() => {
-    let filtered = [...courses]
-
-   if (searchQuery) {
-  const query = searchQuery.toLowerCase()
-  filtered = filtered.filter(
-    (course) =>
-      // course.Specialization?.toLowerCase().includes(query) || 
-      course["College Name"]?.toLowerCase().includes(query) ||
-      course.City?.toLowerCase().includes(query) ||
-      course.State?.toLowerCase().includes(query)
-  )
-}
-
-    if (selectedStates.length > 0) {
-      filtered = filtered.filter((course) => {
-        const city = course.City ?? ""
-        return (
-          selectedStates.includes(course.State || "") ||
-          (city && cityToStatesMapping[city] && selectedStates.some((state) => cityToStatesMapping[city]?.includes(state)))
-        )
-      })
-    }
-
-    if (selectedCity) {
-      filtered = filtered.filter((course) => course.City === selectedCity)
-    }
-
-    if (selectedCollegeName) {
-      filtered = filtered.filter((course) => course["College Name"] === selectedCollegeName)
-    }
-
-    if (selectedBudgets.length > 0) {
-      filtered = filtered.filter((course) => isBudgetInRange(course["Average Package"], selectedBudgets))
-    }
-
-    onFilterChange(filtered)
-  }, [searchQuery, selectedStates, selectedCity, selectedCollegeName, selectedBudgets, courses, onFilterChange])
-
+  // Extract unique courses from all colleges
   useEffect(() => {
-    if (viewMode === "all") {
-      applyFilters()
+    const coursesSet = new Set<string>()
+  allColleges.forEach(college => {
+    if (college.card_detail?.courses && Array.isArray(college.card_detail.courses)) {
+      college.card_detail.courses.forEach(course => {
+        // Clean up course names - remove view counts and extra info
+        let cleanCourse = course
+          .replace(/\(\d+\.?\d*[KkMm]?Views?\)/gi, '') // Remove (1.1KViews), (2.0Views), etc.
+          .replace(/\[.*?\]/g, '') // Remove content in square brackets
+          .replace(/\{.*?\}/g, '') // Remove content in curly brackets
+          .replace(/^\(.*?\)/, '') // Remove leading parentheses content
+          .trim()
+
+          
+          if (cleanCourse && cleanCourse.length > 0) {
+            coursesSet.add(cleanCourse)
+          }
+        })
+      }
+    })
+    
+    // Convert to array and sort
+    const sortedCourses = Array.from(coursesSet).sort()
+    setAvailableCourses(sortedCourses)
+  }, [allColleges])
+
+  // Initialize search query from URL
+  useEffect(() => {
+    if (initialQuery) {
+      setSearchQuery(initialQuery)
+      // Auto-parse and set filters
+      const parsed = parseSearchQuery(initialQuery)
+      if (parsed.states.length > 0) setSelectedStates(parsed.states)
+      if (parsed.budgetRanges.length > 0) setSelectedBudgets(parsed.budgetRanges)
+      if (parsed.entranceExams.length > 0) setSelectedExams(parsed.entranceExams)
+      if (parsed.courses.length > 0) setSelectedCourses(parsed.courses)
     }
-  }, [applyFilters, viewMode])
+  }, [initialQuery])
+
+  // Notify parent when manual filters change
+  useEffect(() => {
+    const filters: ManualFilters = {
+      states: selectedStates,
+      city: selectedCity,
+      collegeName: selectedCollegeName,
+      budgets: selectedBudgets,
+      exams: selectedExams,
+      courses: selectedCourses
+    }
+    onManualFilterChange(filters)
+  }, [selectedStates, selectedCity, selectedCollegeName, selectedBudgets, selectedExams, selectedCourses, onManualFilterChange])
+
+  const handleSearch = () => {
+    onSearchChange(searchQuery)
+    const params = new URLSearchParams(window.location.search)
+  if (searchQuery.trim()) {
+    params.set('q', searchQuery)
+  } else {
+    params.delete('q')
+  }
+  const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+  window.history.replaceState({}, '', newUrl)
+  }
 
   const handleStateToggle = (state: string) => {
-    setSelectedStates((prev) => (prev.includes(state) ? prev.filter((s) => s !== state) : [...prev, state]))
+    setSelectedStates((prev) => 
+      prev.includes(state) ? prev.filter((s) => s !== state) : [...prev, state]
+    )
     setSelectedCity("")
     setSelectedCollegeName("")
   }
 
   const handleBudgetToggle = (budget: string) => {
-    setSelectedBudgets((prev) => (prev.includes(budget) ? prev.filter((b) => b !== budget) : [...prev, budget]))
+    setSelectedBudgets((prev) => 
+      prev.includes(budget) ? prev.filter((b) => b !== budget) : [...prev, budget]
+    )
+  }
+
+  const handleExamToggle = (exam: string) => {
+    setSelectedExams((prev) => 
+      prev.includes(exam) ? prev.filter((e) => e !== exam) : [...prev, exam]
+    )
+  }
+
+  const handleCourseToggle = (course: string) => {
+    setSelectedCourses((prev) => 
+      prev.includes(course) ? prev.filter((c) => c !== course) : [...prev, course]
+    )
   }
 
   const resetFilters = () => {
@@ -271,6 +189,9 @@ useEffect(() => {
     setSelectedCity("")
     setSelectedCollegeName("")
     setSelectedBudgets([])
+    setSelectedExams([])
+    setSelectedCourses([])
+    onSearchChange("")
   }
 
   const clearFilter = (filterName: string) => {
@@ -290,52 +211,18 @@ useEffect(() => {
       case "budget":
         setSelectedBudgets([])
         break
+      case "exam":
+        setSelectedExams([])
+        break
+      case "course":
+        setSelectedCourses([])
+        break
       case "search":
         setSearchQuery("")
+        onSearchChange("")
         break
     }
   }
-
-  const getFilteredCities = () => {
-    let filtered = courses
-
-    if (selectedStates.length > 0) {
-      filtered = filtered.filter((c) => {
-        const directMatch = selectedStates.includes(c.State || "")
-        const ncrMatch = c.City && selectedStates.some((state) => cityToStatesMapping[c.City!]?.includes(state))
-        return directMatch || ncrMatch
-      })
-    }
-
-    if (selectedBudgets.length > 0) {
-        filtered = filtered.filter((course) => isBudgetInRange(course["Average Package"], selectedBudgets))
-    }
-
-    return Array.from(new Set(filtered.map((c) => c.City).filter((c): c is string => Boolean(c))))
-  }
-
-  const getFilteredColleges = () => {
-    let filtered = courses
-
-    if (selectedStates.length > 0) {
-      filtered = filtered.filter((c) => {
-        const directMatch = selectedStates.includes(c.State || "")
-        const ncrMatch = c.City && selectedStates.some((state) => cityToStatesMapping[c.City!]?.includes(state))
-        return directMatch || ncrMatch
-      })
-    }
-
-    if (selectedCity) filtered = filtered.filter((c) => c.City === selectedCity)
-
-    if (selectedBudgets.length > 0) {
-        filtered = filtered.filter((course) => isBudgetInRange(course["Average Package"], selectedBudgets))
-    }
-
-    return Array.from(new Set(filtered.map((c) => c["College Name"]).filter((c): c is string => Boolean(c))))
-  }
-
-  const uniqueCities = getFilteredCities()
-  const uniqueColleges = getFilteredColleges()
 
   const activeFiltersCount = [
     searchQuery,
@@ -343,9 +230,9 @@ useEffect(() => {
     selectedCity,
     selectedCollegeName,
     selectedBudgets.length > 0 ? "budgets" : "",
+    selectedExams.length > 0 ? "exams" : "",
+    selectedCourses.length > 0 ? "courses" : "",
   ].filter(Boolean).length
-
-  if (viewMode !== "all") return null
 
   return (
     <>
@@ -360,7 +247,7 @@ useEffect(() => {
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Search for programs or institutes..."
+              placeholder="Try: BCA colleges in Delhi under 5 lakh..."
               className="w-full px-4 py-3 pr-10 rounded-lg focus:outline-none focus:ring-2 text-white placeholder-slate-500"
               style={{ 
                 backgroundColor: 'rgba(99, 102, 241, 0.1)', 
@@ -369,9 +256,22 @@ useEffect(() => {
               }}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch()
+                }
+              }}
             />
             <Search className="absolute right-3 top-3.5 h-5 w-5 text-slate-400" />
           </div>
+
+          <button
+            onClick={handleSearch}
+            className="px-6 py-3 text-white rounded-lg font-medium transition-all hover:shadow-lg"
+            style={{ backgroundColor: accentColor }}
+          >
+            Search
+          </button>
 
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -424,36 +324,6 @@ useEffect(() => {
               </div>
             )}
 
-            {selectedCity && (
-              <div 
-                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-              >
-                <span className="font-medium">City: {selectedCity}</span>
-                <button 
-                  onClick={() => clearFilter("city")} 
-                  className="rounded-full p-0.5 hover:bg-white/10"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-
-            {selectedCollegeName && (
-              <div 
-                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-              >
-                <span className="font-medium">College: {selectedCollegeName}</span>
-                <button 
-                  onClick={() => clearFilter("college")} 
-                  className="rounded-full p-0.5 hover:bg-white/10"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-
             {selectedBudgets.length > 0 && (
               <div 
                 className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
@@ -462,6 +332,36 @@ useEffect(() => {
                 <span className="font-medium">Budget: {selectedBudgets.join(", ")}</span>
                 <button 
                   onClick={() => clearFilter("budget")} 
+                  className="rounded-full p-0.5 hover:bg-white/10"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+
+            {selectedExams.length > 0 && (
+              <div 
+                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+              >
+                <span className="font-medium">Exams: {selectedExams.join(", ")}</span>
+                <button 
+                  onClick={() => clearFilter("exam")} 
+                  className="rounded-full p-0.5 hover:bg-white/10"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+
+            {selectedCourses.length > 0 && (
+              <div 
+                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+              >
+                <span className="font-medium">Courses: {selectedCourses.join(", ")}</span>
+                <button 
+                  onClick={() => clearFilter("course")} 
                   className="rounded-full p-0.5 hover:bg-white/10"
                 >
                   <X size={14} />
@@ -526,66 +426,38 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* City Filter */}
+            {/* Courses Filter */}
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
-                <MapPin size={16} style={{ color: accentColor }} />
-                City
+                <BookOpen size={16} style={{ color: accentColor }} />
+                Courses (Multiple)
               </label>
-              <div className="relative">
-                <select
-                  className="appearance-none w-full rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 text-white"
-                  style={{ 
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)', 
-                    border: selectedStates.length > 0 
-                      ? `1px solid ${accentColor}` 
-                      : `1px solid ${borderColor}`,
-                    outline: 'none'
-                  }}
-                  value={selectedCity}
-                  onChange={(e) => {
-                    setSelectedCity(e.target.value)
-                    setSelectedCollegeName("")
-                  }}
-                >
-                  <option value="" style={{ backgroundColor: secondaryBg }}>All Cities</option>
-                  {uniqueCities.map((city) => (
-                    <option key={city} value={city} style={{ backgroundColor: secondaryBg }}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-slate-400" />
-              </div>
-            </div>
-
-            {/* College Name Filter */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
-                <GraduationCap size={16} style={{ color: accentColor }} />
-                College Name
-              </label>
-              <div className="relative">
-                <select
-                  className="appearance-none w-full rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 font-semibold text-white"
-                  style={{ 
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)', 
-                    border: (selectedStates.length > 0 || selectedCity) 
-                      ? `1px solid ${accentColor}` 
-                      : `1px solid ${borderColor}`,
-                    outline: 'none'
-                  }}
-                  value={selectedCollegeName}
-                  onChange={(e) => setSelectedCollegeName(e.target.value)}
-                >
-                  <option value="" style={{ backgroundColor: secondaryBg }}>All Colleges</option>
-                  {uniqueColleges.map((college) => (
-                    <option key={college} value={college} style={{ backgroundColor: secondaryBg }}>
-                      {college}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2 top-3 h-4 w-4 pointer-events-none text-slate-400" />
+              <div 
+                className="space-y-2 max-h-48 overflow-y-auto p-3 rounded-lg"
+                style={{ 
+                  backgroundColor: 'rgba(99, 102, 241, 0.05)', 
+                  border: `1px solid ${borderColor}` 
+                }}
+              >
+                {availableCourses.length > 0 ? (
+                  availableCourses.map((course) => (
+                    <label 
+                      key={course} 
+                      className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCourses.includes(course)}
+                        onChange={() => handleCourseToggle(course)}
+                        className="w-4 h-4 rounded"
+                        style={{ accentColor: accentColor }}
+                      />
+                      <span className="text-sm text-slate-300">{course}</span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400 p-2">No courses available</p>
+                )}
               </div>
             </div>
 
@@ -615,6 +487,37 @@ useEffect(() => {
                       style={{ accentColor: accentColor }}
                     />
                     <span className="text-sm text-slate-300">{budget}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Entrance Exams Filter */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
+                <GraduationCap size={16} style={{ color: accentColor }} />
+                Entrance Exams (Multiple)
+              </label>
+              <div 
+                className="space-y-2 max-h-48 overflow-y-auto p-3 rounded-lg"
+                style={{ 
+                  backgroundColor: 'rgba(99, 102, 241, 0.05)', 
+                  border: `1px solid ${borderColor}` 
+                }}
+              >
+                {COMMON_EXAMS.map((exam) => (
+                  <label 
+                    key={exam} 
+                    className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedExams.includes(exam)}
+                      onChange={() => handleExamToggle(exam)}
+                      className="w-4 h-4 rounded"
+                      style={{ accentColor: accentColor }}
+                    />
+                    <span className="text-sm text-slate-300">{exam}</span>
                   </label>
                 ))}
               </div>

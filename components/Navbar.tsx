@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled || mobileMenuOpen
           ? "backdrop-blur-md border-b py-3"
-          : "bg-transparent py-5"
+          : "bg-transparent py-3"
       }`}
       style={{
         backgroundColor: isScrolled || mobileMenuOpen ? "rgba(2, 6, 23, 0.9)" : "transparent",

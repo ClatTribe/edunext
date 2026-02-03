@@ -125,7 +125,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
             />
           </Link>
           <h1 className="text-5xl font-bold text-white mb-6">
-            Your Gateway to Dream MBA College
+            Your Gateway to Dream College
           </h1>
           <p className="text-xl mb-8 text-slate-400">
             Discover courses, connect with admits, and find scholarships to fuel your dreams.
@@ -138,7 +138,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
               <GraduationCap style={{ color: accentColor }} size={24} />
             </div>
             <div>
-              <h3 className="text-white font-semibold text-lg mb-1">2000+ MBA Colleges</h3>
+              <h3 className="text-white font-semibold text-lg mb-1">10000+ Colleges</h3>
               <p className="text-slate-400">Access comprehensive course information</p>
             </div>
           </div>

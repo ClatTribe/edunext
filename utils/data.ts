@@ -1,5 +1,4 @@
-// Data derived from provided sheets.
-// Ranges are clamped. If score < min, use min. If score > max defined, use 100.
+// --- SECTION 1: PERCENTILE CALCULATOR DATA & LOGIC ---
 
 type ScoreMap = Record<number, number>;
 
@@ -51,42 +50,161 @@ export const getPercentile = (type: 'VA' | 'QA' | 'DILR' | 'Overall', score: num
   let map: ScoreMap;
   let maxScore: number;
   
-  // Set boundaries and maps based on type
   switch (type) {
-    case 'VA':
-      map = vaData;
-      maxScore = 48; // Score where percentile reaches 100
-      break;
-    case 'QA':
-      map = qaData;
-      maxScore = 45; // Score where percentile reaches 100
-      break;
-    case 'DILR':
-      map = dilrData;
-      maxScore = 43; // Score where percentile reaches 100
-      break;
-    case 'Overall':
-      map = overallData;
-      maxScore = 125; // Score where percentile reaches 100
-      break;
+    case 'VA': map = vaData; maxScore = 48; break;
+    case 'QA': map = qaData; maxScore = 45; break;
+    case 'DILR': map = dilrData; maxScore = 43; break;
+    case 'Overall': map = overallData; maxScore = 125; break;
   }
 
-  // Handle lower bound
   if (score < -10) return map["-10"];
-
-  // Round score to nearest integer as keys are integers
   const lookupScore = Math.round(score);
-  
-  // Lookup in map
-  if (map[lookupScore] !== undefined) {
-    return map[lookupScore];
-  }
-
-  // Handle upper bound - any score beyond our data range returns 100
-  if (lookupScore >= maxScore) {
-    return 100;
-  }
-
-  // Fallback if key missing (should not happen with complete data range)
+  if (map[lookupScore] !== undefined) return map[lookupScore];
+  if (lookupScore >= maxScore) return 100;
   return 0; 
+};
+
+// --- SECTION 2: SERVER-SIDE SEARCH QUERY BUILDER ---
+
+export interface ParsedFilters {
+  searchText?: string
+  cities: string[]
+  states: string[]
+  budgetRanges: string[]
+  courses: string[]
+  entranceExams: string[]
+}
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+  "Uttarakhand", "West Bengal", "Delhi", "Delhi NCR", "Jammu and Kashmir", "Ladakh"
+];
+
+const COMMON_COURSES = [
+  'MBA', 'BBA', 'BCA', 'MCA', 'B.Tech', 'M.Tech', 'B.Com', 'M.Com', 'B.Sc', 'M.Sc',
+  'Finance', 'Marketing', 'HR', 'Business Analytics', 'Data Science', 'Computer Science',
+  'Civil Engineering', 'Mechanical Engineering', 'Electrical Engineering', 'Biotechnology'
+];
+
+const COMMON_EXAMS = [
+  'CAT', 'XAT', 'CMAT', 'MAT', 'GMAT', 'NMAT', 'SNAP', 'ATMA', 'JEE', 'GATE', 'TANCET'
+];
+
+export const parseSearchQuery = (query: string): ParsedFilters => {
+  const lowerQuery = query.toLowerCase().trim();
+  const filters: ParsedFilters = { 
+    cities: [], 
+    states: [], 
+    budgetRanges: [], 
+    courses: [],
+    entranceExams: []
+  };
+
+  COMMON_COURSES.forEach(course => {
+    if (lowerQuery.includes(course.toLowerCase())) filters.courses.push(course);
+  });
+
+  COMMON_EXAMS.forEach(exam => {
+    if (lowerQuery.includes(exam.toLowerCase())) filters.entranceExams.push(exam);
+  });
+
+  INDIAN_STATES.forEach(state => {
+    if (lowerQuery.includes(state.toLowerCase())) filters.states.push(state);
+  });
+
+  const budgetPatterns = [
+    { keywords: ['under 5', 'below 5', 'less than 5', 'upto 5', 'up to 5'], range: "Less than 5 Lakh" },
+    { keywords: ['5-10', '5 to 10', 'between 5 and 10', '5 lakh to 10'], range: "5 - 10 Lakh" },
+    { keywords: ['10-15', '10 to 15', 'between 10 and 15', '10 lakh to 15'], range: "10 - 15 Lakh" },
+    { keywords: ['15-20', '15 to 20', 'between 15 and 20', '15 lakh to 20'], range: "15 - 20 Lakh" },
+    { keywords: ['above 20', 'more than 20', 'over 20', '20+', '20 plus'], range: "Above 20 Lakh" },
+  ];
+
+  budgetPatterns.forEach(({ keywords, range }) => {
+    if (keywords.some(keyword => lowerQuery.includes(keyword))) filters.budgetRanges.push(range);
+  });
+
+  const budgetMatch = lowerQuery.match(/(\d+)\s*(lakh|lakhs?|l)/i);
+  if (budgetMatch && filters.budgetRanges.length === 0) {
+    const amount = parseInt(budgetMatch[1]);
+    if (amount <= 5) filters.budgetRanges.push("Less than 5 Lakh");
+    else if (amount <= 10) filters.budgetRanges.push("5 - 10 Lakh");
+    else if (amount <= 15) filters.budgetRanges.push("10 - 15 Lakh");
+    else if (amount <= 20) filters.budgetRanges.push("15 - 20 Lakh");
+    else filters.budgetRanges.push("Above 20 Lakh");
+  }
+
+  if (Object.values(filters).every(f => Array.isArray(f) ? f.length === 0 : !f)) {
+    filters.searchText = query;
+  }
+
+  return filters;
+};
+
+// --- SECTION 3: IMPROVED BUDGET FILTERING (THE KEY FIX) ---
+
+const parseFeeToLakhs = (feeStr: string): number | null => {
+  if (!feeStr) return null;
+  let cleaned = feeStr.replace(/₹|Rs\.?|INR|,/gi, '').replace(/Check Details|undefined/gi, '').trim();
+  if (!cleaned) return null;
+  
+  const match = cleaned.match(/([\d,]+\.?\d*)\s*(Lakh|Lac|L|K|Thousand)?/i);
+  if (!match) return null;
+  
+  const num = parseFloat(match[1]);
+  const unit = match[2]?.toLowerCase();
+  
+  if (isNaN(num)) return null;
+  
+  if (unit?.includes('lakh') || unit?.includes('lac') || unit === 'l') return num;
+  if (unit === 'k' || unit?.includes('thousand')) return num / 100;
+  return num >= 100000 ? num / 100000 : num >= 100 ? num / 100 : num;
+};
+
+export const parseBudgetToLakhs = (budgetStr: string | null | undefined): { min: number; max: number } | null => {
+  if (!budgetStr) return null;
+  const feeParts = budgetStr.split(/[-–—]/).map(part => parseFeeToLakhs(part)).filter(v => v !== null && v > 0) as number[];
+  if (feeParts.length === 0) return null;
+  return { min: Math.min(...feeParts), max: Math.max(...feeParts) };
+};
+
+/**
+ * FIXED LOGIC: Uses Overlap Detection
+ */
+export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRanges: string[]): boolean => {
+  if (selectedRanges.length === 0) return true;
+  
+  const feeRange = parseBudgetToLakhs(budgetStr);
+  if (!feeRange) return false;
+  
+  const { min: feeMin, max: feeMax } = feeRange;
+  
+  return selectedRanges.some(range => {
+    let rangeMin: number, rangeMax: number;
+    
+    switch (range) {
+      case "Less than 5 Lakh": rangeMin = 0; rangeMax = 5; break;
+      case "5 - 10 Lakh": rangeMin = 5; rangeMax = 10; break;
+      case "10 - 15 Lakh": rangeMin = 10; rangeMax = 15; break;
+      case "15 - 20 Lakh": rangeMin = 15; rangeMax = 20; break;
+      case "Above 20 Lakh": rangeMin = 20; rangeMax = Infinity; break;
+      default: return false;
+    }
+    
+    // OVERLAP LOGIC: 
+    // College is shown if its fee range touches or crosses the filter range.
+    // College [2.94 - 7.18] touches Filter [5 - 10] because 2.94 <= 10 and 7.18 >= 5.
+    return feeMin <= rangeMax && feeMax >= rangeMin;
+  });
+};
+
+export const applyBudgetFilter = (colleges: any[], budgetRanges: string[]): any[] => {
+  if (budgetRanges.length === 0) return colleges;
+  return colleges.filter(college => {
+    const fees = college.card_detail?.fees || college["Course Fees"];
+    return isBudgetInRange(fees, budgetRanges);
+  });
 };
