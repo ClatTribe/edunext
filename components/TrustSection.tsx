@@ -20,7 +20,7 @@ export default function TrustSection() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight max-w-5xl mx-auto
   bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
   bg-clip-text text-transparent">
-  We Disrupted MBA College Search
+  We Disrupted College Search
 </h2>
         </div>
 

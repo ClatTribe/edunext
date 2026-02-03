@@ -98,7 +98,7 @@ const TrainRoadmap: React.FC = () => {
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4 md:mb-8 leading-tight
 bg-gradient-to-r from-[#FCD34D] to-[#F59E0B]
 bg-clip-text text-transparent">
-Your Dream MBA Journey
+Your Dream Journey
        </h1>
         <h2 className="text-base md:text-lg lg:text-xl text-slate-400 leading-relaxed">
           A perfectly orchestrated path to your dream admit
