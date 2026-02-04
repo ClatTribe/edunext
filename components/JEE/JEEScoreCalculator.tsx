@@ -940,7 +940,7 @@ export default function PasteJEEResponse() {
       
       <div className="flex-1 overflow-hidden">
         <div className="animate-marquee whitespace-nowrap text-sm text-white font-medium">
-          Answer keys for the following sessions are currently available: Jan 21: Shift 1 • Jan 22: Shift 2 • Jan 23: Shifts 1 & 2 • Jan 24: Shift 1 • Jan 28: Shift 2
+          Answer keys for the following sessions are currently available: Jan 21: Shift 1 • Jan 22: Shift 2 • Jan 23: Shifts 1 & 2 • Jan 24: Shift 1 • Jan 28: Shift 2. For JEE Session 2 Visit our JEE Starter Kit
         </div>
       </div>
     </div>
