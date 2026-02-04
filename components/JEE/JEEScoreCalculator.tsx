@@ -304,10 +304,12 @@ export default function PasteJEEResponse() {
       }
 
       let calculatedResults: ParseResult;
+      let cdnLinkToSave = ""; 
 
       if (/^https?:\/\//i.test(input) || /nta\.ac\.in/i.test(input)) {
         setError("🔄 Fetching and processing...");
         let url = input.startsWith("http") ? input : "https://" + input;
+        cdnLinkToSave = url;
         try {
           const content = await fetchNTAContent(url);
           calculatedResults = processContent(content);
@@ -346,6 +348,7 @@ export default function PasteJEEResponse() {
         email,
         category,
         city,
+        cdn_link: cdnLinkToSave,
         physics_correct: physicsSection?.correct || 0,
         physics_wrong: physicsSection?.wrong || 0,
         physics_skipped: physicsSection?.unattempted || 0,
