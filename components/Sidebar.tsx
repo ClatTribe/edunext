@@ -72,11 +72,11 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       label: "XAT Score Calculator",
       path: "/xat-score-calculator-2026",
     },
-    {
-      icon: Calculator,
-      label: "JEE Score Calculator",
-      path: "/jee-tool",
-    },
+    // {
+    //   icon: Calculator,
+    //   label: "JEE Score Calculator",
+    //   path: "/jee-tool",
+    // },
     {
       icon: FileCheck,
       label: "Exam & Deadline",
