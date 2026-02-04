@@ -447,7 +447,7 @@ function ResultContent() {
                   <p className="text-slate-400">Loading leaderboard...</p>
                 </div>
               ) : (
-                <Leaderboard data={leaderboardData} currentUserScore={total} />
+                <Leaderboard/>
               )}
             </div>
           </div>
