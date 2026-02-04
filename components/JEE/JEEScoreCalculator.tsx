@@ -1015,8 +1015,16 @@ export default function PasteJEEResponse() {
       
       <div className="flex-1 overflow-hidden">
         <div className="animate-marquee whitespace-nowrap text-sm text-white font-medium">
-          Answer keys for the following sessions are currently available: Jan 21: Shift 1 • Jan 22: Shift 2 • Jan 23: Shifts 1 & 2 • Jan 24: Shift 1 • Jan 28: Shift 2. For JEE Session 2 Visit our JEE Starter Kit
-        </div>
+  Answer key for 7 Slots is now available: Jan 21: Shift 1 • Jan 22: Shift 1 • Jan 22: Shift 2 • Jan 23: Shifts 1 & 2 • Jan 24: Shift 1 • Jan 28: Shift 2. For JEE Session 2 Visit our JEE Starter Kit 
+  <a 
+    href="/JEEstarterkit" 
+    className="ml-2 text-xs px-2 py-1 rounded-md font-semibold hover:opacity-80 transition-opacity"
+    style={{ backgroundColor: accentColor, color: '#000' }}
+    onClick={(e) => e.stopPropagation()}
+  >
+    View More →
+  </a>
+</div>
       </div>
     </div>
   </div>
