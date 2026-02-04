@@ -3,6 +3,10 @@
     {
       "source": "/studio/:path*",
       "destination": "/studio"
+    },
+     {
+      "source": "/JEEstarterkit/(.*)",
+      "destination": "/JEEstarterkit/$1"
     }
   ]
 }
