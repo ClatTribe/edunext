@@ -16,7 +16,7 @@ import Link from "next/link";
 // import { supabase } from '../lib/supabase';
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
-import {Features} from "../../components/Features";
+import { Features } from "../../components/Features";
 import TrustSection from "../../components/TrustSection";
 import { PainPoints } from "../../components/PainPoints";
 import TrainRoadmap from "../../components/TrainRoadmap";
@@ -56,20 +56,19 @@ const features = [
   },
 ];
 
-
 export default function Hero() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
   const { user } = useAuth();
-   const [coursesData, setCoursesData] = useState<any[]>([]);
+  const [coursesData, setCoursesData] = useState<any[]>([]);
 
-     useEffect(() => {
+  useEffect(() => {
     const fetchCourses = async () => {
       try {
         const { data, error } = await supabase
           .from('courses') // Replace with your actual table name
           .select('*');
-        
+
         if (error) throw error;
         setCoursesData(data || []);
       } catch (error) {
@@ -99,32 +98,32 @@ export default function Hero() {
       <Navbar />
       {/* <BackgroundImage/> */}
       {/* HERO SECTION */}
-      <section className=" relative pt-5 sm:pt-36 pb-20 overflow-hidden" style={{ backgroundColor: bgDark }}>
-        <div className="absolute hidden sm:block inset-0 z-0 pointer-events-none opacity-20" 
+      <section className="relative pt-10 sm:pt-24 pb-20 overflow-hidden" style={{ backgroundColor: bgDark }}>
+        <div className="absolute hidden sm:block inset-0 z-0 pointer-events-none opacity-20"
           style={{
             backgroundImage: 'linear-gradient(to right, rgba(99, 102, 241, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(99, 102, 241, 0.1) 1px, transparent 1px)',
             backgroundSize: '4rem 4rem'
           }}
         />
 
-        <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
+        {/* Changed max-w-7xl to max-w-[1440px] and adjusted px for wider screens */}
+        <div className="container mx-auto px-4 sm:px-8 relative z-10 max-w-[1440px]">
           <HeroSection courses={coursesData} />
-          
-          {/* we have to add that div content here */}
 
+          {/* we have to add that div content here */}
           <TrainRoadmap />
 
-            
           {/* LEFT FEATURE LIST */}
           {/* FEATURES + PREVIEW */}
-          <div className="text-center mt-5 mb-10 relative z-10">
-           <h2 className="text-4xl  md:text-5xl lg:text-6xl font-extrabold leading-tight max-w-5xl mx-auto
+          <div className="text-center mt-12 mb-10 relative z-10">
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold leading-tight max-w-5xl mx-auto
             bg-linear-to-r from-[#FCD34D] to-[#F59E0B]
             bg-clip-text text-transparent">
-            Our features
-          </h2>
+              Our features
+            </h2>
           </div>
-           <div className="grid lg:grid-cols-12 gap-10 items-start">
+
+          <div className="grid lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-4 flex flex-col gap-3">
               {features.map((feature, index) => (
                 <button
@@ -178,7 +177,7 @@ export default function Hero() {
             </div>
 
             {/* RIGHT PREVIEW */}
-            <div className="lg:col-span-8 h-[480px] sm:h-[520px] lg:h-[600px] relative">
+            <div className="lg:col-span-8 h-[480px] sm:h-[520px] lg:h-[650px] relative">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeFeature}
@@ -196,7 +195,6 @@ export default function Hero() {
         </div>
       </section>
 
-      
       <TrustSection />
       <PainPoints />
       <Footer />

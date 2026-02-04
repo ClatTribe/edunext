@@ -405,13 +405,12 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  ChevronRight,
   Calculator,
   Trophy,
   Users,
   FileSearch,
   MapPin,
-  X,
+  ChevronRight,
 } from "lucide-react";
 
 // --- Constants ---
@@ -460,7 +459,7 @@ const CollegeCard: React.FC<{ college: any }> = ({ college }) => (
     <div className="h-40 overflow-hidden relative">
       <img src={college.imageUrl} alt={college.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
     </div>
-    <div className="p-5">
+    <div className="p-5 text-left">
       <h4 className="font-bold text-lg text-white mb-1">{college.name}</h4>
       <div className="flex items-center gap-1 text-xs text-slate-400 mb-4">
         <MapPin className="w-3 h-3" /> {college.location}
@@ -481,7 +480,6 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const router = useRouter();
 
-  // Longer interval for better readability (6 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_TAGLINES.length);
@@ -492,9 +490,6 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
-    
-    // Pass the search query to the college page
-    // The server-side logic will handle intelligent parsing
     router.push(`/find-colleges?q=${encodeURIComponent(searchQuery)}`);
   };
 
@@ -506,10 +501,9 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   ];
 
   return (
-    <div className="bg-[#050818] min-h-screen">
-      <section className="relative px-6 max-w-7xl mx-auto pt-20 md:pt-4 overflow-hidden">
+    <div className="w-full">
+      <section className="relative w-full mx-auto pt-12 md:pt-10">
         
-        {/* Background Fade */}
         <AnimatePresence mode='wait'>
           <motion.div
             key={`bg-${currentSlide}`}
@@ -521,9 +515,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
           />
         </AnimatePresence>
 
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#050818] to-transparent -z-10" />
-
-        <div className="max-w-7xl mx-auto w-full relative z-10 text-center flex flex-col items-center">
+        <div className="w-full relative z-10 text-center flex flex-col items-center">
           
           <motion.div 
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -533,7 +525,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
             #1 Education Platform • ADMIT FINDER 2.0
           </motion.div>
 
-          {/* Headline - Smooth Animation */}
+          {/* Tagline Split Logic */}
           <div className="relative mb-6 flex items-center justify-center w-full">
             <AnimatePresence mode="wait">
               <motion.h1
@@ -542,17 +534,21 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} 
                 exit={{ opacity: 0, y: -30, filter: "blur(10px)" }}
                 transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="text-[10vw] sm:text-[8vw] md:text-[4.5vw] lg:text-[4rem] xl:text-[4.5rem] font-black tracking-tighter leading-[1.1] md:leading-none px-2 text-white md:whitespace-nowrap"
+                className="text-[10vw] sm:text-[8vw] md:text-[5vw] lg:text-[4.5rem] xl:text-[5.5rem] font-black tracking-tighter leading-[1.1] md:leading-none px-2 text-white"
               >
                 {HERO_TAGLINES[currentSlide].isCustom ? (
-                  <span className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-[0.4ch]">
-                    <span>Ambition <span className="text-[0.7em] font-bold align-middle opacity-80">से</span></span>
+                  <span className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-[0.3ch]">
+                    <span className="bg-gradient-to-t from-slate-500 via-slate-300 to-white bg-clip-text text-transparent">
+                      Ambition <span className="inline-block text-[0.7em] font-bold align-middle text-slate-300">से</span>
+                    </span>
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] via-orange-400 to-orange-600">
-                      Admission <span className="text-[0.7em] font-bold align-middle">तक</span>
+                      Admission <span className="inline-block text-[0.7em] font-bold align-middle text-orange-500">तक</span>
                     </span>
                   </span>
                 ) : (
-                  HERO_TAGLINES[currentSlide].text
+                  <span className="bg-gradient-to-t from-slate-500 via-slate-300 to-white bg-clip-text text-transparent">
+                    {HERO_TAGLINES[currentSlide].text}
+                  </span>
                 )}
               </motion.h1>
             </AnimatePresence>
@@ -569,7 +565,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
           <motion.form 
             onSubmit={handleSearch}
             initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8 }}
-            className="relative w-full max-w-2xl mx-auto mb-10 md:mb-14 px-2 group"
+            className="relative w-full max-w-2xl mx-auto mb-6 md:mb-8 px-2 group"
           >
             <div className="relative flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-full p-2 shadow-2xl focus-within:border-[#F59E0B]/50 transition-all">
               <Search className="h-5 w-5 text-slate-500 ml-4 hidden md:block" />
@@ -580,25 +576,19 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent border-none text-white placeholder:text-slate-500 focus:ring-0 px-3 md:px-4 py-3 md:py-4 text-sm md:text-lg outline-none"
               />
-              {searchQuery && (
-                <button 
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="mr-2 text-slate-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
               <button type="submit" className="rounded-xl md:rounded-full bg-[#F59E0B] hover:bg-orange-500 text-black font-bold px-6 md:px-12 py-3 md:py-4 text-sm md:text-base transition-all active:scale-95 shadow-lg">
                 Search
               </button>
             </div>
           </motion.form>
 
-          {/* Quick Filters */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="flex flex-wrap justify-center gap-2 md:gap-4 px-4">
-            {['Finance', 'Marketing', 'Business Analytics', 'BCA', 'B.Com'].map((item) => (
-              <button key={item} onClick={() => setSearchQuery(item)} className="px-5 py-2 rounded-full border border-white/10 bg-white/5 text-xs md:text-sm font-semibold text-slate-300 hover:border-[#F59E0B]/40 hover:text-[#F59E0B] transition-all">
+          {/* Filter Buttons Section */}
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} 
+            className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center items-center gap-2 md:gap-4 w-full max-w-md md:max-w-3xl px-4 mb-14 md:mb-20"
+          >
+            {['Marketing', 'Business Analytics', 'BCA', 'B.Com'].map((item) => (
+              <button key={item} onClick={() => setSearchQuery(item)} className="px-3 py-2.5 rounded-xl sm:rounded-full border border-white/10 bg-white/5 text-[10px] md:text-sm font-semibold text-slate-300 hover:border-[#F59E0B]/40 hover:text-[#F59E0B] transition-all text-center">
                 {item}
               </button>
             ))}
@@ -606,29 +596,28 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
         </div>
       </section>
 
-      {/* Feature Grid */}
-      <section className="py-12 px-6 max-w-7xl mx-auto">
+      {/* Featured Colleges Section (Restored) */}
+      <section className="pb-20 w-full px-4">
+        <div className="flex items-center justify-between mb-8 max-w-[1440px] mx-auto px-2">
+          <h2 className="text-xl md:text-2xl font-bold text-white">Top Featured Colleges</h2>
+          <Link href="/find-colleges" className="text-[#F59E0B] text-sm font-semibold flex items-center gap-1 hover:underline">
+            View All <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1440px] mx-auto">
+          {featuredColleges.map((college) => (
+            <CollegeCard key={college.id} college={college} />
+          ))}
+        </div>
+      </section>
+
+      {/* Quick Action Grid */}
+      <section className="py-12 w-full px-6 max-w-[1440px] mx-auto border-t border-white/5">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <Link href="/find-colleges"><QuickActionCard icon={FileSearch} title="Find Colleges" description="Perfect stream based on grades" /></Link>
           <Link href="/cat-college-predictor"><QuickActionCard icon={Calculator} title="Call Predictor" description="Chances for IIMs & top B-schools" badge="NEW" /></Link>
           <Link href="/find-scholarships"><QuickActionCard icon={Trophy} title="Scholarships" description="1000+ aid opportunities" /></Link>
           <Link href="/previous-year-students"><QuickActionCard icon={Users} title="Talk to Alumni" description="Connect with dream college students" /></Link>
-        </div>
-      </section>
-
-      {/* Popular Section */}
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-          <div>
-            <h2 className="text-2xl md:text-4xl font-bold text-white mb-2">Popular Programs</h2>
-            <p className="text-sm md:text-base text-slate-400">Handpicked based on ROI and alumni feedback</p>
-          </div>
-          <Link href="/find-colleges" className="flex items-center gap-2 text-[#F59E0B] font-bold text-sm md:text-base hover:translate-x-1 transition-transform">
-            View All <ChevronRight className="w-5 h-5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredColleges.map((college) => <CollegeCard key={college.id} college={college} />)}
         </div>
       </section>
     </div>
