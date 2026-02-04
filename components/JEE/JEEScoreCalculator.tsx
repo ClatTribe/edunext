@@ -1238,7 +1238,7 @@ export default function PasteJEEResponse() {
       
       <div className="flex-1 overflow-hidden">
         <div className="animate-marquee whitespace-nowrap text-sm text-white font-medium">
-  All Slot's Result are Availabale: Visit our JEE Starter Kit for Session 2
+  All Slot Results Are Available: Visit Our JEE Starter Kit for Session 2
   <a 
     href="/JEEstarterkit" 
     className="ml-2 text-xs px-2 py-1 rounded-md font-semibold hover:opacity-80 transition-opacity"
