@@ -5,7 +5,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { supabase } from "../../lib/supabase";
 
 const accentColor = "#F59E0B";
-const primaryBg = "#050818";
 const secondaryBg = "#0F172B";
 const borderColor = "rgba(245, 158, 11, 0.15)";
 
@@ -18,6 +17,7 @@ export default function JEEScoreGraph() {
   const [graphData, setGraphData] = useState<GraphData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [totalStudents, setTotalStudents] = useState(0);
 
   useEffect(() => {
     fetchScoreData();
@@ -27,11 +27,16 @@ export default function JEEScoreGraph() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // Fetch only the total_score column - fetch ALL records (override 1000 limit)
+      const { data, error, count } = await supabase
         .from("jee_results")
-        .select("physics_correct, physics_wrong, chemistry_correct, chemistry_wrong, mathematics_correct, mathematics_wrong");
+        .select("total_score", { count: "exact" })
+        .range(0, 9999); // Fetch up to 10,000 records (increase if needed)
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
 
       if (!data || data.length === 0) {
         setError("No data available");
@@ -39,7 +44,10 @@ export default function JEEScoreGraph() {
         return;
       }
 
-      // Calculate scores and categorize
+      console.log("Fetched records:", data.length);
+      console.log("Total count from Supabase:", count);
+
+      // Initialize score ranges
       const scoreRanges = {
         "0-50": 0,
         "50-100": 0,
@@ -49,25 +57,19 @@ export default function JEEScoreGraph() {
         "250-300": 0,
       };
 
+      // Categorize students into score ranges
       data.forEach((entry) => {
-        // JEE Main scoring: +4 for correct, -1 for wrong
-        const physicsScore = (entry.physics_correct * 4) - (entry.physics_wrong * 1);
-        const chemistryScore = (entry.chemistry_correct * 4) - (entry.chemistry_wrong * 1);
-        const mathematicsScore = (entry.mathematics_correct * 4) - (entry.mathematics_wrong * 1);
-        
-        // Total score (max 300: 100 per subject)
-        const totalScore = physicsScore + chemistryScore + mathematicsScore;
+        const score = entry.total_score;
 
-        // Categorize into ranges
-        if (totalScore >= 0 && totalScore < 50) scoreRanges["0-50"]++;
-        else if (totalScore >= 50 && totalScore < 100) scoreRanges["50-100"]++;
-        else if (totalScore >= 100 && totalScore < 150) scoreRanges["100-150"]++;
-        else if (totalScore >= 150 && totalScore < 200) scoreRanges["150-200"]++;
-        else if (totalScore >= 200 && totalScore < 250) scoreRanges["200-250"]++;
-        else if (totalScore >= 250 && totalScore <= 300) scoreRanges["250-300"]++;
+        if (score >= 0 && score < 50) scoreRanges["0-50"]++;
+        else if (score >= 50 && score < 100) scoreRanges["50-100"]++;
+        else if (score >= 100 && score < 150) scoreRanges["100-150"]++;
+        else if (score >= 150 && score < 200) scoreRanges["150-200"]++;
+        else if (score >= 200 && score < 250) scoreRanges["200-250"]++;
+        else if (score >= 250 && score <= 300) scoreRanges["250-300"]++;
       });
 
-      // Convert to graph data format - NO MULTIPLICATION, show real data
+      // Convert to graph data format
       const formattedData: GraphData[] = [
         { range: "0-50", students: scoreRanges["0-50"] },
         { range: "50-100", students: scoreRanges["50-100"] },
@@ -78,6 +80,7 @@ export default function JEEScoreGraph() {
       ];
 
       setGraphData(formattedData);
+      setTotalStudents(data.length);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching score data:", err);
@@ -88,10 +91,15 @@ export default function JEEScoreGraph() {
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const percentage = totalStudents > 0 
+        ? ((payload[0].value / totalStudents) * 100).toFixed(1)
+        : "0";
+      
       return (
         <div className="p-4 rounded-lg shadow-lg" style={{ backgroundColor: secondaryBg, border: `1px solid ${accentColor}` }}>
           <p className="text-white font-semibold mb-1">Score Range: {payload[0].payload.range}</p>
           <p style={{ color: accentColor }} className="font-bold">Students: {payload[0].value}</p>
+          <p className="text-slate-400 text-sm">{percentage}% of total</p>
         </div>
       );
     }
@@ -121,9 +129,9 @@ export default function JEEScoreGraph() {
     <div className="rounded-2xl p-6 shadow-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white mb-2">📊 JEE Main Score Distribution</h2>
-        <p className="text-slate-400 text-sm">
-          Total entries: {graphData.reduce((sum, item) => sum + item.students, 0)}
-        </p>
+        {/* <p className="text-slate-400 text-sm">
+          Total Students: <span className="text-white font-semibold">{totalStudents.toLocaleString()}</span>
+        </p> */}
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
@@ -193,7 +201,7 @@ export default function JEEScoreGraph() {
 
       <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
         <p className="text-blue-400 text-xs">
-          ℹ️ Note: Hover over bars to see exact student counts. Percentile estimates are approximate and based on previous year trends.
+          ℹ️ Note: Hover over bars to see exact student counts and percentages. Percentile estimates are approximate based on previous year trends.
         </p>
       </div>
     </div>
