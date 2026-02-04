@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'JEE Score Calculator 2026 | Get Your JEE Percentile Instantly',
     description: 'Calculate your JEE 2026 scores and percentile by pasting your Digialm response. Get section-wise analysis and admission predictions for IITs and other top engineering colleges.',
+    url: 'https://www.getedunext.com/jee-tool',
+    siteName: 'EduNext',
   },
   alternates: {
     canonical: 'https://www.getedunext.com/jee-tool',
