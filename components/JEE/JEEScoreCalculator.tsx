@@ -7,13 +7,184 @@ import Leaderboard from "./Leaderboard";
 import JEEScoreGraph from "./JEEScoreGraph";
 import PercentileCalculator from "./PercentileCalculator";
 
+// --- CONFIGURATION ---
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
 const secondaryBg = "#0F172B";
 const borderColor = "rgba(245, 158, 11, 0.15)";
 
-// JEE Main has 3 sections
-const JEE_SECTIONS = ["Physics", "Chemistry", "Mathematics"];
+// JEE Main Section Order for this specific key/paper format
+// (Based on 25 questions per section as requested)
+const JEE_SECTIONS = ["Mathematics", "Physics", "Chemistry"];
+
+// --- ANSWER KEY ---
+const CORRECT_ANSWER_KEY: { [questionId: string]: string | number } = {
+  "860654826": "8606542808",
+  "860654827": "8606542812",
+  "860654828": "8606542814",
+  "860654829": "8606542820",
+  "860654830": "8606542824",
+  "860654831": "8606542828",
+  "860654832": "8606542830",
+  "860654833": "8606542837",
+  "860654834": "8606542840",
+  "860654835": "8606542842",
+  "860654836": "8606542847",
+  "860654837": "8606542853",
+  "860654838": "8606542856",
+  "860654839": "8606542859",
+  "860654840": "8606542864",
+  "860654841": "8606542866",
+  "860654842": "8606542873",
+  "860654843": "8606542877",
+  "860654844": "8606542881",
+  "860654845": "8606542883",
+
+  "860654846": 32,
+  "860654847": 2,
+  "860654848": 65,
+  "860654849": 2,
+  "860654850": 9,
+
+  "860654851": "8606542892",
+  "860654852": "8606542898",
+  "860654853": "8606542900",
+  "860654854": "8606542904",
+  "860654855": "8606542907",
+  "860654856": "8606542911",
+  "860654857": "8606542916",
+  "860654858": "8606542922",
+  "860654859": "8606542924",
+  "860654860": "8606542929",
+  "860654861": "8606542934",
+  "860654862": "8606542937",
+  "860654863": "8606542939",
+  "860654864": "8606542944",
+  "860654865": "8606542948",
+  "860654866": "8606542952",
+  "860654867": "8606542958",
+  "860654868": "8606542960",
+  "860654869": "8606542963",
+  "860654870": "8606542968",
+
+  "860654871": 5,
+  "860654872": 350,
+  "860654873": 1800,
+  "860654874": 14,
+  "860654875": 10,
+
+  "860654876": "8606542978",
+  "860654877": "8606542981",
+  "860654878": "8606542985",
+  "860654879": "8606542989",
+  "860654880": "8606542995",
+  "860654881": "8606542998",
+  "860654882": "8606543003",
+  "860654883": "8606543006",
+  "860654884": "8606543009",
+  "860654885": "8606543012",
+  "860654886": "8606543019",
+  "860654887": "8606543020",
+  "860654888": "8606543024",
+  "860654889": "8606543031",
+  "860654890": "8606543032",
+  "860654891": "8606543036",
+  "860654892": "8606543042",
+  "860654893": "8606543045",
+  "860654894": "8606543048",
+  "860654895": "8606543053",
+
+  "860654896": 3,
+  "860654897": 15,
+  "860654898": 100,
+  "860654899": 200,
+  "860654900": 71,
+
+  "860654976": "8606543317",
+  "860654977": "8606543321",
+  "860654978": "8606543325",
+  "860654979": "8606543329",
+  "860654980": "8606543333",
+  "860654981": "8606543338",
+  "860654982": "8606543342",
+  "860654983": "8606543346",
+  "860654984": "8606543348",
+  "860654985": "8606543353",
+  "860654986": "8606543357",
+  "860654987": "8606543360",
+  "860654988": "8606543364",
+  "860654989": "8606543371",
+  "860654990": "8606543374",
+  "860654991": "8606543377",
+  "860654992": "8606543382",
+  "860654993": "8606543385",
+  "860654994": "8606543389",
+  "860654995": "8606543392",
+
+  "860654996": 9,
+  "860654997": 1979,
+  "860654998": 20,
+  "860654999": 5,
+  "8606541000": 36,
+
+  "8606541001": "8606543401",
+  "8606541002": "8606543405",
+  "8606541003": "8606543410",
+  "8606541004": "8606543415",
+  "8606541005": "8606543417",
+  "8606541006": "8606543421",
+  "8606541007": "8606543425",
+  "8606541008": "8606543429",
+  "8606541009": "8606543433",
+  "8606541010": "8606543438",
+  "8606541011": "8606543442",
+  "8606541012": "8606543447",
+  "8606541013": "8606543452",
+  "8606541014": "8606543455",
+  "8606541015": "8606543457",
+  "8606541016": "8606543464",
+  "8606541017": "8606543465",
+  "8606541018": "8606543472",
+  "8606541019": "8606543476",
+  "8606541020": "8606543479",
+
+  "8606541021": 2,
+  "8606541022": 4,
+  "8606541023": 1,
+  "8606541024": 7,
+  "8606541025": 14,
+
+  "8606541026": "8606543487",
+  "8606541027": "8606543491",
+  "8606541028": "8606543497",
+  "8606541029": "8606543500",
+  "8606541030": "8606543503",
+  "8606541031": "8606543508",
+  "8606541032": "8606543511",
+  "8606541033": "8606543514",
+  "8606541034": "8606543520",
+  "8606541035": "8606543524",
+  "8606541036": "8606543526",
+  "8606541037": "8606543532",
+  "8606541038": "8606543536",
+  "8606541039": "8606543539",
+  "8606541040": "8606543543",
+  "8606541041": "8606543547",
+  "8606541042": "8606543550",
+  "8606541043": "8606543557",
+  "8606541044": "8606543561",
+  "8606541045": "8606543562",
+
+  "8606541046": 1031,
+  "8606541047": 4,
+  "8606541048": 57,
+  "8606541049": 3,
+  "8606541050": 10
+};
+
+// Marking Scheme
+const MARKS_CORRECT = 4;
+const MARKS_WRONG = -1;
 
 interface SectionData {
   name: string;
@@ -51,9 +222,7 @@ export default function PasteJEEResponse() {
   const [email, setEmail] = useState("");
   const [category, setCategory] = useState("General");
   const [city, setCity] = useState("");
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
-    [],
-  );
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -73,7 +242,6 @@ export default function PasteJEEResponse() {
 
       if (data) {
         const calculated = data.map((entry) => {
-          // JEE Main scoring: +4 for correct, -1 for wrong
           const physicsScore =
             entry.physics_correct * 4 - entry.physics_wrong * 1;
           const chemistryScore =
@@ -102,12 +270,12 @@ export default function PasteJEEResponse() {
     }
   };
 
-  // Parse JEE response from NTA portal
+  // --- CORE PARSING LOGIC ---
   const parseAndCalculate = (htmlString: string): ParseResult => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, "text/html");
 
-    // Extract Candidate Details
+    // 1. Extract Candidate Details
     let candidateName = "Candidate";
     const infoTables = doc.querySelectorAll(
       ".main-info-pnl table tr, .candidate-info table tr",
@@ -119,10 +287,10 @@ export default function PasteJEEResponse() {
       }
     });
 
-    // Initialize sections
+    // 2. Initialize sections (25 questions per section = 75 total)
     const sections: SectionData[] = JEE_SECTIONS.map((name) => ({
       name,
-      total: 30, // JEE Main has 30 questions per section (20 compulsory + 10 optional, attempt any 5)
+      total: 25, 
       attempted: 0,
       correct: 0,
       wrong: 0,
@@ -130,88 +298,145 @@ export default function PasteJEEResponse() {
       score: 0,
     }));
 
-    // Process each section
-    const sectionContainers = doc.querySelectorAll(
-      ".section-cntnr, .subject-section",
-    );
+    // 3. Scan and Extract Questions
+    const questionPanels = doc.querySelectorAll('.question-pnl');
+    const allQuestions: Array<{
+      id: string;
+      type: string;
+      section: string;
+      userResponse: string | null;
+      status: string;
+      sectionIndex: number;
+    }> = [];
 
-    sectionContainers.forEach((container: Element, idx: number) => {
-      if (idx >= 3) return; // Only 3 sections in JEE
+    let questionIndex = 0;
 
-      const sectionLbl = container.querySelector(".section-lbl, .subject-name");
-      let sectionName =
-        sectionLbl?.textContent?.replace("Section :", "").trim() ||
-        JEE_SECTIONS[idx];
+    questionPanels.forEach((panel) => {
+      // Get Table on Right (Metadata)
+      const menuTable = panel.querySelector('.menu-tbl');
+      if (!menuTable) return; 
 
-      // Find matching section
-      let secIdx = sections.findIndex((s) =>
-        sectionName.toLowerCase().includes(s.name.toLowerCase()),
-      );
-      if (secIdx === -1) secIdx = idx;
-
-      const questionPanels = container.querySelectorAll(
-        ".question-pnl, .question-row",
-      );
-
-      questionPanels.forEach((qPnl: Element) => {
-        const menuTbl = qPnl.querySelector(".menu-tbl, .answer-info");
-        if (!menuTbl) return;
-
-        let chosenOption: string | null = null;
-        let status = "";
-
-        const rows = menuTbl.querySelectorAll("tr");
-        rows.forEach((row: Element) => {
-          const cells = row.querySelectorAll("td");
-          if (cells.length >= 2) {
-            const label = cells[0].textContent?.trim() || "";
-            const val = cells[1].textContent?.trim() || "";
-
-            if (label.includes("Status")) status = val;
-            if (
-              label.includes("Chosen Option") ||
-              label.includes("Your Answer")
-            ) {
-              if (val !== "--" && val !== "Not Answered") chosenOption = val;
-            }
-          }
-        });
-
-        const isAttempted = chosenOption !== null;
-
-        // Extract Correct Answer
-        const rightAnsCell = qPnl.querySelector("td.rightAns, .correct-answer");
-        let correctOption: string | null = null;
-
-        if (rightAnsCell) {
-          const text = rightAnsCell.textContent?.trim() || "";
-          const match = text.match(/^([A-D])\./);
-          if (match) {
-            correctOption = match[1];
-          } else if (text.length > 0) {
-            correctOption = text.charAt(0);
-          }
-        }
-
-        // Calculate
-        if (!isAttempted) {
-          sections[secIdx].unattempted++;
-        } else {
-          sections[secIdx].attempted++;
-          if (chosenOption === correctOption) {
-            sections[secIdx].correct++;
-          } else {
-            sections[secIdx].wrong++;
-          }
+      const metaData: Record<string, string> = {};
+      const rows = menuTable.querySelectorAll('tr');
+      rows.forEach((row: Element) => {
+        const cols = row.querySelectorAll('td');
+        if (cols.length >= 2) {
+          const key = cols[0].textContent?.trim().replace(':', '').trim() || '';
+          const val = cols[1].textContent?.trim() || '';
+          metaData[key] = val;
         }
       });
 
-      // JEE Main scoring: +4 for correct, -1 for wrong
-      sections[secIdx].score =
-        sections[secIdx].correct * 4 - sections[secIdx].wrong * 1;
+      const qType = metaData['Question Type'];
+      const qId = metaData['Question ID'];
+      const status = metaData['Status']; // 'Answered', 'Not Answered', 'Marked For Review'
+
+      let userResponse: string | null = null;
+
+      // Logic for MCQ
+      if (qType === 'MCQ') {
+        const chosenOptionIdx = metaData['Chosen Option']; // e.g., "2"
+
+        if (status === 'Answered' || status === 'Marked For Review') {
+          // If user chose an option, map "2" to the specific Option ID found in the table
+          if (chosenOptionIdx && chosenOptionIdx !== '--') {
+            const optionKey = `Option ${chosenOptionIdx} ID`; // e.g. "Option 2 ID"
+            if (metaData[optionKey]) {
+              userResponse = metaData[optionKey]; // This is the ID we compare with Key
+            }
+          }
+        }
+      }
+      // Logic for SA (Numerical)
+      else if (qType === 'SA') {
+        // For SA, the answer is usually on the LEFT side or bottom
+        const allTds = panel.querySelectorAll('td');
+        let givenAns: string | null = null;
+
+        // Brute force search for "Given Answer :" cell
+        for (let i = 0; i < allTds.length; i++) {
+          const tdText = allTds[i].textContent || '';
+          if (tdText.includes('Given Answer :') || tdText.includes('Given Answer')) {
+            // The answer is usually in the NEXT sibling TD
+            const sibling = allTds[i].nextElementSibling;
+            if (sibling) {
+              givenAns = sibling.textContent?.trim() || null;
+            }
+            break;
+          }
+        }
+
+        if (givenAns && givenAns !== '--' && givenAns !== 'Not Answered') {
+          userResponse = givenAns;
+        }
+      }
+
+      // Determine section based on question index (Specific for 75 Question Papers)
+      // 0-24: Mathematics
+      // 25-49: Physics
+      // 50-74: Chemistry
+      let sectionName = "Mathematics";
+      let sectionIndex = 0;
+      
+      if (questionIndex < 25) {
+        sectionName = "Mathematics";
+        sectionIndex = 0;
+      } else if (questionIndex < 50) {
+        sectionName = "Physics";
+        sectionIndex = 1;
+      } else {
+        sectionName = "Chemistry";
+        sectionIndex = 2;
+      }
+
+      allQuestions.push({
+        id: qId,
+        type: qType,
+        section: sectionName,
+        userResponse: userResponse,
+        status: status,
+        sectionIndex: sectionIndex
+      });
+
+      questionIndex++;
     });
 
-    // Calculate totals
+    // 4. Calculate scores using the answer key
+    allQuestions.forEach((q) => {
+      const correctAns = CORRECT_ANSWER_KEY[q.id];
+      const secIdx = q.sectionIndex;
+
+      // Safety check to ensure we don't overflow sections if more questions exist
+      if (!sections[secIdx]) return;
+
+      if (q.userResponse) {
+        sections[secIdx].attempted++;
+        
+        // Comparison logic:
+        // For MCQ, both are strings. For SA, correctAns might be a number in the key.
+        const isCorrect = String(q.userResponse) === String(correctAns);
+
+        if (correctAns !== undefined && isCorrect) {
+          // Correct answer
+          sections[secIdx].correct++;
+          sections[secIdx].score += MARKS_CORRECT;
+        } else if (correctAns !== undefined) {
+          // Wrong answer (only if we have the answer key)
+          sections[secIdx].wrong++;
+          sections[secIdx].score += MARKS_WRONG;
+        } else {
+          // No answer key available for this ID - treat as unattempted/bonus? 
+          // Currently treating as attempted but not graded (neutral)
+          sections[secIdx].attempted--;
+          sections[secIdx].unattempted++;
+        }
+      } else {
+        // Not attempted
+        sections[secIdx].unattempted++;
+      }
+    });
+
+    // 5. Calculate totals
     let totalCorrect = 0;
     let totalWrong = 0;
     let totalUnattempted = 0;
@@ -224,7 +449,8 @@ export default function PasteJEEResponse() {
       totalScore += section.score;
     });
 
-    const maxScore = 90 * 4; // 90 questions × 4 marks = 360
+    // Max Score: 75 questions * 4 marks = 300
+    const maxScore = 300; 
 
     return {
       candidateName,
@@ -237,6 +463,7 @@ export default function PasteJEEResponse() {
     };
   };
 
+  // --- NTA FETCHING LOGIC ---
   const fetchNTAContent = async (url: string) => {
     try {
       const response = await fetch(url, {
@@ -264,8 +491,10 @@ export default function PasteJEEResponse() {
 
   const processContent = (content: string) => {
     const result = parseAndCalculate(content);
-    if (!result.sections.length) {
-      throw new Error("No valid questions found");
+    // Flexible validation: ensure we found at least some questions
+    if (!result.sections.some(s => s.attempted > 0 || s.unattempted > 0)) {
+       // It's possible to have 0 attempted, but we should have found unattempted ones.
+       if(result.totalUnattempted === 0) throw new Error("No valid questions found");
     }
     return result;
   };
@@ -304,7 +533,7 @@ export default function PasteJEEResponse() {
       }
 
       let calculatedResults: ParseResult;
-      let cdnLinkToSave = ""; 
+      let cdnLinkToSave = "";
 
       if (/^https?:\/\//i.test(input) || /nta\.ac\.in/i.test(input)) {
         setError("🔄 Fetching and processing...");
@@ -332,14 +561,14 @@ export default function PasteJEEResponse() {
       setError("💾 Saving results...");
 
       // Map section data to database columns
+      const mathematicsSection = calculatedResults.sections.find(
+        (s) => s.name === "Mathematics",
+      );
       const physicsSection = calculatedResults.sections.find(
         (s) => s.name === "Physics",
       );
       const chemistrySection = calculatedResults.sections.find(
         (s) => s.name === "Chemistry",
-      );
-      const mathematicsSection = calculatedResults.sections.find(
-        (s) => s.name === "Mathematics",
       );
 
       const dataToSave = {
@@ -531,7 +760,7 @@ export default function PasteJEEResponse() {
                   {loading ? "Processing..." : "Calculate & Save Score →"}
                 </button>
 
-                {/* Step-by-Step Guide Section - Moved here */}
+                {/* Step-by-Step Guide Section */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-xl mt-6">
                   <h4 className="text-white font-semibold text-lg mb-3">
                     📋 Step-by-Step Guide: How to Calculate Your JEE Main Percentile
@@ -714,7 +943,7 @@ export default function PasteJEEResponse() {
             <JEEScoreGraph />
           </div>
 
-          {/* Detailed Information Section - Moved to the end */}
+          {/* Detailed Information Section */}
           <div className="mt-8">
             <div
               className="rounded-2xl p-6 shadow-xl"
