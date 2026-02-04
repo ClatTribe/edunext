@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     description: 'Calculate your JEE 2026 scores and percentile by pasting your Digialm response. Get section-wise analysis and admission predictions for IITs and other top engineering colleges.',
   },
   alternates: {
-    canonical: 'https://www.getedunext.com/jee-score-calculator-2026',
+    canonical: 'https://www.getedunext.com/jee-tool',
   },
 };
 
@@ -28,7 +28,7 @@ export default function Page() {
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.8',
-      ratingCount: '60225',
+      ratingCount: '124450',
     },
     offers: {
       '@type': 'Offer',
