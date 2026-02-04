@@ -903,22 +903,69 @@ export default function PasteJEEResponse() {
       <div className="min-h-screen" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-7xl mx-auto px-6 pt-24 md:pt-8 pb-12">
           <div className="text-center space-y-2 sm:space-y-3 mb-6">
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold uppercase tracking-widest"
-              style={{ color: accentColor }}
-            >
-              <span
-                className="w-2 h-2 rounded-full animate-pulse"
-                style={{ backgroundColor: accentColor }}
-              ></span>
-              JEE Main 2026 Score Calculator
-            </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white">
-              Calculate your{" "}
-              <span style={{ color: accentColor }}>JEE Main score</span>{" "}
-              instantly
-            </h1>
-          </div>
+  <div
+    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold uppercase tracking-widest"
+    style={{ color: accentColor }}
+  >
+    <span
+      className="w-2 h-2 rounded-full animate-pulse"
+      style={{ backgroundColor: accentColor }}
+    ></span>
+    JEE Main 2026 Score Calculator
+  </div>
+  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white">
+    Calculate your{" "}
+    <span style={{ color: accentColor }}>JEE Main score</span>{" "}
+    instantly
+  </h1>
+  
+  {/* Disclaimer Marquee Section */}
+  <div className="mt-6 relative overflow-hidden">
+    <div
+      className="flex items-center gap-3 px-5 py-3 rounded-xl border-2"
+      style={{
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderColor: '#EF4444',
+      }}
+    >
+      <div className="flex-shrink-0 flex items-center gap-2">
+        <span
+          className="w-3 h-3 rounded-full animate-pulse"
+          style={{ backgroundColor: '#EF4444' }}
+        ></span>
+        <p className="text-sm font-bold text-red-400 uppercase tracking-wide whitespace-nowrap">
+          ⚠️ Disclaimer:
+        </p>
+      </div>
+      
+      <div className="flex-1 overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap text-sm text-white font-medium">
+          Answer keys for the following sessions are currently available: Jan 21: Shift 1 • Jan 22: Shift 2 • Jan 23: Shifts 1 & 2 • Jan 24: Shift 1 • Jan 28: Shift 2
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style jsx>{`
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-marquee {
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+  }
+  
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+`}</style>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
