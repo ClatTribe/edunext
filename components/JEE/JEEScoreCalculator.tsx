@@ -1450,10 +1450,7 @@ export default function PasteJEEResponse() {
 
             <div className="lg:col-span-1">
               <div className="lg:sticky lg:top-8">
-                <Leaderboard
-                  data={leaderboardData}
-                  currentUserScore={results ? results.totalScore : undefined}
-                />
+                <Leaderboard/>
               </div>
             </div>
           </div>
