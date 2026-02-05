@@ -21,31 +21,55 @@ export default function JEEScoreGraph() {
 
   useEffect(() => {
     fetchScoreData();
+    // No interval - only fetches on page load/refresh
   }, []);
 
   const fetchScoreData = async () => {
     try {
       setLoading(true);
+      setError("");
       
-      // Fetch only the total_score column - fetch ALL records (override 1000 limit)
-      const { data, error, count } = await supabase
-        .from("jee_results")
-        .select("total_score", { count: "exact" })
-        .range(0, 9999); // Fetch up to 10,000 records (increase if needed)
+      let allData: any[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      let hasMore = true;
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+      console.log("🔄 Fetching all JEE results data...");
+
+      // Fetch ALL data in batches
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from("jee_results")
+          .select("total_score")
+          .range(from, from + batchSize - 1);
+
+        if (error) {
+          console.error("❌ Supabase error:", error);
+          throw error;
+        }
+
+        if (!data || data.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        allData = [...allData, ...data];
+        console.log(`📦 Batch fetched: ${data.length} records | Total: ${allData.length}`);
+
+        // If we got less than batchSize, we've reached the end
+        if (data.length < batchSize) {
+          hasMore = false;
+          console.log(`✅ Completed! Total records: ${allData.length}`);
+        } else {
+          from += batchSize;
+        }
       }
 
-      if (!data || data.length === 0) {
-        setError("No data available");
+      if (allData.length === 0) {
+        setError("No data available in the database");
         setLoading(false);
         return;
       }
-
-      console.log("Fetched records:", data.length);
-      console.log("Total count from Supabase:", count);
 
       // Initialize score ranges
       const scoreRanges = {
@@ -58,7 +82,7 @@ export default function JEEScoreGraph() {
       };
 
       // Categorize students into score ranges
-      data.forEach((entry) => {
+      allData.forEach((entry) => {
         const score = entry.total_score;
 
         if (score >= 0 && score < 50) scoreRanges["0-50"]++;
@@ -79,12 +103,14 @@ export default function JEEScoreGraph() {
         { range: "250-300", students: scoreRanges["250-300"] },
       ];
 
+      console.log("📊 Distribution:", scoreRanges);
+
       setGraphData(formattedData);
-      setTotalStudents(data.length);
+      setTotalStudents(allData.length);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching score data:", err);
-      setError("Failed to load data");
+      console.error("💥 Error fetching score data:", err);
+      setError("Failed to load data from database");
       setLoading(false);
     }
   };
@@ -98,7 +124,7 @@ export default function JEEScoreGraph() {
       return (
         <div className="p-4 rounded-lg shadow-lg" style={{ backgroundColor: secondaryBg, border: `1px solid ${accentColor}` }}>
           <p className="text-white font-semibold mb-1">Score Range: {payload[0].payload.range}</p>
-          <p style={{ color: accentColor }} className="font-bold">Students: {payload[0].value}</p>
+          <p style={{ color: accentColor }} className="font-bold">Students: {payload[0].value.toLocaleString()}</p>
           <p className="text-slate-400 text-sm">{percentage}% of total</p>
         </div>
       );
@@ -110,8 +136,9 @@ export default function JEEScoreGraph() {
     return (
       <div className="rounded-2xl p-8 text-center" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
         <div className="animate-pulse">
-          <div className="h-8 bg-slate-700 rounded w-48 mx-auto mb-4"></div>
-          <div className="h-64 bg-slate-700 rounded"></div>
+          <div className="h-8 bg-slate-700 rounded w-64 mx-auto mb-4"></div>
+          <div className="h-64 bg-slate-700 rounded mb-4"></div>
+          <p className="text-slate-400 text-sm">Loading all student data...</p>
         </div>
       </div>
     );
@@ -129,9 +156,9 @@ export default function JEEScoreGraph() {
     <div className="rounded-2xl p-6 shadow-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white mb-2">📊 JEE Main Score Distribution</h2>
-        {/* <p className="text-slate-400 text-sm">
+        <p className="text-slate-400 text-sm">
           Total Students: <span className="text-white font-semibold">{totalStudents.toLocaleString()}</span>
-        </p> */}
+        </p>
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
@@ -167,41 +194,25 @@ export default function JEEScoreGraph() {
       </ResponsiveContainer>
 
       <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">250-300 marks</p>
-          <p className="text-white font-bold">Excellent</p>
-          <p className="text-xs text-green-400">~99.5+ %ile</p>
-        </div>
-        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">200-250 marks</p>
-          <p className="text-white font-bold">Very Good</p>
-          <p className="text-xs text-green-400">~98+ %ile</p>
-        </div>
-        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">150-200 marks</p>
-          <p className="text-white font-bold">Good</p>
-          <p className="text-xs text-blue-400">~90+ %ile</p>
-        </div>
-        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">100-150 marks</p>
-          <p className="text-white font-bold">Average</p>
-          <p className="text-xs text-yellow-400">~70+ %ile</p>
-        </div>
-        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">50-100 marks</p>
-          <p className="text-white font-bold">Below Avg</p>
-          <p className="text-xs text-orange-400">~40+ %ile</p>
-        </div>
-        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">0-50 marks</p>
-          <p className="text-white font-bold">Needs Work</p>
-          <p className="text-xs text-red-400">~10+ %ile</p>
-        </div>
+        {[
+          { range: "250-300 marks", label: "Excellent", color: "green-400", percentile: "~99.5+ %ile" },
+          { range: "200-250 marks", label: "Very Good", color: "green-400", percentile: "~98+ %ile" },
+          { range: "150-200 marks", label: "Good", color: "blue-400", percentile: "~90+ %ile" },
+          { range: "100-150 marks", label: "Average", color: "yellow-400", percentile: "~70+ %ile" },
+          { range: "50-100 marks", label: "Below Avg", color: "orange-400", percentile: "~40+ %ile" },
+          { range: "0-50 marks", label: "Needs Work", color: "red-400", percentile: "~10+ %ile" },
+        ].map((item, idx) => (
+          <div key={idx} className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
+            <p className="text-slate-400 text-xs mb-1">{item.range}</p>
+            <p className="text-white font-bold">{item.label}</p>
+            <p className={`text-xs text-${item.color}`}>{item.percentile}</p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
         <p className="text-blue-400 text-xs">
-          ℹ️ Note: Hover over bars to see exact student counts and percentages. Percentile estimates are approximate based on previous year trends.
+          ℹ️ Refresh the page to see the latest data. Percentile estimates are approximate based on previous year trends.
         </p>
       </div>
     </div>
