@@ -5,20 +5,19 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { supabase } from "../../lib/supabase";
 
 const accentColor = "#F59E0B";
-const primaryBg = "#050818";
 const secondaryBg = "#0F172B";
 const borderColor = "rgba(245, 158, 11, 0.15)";
 
 interface GraphData {
   range: string;
   students: number;
-  displayValue: number;
 }
 
 export default function JEEScoreGraph() {
   const [graphData, setGraphData] = useState<GraphData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [totalStudents, setTotalStudents] = useState(0);
 
   useEffect(() => {
     fetchScoreData();
@@ -28,11 +27,16 @@ export default function JEEScoreGraph() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // Fetch only the total_score column - fetch ALL records (override 1000 limit)
+      const { data, error, count } = await supabase
         .from("jee_results")
-        .select("physics_correct, physics_wrong, chemistry_correct, chemistry_wrong, mathematics_correct, mathematics_wrong");
+        .select("total_score", { count: "exact" })
+        .range(0, 9999); // Fetch up to 10,000 records (increase if needed)
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
 
       if (!data || data.length === 0) {
         setError("No data available");
@@ -40,52 +44,43 @@ export default function JEEScoreGraph() {
         return;
       }
 
-      // Calculate scores and categorize
+      console.log("Fetched records:", data.length);
+      console.log("Total count from Supabase:", count);
+
+      // Initialize score ranges
       const scoreRanges = {
-        "0-40": 0,
-        "40-80": 0,
-        "80-120": 0,
-        "120-160": 0,
-        "160-200": 0,
-        "200-240": 0,
-        "240-280": 0,
-        "280+": 0,
+        "0-50": 0,
+        "50-100": 0,
+        "100-150": 0,
+        "150-200": 0,
+        "200-250": 0,
+        "250-300": 0,
       };
 
+      // Categorize students into score ranges
       data.forEach((entry) => {
-        // JEE Main scoring: +4 for correct, -1 for wrong
-        const physicsScore = (entry.physics_correct * 4) - (entry.physics_wrong * 1);
-        const chemistryScore = (entry.chemistry_correct * 4) - (entry.chemistry_wrong * 1);
-        const mathematicsScore = (entry.mathematics_correct * 4) - (entry.mathematics_wrong * 1);
-        
-        // Total score
-        const totalScore = physicsScore + chemistryScore + mathematicsScore;
+        const score = entry.total_score;
 
-        // Categorize into ranges
-        if (totalScore >= 0 && totalScore < 40) scoreRanges["0-40"]++;
-        else if (totalScore >= 40 && totalScore < 80) scoreRanges["40-80"]++;
-        else if (totalScore >= 80 && totalScore < 120) scoreRanges["80-120"]++;
-        else if (totalScore >= 120 && totalScore < 160) scoreRanges["120-160"]++;
-        else if (totalScore >= 160 && totalScore < 200) scoreRanges["160-200"]++;
-        else if (totalScore >= 200 && totalScore < 240) scoreRanges["200-240"]++;
-        else if (totalScore >= 240 && totalScore < 280) scoreRanges["240-280"]++;
-        else if (totalScore >= 280) scoreRanges["280+"]++;
+        if (score >= 0 && score < 50) scoreRanges["0-50"]++;
+        else if (score >= 50 && score < 100) scoreRanges["50-100"]++;
+        else if (score >= 100 && score < 150) scoreRanges["100-150"]++;
+        else if (score >= 150 && score < 200) scoreRanges["150-200"]++;
+        else if (score >= 200 && score < 250) scoreRanges["200-250"]++;
+        else if (score >= 250 && score <= 300) scoreRanges["250-300"]++;
       });
 
-      // Convert to graph data format with x3 multiplication for better visualization
-      // Ensure all ranges appear even if they have 0 students
+      // Convert to graph data format
       const formattedData: GraphData[] = [
-        { range: "0-40", students: scoreRanges["0-40"], displayValue: scoreRanges["0-40"] * 3 },
-        { range: "40-80", students: scoreRanges["40-80"], displayValue: scoreRanges["40-80"] * 3 },
-        { range: "80-120", students: scoreRanges["80-120"], displayValue: scoreRanges["80-120"] * 3 },
-        { range: "120-160", students: scoreRanges["120-160"], displayValue: scoreRanges["120-160"] * 3 },
-        { range: "160-200", students: scoreRanges["160-200"], displayValue: scoreRanges["160-200"] * 3 },
-        { range: "200-240", students: scoreRanges["200-240"], displayValue: scoreRanges["200-240"] * 3 },
-        { range: "240-280", students: scoreRanges["240-280"], displayValue: scoreRanges["240-280"] * 3 },
-        { range: "280+", students: scoreRanges["280+"], displayValue: scoreRanges["280+"] * 3 },
+        { range: "0-50", students: scoreRanges["0-50"] },
+        { range: "50-100", students: scoreRanges["50-100"] },
+        { range: "100-150", students: scoreRanges["100-150"] },
+        { range: "150-200", students: scoreRanges["150-200"] },
+        { range: "200-250", students: scoreRanges["200-250"] },
+        { range: "250-300", students: scoreRanges["250-300"] },
       ];
 
       setGraphData(formattedData);
+      setTotalStudents(data.length);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching score data:", err);
@@ -96,10 +91,15 @@ export default function JEEScoreGraph() {
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const percentage = totalStudents > 0 
+        ? ((payload[0].value / totalStudents) * 100).toFixed(1)
+        : "0";
+      
       return (
         <div className="p-4 rounded-lg shadow-lg" style={{ backgroundColor: secondaryBg, border: `1px solid ${accentColor}` }}>
           <p className="text-white font-semibold mb-1">Score Range: {payload[0].payload.range}</p>
           <p style={{ color: accentColor }} className="font-bold">Students: {payload[0].value}</p>
+          <p className="text-slate-400 text-sm">{percentage}% of total</p>
         </div>
       );
     }
@@ -129,9 +129,9 @@ export default function JEEScoreGraph() {
     <div className="rounded-2xl p-6 shadow-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white mb-2">📊 JEE Main Score Distribution</h2>
-        <p className="text-slate-400 text-sm">
-          Total entries: {graphData.reduce((sum, item) => sum + item.students, 0)}
-        </p>
+        {/* <p className="text-slate-400 text-sm">
+          Total Students: <span className="text-white font-semibold">{totalStudents.toLocaleString()}</span>
+        </p> */}
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
@@ -140,17 +140,16 @@ export default function JEEScoreGraph() {
           <XAxis 
             dataKey="range" 
             stroke="#94a3b8"
-            tick={{ fill: '#94a3b8', fontSize: 11 }}
+            tick={{ fill: '#94a3b8', fontSize: 12 }}
             label={{ value: 'Score Range (out of 300)', position: 'insideBottom', offset: -5, fill: '#94a3b8' }}
             interval={0}
-            angle={-15}
-            textAnchor="end"
             height={60}
           />
           <YAxis 
             stroke="#94a3b8"
             tick={{ fill: '#94a3b8', fontSize: 12 }}
             label={{ value: 'Number of Students', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
+            allowDecimals={false}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(245, 158, 11, 0.1)' }} />
           <Legend 
@@ -159,7 +158,7 @@ export default function JEEScoreGraph() {
             formatter={() => 'Students'}
           />
           <Bar 
-            dataKey="displayValue" 
+            dataKey="students" 
             fill={accentColor}
             radius={[8, 8, 0, 0]}
             name="Students"
@@ -167,32 +166,42 @@ export default function JEEScoreGraph() {
         </BarChart>
       </ResponsiveContainer>
 
-      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">280+ marks</p>
-          <p className="text-white font-bold">Top 0.1%</p>
-          <p className="text-xs text-green-400">~99.9 %ile</p>
+          <p className="text-slate-400 text-xs mb-1">250-300 marks</p>
+          <p className="text-white font-bold">Excellent</p>
+          <p className="text-xs text-green-400">~99.5+ %ile</p>
         </div>
         <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">240-280 marks</p>
-          <p className="text-white font-bold">Top 1%</p>
-          <p className="text-xs text-green-400">~99+ %ile</p>
+          <p className="text-slate-400 text-xs mb-1">200-250 marks</p>
+          <p className="text-white font-bold">Very Good</p>
+          <p className="text-xs text-green-400">~98+ %ile</p>
         </div>
         <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">200-240 marks</p>
-          <p className="text-white font-bold">Top 5%</p>
-          <p className="text-xs text-blue-400">~95+ %ile</p>
+          <p className="text-slate-400 text-xs mb-1">150-200 marks</p>
+          <p className="text-white font-bold">Good</p>
+          <p className="text-xs text-blue-400">~90+ %ile</p>
         </div>
         <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
-          <p className="text-slate-400 text-xs mb-1">160-200 marks</p>
-          <p className="text-white font-bold">Top 15%</p>
-          <p className="text-xs text-blue-400">~85+ %ile</p>
+          <p className="text-slate-400 text-xs mb-1">100-150 marks</p>
+          <p className="text-white font-bold">Average</p>
+          <p className="text-xs text-yellow-400">~70+ %ile</p>
+        </div>
+        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
+          <p className="text-slate-400 text-xs mb-1">50-100 marks</p>
+          <p className="text-white font-bold">Below Avg</p>
+          <p className="text-xs text-orange-400">~40+ %ile</p>
+        </div>
+        <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
+          <p className="text-slate-400 text-xs mb-1">0-50 marks</p>
+          <p className="text-white font-bold">Needs Work</p>
+          <p className="text-xs text-red-400">~10+ %ile</p>
         </div>
       </div>
 
       <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
         <p className="text-blue-400 text-xs">
-          ℹ️ Note: Hover over bars to see detailed student distribution. Percentile estimates are approximate and based on previous year trends.
+          ℹ️ Note: Hover over bars to see exact student counts and percentages. Percentile estimates are approximate based on previous year trends.
         </p>
       </div>
     </div>
