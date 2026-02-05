@@ -150,14 +150,18 @@ const CollegeMicrositesPage: React.FC = () => {
   // Fetch colleges when search or filters change
   useEffect(() => {
     if (viewMode === "all") {
+      const timer = setTimeout(() => {
       fetchColleges()
-    }
+    }, 300)
+    return () => clearTimeout(timer)
+  }
   }, [viewMode, searchQuery, manualFilters, currentPage])
 
   const fetchColleges = async () => {
     try {
       setLoading(true)
       setError(null)
+      // console.log('📊 Fetching with:', { searchQuery, manualFilters })
 
       // Check if budget filter is active
       const budgetRanges = [...manualFilters.budgets]
@@ -233,6 +237,8 @@ const CollegeMicrositesPage: React.FC = () => {
 
       // Apply filters with AND logic between different types
       // Within each type, use OR logic (e.g., Delhi OR Mumbai)
+      const hasAnyFilters = nameConditions.length > 0 || stateConditions.length > 0 || 
+                            examConditions.length > 0 || courseConditions.length > 0
       if (nameConditions.length > 0) {
         query = query.or(nameConditions.join(','))
       }
@@ -338,10 +344,13 @@ const CollegeMicrositesPage: React.FC = () => {
     window.history.replaceState({}, '', newUrl)
   }, [])
 
-  const handleManualFilterChange = useCallback((filters: ManualFilters) => {
-    setManualFilters(filters)
-    setCurrentPage(0)
-  }, [])
+const handleManualFilterChange = useCallback((filters: ManualFilters) => {
+  setManualFilters(prev => {
+    // Force new object reference to trigger useEffect
+    return JSON.parse(JSON.stringify(filters))
+  })
+  setCurrentPage(0)
+}, [])
 
   const handleRecommendedCoursesChange = useCallback((recommendedCourses: College[]) => {
     setDisplayedColleges(recommendedCourses)

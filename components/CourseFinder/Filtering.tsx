@@ -143,7 +143,7 @@ const FilterComponent: React.FC<FilterProps> = ({
       courses: selectedCourses
     }
     onManualFilterChange(filters)
-  }, [selectedStates, selectedCity, selectedCollegeName, selectedBudgets, selectedExams, selectedCourses, onManualFilterChange])
+  }, [selectedStates, selectedCity, selectedCollegeName, selectedBudgets, selectedExams, selectedCourses])
 
   const handleSearch = () => {
     onSearchChange(searchQuery)
@@ -192,6 +192,7 @@ const FilterComponent: React.FC<FilterProps> = ({
     setSelectedExams([])
     setSelectedCourses([])
     onSearchChange("")
+    window.history.replaceState({}, '', window.location.pathname)
   }
 
   const clearFilter = (filterName: string) => {
@@ -220,6 +221,7 @@ const FilterComponent: React.FC<FilterProps> = ({
       case "search":
         setSearchQuery("")
         onSearchChange("")
+        window.history.replaceState({}, '', window.location.pathname)
         break
     }
   }
