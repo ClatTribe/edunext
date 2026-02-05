@@ -18,17 +18,10 @@ export default function JEEScoreGraph() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [totalStudents, setTotalStudents] = useState(0);
-  const [fetchProgress, setFetchProgress] = useState(0);
 
   useEffect(() => {
     fetchScoreData();
-    
-    // Optional: Auto-refresh every 30 seconds for real-time updates
-    const interval = setInterval(() => {
-      fetchScoreData();
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
+    // No interval - only fetches on page load/refresh
   }, []);
 
   const fetchScoreData = async () => {
@@ -38,17 +31,16 @@ export default function JEEScoreGraph() {
       
       let allData: any[] = [];
       let from = 0;
-      const batchSize = 1000; // Supabase default max per request
+      const batchSize = 1000;
       let hasMore = true;
-      let totalFetched = 0;
 
-      console.log("🔄 Starting to fetch all JEE results data...");
+      console.log("🔄 Fetching all JEE results data...");
 
-      // Fetch ALL data in batches - no limit
+      // Fetch ALL data in batches
       while (hasMore) {
-        const { data, error, count } = await supabase
+        const { data, error } = await supabase
           .from("jee_results")
-          .select("total_score", { count: "exact" })
+          .select("total_score")
           .range(from, from + batchSize - 1);
 
         if (error) {
@@ -62,19 +54,12 @@ export default function JEEScoreGraph() {
         }
 
         allData = [...allData, ...data];
-        totalFetched += data.length;
-        
-        // Update progress for user feedback
-        if (count) {
-          setFetchProgress(Math.round((totalFetched / count) * 100));
-        }
-
-        console.log(`📦 Fetched batch: ${data.length} records | Total so far: ${totalFetched}`);
+        console.log(`📦 Batch fetched: ${data.length} records | Total: ${allData.length}`);
 
         // If we got less than batchSize, we've reached the end
         if (data.length < batchSize) {
           hasMore = false;
-          console.log(`✅ Finished fetching! Total records: ${totalFetched}`);
+          console.log(`✅ Completed! Total records: ${allData.length}`);
         } else {
           from += batchSize;
         }
@@ -85,8 +70,6 @@ export default function JEEScoreGraph() {
         setLoading(false);
         return;
       }
-
-      console.log(`📊 Processing ${allData.length} student records...`);
 
       // Initialize score ranges
       const scoreRanges = {
@@ -120,11 +103,10 @@ export default function JEEScoreGraph() {
         { range: "250-300", students: scoreRanges["250-300"] },
       ];
 
-      console.log("📈 Distribution:", scoreRanges);
+      console.log("📊 Distribution:", scoreRanges);
 
       setGraphData(formattedData);
       setTotalStudents(allData.length);
-      setFetchProgress(100);
       setLoading(false);
     } catch (err) {
       console.error("💥 Error fetching score data:", err);
@@ -156,17 +138,7 @@ export default function JEEScoreGraph() {
         <div className="animate-pulse">
           <div className="h-8 bg-slate-700 rounded w-64 mx-auto mb-4"></div>
           <div className="h-64 bg-slate-700 rounded mb-4"></div>
-          {fetchProgress > 0 && (
-            <div className="mt-4">
-              <div className="w-full bg-slate-700 rounded-full h-2.5">
-                <div 
-                  className="h-2.5 rounded-full transition-all duration-300" 
-                  style={{ width: `${fetchProgress}%`, backgroundColor: accentColor }}
-                ></div>
-              </div>
-              <p className="text-slate-400 text-sm mt-2">Loading data... {fetchProgress}%</p>
-            </div>
-          )}
+          <p className="text-slate-400 text-sm">Loading all student data...</p>
         </div>
       </div>
     );
@@ -175,35 +147,18 @@ export default function JEEScoreGraph() {
   if (error) {
     return (
       <div className="rounded-2xl p-8 text-center" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-        <p className="text-red-400 mb-4">{error}</p>
-        <button 
-          onClick={fetchScoreData}
-          className="px-4 py-2 rounded-lg text-white"
-          style={{ backgroundColor: accentColor }}
-        >
-          Retry
-        </button>
+        <p className="text-red-400">{error}</p>
       </div>
     );
   }
 
   return (
     <div className="rounded-2xl p-6 shadow-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-      <div className="mb-6 flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-2">📊 JEE Main Score Distribution</h2>
-          <p className="text-slate-400 text-sm">
-            Total Students: <span className="text-white font-semibold">{totalStudents.toLocaleString()}</span>
-          </p>
-        </div>
-        <button 
-          onClick={fetchScoreData}
-          className="px-3 py-1.5 rounded-lg text-white text-sm hover:opacity-80 transition-opacity"
-          style={{ backgroundColor: accentColor }}
-          title="Refresh data"
-        >
-          🔄 Refresh
-        </button>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">📊 JEE Main Score Distribution</h2>
+        <p className="text-slate-400 text-sm">
+          Total Students: <span className="text-white font-semibold">{totalStudents.toLocaleString()}</span>
+        </p>
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
@@ -257,7 +212,7 @@ export default function JEEScoreGraph() {
 
       <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
         <p className="text-blue-400 text-xs">
-          ℹ️ Data automatically refreshes every 30 seconds. Click the refresh button for manual updates. Percentile estimates are approximate based on previous year trends.
+          ℹ️ Refresh the page to see the latest data. Percentile estimates are approximate based on previous year trends.
         </p>
       </div>
     </div>
