@@ -4,9 +4,9 @@
       "source": "/studio/:path*",
       "destination": "/studio"
     },
-    {
-      "source": "/jeestarterkit/:path*",
-      "destination": "/jeestarterkit/:path*"
+     {
+      "source": "/jeestarterkit/(.*)",
+      "destination": "/jeestarterkit/$1"
     }
   ]
 }
