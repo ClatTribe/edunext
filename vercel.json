@@ -5,8 +5,8 @@
       "destination": "/studio"
     },
      {
-      "source": "/JEEstarterkit/(.*)",
-      "destination": "/JEEstarterkit/$1"
+      "source": "/jeestarterkit/(.*)",
+      "destination": "/jeestarterkit/$1"
     }
   ]
 }
