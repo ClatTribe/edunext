@@ -1240,7 +1240,7 @@ export default function PasteJEEResponse() {
         <div className="animate-marquee whitespace-nowrap text-sm text-white font-medium">
   All Slot Results Are Available: Visit Our JEE Starter Kit for Session 2
   <a 
-    href="/JEEstarterkit" 
+    href="/jeestarterkit" 
     className="ml-2 text-xs px-2 py-1 rounded-md font-semibold hover:opacity-80 transition-opacity"
     style={{ backgroundColor: accentColor, color: '#000' }}
     onClick={(e) => e.stopPropagation()}
