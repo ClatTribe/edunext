@@ -61,57 +61,62 @@ export default function CutoffPage() {
           {cutoffData.map((cutoff: any, index: number) => (
             <div
               key={index}
-              className="group relative p-6 md:p-8 rounded-[2rem] border transition-all duration-300 shadow-xl overflow-hidden bg-[#0F172B]"
+              className="group relative p-6 md:p-8 rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B] hover:border-amber-500/50 hover:-translate-y-1.5"
               style={{ borderColor: borderColor }}
             >
+              {/* Dynamic Glow Overlay - Same as Courses */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
               {/* Table Header Area */}
               {cutoff.headers && cutoff.headers.length > 0 && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/5">
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]" style={{ borderColor: borderColor }}>
-                       <Target size={18} style={{ color: accentColor }} />
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center border bg-[#050818] transition-all duration-500 group-hover:scale-110" 
+                         style={{ borderColor: borderColor, color: accentColor }}>
+                       <Target className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-white uppercase">
+                      <h3 className="text-xl font-bold text-white uppercase group-hover:text-amber-400 transition-colors">
                         {cutoff.headers[0]}
                       </h3>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Score Analysis</p>
+                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Competitive Analysis</p>
                     </div>
                   </div>
-                  {cutoff.headers[1] && (
-                    <div className="px-4 py-1.5 rounded-lg border border-white/5 bg-white/5 self-start sm:self-center">
-                      <span className="text-[10px] font-bold text-slate-300 uppercase">
-                        {cutoff.headers[1]}
-                      </span>
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Rows Grid: Smart logic for Sidebar */}
+              {/* Rows Grid - Enhanced Hover to Match Courses */}
               {cutoff.rows && cutoff.rows.length > 0 && (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                <div className="relative z-10 grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {cutoff.rows.map((row: any[], rowIndex: number) => (
                     <div
                       key={rowIndex}
-                      className="flex items-center justify-between p-4 rounded-xl border bg-[#050818]/40 border-white/5 hover:border-amber-500/20 transition-all"
+                      className="group/row flex items-center justify-between p-5 rounded-2xl border bg-[#050818]/60 border-white/5 hover:border-amber-500/40 hover:bg-amber-500/[0.08] transition-all duration-300"
                     >
-                      <div className="flex items-center gap-2 max-w-[70%]">
-                        <ChevronRight size={14} className="text-amber-500 shrink-0" />
-                        <span className="text-slate-300 font-medium text-xs uppercase tracking-tight truncate">
+                      <div className="flex items-center gap-3 max-w-[70%]">
+                        <div className="w-2 h-2 rounded-full bg-amber-500/20 group-hover/row:bg-amber-500 transition-colors" />
+                        <span className="text-slate-300 font-bold text-xs uppercase tracking-tight truncate group-hover/row:text-white transition-colors">
                           {row[0]}
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-white font-black text-lg block">
+                        <span className="text-white font-black text-xl block tracking-tighter group-hover/row:text-amber-400 transition-colors">
                           {row[1]}
                         </span>
-                        <span className="text-[8px] font-bold text-slate-600 uppercase">Closing</span>
+                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest group-hover/row:text-amber-500/60 transition-colors">
+                          Closing Score
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+
+              {/* Decorative Corner Glow - Same as Courses */}
+              <div 
+                className="absolute -right-10 -bottom-10 w-32 h-32 blur-[60px] rounded-full opacity-0 group-hover:opacity-20 transition-all duration-700" 
+                style={{ backgroundColor: accentColor }}
+              ></div>
             </div>
           ))}
         </div>
