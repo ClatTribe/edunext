@@ -73,7 +73,7 @@ export default function PlacementPage() {
 
       {hasPlacementData ? (
         <div className="space-y-16">
-          {/* Stats Cards: Responsive Grid for Sidebar Area */}
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {[
               { label: 'Highest Package', val: highestPackage, icon: Award, color: accentColor },
@@ -82,17 +82,23 @@ export default function PlacementPage() {
             ].map((stat, i) => (
               <div 
                 key={i}
-                className="group relative p-6 rounded-[1.5rem] border transition-all duration-300 bg-[#0F172B]"
+                className="group relative p-6 rounded-[1.5rem] border transition-all duration-500 bg-[#0F172B] hover:-translate-y-1 overflow-hidden"
                 style={{ borderColor: borderColor }}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border bg-[#050818]" 
+                {/* Glow Effect */}
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
+                  style={{ background: `radial-gradient(circle at center, ${stat.color} 0%, transparent 70%)` }}
+                />
+
+                <div className="relative z-10 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border bg-[#050818] transition-all duration-500 group-hover:scale-110 group-hover:border-white/10" 
                     style={{ borderColor: 'rgba(255,255,255,0.05)', color: stat.color }}>
                     <stat.icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{stat.label}</p>
-                    <p className="text-xl font-black text-white">{stat.val}</p>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest transition-colors group-hover:text-slate-400">{stat.label}</p>
+                    <p className="text-xl font-black text-white group-hover:text-white transition-colors">{stat.val}</p>
                   </div>
                 </div>
               </div>
@@ -109,14 +115,13 @@ export default function PlacementPage() {
                 <div className="h-[1px] flex-1 bg-white/5"></div>
               </div>
               
-              {/* Flexible Recruiter Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                 {uniqueRecruiters.map((recruiter: string, i: number) => (
                   <div 
                     key={i}
-                    className="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-center text-center hover:bg-white/5 transition-colors"
+                    className="group p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-center text-center transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-lg"
                   >
-                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wide truncate">
+                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wide truncate group-hover:text-white transition-colors">
                       {recruiter}
                     </p>
                   </div>
