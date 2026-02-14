@@ -61,6 +61,23 @@ export default function MicrositeHero({
   ]
 
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  // Autoplay carousel - STOPS when video is playing
+  React.useEffect(() => {
+    if (mediaItems.length <= 1 || isPlaying) return
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % mediaItems.length)
+    }, 5000) // Change slide every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [mediaItems.length, isPlaying])
+
+  // Reset video playing state when slide changes
+  React.useEffect(() => {
+    setIsPlaying(false)
+  }, [currentSlide])
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % mediaItems.length)
@@ -68,6 +85,10 @@ export default function MicrositeHero({
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + mediaItems.length) % mediaItems.length)
+  }
+
+  const handleVideoClick = () => {
+    setIsPlaying(true)
   }
 
   // Extract YouTube video ID
@@ -96,8 +117,8 @@ export default function MicrositeHero({
       <div className="max-w-7xl mx-auto relative z-10 w-full">
         <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-center">
           
-          {/* Text Content Area */}
-          <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left order-2 md:order-1">
+          {/* Text Content Area - Order 1 on mobile (shows first), Order 1 on desktop */}
+          <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left order-1 md:order-1">
             
             <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4 md:mb-6">
               {location && (
@@ -160,9 +181,9 @@ export default function MicrositeHero({
             )}
           </div>
 
-          {/* Media Carousel Section */}
+          {/* Media Carousel Section - Order 2 on mobile (shows after name), Order 2 on desktop */}
           {mediaItems.length > 0 && (
-            <div className="w-full md:w-[45%] lg:w-[42%] shrink-0 order-1 md:order-2">
+            <div className="w-full md:w-[45%] lg:w-[42%] shrink-0 order-2 md:order-2">
               <div className="relative group">
                 {/* Glow Effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
@@ -178,22 +199,70 @@ export default function MicrositeHero({
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     ) : (
-                      <div className="w-full h-full">
+                      <div className="relative w-full h-full group/video">
                         {getYouTubeId(mediaItems[currentSlide].url) ? (
-                          <iframe
-                            className="w-full h-full"
-                            src={`https://www.youtube.com/embed/${getYouTubeId(mediaItems[currentSlide].url)}`}
-                            title="College Video"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
+                          <>
+                            {!isPlaying ? (
+                              <>
+                                {/* YouTube Thumbnail */}
+                                <img 
+                                  src={`https://img.youtube.com/vi/${getYouTubeId(mediaItems[currentSlide].url)}/maxresdefault.jpg`}
+                                  alt="Video thumbnail"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${getYouTubeId(mediaItems[currentSlide].url)}/hqdefault.jpg`
+                                  }}
+                                />
+                                {/* Play Button Overlay */}
+                                <div 
+                                  onClick={handleVideoClick}
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer group-hover/video:bg-black/30 transition-colors"
+                                >
+                                  <div className="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center shadow-2xl transform group-hover/video:scale-110 transition-transform">
+                                    <Play size={32} className="text-white ml-1" fill="white" />
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <iframe
+                                className="w-full h-full"
+                                src={`https://www.youtube.com/embed/${getYouTubeId(mediaItems[currentSlide].url)}?autoplay=1`}
+                                title="College Video"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            )}
+                          </>
                         ) : (
-                          <video 
-                            className="w-full h-full object-cover"
-                            controls
-                            src={mediaItems[currentSlide].url}
-                          />
+                          <>
+                            {!isPlaying ? (
+                              <>
+                                {/* Video Thumbnail/First Frame */}
+                                <video 
+                                  className="w-full h-full object-cover"
+                                  src={mediaItems[currentSlide].url}
+                                  preload="metadata"
+                                />
+                                {/* Play Button Overlay */}
+                                <div 
+                                  onClick={handleVideoClick}
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer group-hover/video:bg-black/30 transition-colors"
+                                >
+                                  <div className="w-20 h-20 rounded-full bg-amber-600 flex items-center justify-center shadow-2xl transform group-hover/video:scale-110 transition-transform">
+                                    <Play size={32} className="text-white ml-1" fill="white" />
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <video 
+                                className="w-full h-full object-cover"
+                                controls
+                                autoPlay
+                                src={mediaItems[currentSlide].url}
+                              />
+                            )}
+                          </>
                         )}
                       </div>
                     )}
@@ -247,6 +316,15 @@ export default function MicrositeHero({
                       {mediaItems[currentSlide].type === 'image' ? '📷 Photo' : '🎥 Video'}
                     </span>
                   </div>
+
+                  {/* Carousel Status Indicator - Shows when video is playing */}
+                  {isPlaying && mediaItems[currentSlide].type === 'video' && (
+                    <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-600/80 backdrop-blur-md border border-white/20 z-10 animate-pulse">
+                      <span className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+                        <Pause size={12} /> Paused
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
