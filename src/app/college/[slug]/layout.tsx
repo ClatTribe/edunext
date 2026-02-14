@@ -121,7 +121,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.02] border border-white/5 text-slate-400 hover:text-white hover:bg-white/[0.05] hover:border-amber-500/30 transition-all duration-300 group"
               >
                 <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1 text-amber-500" />
-                <span className="text-[11px] font-black uppercase tracking-widest">Exit to Discovery</span>
+                <span className="text-[11px] font-black uppercase tracking-widest">Back to Colleges</span>
               </Link>
             </div>
           </div>
