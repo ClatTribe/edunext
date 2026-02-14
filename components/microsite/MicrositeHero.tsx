@@ -1,7 +1,6 @@
 "use client"
-import React from 'react'
-import { MapPin, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import React, { useState } from 'react'
+import { MapPin, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
 
 interface MicrositeHeroProps {
   collegeName: string
@@ -10,7 +9,9 @@ interface MicrositeHeroProps {
   avgPackage?: string
   highestPackage?: string
   ranking?: string
-  image?: string
+  image?: string | string[]
+  video?: string | string[]
+  podcast?: string
 }
 
 const primaryBg = '#060818'
@@ -21,7 +22,9 @@ export default function MicrositeHero({
   fees,
   avgPackage,
   ranking,
-  image
+  image,
+  video,
+  podcast
 }: MicrositeHeroProps) {
   
   const details = [
@@ -33,12 +36,52 @@ export default function MicrositeHero({
     'Cutoff'
   ].filter(Boolean)
 
+  // Parse images (handle both single string and array)
+  const parseMedia = (media: string | string[] | undefined): string[] => {
+    if (!media) return []
+    if (Array.isArray(media)) return media
+    if (typeof media === 'string') {
+      try {
+        const parsed = JSON.parse(media)
+        return Array.isArray(parsed) ? parsed : [media]
+      } catch {
+        return [media]
+      }
+    }
+    return []
+  }
+
+  const images = parseMedia(image)
+  const videos = parseMedia(video)
+
+  // Combine images and videos into media items
+  const mediaItems = [
+    ...images.map(url => ({ type: 'image', url })),
+    ...videos.map(url => ({ type: 'video', url }))
+  ]
+
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % mediaItems.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + mediaItems.length) % mediaItems.length)
+  }
+
+  // Extract YouTube video ID
+  const getYouTubeId = (url: string) => {
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)
+    return match ? match[1] : null
+  }
+
   return (
     <div 
       className="relative overflow-hidden pt-6 pb-6 md:pt-12 md:pb-10 px-4 sm:px-8 md:px-12 flex items-center"
       style={{ backgroundColor: primaryBg }}
     >
-      {/* Background Pattern - Increased contrast slightly for depth */}
+      {/* Background Pattern */}
       <div 
         className="absolute inset-0 opacity-[0.08] pointer-events-none" 
         style={{ 
@@ -47,7 +90,7 @@ export default function MicrositeHero({
         }}
       ></div>
 
-      {/* Static Radial Glow for focus */}
+      {/* Static Radial Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_70%)] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10 w-full">
@@ -83,24 +126,127 @@ export default function MicrositeHero({
                 </span>
               </h1>
             </div>
+
+            {/* Podcast Section - Below title on mobile, inline on desktop */}
+            {podcast && (
+              <div className="w-full max-w-md mt-6">
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
+                  
+                  <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                        <Play size={18} className="text-white ml-0.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-purple-400">College Podcast</p>
+                        <p className="text-sm font-semibold text-slate-200">Listen & Learn</p>
+                      </div>
+                    </div>
+                    
+                    <audio 
+                      controls 
+                      className="w-full h-10 rounded-lg"
+                      style={{
+                        filter: 'invert(1) hue-rotate(180deg)',
+                      }}
+                    >
+                      <source src={podcast} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Image Section - Enhanced Hover/Styling */}
-          {image && (
+          {/* Media Carousel Section */}
+          {mediaItems.length > 0 && (
             <div className="w-full md:w-[45%] lg:w-[42%] shrink-0 order-1 md:order-2">
               <div className="relative group">
-                {/* Fixed Glow Effect behind image */}
+                {/* Glow Effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
                 
                 <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl">
-                  <img 
-                    src={image} 
-                    alt={collegeName}
-                    className="relative object-cover w-full aspect-[4/3] md:aspect-square lg:aspect-[4/3] transition-transform duration-700 ease-out group-hover:scale-105"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                  {/* Subtle overlay on hover to make the image "pop" */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                  {/* Media Container */}
+                  <div className="relative w-full aspect-[4/3] md:aspect-square lg:aspect-[4/3] bg-black/20">
+                    {mediaItems[currentSlide].type === 'image' ? (
+                      <img 
+                        src={mediaItems[currentSlide].url} 
+                        alt={`${collegeName} - Slide ${currentSlide + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full">
+                        {getYouTubeId(mediaItems[currentSlide].url) ? (
+                          <iframe
+                            className="w-full h-full"
+                            src={`https://www.youtube.com/embed/${getYouTubeId(mediaItems[currentSlide].url)}`}
+                            title="College Video"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video 
+                            className="w-full h-full object-cover"
+                            controls
+                            src={mediaItems[currentSlide].url}
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                  </div>
+
+                  {/* Navigation Arrows */}
+                  {mediaItems.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevSlide}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all duration-300 z-10"
+                        aria-label="Previous slide"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      
+                      <button
+                        onClick={nextSlide}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all duration-300 z-10"
+                        aria-label="Next slide"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Slide Indicators */}
+                  {mediaItems.length > 1 && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                      {mediaItems.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentSlide(index)}
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            index === currentSlide 
+                              ? 'bg-amber-500 w-8' 
+                              : 'bg-white/40 hover:bg-white/60'
+                          }`}
+                          aria-label={`Go to slide ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Media Type Badge */}
+                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 z-10">
+                    <span className="text-xs font-bold uppercase tracking-wider text-white">
+                      {mediaItems[currentSlide].type === 'image' ? '📷 Photo' : '🎥 Video'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
