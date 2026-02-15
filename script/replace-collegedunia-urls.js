@@ -159,7 +159,7 @@
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 
 // 🎯 ADD YOUR SPECIFIC COLLEGE IDs HERE
-const TARGET_COLLEGE_IDS = [14889, 14890, 14891];
+const TARGET_COLLEGE_IDS = [14893];
 
 // Recursive function to replace URLs in nested objects/arrays
 function replaceUrlsInObject(obj, targetUrl) {
