@@ -9,40 +9,42 @@ const borderColor = 'rgba(245, 158, 11, 0.15)'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Detect whether a cutoff block is multi-column (year-wise / category-wise comparison) */
 function isMultiColTable(cutoff: any): boolean {
   return cutoff.headers?.length > 2
 }
 
-/** Detect whether a cutoff block is a simple 2-col key/value table */
 function isSimpleTable(cutoff: any): boolean {
   return cutoff.headers?.length === 2
 }
 
-/** Try to infer a human-readable title for each table block */
-function inferTitle(cutoff: any, index: number): string {
-  if (!cutoff.headers || cutoff.headers.length === 0) return `Cutoff Table ${index + 1}`
-  const first = cutoff.headers[0]?.toLowerCase()
-  if (first === 'course' || first === 'courses') return 'Course-wise Cutoff'
-  if (first === 'category') return 'Category-wise Cutoff'
-  if (first === 'branch') return 'Branch-wise Cutoff'
-  if (first === 'criteria') return 'Admission Criteria'
-  return cutoff.headers[0] || `Cutoff Table ${index + 1}`
+/**
+ * Title priority:
+ * 1. cutoff.heading  (non-empty string)
+ * 2. fallback index label
+ */
+function getTitle(cutoff: any, index: number): string {
+  if (cutoff.heading && cutoff.heading.trim() !== '') return cutoff.heading.trim()
+  return `Cutoff Table ${index + 1}`
 }
 
-/** Detect trend for multi-col tables (compare col1 vs col2 numeric values) */
+/** Clean junk suffixes like "Compare" from cell values */
+function cleanCell(val: string): string {
+  return val?.toString().replace(/Compare$/i, '').trim() || '—'
+}
+
+/** Detect trend: lower rank = better, so if current < previous → improved (up) */
 function getTrend(val1: string, val2: string): 'up' | 'down' | 'same' | null {
   const n1 = parseFloat(val1?.toString().replace(/[^0-9.]/g, ''))
   const n2 = parseFloat(val2?.toString().replace(/[^0-9.]/g, ''))
   if (isNaN(n1) || isNaN(n2) || val2 === '-' || val1 === '-') return null
-  if (n1 < n2) return 'up'   // lower rank = better
+  if (n1 < n2) return 'up'
   if (n1 > n2) return 'down'
   return 'same'
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-/** Simple 2-column card-style layout (e.g. Category → Closing percentile) */
+/** Simple 2-column card-style layout */
 function SimpleTable({ cutoff }: { cutoff: any }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -55,15 +57,15 @@ function SimpleTable({ cutoff }: { cutoff: any }) {
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500/30 group-hover/row:bg-amber-400 transition-colors shrink-0" />
             <span className="text-slate-300 text-xs font-semibold uppercase tracking-wide truncate group-hover/row:text-white transition-colors">
-              {row[0]}
+              {cleanCell(row[0])}
             </span>
           </div>
           <div className="text-right shrink-0 ml-3">
             <span className="text-white font-black text-lg tracking-tighter group-hover/row:text-amber-400 transition-colors">
-              {row[1] || '—'}
+              {cleanCell(row[1])}
             </span>
             <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">
-              {cutoff.headers[1] || 'Cutoff'}
+              {cutoff.headers?.[1] || 'Cutoff'}
             </p>
           </div>
         </div>
@@ -72,13 +74,12 @@ function SimpleTable({ cutoff }: { cutoff: any }) {
   )
 }
 
-/** Multi-column full table (year-wise / multiple metrics) */
+/** Multi-column full table (year-wise / round-wise / multiple metrics) */
 function MultiColTable({ cutoff }: { cutoff: any }) {
   const headers: string[] = cutoff.headers || []
   const rows: string[][] = cutoff.rows || []
   const colCount = headers.length
 
-  // Highlight the first data column (most recent year typically)
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-white/5">
       <table className="w-full text-sm border-collapse min-w-[500px]">
@@ -87,9 +88,9 @@ function MultiColTable({ cutoff }: { cutoff: any }) {
             {headers.map((h, hi) => (
               <th
                 key={hi}
-                className={`px-4 py-3 text-left font-bold text-[10px] uppercase tracking-widest
+                className={`px-4 py-3 text-left font-bold text-[10px] uppercase tracking-widest whitespace-nowrap
                   ${hi === 0
-                    ? 'text-slate-400 bg-[#050818] sticky left-0 z-10 min-w-[140px]'
+                    ? 'text-slate-400 bg-[#050818] sticky left-0 z-10 min-w-[160px]'
                     : hi === 1
                     ? 'text-amber-400 bg-[#070d1e]'
                     : 'text-slate-500 bg-[#070d1e]'
@@ -120,15 +121,16 @@ function MultiColTable({ cutoff }: { cutoff: any }) {
                       }`}
                   >
                     <div className="flex items-center gap-1.5">
-                      {/* Trend indicator only on most-recent column */}
-                      {/* {ci === 1 && trend && (
+                      {ci === 1 && trend && (
                         <span className={`shrink-0 ${trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-red-400' : 'text-slate-500'}`}>
-                          {trend === 'up' ? <TrendingUp className="w-3 h-3" />
-                            : trend === 'down' ? <TrendingDown className="w-3 h-3" />
+                          {trend === 'up'
+                            ? <TrendingUp className="w-3 h-3" />
+                            : trend === 'down'
+                            ? <TrendingDown className="w-3 h-3" />
                             : <Minus className="w-3 h-3" />}
                         </span>
-                      )} */}
-                      <span>{cell || '—'}</span>
+                      )}
+                      <span>{cleanCell(cell)}</span>
                     </div>
                   </td>
                 ))}
@@ -141,23 +143,33 @@ function MultiColTable({ cutoff }: { cutoff: any }) {
   )
 }
 
-/** Handles tables with no headers (raw rows only) */
+/** Handles tables with no headers — auto-detects first row as header if it looks like one */
 function RawTable({ cutoff }: { cutoff: any }) {
   const rows: string[][] = cutoff.rows || []
-  const colCount = Math.max(...rows.map(r => r.length), 0)
+  if (rows.length === 0) return null
 
-  if (colCount === 2) {
-    return <SimpleTable cutoff={{ ...cutoff, headers: ['Item', 'Value'] }} />
+  // If first row looks like a header row (all non-numeric strings)
+  const firstRow = rows[0]
+  const looksLikeHeader = firstRow.every(cell => isNaN(parseFloat(cell)))
+
+  if (looksLikeHeader && rows.length > 1) {
+    const syntheticCutoff = { ...cutoff, headers: firstRow, rows: rows.slice(1) }
+    return syntheticCutoff.headers.length > 2
+      ? <MultiColTable cutoff={syntheticCutoff} />
+      : <SimpleTable cutoff={syntheticCutoff} />
   }
-  return <MultiColTable cutoff={{ ...cutoff, headers: Array.from({ length: colCount }, (_, i) => `Col ${i + 1}`) }} />
+
+  const colCount = Math.max(...rows.map(r => r.length), 0)
+  return colCount > 2
+    ? <MultiColTable cutoff={{ ...cutoff, headers: Array.from({ length: colCount }, (_, i) => `Col ${i + 1}`) }} />
+    : <SimpleTable cutoff={{ ...cutoff, headers: ['Item', 'Value'] }} />
 }
 
 /** Wrapper card for each cutoff block */
 function CutoffCard({ cutoff, index }: { cutoff: any; index: number }) {
-  const title = inferTitle(cutoff, index)
+  const title = getTitle(cutoff, index)
   const hasHeaders = cutoff.headers && cutoff.headers.length > 0
   const isMulti = isMultiColTable(cutoff)
-  const isSimple = isSimpleTable(cutoff)
 
   return (
     <div
@@ -178,18 +190,20 @@ function CutoffCard({ cutoff, index }: { cutoff: any; index: number }) {
         >
           <Target className="w-5 h-5" />
         </div>
-        <div className="min-w-0">
-          <h3 className="text-base font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors truncate">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-snug">
             {title}
           </h3>
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-            {isMulti ? 'Year-wise Comparison' : 'Admission Benchmark'}
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+            {isMulti ? 'Year-wise / Round-wise Comparison' : 'Admission Benchmark'}
           </p>
         </div>
-        {/* Column count badge */}
+        {/* Col count badge */}
         {hasHeaders && (
-          <span className="ml-auto shrink-0 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border"
-                style={{ borderColor, color: accentColor }}>
+          <span
+            className="ml-auto shrink-0 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border"
+            style={{ borderColor, color: accentColor }}
+          >
             {cutoff.headers.length} cols
           </span>
         )}
