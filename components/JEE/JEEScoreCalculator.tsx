@@ -98,8 +98,8 @@ export default function PasteJEEResponse() {
       return finish("❌ Please enter a valid 10-digit mobile number");
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return finish("❌ Please enter a valid email address");
-    if (!city.trim())
-      return finish("❌ Please enter your city");
+    // if (!city.trim())
+    //   return finish("❌ Please enter your city");
 
     const input = html.trim();
     if (!input)
@@ -269,36 +269,6 @@ export default function PasteJEEResponse() {
                       />
                     </div>
                   ))}
-
-                  <div>
-                    <label className="block text-slate-400 text-sm mb-2">
-                      CATEGORY <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2"
-                      style={{ border: `1px solid ${borderColor}` }}
-                    >
-                      {["General","OBC-NCL","SC","ST","EWS","PwD"].map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-slate-400 text-sm mb-2">
-                      CITY <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="Your city"
-                      className="w-full rounded-xl p-3 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2"
-                      style={{ border: `1px solid ${borderColor}` }}
-                    />
-                  </div>
                 </div>
 
                 {/* HTML / URL Input */}
