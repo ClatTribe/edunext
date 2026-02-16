@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 2. Fetch Colleges
   const { data: colleges, error } = await supabase
-    .from('college_microsites') // DOUBLE CHECK: Is your table name exactly 'colleges'?
+    .from('college_microsites')
     .select('slug, updated_at')
     .limit(500);
 
