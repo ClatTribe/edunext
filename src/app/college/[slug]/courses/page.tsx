@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { GraduationCap, Loader2, ArrowRight } from "lucide-react"
+import { GraduationCap, Loader2 } from "lucide-react"
 
 const accentColor = '#F59E0B';
 const secondaryBg = '#0F172B';
@@ -61,7 +61,7 @@ export default function CoursesPage() {
 
   return (
     <div className="space-y-10">
-      {/* Header Section - Reduced scale for sidebar compatibility */}
+      {/* Header Section */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <div className="h-[1px] w-8" style={{ backgroundColor: accentColor }}></div>
@@ -75,25 +75,23 @@ export default function CoursesPage() {
       </div>
 
       {popularCourses.length > 0 ? (
-        /* FIXED GRID: 
-           - 1 column on mobile
-           - 1 column on small tablets
-           - 2 columns on desktops (since sidebar is taking space)
-        */
         <div className="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-6">
           {popularCourses.map((c: any, i: number) => (
             <div 
               key={i} 
-              className="group relative p-6 rounded-[2rem] border transition-all duration-300 hover:border-amber-500/50 overflow-hidden shadow-xl"
+              className="group relative p-8 rounded-[2rem] border transition-all duration-500 hover:border-amber-500/40 overflow-hidden shadow-xl hover:-translate-y-2"
               style={{ 
                 backgroundColor: secondaryBg,
                 borderColor: borderColor
               }}
             >
+              {/* Animated Background Overlay on Hover */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
               <div className="relative z-10 flex flex-col h-full">
                 {/* Top Row: Icon and Eligibility */}
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border" 
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border transition-transform duration-500 group-hover:scale-110" 
                     style={{ 
                       backgroundColor: '#050818', 
                       borderColor: borderColor,
@@ -101,37 +99,34 @@ export default function CoursesPage() {
                     }}>
                     <GraduationCap className="w-6 h-6" />
                   </div>
-                  <div className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border border-white/10 text-white/50 bg-white/5">
+                  <div className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border border-white/10 text-white/50 bg-white/5 group-hover:border-amber-500/30 group-hover:text-amber-200 transition-colors">
                     {c.eligibility || 'N/A'}
                   </div>
                 </div>
                 
                 {/* Course Name */}
-                <h4 className="text-xl font-bold text-white mb-6 group-hover:text-amber-400 transition-colors line-clamp-2 min-h-[3.5rem]">
+                <h4 className="text-xl font-bold text-white mb-6 group-hover:text-amber-400 transition-colors duration-300 line-clamp-2 min-h-[3.5rem]">
                   {c.course_name}
                 </h4>
                 
-                {/* Bottom Row: Fees and Action */}
-                <div className="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
+                {/* Bottom Row: Fees */}
+                <div className="mt-auto pt-6 border-t border-white/5 flex justify-between items-end">
                   <div>
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-white/30">
+                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-white/30 group-hover:text-amber-500/50 transition-colors">
                       Estimated Fees
                     </p>
-                    <p className="text-lg font-black text-white">
+                    <p className="text-2xl font-black text-white group-hover:scale-105 origin-left transition-transform">
                       {c.fees || 'TBD'}
                     </p>
                   </div>
-                  
-                  <button 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 border border-white/10 bg-white/5 text-amber-500 group-hover:bg-amber-500 group-hover:text-black"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
 
-              {/* Subtle Gradient Glow */}
-              <div className="absolute -right-4 -bottom-4 w-24 h-24 blur-[50px] rounded-full opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: accentColor }}></div>
+              {/* Decorative Corner Glow */}
+              <div 
+                className="absolute -right-8 -bottom-8 w-32 h-32 blur-[60px] rounded-full opacity-10 group-hover:opacity-30 transition-opacity duration-500" 
+                style={{ backgroundColor: accentColor }}
+              ></div>
             </div>
           ))}
         </div>
