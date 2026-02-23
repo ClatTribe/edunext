@@ -13,6 +13,15 @@ const accentColor = '#F59E0B'
 const secondaryBg = '#0F172B'
 const borderColor = 'rgba(245, 158, 11, 0.15)'
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function getTitle(table: any, fallback: string): string {
+  if (table?.heading && table.heading.trim() !== '') return table.heading.trim()
+  return fallback
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
+
 export default function CollegeOverviewPage() {
   const params = useParams()
   const pathname = usePathname()
@@ -318,7 +327,7 @@ export default function CollegeOverviewPage() {
         </div>
       </section>
 
-      {/* CUTOFF SECTION */}
+      {/* CUTOFF SECTION — heading updated */}
       <section id="cutoff" className="scroll-mt-28">
         <div className="space-y-10">
           <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Entrance <span style={{ color: accentColor }}>Thresholds.</span></h1>
@@ -328,10 +337,13 @@ export default function CollegeOverviewPage() {
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <Target size={18} className="text-amber-500 group-hover:scale-110 transition-transform" />
-                      <h3 className="text-xs font-black text-white uppercase tracking-widest group-hover:text-amber-400 transition-colors">{cutoff.headers?.[0]}</h3>
+                      <Target size={18} className="text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
+                      {/* ✅ HEADING UPDATED: uses cutoff.heading first, falls back to headers[0] */}
+                      <h3 className="text-xs font-black text-white uppercase tracking-widest group-hover:text-amber-400 transition-colors line-clamp-1">
+                        {getTitle(cutoff, cutoff.headers?.[0] || `Cutoff Table ${idx + 1}`)}
+                      </h3>
                     </div>
-                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">{cutoff.headers?.[1]}</span>
+                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest shrink-0 ml-2">{cutoff.headers?.[1]}</span>
                   </div>
                   <div className="space-y-2">
                     {cutoff.rows?.map((row: any[], i: number) => (
@@ -348,7 +360,7 @@ export default function CollegeOverviewPage() {
         </div>
       </section>
 
-      {/* RANKING SECTION */}
+      {/* RANKING SECTION — heading updated */}
       <section id="ranking" className="scroll-mt-28">
         <div className="space-y-10">
           <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Rankings & <span style={{ color: accentColor }}>Recognition.</span></h1>
@@ -357,8 +369,11 @@ export default function CollegeOverviewPage() {
               <div key={idx} className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-6">
-                    <Award size={20} className="text-amber-500 group-hover:rotate-12 transition-transform" />
-                    <h3 className="text-xs font-black text-white uppercase group-hover:text-amber-400 transition-colors">{ranking.headers?.[0]}</h3>
+                    <Award size={20} className="text-amber-500 group-hover:rotate-12 transition-transform shrink-0" />
+                    {/* ✅ HEADING UPDATED: uses ranking.heading first, falls back to headers[0] */}
+                    <h3 className="text-xs font-black text-white uppercase group-hover:text-amber-400 transition-colors line-clamp-1">
+                      {getTitle(ranking, ranking.headers?.[0] || `Ranking Table ${idx + 1}`)}
+                    </h3>
                   </div>
                   <div className="grid grid-cols-1 gap-2">
                     {ranking.rows?.map((row: any[], i: number) => (

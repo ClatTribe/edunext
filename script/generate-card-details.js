@@ -342,7 +342,7 @@
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 
 // 🎯 ADD YOUR SPECIFIC COLLEGE IDs HERE
-const TARGET_COLLEGE_IDS = [14893];
+const TARGET_COLLEGE_IDS = [14895];
 
 // Helper functions to extract data from microsite_data
 
