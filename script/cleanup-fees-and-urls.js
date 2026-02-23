@@ -213,7 +213,7 @@
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 
 // 🎯 ADD YOUR SPECIFIC COLLEGE IDs HERE
-const TARGET_COLLEGE_IDS = [14893];
+const TARGET_COLLEGE_IDS = [14895];
 
 // Function to clean fees string
 function cleanFeesString(feesStr) {

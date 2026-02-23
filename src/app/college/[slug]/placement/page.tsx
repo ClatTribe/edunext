@@ -2,11 +2,198 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { Trophy, Loader2, Award, BarChart3, Building2 } from "lucide-react"
+import { Trophy, Loader2, Award, BarChart3, Building2, TrendingUp, TrendingDown, Minus } from "lucide-react"
 
 const accentColor = '#F59E0B';
 const secondaryBg = '#0F172B';
 const borderColor = 'rgba(245, 158, 11, 0.15)';
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function getTitle(table: any, index: number): string {
+  if (table?.heading && table.heading.trim() !== '') return table.heading.trim()
+  return `Placement Table ${index + 1}`
+}
+
+function cleanCell(val: string): string {
+  return val?.toString().replace(/Compare$/i, '').trim() || '—'
+}
+
+function getTrend(val1: string, val2: string): 'up' | 'down' | 'same' | null {
+  const n1 = parseFloat(val1?.toString().replace(/[^0-9.]/g, ''))
+  const n2 = parseFloat(val2?.toString().replace(/[^0-9.]/g, ''))
+  if (isNaN(n1) || isNaN(n2) || val2 === '-' || val1 === '-') return null
+  if (n1 > n2) return 'up'
+  if (n1 < n2) return 'down'
+  return 'same'
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function SimpleTable({ table }: { table: any }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      {table.rows.map((row: string[], i: number) => (
+        <div
+          key={i}
+          className="group/row flex items-center justify-between px-5 py-4 rounded-2xl border border-white/5
+                     bg-[#050818]/70 hover:border-amber-500/40 hover:bg-amber-500/[0.06] transition-all duration-300"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/30 group-hover/row:bg-amber-400 transition-colors shrink-0" />
+            <span className="text-slate-300 text-xs font-semibold uppercase tracking-wide truncate group-hover/row:text-white transition-colors">
+              {cleanCell(row[0])}
+            </span>
+          </div>
+          <div className="text-right shrink-0 ml-3">
+            <span className="text-white font-black text-sm tracking-tighter group-hover/row:text-amber-400 transition-colors">
+              {cleanCell(row[1])}
+            </span>
+            <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">
+              {table.headers?.[1] || 'Value'}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function MultiColTable({ table }: { table: any }) {
+  const headers: string[] = table.headers || []
+  const rows: string[][] = table.rows || []
+  const colCount = headers.length
+
+  return (
+    <div className="w-full overflow-x-auto rounded-2xl border border-white/5">
+      <table className="w-full text-sm border-collapse min-w-[500px]">
+        <thead>
+          <tr className="border-b border-white/10">
+            {headers.map((h, hi) => (
+              <th
+                key={hi}
+                className={`px-4 py-3 text-left font-bold text-[10px] uppercase tracking-widest whitespace-nowrap
+                  ${hi === 0
+                    ? 'text-slate-400 bg-[#050818] sticky left-0 z-10 min-w-[160px]'
+                    : hi === 1
+                    ? 'text-amber-400 bg-[#070d1e]'
+                    : 'text-slate-500 bg-[#070d1e]'
+                  }`}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, ri) => {
+            const trend = colCount >= 3 ? getTrend(row[1], row[2]) : null
+            return (
+              <tr key={ri} className="border-b border-white/[0.04] hover:bg-amber-500/[0.04] transition-colors group/tr">
+                {row.map((cell, ci) => (
+                  <td
+                    key={ci}
+                    className={`px-4 py-3 font-semibold
+                      ${ci === 0
+                        ? 'text-slate-300 text-xs bg-[#050818]/80 sticky left-0 group-hover/tr:text-white transition-colors'
+                        : ci === 1
+                        ? 'text-white font-black text-sm group-hover/tr:text-amber-400 transition-colors'
+                        : 'text-slate-400 text-xs'
+                      }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {ci === 1 && trend && (
+                        <span className={`shrink-0 ${trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-red-400' : 'text-slate-500'}`}>
+                          {trend === 'up' ? <TrendingUp className="w-3 h-3" /> : trend === 'down' ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                        </span>
+                      )}
+                      <span>{cleanCell(cell)}</span>
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function RawTable({ table }: { table: any }) {
+  const rows: string[][] = table.rows || []
+  if (rows.length === 0) return null
+  const firstRow = rows[0]
+  const looksLikeHeader = firstRow.every(cell => isNaN(parseFloat(cell)))
+  if (looksLikeHeader && rows.length > 1) {
+    const synthetic = { ...table, headers: firstRow, rows: rows.slice(1) }
+    return synthetic.headers.length > 2 ? <MultiColTable table={synthetic} /> : <SimpleTable table={synthetic} />
+  }
+  const colCount = Math.max(...rows.map(r => r.length), 0)
+  return colCount > 2
+    ? <MultiColTable table={{ ...table, headers: Array.from({ length: colCount }, (_, i) => `Col ${i + 1}`) }} />
+    : <SimpleTable table={{ ...table, headers: ['Item', 'Value'] }} />
+}
+
+function PlacementCard({ table, index }: { table: any; index: number }) {
+  const title = getTitle(table, index)
+  const hasHeaders = table.headers && table.headers.length > 0
+  const isMulti = hasHeaders && table.headers.length > 2
+
+  return (
+    <div
+      className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B]
+                 hover:border-amber-500/40 hover:-translate-y-1"
+      style={{ borderColor }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]
+                     group-hover:scale-110 transition-transform duration-500 shrink-0"
+          style={{ borderColor, color: accentColor }}
+        >
+          <Award className="w-5 h-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-snug">
+            {title}
+          </h3>
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+            Career Outcomes & Recruiter Data
+          </p>
+        </div>
+        {hasHeaders && (
+          <span
+            className="ml-auto shrink-0 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border"
+            style={{ borderColor, color: accentColor }}
+          >
+            {table.headers.length} cols
+          </span>
+        )}
+      </div>
+
+      <div className="relative z-10 px-6 md:px-8 py-6">
+        {!hasHeaders
+          ? <RawTable table={table} />
+          : isMulti
+          ? <MultiColTable table={table} />
+          : <SimpleTable table={table} />
+        }
+      </div>
+
+      <div
+        className="absolute -right-10 -bottom-10 w-32 h-32 blur-[60px] rounded-full opacity-0
+                   group-hover:opacity-15 transition-all duration-700 pointer-events-none"
+        style={{ backgroundColor: accentColor }}
+      />
+    </div>
+  )
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function PlacementPage() {
   const params = useParams()
@@ -14,9 +201,7 @@ export default function PlacementPage() {
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchCollege()
-  }, [slug])
+  useEffect(() => { fetchCollege() }, [slug])
 
   const fetchCollege = async () => {
     try {
@@ -35,33 +220,18 @@ export default function PlacementPage() {
     )
   }
 
-  const micrositeData = typeof college?.microsite_data === 'string' 
-    ? JSON.parse(college.microsite_data) 
+  const micrositeData = typeof college?.microsite_data === 'string'
+    ? JSON.parse(college.microsite_data)
     : college?.microsite_data
 
-  const placementData = micrositeData?.placement || []
-  const mainPlacementTable = placementData[0] || { headers: [], rows: [] }
-  const highestPackage = mainPlacementTable.headers?.[1] || 'N/A'
-  const averagePackage = mainPlacementTable.rows?.[0]?.[1] || 'N/A'
-  const topRecruitersString = mainPlacementTable.rows?.[1]?.[1] || '' 
-  
-  const recruitersFromTable = (placementData[1]?.rows || []).flat().filter(Boolean)
-  const companiesFromTable = (placementData[2]?.rows || []).flat().filter(Boolean)
-  
-  const uniqueRecruiters = [...new Set([
-    ...topRecruitersString.split(',').map((r: string) => r.trim()).filter(Boolean),
-    ...recruitersFromTable,
-    ...companiesFromTable
-  ])]
-
-  const hasPlacementData = highestPackage !== 'N/A' || averagePackage !== 'N/A' || uniqueRecruiters.length > 0
+  const placementData: any[] = micrositeData?.placement || college?.placement || []
 
   return (
-    <div className="space-y-12">
-      {/* Header Section */}
+    <div className="space-y-10">
+      {/* Page header */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <div className="h-[1px] w-8" style={{ backgroundColor: accentColor }}></div>
+          <div className="h-[1px] w-8" style={{ backgroundColor: accentColor }} />
           <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: accentColor }}>
             Career Outcomes
           </span>
@@ -69,66 +239,18 @@ export default function PlacementPage() {
         <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
           Placement <span style={{ color: accentColor }}>Metrics.</span>
         </h1>
+        {placementData.length > 0 && (
+          <p className="text-slate-500 text-xs">
+            {placementData.length} table{placementData.length > 1 ? 's' : ''} · Packages, recruiters & stats
+          </p>
+        )}
       </div>
 
-      {hasPlacementData ? (
-        <div className="space-y-16">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {[
-              { label: 'Highest Package', val: highestPackage, icon: Award, color: accentColor },
-              { label: 'Average Package', val: averagePackage, icon: BarChart3, color: '#3B82F6' },
-              { label: 'Total Recruiters', val: `${uniqueRecruiters.length}+`, icon: Building2, color: '#A855F7' }
-            ].map((stat, i) => (
-              <div 
-                key={i}
-                className="group relative p-6 rounded-[1.5rem] border transition-all duration-500 bg-[#0F172B] hover:-translate-y-1 overflow-hidden"
-                style={{ borderColor: borderColor }}
-              >
-                {/* Glow Effect */}
-                <div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
-                  style={{ background: `radial-gradient(circle at center, ${stat.color} 0%, transparent 70%)` }}
-                />
-
-                <div className="relative z-10 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border bg-[#050818] transition-all duration-500 group-hover:scale-110 group-hover:border-white/10" 
-                    style={{ borderColor: 'rgba(255,255,255,0.05)', color: stat.color }}>
-                    <stat.icon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest transition-colors group-hover:text-slate-400">{stat.label}</p>
-                    <p className="text-xl font-black text-white group-hover:text-white transition-colors">{stat.val}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Industry Partners Section */}
-          {uniqueRecruiters.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <h3 className="text-xl font-bold text-white uppercase tracking-tighter">
-                  Industry <span style={{ color: accentColor }}>Partners.</span>
-                </h3>
-                <div className="h-[1px] flex-1 bg-white/5"></div>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                {uniqueRecruiters.map((recruiter: string, i: number) => (
-                  <div 
-                    key={i}
-                    className="group p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-center text-center transition-all duration-300 hover:bg-white/[0.05] hover:border-white/20 hover:shadow-lg"
-                  >
-                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wide truncate group-hover:text-white transition-colors">
-                      {recruiter}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+      {placementData.length > 0 ? (
+        <div className="space-y-8">
+          {placementData.map((table, index) => (
+            <PlacementCard key={index} table={table} index={index} />
+          ))}
         </div>
       ) : (
         <div className="text-center py-20 rounded-[2rem] border border-dashed border-white/10 bg-white/[0.02]">
