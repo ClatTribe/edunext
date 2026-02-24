@@ -115,27 +115,35 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     if (lowerQuery.includes(state.toLowerCase())) filters.states.push(state);
   });
 
-  const budgetPatterns = [
-    { keywords: ['under 5', 'below 5', 'less than 5', 'upto 5', 'up to 5'], range: "Less than 5 Lakh" },
-    { keywords: ['5-10', '5 to 10', 'between 5 and 10', '5 lakh to 10'], range: "5 - 10 Lakh" },
-    { keywords: ['10-15', '10 to 15', 'between 10 and 15', '10 lakh to 15'], range: "10 - 15 Lakh" },
-    { keywords: ['15-20', '15 to 20', 'between 15 and 20', '15 lakh to 20'], range: "15 - 20 Lakh" },
-    { keywords: ['above 20', 'more than 20', 'over 20', '20+', '20 plus'], range: "Above 20 Lakh" },
-  ];
-
-  budgetPatterns.forEach(({ keywords, range }) => {
-    if (keywords.some(keyword => lowerQuery.includes(keyword))) filters.budgetRanges.push(range);
-  });
-
-  const budgetMatch = lowerQuery.match(/(\d+)\s*(lakh|lakhs?|l)/i);
-  if (budgetMatch && filters.budgetRanges.length === 0) {
-    const amount = parseInt(budgetMatch[1]);
-    if (amount <= 5) filters.budgetRanges.push("Less than 5 Lakh");
-    else if (amount <= 10) filters.budgetRanges.push("5 - 10 Lakh");
-    else if (amount <= 15) filters.budgetRanges.push("10 - 15 Lakh");
-    else if (amount <= 20) filters.budgetRanges.push("15 - 20 Lakh");
-    else filters.budgetRanges.push("Above 20 Lakh");
+const underMatch = lowerQuery.match(/(?:less than|under|below|upto|up to|within)\s*(\d+)\s*(?:lakh|lakhs|lac|l)?/i)
+if (underMatch) {
+  const limit = parseInt(underMatch[1])
+  if (limit > 0)  filters.budgetRanges.push("Less than 5 Lakh")
+  if (limit > 5)  filters.budgetRanges.push("5 - 10 Lakh")
+  if (limit > 10) filters.budgetRanges.push("10 - 15 Lakh")
+  if (limit > 15) filters.budgetRanges.push("15 - 20 Lakh")
+  if (limit > 20) filters.budgetRanges.push("Above 20 Lakh")
+} else {
+  const aboveMatch = lowerQuery.match(/(?:above|more than|over)\s*(\d+)\s*(?:lakh|lakhs|lac|l)?/i)
+  if (aboveMatch) {
+    const floor = parseInt(aboveMatch[1])
+    if (floor < 5)  filters.budgetRanges.push("Less than 5 Lakh")
+    if (floor < 10) filters.budgetRanges.push("5 - 10 Lakh")
+    if (floor < 15) filters.budgetRanges.push("10 - 15 Lakh")
+    if (floor < 20) filters.budgetRanges.push("15 - 20 Lakh")
+    filters.budgetRanges.push("Above 20 Lakh")
+  } else {
+    const plainMatch = lowerQuery.match(/(\d+)\s*(?:lakh|lakhs|lac|l)\b/i)
+    if (plainMatch) {
+      const amount = parseInt(plainMatch[1])
+      if (amount <= 5)       filters.budgetRanges.push("Less than 5 Lakh")
+      else if (amount <= 10) filters.budgetRanges.push("5 - 10 Lakh")
+      else if (amount <= 15) filters.budgetRanges.push("10 - 15 Lakh")
+      else if (amount <= 20) filters.budgetRanges.push("15 - 20 Lakh")
+      else                   filters.budgetRanges.push("Above 20 Lakh")
+    }
   }
+}
 
   if (Object.values(filters).every(f => Array.isArray(f) ? f.length === 0 : !f)) {
     filters.searchText = query;
@@ -204,7 +212,8 @@ export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRa
 export const applyBudgetFilter = (colleges: any[], budgetRanges: string[]): any[] => {
   if (budgetRanges.length === 0) return colleges;
   return colleges.filter(college => {
-    const fees = college.card_detail?.fees || college["Course Fees"];
+    const fees = college["Course Fees"] || college.card_detail?.fees || college.fees;
+    if (!fees) return false;
     return isBudgetInRange(fees, budgetRanges);
   });
 };

@@ -2,140 +2,169 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { GraduationCap, Loader2 } from "lucide-react"
+import { GraduationCap, Loader2, BarChart3 } from "lucide-react"
 
-const accentColor = '#F59E0B';
-const secondaryBg = '#0F172B';
-const borderColor = 'rgba(245, 158, 11, 0.15)';
+const accentColor = '#F59E0B'
+const borderColor = 'rgba(245, 158, 11, 0.15)'
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function cleanCell(val: any): string {
+  if (val === null || val === undefined) return '—'
+  return val.toString().replace(/Compare$/i, '').trim() || '—'
+}
+
+// ─── Unified Table Component ────────────────────────────────────────────────
+
+function ProperTable({ headers, rows }: { headers: string[], rows: any[][] }) {
+  return (
+    <div className="w-full overflow-x-auto rounded-2xl border border-white/5 bg-[#050818]/40">
+      <table className="w-full text-sm border-collapse min-w-[600px]">
+        <thead>
+          <tr className="border-b border-white/10 bg-white/[0.02]">
+            {headers.map((h, hi) => (
+              <th
+                key={hi}
+                className={`px-6 py-4 text-left font-black uppercase tracking-widest whitespace-nowrap
+                  ${hi === 0 
+                    ? 'text-slate-200 sticky left-0 z-10 bg-[#070d1e]' 
+                    : 'text-amber-500/90 bg-[#070d1e]'}`}
+              >
+                {h || '—'}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, ri) => (
+            <tr
+              key={ri}
+              className="border-b border-white/[0.04] hover:bg-amber-500/[0.04] transition-colors group/tr"
+            >
+              {/* FIXED: Check if row is an array before mapping to prevent "row.map is not a function" */}
+              {Array.isArray(row) ? (
+                row.map((cell, ci) => (
+                  <td
+                    key={ci}
+                    className={`px-6 py-4 text-sm font-medium transition-colors
+                      ${ci === 0
+                        ? 'text-slate-300 sticky left-0 group-hover/tr:text-white bg-[#050818]/80'
+                        : 'text-slate-400 group-hover/tr:text-amber-400'}`}
+                  >
+                    <span>{cleanCell(cell)}</span>
+                  </td>
+                ))
+              ) : (
+                <td colSpan={headers.length} className="px-6 py-4 text-slate-500 italic">
+                  Data format error for this row
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function CoursesPage() {
   const params = useParams()
   const slug = params?.slug as string
-  
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const fetchCollege = async () => {
+      try {
+        const { data } = await supabase.from("college_microsites").select("*").eq("slug", slug).single()
+        setCollege(data)
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchCollege()
   }, [slug])
-
-  const fetchCollege = async () => {
-    try {
-      setLoading(true)
-      const { data, error: supabaseError } = await supabase
-        .from("college_microsites")
-        .select("*")
-        .eq("slug", slug)
-        .single()
-
-      if (supabaseError) throw supabaseError
-      setCollege(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch courses")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin h-10 w-10" style={{ color: accentColor }} />
+        <Loader2 className="animate-spin h-10 w-10 text-amber-500" />
       </div>
     )
   }
 
+  // 1. Parse JSON if it's a string
   const micrositeData = typeof college?.microsite_data === 'string' 
     ? JSON.parse(college.microsite_data) 
     : college?.microsite_data
 
-  const coursesData = college?.courses
-  const popularCourses = coursesData === "See Fees Section" 
-    ? (college?.microsite_data?.fees?.[0]?.rows?.map((row: any) => ({
-        course_name: row[0],
-        eligibility: row[1],
-        fees: row[2]
-      })) || [])
-    : (micrositeData?.popular_courses_table || [])
+  // 2. Data Normalization: Crucial for ProperTable
+  let tableRows: any[][] = []
+  const headers = ["Course Name", "Eligibility", "Annual Fees"]
+
+  if (college?.courses === "See Fees Section") {
+    // If pulling from the fees section (already 2D array format)
+    tableRows = micrositeData?.fees?.[0]?.rows || []
+  } else {
+    // If pulling from popular_courses_table (usually array of objects)
+    const rawCourses = micrositeData?.popular_courses_table || []
+    tableRows = rawCourses.map((c: any) => [
+      c.course_name || c[0] || '—',
+      c.eligibility || c[1] || '—',
+      c.fees || c[2] || '—'
+    ])
+  }
 
   return (
-    <div className="space-y-10">
-      {/* Header Section */}
-      <div className="space-y-3">
+    <div className="space-y-8 max-w-7xl mx-auto px-4">
+      {/* Page Header */}
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <div className="h-[1px] w-8" style={{ backgroundColor: accentColor }}></div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: accentColor }}>
-            Available Programs
-          </span>
+          <div className="h-[1.5px] w-8 bg-amber-500" />
+          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-500">Academic Catalog</span>
         </div>
-        <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
-          Academic <span style={{ color: accentColor }}>Portfolio.</span>
-        </h3>
+        <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
+          Academic <span className="text-amber-500">Portfolio.</span>
+        </h1>
       </div>
 
-      {popularCourses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-6">
-          {popularCourses.map((c: any, i: number) => (
-            <div 
-              key={i} 
-              className="group relative p-8 rounded-[2rem] border transition-all duration-500 hover:border-amber-500/40 overflow-hidden shadow-xl hover:-translate-y-2"
-              style={{ 
-                backgroundColor: secondaryBg,
-                borderColor: borderColor
-              }}
-            >
-              {/* Animated Background Overlay on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      {/* Course Table Card */}
+      <div
+        className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B]
+                   hover:border-amber-500/40 hover:-translate-y-1"
+        style={{ borderColor }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
+                        opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-              <div className="relative z-10 flex flex-col h-full">
-                {/* Top Row: Icon and Eligibility */}
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center border transition-transform duration-500 group-hover:scale-110" 
-                    style={{ 
-                      backgroundColor: '#050818', 
-                      borderColor: borderColor,
-                      color: accentColor 
-                    }}>
-                    <GraduationCap className="w-6 h-6" />
-                  </div>
-                  <div className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border border-white/10 text-white/50 bg-white/5 group-hover:border-amber-500/30 group-hover:text-amber-200 transition-colors">
-                    {c.eligibility || 'N/A'}
-                  </div>
-                </div>
-                
-                {/* Course Name */}
-                <h4 className="text-xl font-bold text-white mb-6 group-hover:text-amber-400 transition-colors duration-300 line-clamp-2 min-h-[3.5rem]">
-                  {c.course_name}
-                </h4>
-                
-                {/* Bottom Row: Fees */}
-                <div className="mt-auto pt-6 border-t border-white/5 flex justify-between items-end">
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-white/30 group-hover:text-amber-500/50 transition-colors">
-                      Estimated Fees
-                    </p>
-                    <p className="text-2xl font-black text-white group-hover:scale-105 origin-left transition-transform">
-                      {c.fees || 'TBD'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+        <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]
+                       group-hover:scale-110 transition-transform duration-500 shrink-0"
+            style={{ borderColor, color: accentColor }}
+          >
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-tight">
+              Programs & Eligibility
+            </h3>
+          </div>
+        </div>
 
-              {/* Decorative Corner Glow */}
-              <div 
-                className="absolute -right-8 -bottom-8 w-32 h-32 blur-[60px] rounded-full opacity-10 group-hover:opacity-30 transition-opacity duration-500" 
-                style={{ backgroundColor: accentColor }}
-              ></div>
+        <div className="relative z-10 px-6 md:px-8 py-8">
+          {tableRows.length > 0 ? (
+            <ProperTable headers={headers} rows={tableRows} />
+          ) : (
+            <div className="text-center py-10 rounded-2xl border border-dashed border-white/10">
+              <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-10 text-amber-500" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest">No Programs Available</h3>
             </div>
-          ))}
+          )}
         </div>
-      ) : (
-        <div className="text-center py-20 rounded-[2rem] border border-dashed border-white/10 bg-white/[0.02]">
-          <GraduationCap className="w-12 h-12 mx-auto mb-4 opacity-20" style={{ color: accentColor }} />
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">No curriculum data found</p>
-        </div>
-      )}
+      </div>
     </div>
   )
 }
