@@ -131,7 +131,7 @@
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 
 // 🎯 ADD YOUR SPECIFIC COLLEGE IDs HERE
-const TARGET_COLLEGE_IDS = [14897];
+const TARGET_COLLEGE_IDS = [14905];
 
 async function updateCardDetailUrls() {
   try {
