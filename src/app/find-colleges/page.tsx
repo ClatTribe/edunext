@@ -164,13 +164,15 @@ const CollegeMicrositesPage: React.FC = () => {
       // console.log('📊 Fetching with:', { searchQuery, manualFilters })
 
       // Check if budget filter is active
-      const budgetRanges = [...manualFilters.budgets]
-      if (searchQuery.trim()) {
-        const parsed = parseSearchQuery(searchQuery)
-        budgetRanges.push(...parsed.budgetRanges)
-      }
-      const hasBudget = budgetRanges.length > 0
-      setHasBudgetFilter(hasBudget)
+const budgetRanges = [...manualFilters.budgets]
+if (searchQuery.trim()) {
+  const parsed = parseSearchQuery(searchQuery)
+  parsed.budgetRanges.forEach(r => {
+    if (!budgetRanges.includes(r)) budgetRanges.push(r)
+  })
+}
+const hasBudget = budgetRanges.length > 0
+setHasBudgetFilter(hasBudget)
 
       let query = supabase
         .from("college_microsites")

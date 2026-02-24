@@ -186,9 +186,13 @@ export default function CollegeOverviewPage() {
                     <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 text-amber-500 group-hover:scale-110 transition-transform duration-500">
                       <GraduationCap size={20} />
                     </div>
-                    <span className="text-[9px] font-bold text-slate-500 border border-white/10 px-2 py-1 rounded uppercase tracking-wider group-hover:border-amber-500/30 transition-colors">{c.eligibility || 'N/A'}</span>
+                    <span className="text-[9px] font-bold text-slate-500 border border-white/10 px-2 py-1 rounded uppercase tracking-wider group-hover:border-amber-500/30 transition-colors shrink-0">
+                      {c.eligibility || 'N/A'}
+                    </span>
                   </div>
-                  <h4 className="text-base font-bold text-white group-hover:text-amber-400 transition-colors mb-4 line-clamp-1">{c.course_name}</h4>
+                  <h4 className="text-base font-bold text-white group-hover:text-amber-400 transition-colors mb-4 break-words">
+                    {c.course_name}
+                  </h4>
                   <div className="pt-4 border-t border-white/5 flex flex-col">
                     <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest mb-1 group-hover:text-amber-500/50 transition-colors">Estimated Fees</span>
                     <span className="text-lg font-black text-white group-hover:scale-105 origin-left transition-transform">{c.fees || 'TBD'}</span>
@@ -216,24 +220,26 @@ export default function CollegeOverviewPage() {
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 text-amber-500 group-hover:scale-110 transition-transform duration-500"><Wallet size={18} /></div>
-                    <h3 className="text-sm font-bold text-white line-clamp-1 group-hover:text-amber-400 transition-colors">{course.course}</h3>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 text-amber-500 group-hover:scale-110 transition-transform duration-500 shrink-0"><Wallet size={18} /></div>
+                    <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
+                      {course.course}
+                    </h3>
                   </div>
                   <div className="p-4 rounded-xl bg-black/30 border border-white/5 mb-4 group-hover:border-amber-500/20 transition-colors">
                     <p className="text-[8px] text-slate-500 font-bold uppercase mb-1">Total Course Fee</p>
                     <p className="text-xl font-black text-white flex items-center gap-1"><span className="text-xs text-amber-500">₹</span>{course.fees}</p>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
                     {course.hostelFees && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/5 border border-amber-500/10 shrink-0">
                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                         <p className="text-[9px] text-amber-200/70 font-bold uppercase tracking-wider">Hostel: {course.hostelFees}</p>
                       </div>
                     )}
                     {course.eligibility && course.eligibility !== '-' && (
-                      <div className="flex items-center gap-1.5 text-slate-500">
-                        <Info size={12} />
-                        <span className="text-[9px] font-medium italic">{course.eligibility.slice(0, 20)}...</span>
+                      <div className="flex items-center gap-1.5 text-slate-500 overflow-hidden">
+                        <Info size={12} className="shrink-0" />
+                        <span className="text-[9px] font-medium italic truncate">{course.eligibility}</span>
                       </div>
                     )}
                   </div>
@@ -278,7 +284,7 @@ export default function CollegeOverviewPage() {
                 <div key={i} className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/20 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
                   <div className="relative z-10">
                     <div className="flex items-start gap-3 mb-4">
-                      <GraduationCap size={16} className="text-amber-500 mt-1 group-hover:rotate-12 transition-transform" />
+                      <GraduationCap size={16} className="text-amber-500 mt-1 group-hover:rotate-12 transition-transform shrink-0" />
                       <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">{course[0]}</h4>
                     </div>
                     <p className="text-[11px] text-slate-400 leading-relaxed pl-7">{course[1]}</p>
@@ -327,7 +333,7 @@ export default function CollegeOverviewPage() {
         </div>
       </section>
 
-      {/* CUTOFF SECTION — heading updated */}
+      {/* CUTOFF SECTION */}
       <section id="cutoff" className="scroll-mt-28">
         <div className="space-y-10">
           <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Entrance <span style={{ color: accentColor }}>Thresholds.</span></h1>
@@ -335,15 +341,14 @@ export default function CollegeOverviewPage() {
             {cutoffData.map((cutoff: any, idx: number) => (
               <div key={idx} className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between mb-6 gap-4">
+                    <div className="flex items-center gap-3 overflow-hidden">
                       <Target size={18} className="text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
-                      {/* ✅ HEADING UPDATED: uses cutoff.heading first, falls back to headers[0] */}
-                      <h3 className="text-xs font-black text-white uppercase tracking-widest group-hover:text-amber-400 transition-colors line-clamp-1">
+                      <h3 className="text-xs font-black text-white uppercase tracking-widest group-hover:text-amber-400 transition-colors">
                         {getTitle(cutoff, cutoff.headers?.[0] || `Cutoff Table ${idx + 1}`)}
                       </h3>
                     </div>
-                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest shrink-0 ml-2">{cutoff.headers?.[1]}</span>
+                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest shrink-0">{cutoff.headers?.[1]}</span>
                   </div>
                   <div className="space-y-2">
                     {cutoff.rows?.map((row: any[], i: number) => (
@@ -360,7 +365,7 @@ export default function CollegeOverviewPage() {
         </div>
       </section>
 
-      {/* RANKING SECTION — heading updated */}
+      {/* RANKING SECTION */}
       <section id="ranking" className="scroll-mt-28">
         <div className="space-y-10">
           <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Rankings & <span style={{ color: accentColor }}>Recognition.</span></h1>
@@ -368,10 +373,9 @@ export default function CollegeOverviewPage() {
             {rankingData.map((ranking: any, idx: number) => (
               <div key={idx} className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center gap-3 mb-6 overflow-hidden">
                     <Award size={20} className="text-amber-500 group-hover:rotate-12 transition-transform shrink-0" />
-                    {/* ✅ HEADING UPDATED: uses ranking.heading first, falls back to headers[0] */}
-                    <h3 className="text-xs font-black text-white uppercase group-hover:text-amber-400 transition-colors line-clamp-1">
+                    <h3 className="text-xs font-black text-white uppercase group-hover:text-amber-400 transition-colors">
                       {getTitle(ranking, ranking.headers?.[0] || `Ranking Table ${idx + 1}`)}
                     </h3>
                   </div>
@@ -434,7 +438,7 @@ export default function CollegeOverviewPage() {
             {college?.location && (
               <div className="flex items-center gap-4 p-6 bg-[#0F172B] border border-white/5 rounded-2xl group hover:border-amber-500/30 transition-all duration-500 overflow-hidden relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 to-amber-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10 w-10 h-10 rounded-lg bg-black flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-black transition-all duration-500"><MapPin size={20} /></div>
+                <div className="relative z-10 w-10 h-10 rounded-lg bg-black flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-black transition-all duration-500 shrink-0"><MapPin size={20} /></div>
                 <div className="relative z-10">
                   <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-amber-500/50 transition-colors">Campus Address</span>
                   <p className="text-white font-bold text-sm">{college.location}</p>
@@ -444,11 +448,11 @@ export default function CollegeOverviewPage() {
             {college?.url && (
               <div className="flex items-center gap-4 p-6 bg-[#0F172B] border border-white/5 rounded-2xl group hover:border-blue-500/30 transition-all duration-500 overflow-hidden relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-blue-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10 w-10 h-10 rounded-lg bg-black flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-500"><Globe size={20} /></div>
-                <div className="relative z-10">
+                <div className="relative z-10 w-10 h-10 rounded-lg bg-black flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-500 shrink-0"><Globe size={20} /></div>
+                <div className="relative z-10 overflow-hidden">
                   <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-blue-500/50 transition-colors">Official Website</span>
-                  <a href={college.url} target="_blank" className="text-white font-bold text-sm flex items-center gap-2 hover:text-amber-500 transition-colors">
-                    {college.url.replace('https://', '').replace('www.', '')} <ArrowUpRight size={12} />
+                  <a href={college.url} target="_blank" className="text-white font-bold text-sm flex items-center gap-2 hover:text-amber-500 transition-colors truncate">
+                    {college.url.replace('https://', '').replace('www.', '')} <ArrowUpRight size={12} className="shrink-0" />
                   </a>
                 </div>
               </div>
