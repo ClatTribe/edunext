@@ -14,9 +14,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const staticPages = [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 1.0 },
-    { url: `${baseUrl}/xat-score-calculator-2026`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
+  const staticPages: MetadataRoute.Sitemap = [
+    { 
+      url: baseUrl, 
+      lastModified: new Date(), 
+      changeFrequency: 'daily' as const, 
+      priority: 1.0 
+    },
+    { 
+      url: `${baseUrl}/lms`, // Added LMS Page
+      lastModified: new Date(), 
+      changeFrequency: 'weekly' as const, 
+      priority: 0.9 
+    },
+    { 
+      url: `${baseUrl}/xat-score-calculator-2026`, 
+      lastModified: new Date(), 
+      changeFrequency: 'weekly' as const, 
+      priority: 0.9 
+    },
   ];
 
   // 2. Fetch Colleges
@@ -25,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, updated_at')
     .limit(500);
 
-  // Debug log - check your terminal/console where you run 'npm run dev'
+  // Debug log
   console.log('Sitemap Fetch:', { count: colleges?.length, error });
 
   const collegeUrls: MetadataRoute.Sitemap = [];
@@ -45,12 +61,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     });
   } else {
-    // BACKUP LINK: If this shows in your XML, it means the database returned NO data
+    // BACKUP LINK: Check this if Supabase connection fails
     collegeUrls.push({
       url: `${baseUrl}/college/no-data-found-check-supabase`,
       lastModified: new Date(),
     });
   }
 
+  // Returns: [Home, LMS, XAT, Blogs..., Colleges...]
   return [...staticPages, ...blogUrls, ...collegeUrls];
 }
