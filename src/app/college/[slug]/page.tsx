@@ -171,7 +171,7 @@ export default function CollegeOverviewPage() {
   const basicInfo              = admissionTables[0]?.rows || []
   const admissionMode          = basicInfo.find((r: any[]) => r[0] === "Mode of Application")?.[1] || "Offline"
   const admissionBasis         = basicInfo.find((r: any[]) => r[0] === "Basis of Admission")?.[1] || "Merit Based"
-  const scholarshipAvail       = basicInfo.find((r: any[]) => r[0] === "Scholarship")?.[1] || "No"
+  const scholarshipAvail       = basicInfo.find((r: any[]) => r[0] === "Scholarship")?.[1] || "Yes"
 
   // Visibility
   const showAbout     = !!(aboutText || vision || mission)
