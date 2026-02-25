@@ -1,52 +1,127 @@
 "use client"
 import React, { useState, useEffect } from "react"
+import Link from "next/link"
 import { supabase } from "../../../../lib/supabase"
-import { useParams, usePathname, useRouter } from "next/navigation"
-import { 
-  Loader2, Eye, Target, Phone, Globe, Quote, GraduationCap, 
-  FileText, ShieldCheck, Zap, MapPin, ArrowUpRight, 
-  BarChart3, ChevronRight, IndianRupee, Wallet, Info, Trophy, 
-  Award, Building2, TrendingUp, Star, MessageSquare 
+import { useParams, usePathname } from "next/navigation"
+import {
+  Loader2, Eye, Target, Phone, Globe, GraduationCap,
+  MapPin, ArrowUpRight, BarChart3, Wallet, Award,
+  Building2, Headset, ChevronRight
 } from "lucide-react"
 
 const accentColor = '#F59E0B'
 const secondaryBg = '#0F172B'
 const borderColor = 'rgba(245, 158, 11, 0.15)'
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getTitle(table: any, fallback: string): string {
-  if (table?.heading && table.heading.trim() !== '') return table.heading.trim()
-  return fallback
+function cleanCell(val: any): string {
+  if (val === null || val === undefined) return '—'
+  return val.toString().replace(/Compare$/i, '').trim() || '—'
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
+// ─── Section Header ───────────────────────────────────────────────────────────
+
+function SectionHeader({ label, title, accent }: { label: string; title: string; accent: string }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="h-[1.5px] w-8 bg-amber-500" />
+        <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-500">{label}</span>
+      </div>
+      <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
+        {title} <span className="text-amber-500">{accent}</span>
+      </h2>
+    </div>
+  )
+}
+
+// ─── View Full Link ───────────────────────────────────────────────────────────
+
+function ViewFullLink({ href, label = "View Full Details" }: { href: string; label?: string }) {
+  return (
+    <div className="flex justify-end">
+      <Link
+        href={href}
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/40 hover:text-amber-300 transition-all duration-300 text-[10px] font-black uppercase tracking-widest group"
+      >
+        {label}
+        <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
+      </Link>
+    </div>
+  )
+}
+
+// ─── Preview Table (first table, max 3 rows, no accordion) ───────────────────
+
+function PreviewTable({ table }: { table: any }) {
+  const headers: string[] = table.headers || []
+  // Flatten rows — if complex (base_data), just take base_data
+  const allRows: any[][] = (table.rows || []).map((row: any) =>
+    Array.isArray(row) ? row : (row?.base_data || [])
+  ).filter((r: any[]) => Array.isArray(r) && r.length > 0)
+
+  const previewRows = allRows.slice(0, 3)
+
+  return (
+    <div className="w-full overflow-x-auto rounded-2xl border border-white/5 bg-[#050818]/40">
+      <table className="w-full text-sm border-collapse min-w-[400px]">
+        <thead>
+          <tr className="border-b border-white/10 bg-white/[0.02]">
+            {headers.map((h, hi) => (
+              <th key={hi}
+                className={`px-5 py-4 text-left font-black uppercase tracking-widest whitespace-nowrap text-xs
+                  ${hi === 0 ? 'text-slate-200 sticky left-0 z-10 bg-[#070d1e]' : 'text-amber-500/90 bg-[#070d1e]'}`}>
+                {h || '—'}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {previewRows.map((row, ri) => (
+            <tr key={ri} className="border-b border-white/[0.04] hover:bg-amber-500/[0.03] transition-colors group/tr">
+              {row.map((cell: any, ci: number) => (
+                <td key={ci}
+                  className={`px-5 py-4 text-sm font-medium transition-colors
+                    ${ci === 0
+                      ? 'text-slate-300 sticky left-0 bg-[#050818]/80 group-hover/tr:text-white'
+                      : 'text-slate-400 group-hover/tr:text-amber-400'}`}>
+                  {cleanCell(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {/* Fade-out if more rows exist */}
+      {allRows.length > 3 && (
+        <div className="px-5 py-3 border-t border-white/5 bg-gradient-to-r from-[#050818]/80 to-transparent">
+          <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">
+            +{allRows.length - 3} more rows in full view
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CollegeOverviewPage() {
   const params = useParams()
   const pathname = usePathname()
   const slug = params?.slug as string
-  
+
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [activeSection, setActiveSection] = useState('overview')
 
-  useEffect(() => {
-    fetchCollege()
-  }, [slug])
+  useEffect(() => { fetchCollege() }, [slug])
 
   useEffect(() => {
     const urlParts = pathname.split('/')
     const section = urlParts[urlParts.length - 1]
-    const sections = ['overview', 'courses', 'fees', 'admission', 'placement', 'cutoff', 'ranking', 'reviews', 'contact']
-    const targetSection = sections.includes(section) ? section : 'overview'
-    setActiveSection(targetSection)
-    
     setTimeout(() => {
-      const element = document.getElementById(targetSection)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
+      document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 100)
   }, [pathname])
 
@@ -55,422 +130,334 @@ export default function CollegeOverviewPage() {
       setLoading(true)
       const { data } = await supabase.from("college_microsites").select("*").eq("slug", slug).single()
       if (data) setCollege(data)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { console.error(err) }
+    finally { setLoading(false) }
   }
 
   if (loading) return (
     <div className="flex justify-center py-12">
-      <Loader2 className="animate-spin h-10 w-10" style={{ color: accentColor }} />
+      <Loader2 className="animate-spin h-10 w-10 text-amber-500" />
     </div>
   )
-
   if (!college) return null
 
-  // Data Extraction
-  const micrositeData = college.microsite_data || {}
-  const advantages = micrositeData?.advantages || []
-  const aboutText = college.about || micrositeData?.about || "Information not available"
+  const micrositeData = typeof college.microsite_data === 'string'
+    ? JSON.parse(college.microsite_data)
+    : (college.microsite_data || {})
 
-  // Courses Parsing
-  const popularCourses = (college?.courses === "See Fees Section") 
-    ? (micrositeData?.fees?.[0]?.rows?.map((row: any) => ({ course_name: row[0], eligibility: row[1], fees: row[2] })) || [])
-    : (micrositeData?.popular_courses_table || [])
+  const base = `/college/${slug}`
 
-  // Fees Parsing
-  const feesRows = micrositeData?.fees?.[0]?.rows || []
-  const courseFees = feesRows.map((row: any[]) => ({
-    course: row[0] || 'N/A',
-    eligibility: row[1] || 'N/A',
-    fees: row[2] || 'N/A',
-    hostelFees: row[3] || undefined
-  }))
+  // Data
+  const aboutText: string = college.about || micrositeData?.about || ""
+  const vision: string    = micrositeData?.about_section?.vision || ""
+  const mission: string   = micrositeData?.about_section?.mission || ""
 
-  // Admission Parsing
-  const admissionTables = micrositeData?.admission || []
-  const basicInfo = admissionTables[0]?.rows || []
-  const admissionMode = basicInfo.find((row: any[]) => row[0] === "Mode of Application")?.[1] || "Offline"
-  const admissionBasis = basicInfo.find((row: any[]) => row[0] === "Basis of Admission")?.[1] || "Merit Based"
-  const scholarshipAvailable = basicInfo.find((row: any[]) => row[0] === "Scholarship")?.[1] || "No"
-  const courseAdmissions = admissionTables[1]?.rows || []
+  const rawFees: any[]       = micrositeData?.fees || college?.fees || []
+  const firstFeeTable        = rawFees[0] || null
 
-  // Placement Parsing
-  const placementData = micrositeData?.placement || []
-  const highestPackage = placementData[0]?.headers?.[1] || 'N/A'
-  const averagePackage = placementData[0]?.rows?.[0]?.[1] || 'N/A'
-  const uniqueRecruiters = [...new Set([
+  const placementData: any[] = micrositeData?.placement || college?.placement || []
+  const highestPackage       = placementData[0]?.headers?.[1] || placementData[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("high"))?.[1] || null
+  const averagePackage       = placementData[0]?.rows?.[0]?.[1] || null
+  const uniqueRecruiters     = [...new Set([
     ...(placementData[0]?.rows?.[1]?.[1] || '').split(',').map((r: string) => r.trim()).filter(Boolean),
     ...(placementData[1]?.rows || []).flat().filter(Boolean),
-    ...(placementData[2]?.rows || []).flat().filter(Boolean)
-  ])]
+  ])] as string[]
 
-  // Cutoff & Ranking Parsing
-  const cutoffData = micrositeData?.cutoff || college?.cutoff || []
-  const rankingData = micrositeData?.ranking || college?.ranking || []
-  const aggregateRating = (college?.reviews || micrositeData?.reviews)?.aggregate_rating
+  const cutoffData: any[]    = micrositeData?.cutoff || college?.cutoff || []
+  const firstCutoffTable     = cutoffData[0] || null
+
+  const admissionTables: any[] = micrositeData?.admission || college?.admission || []
+  const firstAdmissionTable    = admissionTables[0] || null
+  const basicInfo              = admissionTables[0]?.rows || []
+  const admissionMode          = basicInfo.find((r: any[]) => r[0] === "Mode of Application")?.[1] || "Offline"
+  const admissionBasis         = basicInfo.find((r: any[]) => r[0] === "Basis of Admission")?.[1] || "Merit Based"
+  const scholarshipAvail       = basicInfo.find((r: any[]) => r[0] === "Scholarship")?.[1] || "No"
+
+  // Visibility
+  const showAbout     = !!(aboutText || vision || mission)
+  const showCourses   = !!firstFeeTable
+  const showAdmission = !!admissionTables.length
+  const showPlacement = !!placementData.length
+  const showCutoff    = !!firstCutoffTable
+  const showContact   = !!(college?.location || college?.url)
 
   return (
-    <div className="space-y-16">
-      {/* OVERVIEW SECTION */}
-      <section id="overview" className="scroll-mt-28">
-        <div className="space-y-8">
-          <h3 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tighter">
-            Institutional <span style={{ color: accentColor }}>Vision.</span>
-          </h3>
-          <p className="text-lg sm:text-xl text-slate-400 leading-loose font-medium italic pl-6 sm:pl-10" style={{ borderLeft: `10px solid ${accentColor}` }}>
-            {aboutText}
-          </p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-6 mt-8">
-          <div className="relative p-8 rounded-[3rem] border transition-all duration-500 hover:border-amber-500/40 overflow-hidden group" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative z-10 space-y-4">
-              <Eye className="w-8 h-8 group-hover:scale-110 transition-transform duration-500" style={{ color: accentColor }} />
-              <h4 className="text-white font-black uppercase text-xs tracking-widest">Growth Vision</h4>
-              <p className="text-slate-500 text-sm leading-relaxed">{micrositeData?.about_section?.vision || "To be a center of excellence fostering innovation and professional ethics."}</p>
-            </div>
-          </div>
-          <div className="relative p-8 rounded-[3rem] border transition-all duration-500 hover:border-blue-500/40 overflow-hidden group" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative z-10 space-y-4">
-              <Target className="text-blue-500 w-8 h-8 group-hover:scale-110 transition-transform duration-500" />
-              <h4 className="text-white font-black uppercase text-xs tracking-widest">Academic Mission</h4>
-              <p className="text-slate-500 text-sm leading-relaxed">{micrositeData?.about_section?.mission || "Providing value-based education and practical skills through modern pedagogy."}</p>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-16 max-w-7xl mx-auto px-4">
 
-        {advantages.length > 0 && (
-          <div className="space-y-12 mt-16">
-            <div className="text-center space-y-2">
-               <span className="text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: accentColor }}>The Edge</span>
-               <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Why Choose <span style={{ color: accentColor }}>Us?</span></h2>
-            </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {advantages.map((adv: any, i: number) => (
-                <div key={i} className="relative p-8 rounded-[2.5rem] border transition-all duration-500 hover:border-amber-500/40 text-center space-y-4 group overflow-hidden" style={{ backgroundColor: '#060818', borderColor: 'rgba(255,255,255,0.05)' }}>
+      {/* ── ABOUT ──────────────────────────────────────────────────────────── */}
+      {showAbout && (
+        <section id="overview" className="scroll-mt-28 space-y-8">
+          <SectionHeader label="Institutional Profile" title="About" accent="Us." />
+
+          {aboutText && (
+            <p className="text-base sm:text-lg text-slate-400 leading-loose font-medium italic pl-6 sm:pl-8"
+              style={{ borderLeft: `6px solid ${accentColor}` }}>
+              {aboutText}
+            </p>
+          )}
+
+          {(vision || mission) && (
+            <div className="grid md:grid-cols-2 gap-5">
+              {vision && (
+                <div className="relative p-7 rounded-[2rem] border transition-all duration-500 hover:border-amber-500/40 overflow-hidden group"
+                  style={{ backgroundColor: secondaryBg, borderColor }}>
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="relative z-10">
-                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-500">{adv.icon || '⭐'}</div>
-                    <h4 className="text-lg font-black text-white group-hover:text-amber-400 transition-colors">{adv.title}</h4>
-                    <p className="text-slate-500 text-xs leading-relaxed">{adv.description}</p>
+                  <div className="relative z-10 space-y-3">
+                    <Eye className="w-6 h-6 text-amber-500 group-hover:scale-110 transition-transform duration-500" />
+                    <h4 className="text-white font-black uppercase text-xs tracking-widest">Vision</h4>
+                    <p className="text-slate-500 text-sm leading-relaxed">{vision}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* COURSES SECTION */}
-      <section id="courses" className="scroll-mt-28">
-        <div className="space-y-10">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-[1px] w-8" style={{ backgroundColor: accentColor }}></div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: accentColor }}>Programs Offered</span>
-            </div>
-            <h3 className="text-3xl font-black text-white uppercase tracking-tighter leading-tight">Academic <span style={{ color: accentColor }}>Portfolio.</span></h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {popularCourses.map((c: any, i: number) => (
-              <div key={i} className="relative group p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/40 hover:-translate-y-1 overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative z-10">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 text-amber-500 group-hover:scale-110 transition-transform duration-500">
-                      <GraduationCap size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold text-slate-500 border border-white/10 px-2 py-1 rounded uppercase tracking-wider group-hover:border-amber-500/30 transition-colors shrink-0">
-                      {c.eligibility || 'N/A'}
-                    </span>
+              )}
+              {mission && (
+                <div className="relative p-7 rounded-[2rem] border transition-all duration-500 hover:border-blue-500/40 overflow-hidden group"
+                  style={{ backgroundColor: secondaryBg, borderColor }}>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10 space-y-3">
+                    <Target className="text-blue-500 w-6 h-6 group-hover:scale-110 transition-transform duration-500" />
+                    <h4 className="text-white font-black uppercase text-xs tracking-widest">Mission</h4>
+                    <p className="text-slate-500 text-sm leading-relaxed">{mission}</p>
                   </div>
-                  <h4 className="text-base font-bold text-white group-hover:text-amber-400 transition-colors mb-4 break-words">
-                    {c.course_name}
-                  </h4>
-                  <div className="pt-4 border-t border-white/5 flex flex-col">
-                    <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest mb-1 group-hover:text-amber-500/50 transition-colors">Estimated Fees</span>
-                    <span className="text-lg font-black text-white group-hover:scale-105 origin-left transition-transform">{c.fees || 'TBD'}</span>
-                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── COURSES & FEES (first table, 3 rows) ───────────────────────────── */}
+      {showCourses && (
+        <section id="courses" className="scroll-mt-28 space-y-6">
+          <SectionHeader label="Academic & Financials" title="Courses &" accent="Fees." />
+
+          <div className="group relative rounded-[2rem] border transition-all duration-500 bg-[#0F172B] hover:border-amber-500/40 shadow-xl overflow-hidden"
+            style={{ borderColor }}>
+            <GraduationCap className="absolute -right-6 -top-6 w-32 h-32 text-white/[0.02] -rotate-12 group-hover:rotate-0 transition-transform duration-700 pointer-events-none" />
+            <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 pb-5 border-b border-white/5">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-[#050818] border-amber-500/20 text-amber-500 group-hover:scale-110 transition-transform duration-500 shrink-0">
+                <Wallet className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+                  {firstFeeTable.heading || "Program Details"}
+                </h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em]">Preview — First 3 Programs</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEES SECTION */}
-      <section id="fees" className="scroll-mt-28">
-        <div className="space-y-10">
-          <div className="space-y-3">
-             <div className="flex items-center gap-2">
-              <div className="h-[1px] w-8" style={{ backgroundColor: accentColor }}></div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: accentColor }}>Investment</span>
             </div>
-            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Fee <span style={{ color: accentColor }}>Structure.</span></h1>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {courseFees.map((course: any, i: number) => (
-              <div key={i} className="relative group p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/40 hover:-translate-y-1 overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 text-amber-500 group-hover:scale-110 transition-transform duration-500 shrink-0"><Wallet size={18} /></div>
-                    <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
-                      {course.course}
-                    </h3>
-                  </div>
-                  <div className="p-4 rounded-xl bg-black/30 border border-white/5 mb-4 group-hover:border-amber-500/20 transition-colors">
-                    <p className="text-[8px] text-slate-500 font-bold uppercase mb-1">Total Course Fee</p>
-                    <p className="text-xl font-black text-white flex items-center gap-1"><span className="text-xs text-amber-500">₹</span>{course.fees}</p>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    {course.hostelFees && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/5 border border-amber-500/10 shrink-0">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                        <p className="text-[9px] text-amber-200/70 font-bold uppercase tracking-wider">Hostel: {course.hostelFees}</p>
-                      </div>
-                    )}
-                    {course.eligibility && course.eligibility !== '-' && (
-                      <div className="flex items-center gap-1.5 text-slate-500 overflow-hidden">
-                        <Info size={12} className="shrink-0" />
-                        <span className="text-[9px] font-medium italic truncate">{course.eligibility}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ADMISSION SECTION */}
-      <section id="admission" className="scroll-mt-28">
-        <div className="space-y-12">
-          <div className="space-y-3">
-             <div className="flex items-center gap-2">
-              <div className="h-[1px] w-8" style={{ backgroundColor: accentColor }}></div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: accentColor }}>Admissions 2026</span>
+            <div className="relative z-10 px-4 md:px-6 py-5">
+              <PreviewTable table={firstFeeTable} />
             </div>
-            <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Selection <span style={{ color: accentColor }}>Protocol.</span></h3>
           </div>
-          
+
+          <ViewFullLink href={`${base}/course-&-fees`} label="View All Courses & Fees" />
+        </section>
+      )}
+
+      {/* ── ADMISSION ──────────────────────────────────────────────────────── */}
+      {showAdmission && (
+        <section id="admission" className="scroll-mt-28 space-y-6">
+          <SectionHeader label="Official Schedule" title="Admission" accent="Preview." />
+
+          {/* Stat pills */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { l: 'Mode', v: admissionMode, icon: FileText },
-              { l: 'Basis', v: admissionBasis, icon: GraduationCap },
-              { l: 'Scholarship', v: scholarshipAvailable, icon: Zap }
-            ].map((item, i) => (
-              <div key={i} className="relative p-5 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10 text-center sm:text-left">
-                  <item.icon className="w-5 h-5 mb-3 mx-auto sm:mx-0 opacity-40 text-amber-500 group-hover:scale-110 transition-transform" />
-                  <p className="text-slate-500 font-bold text-[8px] uppercase tracking-widest mb-1 group-hover:text-amber-500/50 transition-colors">{item.l}</p>
-                  <p className="text-white text-xs font-black uppercase">{item.v}</p>
+              { l: 'Mode', v: admissionMode, Icon: Phone },
+              { l: 'Basis', v: admissionBasis, Icon: Target },
+              { l: 'Scholarship', v: scholarshipAvail, Icon: Award }
+            ].map(({ l, v, Icon }, i) => (
+              <div key={i}
+                className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 overflow-hidden group"
+                style={{ backgroundColor: secondaryBg, borderColor }}>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10">
+                  <Icon className="w-5 h-5 mb-3 text-amber-500 opacity-60 group-hover:scale-110 transition-transform" />
+                  <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-1">{l}</p>
+                  <p className="text-base font-black text-white uppercase">{v}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {courseAdmissions.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseAdmissions.map((course: any[], i: number) => (
-                <div key={i} className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/20 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-                  <div className="relative z-10">
-                    <div className="flex items-start gap-3 mb-4">
-                      <GraduationCap size={16} className="text-amber-500 mt-1 group-hover:rotate-12 transition-transform shrink-0" />
-                      <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">{course[0]}</h4>
-                    </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed pl-7">{course[1]}</p>
+          {/* First table, 3 rows */}
+          {firstAdmissionTable && (
+            <div className="group relative rounded-[2rem] border transition-all duration-500 bg-[#0F172B] hover:border-amber-500/40 shadow-xl overflow-hidden"
+              style={{ borderColor }}>
+              <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 pb-5 border-b border-white/5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-[#050818] border-amber-500/20 text-amber-500 group-hover:scale-110 transition-transform duration-500 shrink-0">
+                  <GraduationCap className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+                    {firstAdmissionTable.heading || "Admission Info"}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em]">Preview — First 3 Entries</p>
                   </div>
                 </div>
-              ))}
+              </div>
+              <div className="relative z-10 px-4 md:px-6 py-5">
+                <PreviewTable table={firstAdmissionTable} />
+              </div>
             </div>
           )}
-        </div>
-      </section>
 
-      {/* PLACEMENT SECTION */}
-      <section id="placement" className="scroll-mt-28">
-        <div className="space-y-10">
-          <div className="space-y-3">
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: accentColor }}>Career Outcomes</span>
-            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Placement <span style={{ color: accentColor }}>Metrics.</span></h1>
-          </div>
+          <ViewFullLink href={`${base}/admission`} label="View Full Admission Details" />
+        </section>
+      )}
+
+      {/* ── PLACEMENT (stat pills only) ────────────────────────────────────── */}
+      {showPlacement && (
+        <section id="placement" className="scroll-mt-28 space-y-6">
+          <SectionHeader label="Industry Relations" title="Placement" accent="Snapshot." />
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 hover:-translate-y-1 overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-              <Award className="w-5 h-5 mb-4 text-amber-500 group-hover:scale-110" />
-              <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Highest Package</p>
-              <p className="text-xl font-black text-white">{highestPackage}</p>
-            </div>
-            <div className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-blue-500/30 hover:-translate-y-1 overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-              <BarChart3 className="w-5 h-5 mb-4 text-blue-500" />
-              <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Average Package</p>
-              <p className="text-xl font-black text-white">{averagePackage}</p>
-            </div>
-            <div className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-purple-500/30 hover:-translate-y-1 overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-              <Building2 className="w-5 h-5 mb-4 text-purple-500" />
-              <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Recruiters</p>
-              <p className="text-xl font-black text-white">{uniqueRecruiters.length}+</p>
-            </div>
-          </div>
-          
-          {uniqueRecruiters.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {uniqueRecruiters.slice(0, 12).map((rec, i) => (
-                <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center hover:bg-white/[0.05] hover:border-white/20 transition-all cursor-default group">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight truncate group-hover:text-white transition-colors">{rec}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* CUTOFF SECTION */}
-      <section id="cutoff" className="scroll-mt-28">
-        <div className="space-y-10">
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Entrance <span style={{ color: accentColor }}>Thresholds.</span></h1>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {cutoffData.map((cutoff: any, idx: number) => (
-              <div key={idx} className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
+            {highestPackage && (
+              <div className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 overflow-hidden group"
+                style={{ backgroundColor: secondaryBg, borderColor }}>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-6 gap-4">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <Target size={18} className="text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
-                      <h3 className="text-xs font-black text-white uppercase tracking-widest group-hover:text-amber-400 transition-colors">
-                        {getTitle(cutoff, cutoff.headers?.[0] || `Cutoff Table ${idx + 1}`)}
-                      </h3>
-                    </div>
-                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest shrink-0">{cutoff.headers?.[1]}</span>
-                  </div>
-                  <div className="space-y-2">
-                    {cutoff.rows?.map((row: any[], i: number) => (
-                      <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">{row[0]}</span>
-                        <span className="text-sm font-black text-amber-500">{row[1]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* RANKING SECTION */}
-      <section id="ranking" className="scroll-mt-28">
-        <div className="space-y-10">
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Rankings & <span style={{ color: accentColor }}>Recognition.</span></h1>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {rankingData.map((ranking: any, idx: number) => (
-              <div key={idx} className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-amber-500/30 group overflow-hidden" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-6 overflow-hidden">
-                    <Award size={20} className="text-amber-500 group-hover:rotate-12 transition-transform shrink-0" />
-                    <h3 className="text-xs font-black text-white uppercase group-hover:text-amber-400 transition-colors">
-                      {getTitle(ranking, ranking.headers?.[0] || `Ranking Table ${idx + 1}`)}
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    {ranking.rows?.map((row: any[], i: number) => (
-                      <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">{row[0]}</span>
-                        <span className="text-sm font-black text-white">#{row[1]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* REVIEWS SECTION */}
-      <section id="reviews" className="scroll-mt-28">
-        <div className="space-y-10">
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Campus <span style={{ color: accentColor }}>Reviews.</span></h1>
-          {aggregateRating ? (
-            <div className="relative p-8 rounded-[2rem] border transition-all duration-500 hover:border-amber-500/30 overflow-hidden group" style={{ backgroundColor: secondaryBg, borderColor: borderColor }}>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
-                <div className="text-center md:text-left space-y-2">
-                  <div className="flex justify-center md:justify-start gap-1">
-                    {[...Array(5)].map((_, i) => <Star key={i} size={16} fill={i < 4 ? accentColor : 'transparent'} className="text-amber-500" />)}
-                  </div>
-                  <h2 className="text-5xl font-black text-white">{aggregateRating.ratingValue}<span className="text-xl text-slate-600">/5</span></h2>
-                  <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">From {aggregateRating.reviewCount} students</p>
-                </div>
-                <div className="flex-1 space-y-2 w-full max-w-xs">
-                  {[5, 4, 3, 2, 1].map((s) => (
-                    <div key={s} className="flex items-center gap-2">
-                      <span className="text-[8px] font-bold text-slate-500 w-4">{s}★</span>
-                      <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-500" style={{ width: s === 5 ? '80%' : s === 4 ? '15%' : '5%' }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-10 rounded-2xl border border-dashed border-white/10 bg-white/[0.02]">
-              <MessageSquare className="w-10 h-10 mx-auto text-slate-700 mb-4" />
-              <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Data being verified by alumni</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* CONTACT SECTION */}
-      <section id="contact" className="scroll-mt-28">
-        <div className="space-y-8">
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Contact <span style={{ color: accentColor }}>Info.</span></h1>
-          <div className="grid grid-cols-1 gap-4">
-            {college?.location && (
-              <div className="flex items-center gap-4 p-6 bg-[#0F172B] border border-white/5 rounded-2xl group hover:border-amber-500/30 transition-all duration-500 overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 to-amber-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10 w-10 h-10 rounded-lg bg-black flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-black transition-all duration-500 shrink-0"><MapPin size={20} /></div>
-                <div className="relative z-10">
-                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-amber-500/50 transition-colors">Campus Address</span>
-                  <p className="text-white font-bold text-sm">{college.location}</p>
+                  <Award className="w-5 h-5 mb-3 text-amber-500 group-hover:scale-110 transition-transform" />
+                  <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-1">Highest Package</p>
+                  <p className="text-2xl font-black text-white">{highestPackage}</p>
                 </div>
               </div>
             )}
+            {averagePackage && (
+              <div className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-blue-500/30 overflow-hidden group"
+                style={{ backgroundColor: secondaryBg, borderColor }}>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10">
+                  <BarChart3 className="w-5 h-5 mb-3 text-blue-500 group-hover:scale-110 transition-transform" />
+                  <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-1">Average Package</p>
+                  <p className="text-2xl font-black text-white">{averagePackage}</p>
+                </div>
+              </div>
+            )}
+            {uniqueRecruiters.length > 0 && (
+              <div className="relative p-6 rounded-2xl border transition-all duration-500 hover:border-purple-500/30 overflow-hidden group"
+                style={{ backgroundColor: secondaryBg, borderColor }}>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10">
+                  <Building2 className="w-5 h-5 mb-3 text-purple-500 group-hover:scale-110 transition-transform" />
+                  <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-1">Top Recruiters</p>
+                  <p className="text-2xl font-black text-white">{uniqueRecruiters.length}+</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <ViewFullLink href={`${base}/placement`} label="View Full Placement Report" />
+        </section>
+      )}
+
+      {/* ── CUTOFF (first table, 3 rows) ───────────────────────────────────── */}
+      {showCutoff && (
+        <section id="cutoff" className="scroll-mt-28 space-y-6">
+          <SectionHeader label="Official Data" title="Cutoff" accent="Preview." />
+
+          <div className="group relative rounded-[2rem] border transition-all duration-500 bg-[#0F172B] hover:border-amber-500/40 shadow-xl overflow-hidden"
+            style={{ borderColor }}>
+            <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 pb-5 border-b border-white/5">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-[#050818] border-amber-500/20 text-amber-500 group-hover:scale-110 transition-transform duration-500 shrink-0">
+                <Target className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+                  {firstCutoffTable.heading || "Cutoff Data"}
+                </h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em]">Preview — First 3 Entries</p>
+                </div>
+              </div>
+            </div>
+            <div className="relative z-10 px-4 md:px-6 py-5">
+              <PreviewTable table={firstCutoffTable} />
+            </div>
+          </div>
+
+          <ViewFullLink href={`${base}/cutoff`} label="View Full Cutoff Data" />
+        </section>
+      )}
+
+      {/* ── CONTACT ────────────────────────────────────────────────────────── */}
+      {showContact && (
+        <section id="contact" className="scroll-mt-28 space-y-6">
+          <SectionHeader label="Official Channels" title="Contact" accent="Information." />
+
+          <div className="space-y-4">
+            {college?.location && (
+              <div className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B] hover:border-amber-500/40"
+                style={{ borderColor }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 pb-5 border-b border-white/5">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-[#050818] group-hover:scale-110 transition-transform duration-500 shrink-0"
+                    style={{ borderColor, color: accentColor }}>
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-base font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">Campus Locale</h3>
+                </div>
+                <div className="relative z-10 px-6 md:px-8 py-5">
+                  <p className="text-slate-300 font-medium text-sm leading-relaxed">{college.location}</p>
+                </div>
+              </div>
+            )}
+
             {college?.url && (
-              <div className="flex items-center gap-4 p-6 bg-[#0F172B] border border-white/5 rounded-2xl group hover:border-blue-500/30 transition-all duration-500 overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-blue-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10 w-10 h-10 rounded-lg bg-black flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-500 shrink-0"><Globe size={20} /></div>
-                <div className="relative z-10 overflow-hidden">
-                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-blue-500/50 transition-colors">Official Website</span>
-                  <a href={college.url} target="_blank" className="text-white font-bold text-sm flex items-center gap-2 hover:text-amber-500 transition-colors truncate">
-                    {college.url.replace('https://', '').replace('www.', '')} <ArrowUpRight size={12} className="shrink-0" />
+              <div className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B] hover:border-amber-500/40"
+                style={{ borderColor }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 pb-5 border-b border-white/5">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-[#050818] group-hover:scale-110 transition-transform duration-500 shrink-0"
+                    style={{ borderColor, color: accentColor }}>
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-base font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">Digital Portal</h3>
+                </div>
+                <div className="relative z-10 px-6 md:px-8 py-5">
+                  <a href={college.url} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-slate-300 font-medium text-sm hover:text-amber-400 transition-colors">
+                    {college.url.replace('https://', '').replace('www.', '')}
+                    <ArrowUpRight size={14} className="text-amber-500" />
                   </a>
                 </div>
               </div>
             )}
-            <div className="p-10 rounded-[2.5rem] bg-amber-500 relative overflow-hidden group shadow-2xl">
-              <Phone className="absolute -right-6 -bottom-6 w-32 h-32 opacity-10 -rotate-12 text-black group-hover:rotate-0 group-hover:scale-110 transition-transform duration-700" />
-              <div className="relative z-10 space-y-4">
-                <h3 className="text-2xl font-black text-[#050818] uppercase leading-tight">Ready for Admission?</h3>
-                <p className="text-[10px] font-bold text-[#050818]/60 uppercase tracking-widest max-w-xs">Connect with our counseling desk for immediate assistance and campus tours.</p>
+
+            {/* CTA */}
+            <div className="group relative p-8 rounded-[2rem] border border-white/5 bg-[#050818] overflow-hidden shadow-2xl transition-all duration-500 hover:border-amber-500/30">
+              <div className="absolute top-0 right-0 w-56 h-56 bg-amber-500/5 blur-[80px] rounded-full -mr-16 -mt-16 group-hover:bg-amber-500/10 transition-colors" />
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-500/10 rounded-lg">
+                      <Headset size={16} className="text-amber-500" />
+                    </div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tighter">
+                      Admission <span className="text-amber-500">Desk.</span>
+                    </h3>
+                  </div>
+                  <p className="text-xs font-medium text-slate-400 max-w-sm leading-relaxed">
+                    Connect with the official administration for personalized counseling and direct admission queries.
+                  </p>
+                </div>
                 {college?.url && (
-                  <a href={college.url} target="_blank" className="inline-block py-3 px-8 bg-[#050818] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:translate-y-[-4px] hover:shadow-xl transition-all duration-300">Connect Now</a>
+                  <a href={college.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-3.5 px-8 bg-amber-500 text-[#050818] rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all font-black text-xs uppercase tracking-widest shrink-0">
+                    Apply Directly
+                    <ArrowUpRight size={14} />
+                  </a>
                 )}
-                <div className="pt-4 text-[9px] font-black uppercase tracking-[0.4em] text-[#050818]/40 border-t border-black/5">Ambition से Admission तक</div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
     </div>
   )
 }
