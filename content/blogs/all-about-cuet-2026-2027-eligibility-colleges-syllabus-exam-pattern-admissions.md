@@ -7,7 +7,7 @@ excerpt: "Complete CUET 2026 & 2027 guide with eligibility, syllabus, exam patte
 coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1772097132/Untitled_design_17_1_frtkin.png"
 coverImageAlt: "Career guidance for students after 12th grade - Science, Commerce, Arts streams"
 audioUrl: "https://res.cloudinary.com/dduzrmc4b/video/upload/सीयूईटी_2026_नेगेटिव_मार्किंग_और_सटीक_रणनीति_atp5al.mp4"
-tags: ["CUET", "All About CUET", "CUET 2027", "CUET 2026", "Top Colleges accepting CUET", "What is CUET"]
+tags: ["CUET", "All About CUET", "CUET 2027", "CUET 2026", "Top Colleges accepting CUET", "What is CUET"] 
 ---
 
 # All About CUET 2026 & 2027: Eligibility, Colleges, Syllabus, Exam Pattern & Admissions
