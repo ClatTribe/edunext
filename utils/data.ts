@@ -46,7 +46,24 @@ export const overallData: ScoreMap = {
   121: 99.92, 122: 99.94, 123: 99.96, 124: 99.98, 125: 100
 };
 
-// --- SECTION 1: PERCENTILE UTILS (Kept exactly as provided) ---
+export const getPercentile = (type: 'VA' | 'QA' | 'DILR' | 'Overall', score: number): number => {
+  let map: any;
+  let maxScore: number;
+  
+  switch (type) {
+    case 'VA': map = vaData; maxScore = 48; break;
+    case 'QA': map = qaData; maxScore = 45; break;
+    case 'DILR': map = dilrData; maxScore = 43; break;
+    case 'Overall': map = overallData; maxScore = 125; break;
+    default: return 0;
+  }
+
+  if (score < -10) return map["-10"];
+  const lookupScore = Math.round(score);
+  if (map[lookupScore] !== undefined) return map[lookupScore];
+  if (lookupScore >= maxScore) return 100;
+  return 0; 
+};
 
 export interface ParsedFilters {
   searchText?: string
