@@ -29,7 +29,7 @@ import FilterComponent from "../../../components/CourseFinder/Filtering"
 import useSavedMicrositeCourses from "../../../components/microsite/SavedCollegeMicrosites"
 import ClgsRecommend from "../../../components/CourseFinder/ClgsRecommend"
 import useCollegeMicrositeComparison, { CompareBadge, CompareFloatingButton } from "../../../components/microsite/CollegeMicrositesComparison"
-import { parseSearchQuery, applyBudgetFilter } from "../../../utils/data"
+import { parseSearchQuery, applyBudgetFilter, doesCollegeMatchCourse, doesCollegeMatchLocation } from "../../../utils/data"
 import type { ManualFilters } from "../../../components/CourseFinder/Filtering"
 
 interface College {
@@ -91,6 +91,7 @@ const CollegeMicrositesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [manualFilters, setManualFilters] = useState<ManualFilters>({
     states: [],
+    cities: [],
     city: "",
     collegeName: "",
     budgets: [],
@@ -180,81 +181,50 @@ setHasBudgetFilter(hasBudget)
         .order("id", { ascending: true })
 
       // Categorize filter conditions by type for AND logic between groups
-      const stateConditions: string[] = []
-      const examConditions: string[] = []
-      const courseConditions: string[] = []
-      const nameConditions: string[] = []
+     const parsed = searchQuery.trim() ? parseSearchQuery(searchQuery) : null
 
-      // Apply search query filters
-      if (searchQuery.trim()) {
-        const parsed = parseSearchQuery(searchQuery)
-        
-        // Search in college name
-        if (parsed.searchText) {
-          nameConditions.push(`card_detail->>college_name.ilike.%${parsed.searchText}%`)
-        }
-        
-        // Search in location for states
-        if (parsed.states.length > 0) {
-          parsed.states.forEach(state => {
-            stateConditions.push(`card_detail->>location.ilike.%${state}%`)
-          })
-        }
-        
-        // Search in entrance exams
-        if (parsed.entranceExams.length > 0) {
-          parsed.entranceExams.forEach(exam => {
-            examConditions.push(`card_detail->>entrance_exam.ilike.%${exam}%`)
-          })
-        }
+      // Combine parsed + manual (deduplicated)
+      const allLocations = [...new Set([
+        ...(parsed?.cities || []),
+        ...(parsed?.states || []),
+        ...manualFilters.cities,
+        ...manualFilters.states,
+        ...(manualFilters.city ? [manualFilters.city] : [])
+      ])]
+      const allCourses = [...new Set([
+        ...(parsed?.courses || []),
+        ...manualFilters.courses
+      ])]
+      const allExams = [...new Set([
+        ...(parsed?.entranceExams || []),
+        ...manualFilters.exams
+      ])]
+      const searchText = parsed?.searchText || manualFilters.collegeName || ""
 
-        // Search in courses
-        if (parsed.courses.length > 0) {
-          parsed.courses.forEach(course => {
-            const escapedCourse = course.replace(/[%_]/g, '\\$&')
-            courseConditions.push(`card_detail->>courses.ilike.%${escapedCourse}%`)
-          })
-        }
+      // Build OR conditions within each group, AND between groups
+      if (searchText) {
+        query = query.or(`card_detail->>college_name.ilike.%${searchText}%`)
       }
 
-      // Apply manual filters
-      if (manualFilters.states.length > 0) {
-        manualFilters.states.forEach(state => {
-          stateConditions.push(`card_detail->>location.ilike.%${state}%`)
-        })
+      if (allLocations.length > 0) {
+        const locationConditions = allLocations.map(loc =>
+          `card_detail->>location.ilike.%${loc}%`
+        )
+        query = query.or(locationConditions.join(','))
       }
 
-      if (manualFilters.exams.length > 0) {
-        manualFilters.exams.forEach(exam => {
-          examConditions.push(`card_detail->>entrance_exam.ilike.%${exam}%`)
-        })
-      }
-
-      if (manualFilters.courses.length > 0) {
-        manualFilters.courses.forEach(course => {
-          const escapedCourse = course.replace(/[%_]/g, '\\$&')
-          courseConditions.push(`card_detail->>courses.ilike.%${escapedCourse}%`)
-        })
-      }
-
-      // Apply filters with AND logic between different types
-      // Within each type, use OR logic (e.g., Delhi OR Mumbai)
-      const hasAnyFilters = nameConditions.length > 0 || stateConditions.length > 0 || 
-                            examConditions.length > 0 || courseConditions.length > 0
-      if (nameConditions.length > 0) {
-        query = query.or(nameConditions.join(','))
-      }
-      
-      if (stateConditions.length > 0) {
-        query = query.or(stateConditions.join(','))
-      }
-      
-      if (examConditions.length > 0) {
-        query = query.or(examConditions.join(','))
-      }
-      
-      if (courseConditions.length > 0) {
+      if (allCourses.length > 0) {
+        const courseConditions = allCourses.map(course =>
+          `card_detail->>courses.ilike.%${course.replace(/[%_]/g, '\\$&')}%`
+        )
         query = query.or(courseConditions.join(','))
+      }
+
+      if (allExams.length > 0) {
+        const examConditions = allExams.map(exam =>
+          `card_detail->>entrance_exam.ilike.%${exam}%`
+        )
+        query = query.or(examConditions.join(','))
       }
 
       // HYBRID APPROACH FOR BUDGET FILTER:
@@ -807,14 +777,13 @@ const handleManualFilterChange = useCallback((filters: ManualFilters) => {
                 />
               )}
 
-              {/* Budget Filter Notice */}
               {viewMode === "all" && hasBudgetFilter && displayedColleges.length > 0 && (
-                <div className="text-center py-4 rounded-lg" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-                  <p className="text-sm text-slate-400">
-                    Showing results filtered by budget. <button onClick={() => setCurrentPage(currentPage + 1)} className="underline hover:opacity-80" style={{ color: accentColor }}>Load more colleges</button>
-                  </p>
-                </div>
-              )}
+  <div className="text-center py-4 rounded-lg" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+    <p className="text-sm text-slate-400">
+      Showing results filtered by budget. <button onClick={() => setCurrentPage(currentPage + 1)} className="underline hover:opacity-80" style={{ color: accentColor }}>Load more colleges</button>
+    </p>
+  </div>
+)}
             </>
           )}
         </div>

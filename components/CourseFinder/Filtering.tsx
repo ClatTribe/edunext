@@ -41,6 +41,7 @@ interface FilterProps {
 
 export interface ManualFilters {
   states: string[]
+  cities: string[]
   city: string
   collegeName: string
   budgets: string[]
@@ -63,11 +64,13 @@ const indianStates = [
 ]
 
 const BUDGET_OPTIONS = [
-  "Less than 5 Lakh",
+  "Less than 2 Lakh",
+  "2 - 5 Lakh",
   "5 - 10 Lakh",
   "10 - 15 Lakh",
-  "15 - 20 Lakh",
-  "Above 20 Lakh",
+  "15 - 25 Lakh",
+  "25 - 50 Lakh",
+  "Above 50 Lakh",
 ]
 
 const COMMON_EXAMS = [
@@ -134,16 +137,19 @@ const FilterComponent: React.FC<FilterProps> = ({
 
   // Notify parent when manual filters change
   useEffect(() => {
+    const parsed = searchQuery ? parseSearchQuery(searchQuery) : null;
+
     const filters: ManualFilters = {
-      states: selectedStates,
-      city: selectedCity,
+      states: [...new Set([...selectedStates, ...(parsed?.states || [])])],
+      cities: [...new Set([...(parsed?.cities || [])])],
+      city: selectedCity || (parsed?.cities?.[0] ?? ""),
       collegeName: selectedCollegeName,
-      budgets: selectedBudgets,
-      exams: selectedExams,
-      courses: selectedCourses
+      budgets: [...new Set([...selectedBudgets, ...(parsed?.budgetRanges || [])])],
+      exams: [...new Set([...selectedExams, ...(parsed?.entranceExams || [])])],
+      courses: [...new Set([...selectedCourses, ...(parsed?.courses || [])])],
     }
     onManualFilterChange(filters)
-  }, [selectedStates, selectedCity, selectedCollegeName, selectedBudgets, selectedExams, selectedCourses])
+  }, [selectedStates, selectedCity, selectedCollegeName, selectedBudgets, selectedExams, selectedCourses, searchQuery])
 
   const handleSearch = () => {
     onSearchChange(searchQuery)
@@ -295,92 +301,111 @@ const FilterComponent: React.FC<FilterProps> = ({
 
         {/* Active Filters Display */}
         {activeFiltersCount > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {searchQuery && (
-              <div 
-                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-              >
-                <span className="font-medium">Search: {searchQuery}</span>
-                <button 
-                  onClick={() => clearFilter("search")} 
-                  className="rounded-full p-0.5 hover:bg-white/10"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-
-            {selectedStates.length > 0 && (
-              <div 
-                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-              >
-                <span className="font-medium">States: {selectedStates.join(", ")}</span>
-                <button 
-                  onClick={() => clearFilter("state")} 
-                  className="rounded-full p-0.5 hover:bg-white/10"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-
-            {selectedBudgets.length > 0 && (
-              <div 
-                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-              >
-                <span className="font-medium">Budget: {selectedBudgets.join(", ")}</span>
-                <button 
-                  onClick={() => clearFilter("budget")} 
-                  className="rounded-full p-0.5 hover:bg-white/10"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-
-            {selectedExams.length > 0 && (
-              <div 
-                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-              >
-                <span className="font-medium">Exams: {selectedExams.join(", ")}</span>
-                <button 
-                  onClick={() => clearFilter("exam")} 
-                  className="rounded-full p-0.5 hover:bg-white/10"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-
-            {selectedCourses.length > 0 && (
-              <div 
-                className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-              >
-                <span className="font-medium">Courses: {selectedCourses.join(", ")}</span>
-                <button 
-                  onClick={() => clearFilter("course")} 
-                  className="rounded-full p-0.5 hover:bg-white/10"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-
-            <button 
-              onClick={resetFilters} 
-              className="text-sm font-medium px-2 hover:opacity-80"
-              style={{ color: accentColor }}
-            >
-              Clear All
-            </button>
+  <div className="flex flex-wrap gap-2 mb-4">
+    {(() => {
+      const parsed = searchQuery ? parseSearchQuery(searchQuery) : null
+      return <>
+        {parsed?.cities && parsed.cities.length > 0 && (
+          <div
+            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+          >
+            <span className="font-medium">City: {parsed.cities.join(", ")}</span>
           </div>
         )}
+        {parsed?.states && parsed.states.length > 0 && (
+          <div
+            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+          >
+            <span className="font-medium">State: {parsed.states.join(", ")}</span>
+          </div>
+        )}
+        {parsed?.budgetRanges && parsed.budgetRanges.length > 0 && (
+          <div
+            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+          >
+            <span className="font-medium">Budget: {parsed.budgetRanges.join(", ")}</span>
+          </div>
+        )}
+        {parsed?.courses && parsed.courses.length > 0 && (
+          <div
+            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+          >
+            <span className="font-medium">Courses: {parsed.courses.join(", ")}</span>
+          </div>
+        )}
+        {parsed?.entranceExams && parsed.entranceExams.length > 0 && (
+          <div
+            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+          >
+            <span className="font-medium">Exams: {parsed.entranceExams.join(", ")}</span>
+          </div>
+        )}
+      </>
+    })()}
+
+    {selectedStates.length > 0 && (
+      <div
+        className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+        style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+      >
+        <span className="font-medium">States: {selectedStates.join(", ")}</span>
+        <button onClick={() => clearFilter("state")} className="rounded-full p-0.5 hover:bg-white/10">
+          <X size={14} />
+        </button>
       </div>
+    )}
+
+    {selectedBudgets.length > 0 && (
+      <div
+        className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+        style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+      >
+        <span className="font-medium">Budget: {selectedBudgets.join(", ")}</span>
+        <button onClick={() => clearFilter("budget")} className="rounded-full p-0.5 hover:bg-white/10">
+          <X size={14} />
+        </button>
+      </div>
+    )}
+
+    {selectedExams.length > 0 && (
+      <div
+        className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+        style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+      >
+        <span className="font-medium">Exams: {selectedExams.join(", ")}</span>
+        <button onClick={() => clearFilter("exam")} className="rounded-full p-0.5 hover:bg-white/10">
+          <X size={14} />
+        </button>
+      </div>
+    )}
+
+    {selectedCourses.length > 0 && (
+      <div
+        className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
+        style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
+      >
+        <span className="font-medium">Courses: {selectedCourses.join(", ")}</span>
+        <button onClick={() => clearFilter("course")} className="rounded-full p-0.5 hover:bg-white/10">
+          <X size={14} />
+        </button>
+      </div>
+    )}
+
+    <button
+      onClick={resetFilters}
+      className="text-sm font-medium px-2 hover:opacity-80"
+      style={{ color: accentColor }}
+    >
+      Clear All
+    </button>
+  </div>
+)} 
+</div>
 
       {/* Filter Dropdowns Section */}
       {showFilters && (
