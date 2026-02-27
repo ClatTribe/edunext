@@ -46,25 +46,7 @@ export const overallData: ScoreMap = {
   121: 99.92, 122: 99.94, 123: 99.96, 124: 99.98, 125: 100
 };
 
-export const getPercentile = (type: 'VA' | 'QA' | 'DILR' | 'Overall', score: number): number => {
-  let map: ScoreMap;
-  let maxScore: number;
-  
-  switch (type) {
-    case 'VA': map = vaData; maxScore = 48; break;
-    case 'QA': map = qaData; maxScore = 45; break;
-    case 'DILR': map = dilrData; maxScore = 43; break;
-    case 'Overall': map = overallData; maxScore = 125; break;
-  }
-
-  if (score < -10) return map["-10"];
-  const lookupScore = Math.round(score);
-  if (map[lookupScore] !== undefined) return map[lookupScore];
-  if (lookupScore >= maxScore) return 100;
-  return 0; 
-};
-
-// --- SECTION 2: SERVER-SIDE SEARCH QUERY BUILDER ---
+// --- SECTION 1: PERCENTILE UTILS (Kept exactly as provided) ---
 
 export interface ParsedFilters {
   searchText?: string
@@ -81,6 +63,42 @@ const INDIAN_STATES = [
   "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
   "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
   "Uttarakhand", "West Bengal", "Delhi", "Delhi NCR", "Jammu and Kashmir", "Ladakh"
+];
+
+const STATE_ALIASES: Record<string, string> = {
+  "up": "Uttar Pradesh",
+  "mp": "Madhya Pradesh",
+  "new delhi": "Delhi",
+  "delhi ncr": "Delhi NCR",
+  "mh": "Maharashtra",
+  "uk": "Uttarakhand",
+  "pb": "Punjab",
+  "rj": "Rajasthan",
+  "tn": "Tamil Nadu",
+  "wb": "West Bengal"
+};
+
+const INDIAN_CITIES = [
+  "Mumbai", "Delhi", "Bangalore", "Bengaluru", "Chennai", "Hyderabad", "Kolkata",
+  "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Chandigarh", "Noida", "Gurugram", 
+  "Gurgaon", "Indore", "Bhopal", "Nagpur", "Coimbatore", "Kochi", "Cochin", 
+  "Visakhapatnam", "Vizag", "Surat", "Vadodara", "Baroda", "Patna", "Bhubaneswar", 
+  "Thiruvananthapuram", "Trivandrum", "Mysuru", "Mysore", "Ranchi", "Guwahati", 
+  "Dehradun", "Amritsar", "Ludhiana", "Agra", "Varanasi", "Meerut", "Faridabad", 
+  "Ghaziabad", "Vijayawada", "Tiruchirappalli", "Trichy", "Madurai", "Salem", 
+  "Nashik", "Aurangabad", "Raipur", "Jodhpur", "Udaipur", "Kota", "Allahabad", 
+  "Prayagraj", "Jabalpur", "Gwalior", "Rajkot", "Mangalore", "Mangaluru", 
+  "Hubli", "Dharwad", "Belgaum", "Belagavi", "Warangal", "Guntur", "Nellore", 
+  "Tirupati", "Kakinada", "Rajahmundry", "Pondicherry", "Puducherry", "Vellore", 
+  "Tirunelveli", "Erode", "Tiruppur", "Kanpur", "Bareilly", "Moradabad", 
+  "Aligarh", "Gorakhpur", "Firozabad", "Jammu", "Srinagar", "Shimla", "Leh",
+  "Kolhapur", "Sangli", "Solapur", "Amravati", "Akola", "Latur", "Bilaspur", 
+  "Bhilai", "Korba", "Durg", "Ajmer", "Bikaner", "Bhilwara", "Alwar", "Sikar",
+  "Dhanbad", "Bokaro", "Jamshedpur", "Cuttack", "Rourkela", "Berhampur", 
+  "Sambalpur", "Silchar", "Dibrugarh", "Jorhat", "Imphal", "Shillong", 
+  "Aizawl", "Agartala", "Kohima", "Itanagar", "Gangtok", "Panaji", "Margao",
+  "Kozhikode", "Calicut", "Thrissur", "Kollam", "Kannur", "Tiruvannamalai", 
+  "Dindigul", "Thanjavur", "Muzaffarpur", "Gaya", "Bhagalpur", "Darbhanga"
 ];
 
 const COMMON_COURSES = [
@@ -103,73 +121,114 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     entranceExams: []
   };
 
-  COMMON_COURSES.forEach(course => {
-    if (lowerQuery.includes(course.toLowerCase())) filters.courses.push(course);
+  // 1. Handle State Aliases
+  Object.entries(STATE_ALIASES).forEach(([alias, fullName]) => {
+    const aliasRegex = new RegExp(`\\b${alias}\\b`, 'i');
+    if (aliasRegex.test(lowerQuery)) {
+      if (!filters.states.includes(fullName)) filters.states.push(fullName);
+    }
   });
 
-  COMMON_EXAMS.forEach(exam => {
-    if (lowerQuery.includes(exam.toLowerCase())) filters.entranceExams.push(exam);
-  });
-
+  // 2. Handle Full State Names
   INDIAN_STATES.forEach(state => {
-    if (lowerQuery.includes(state.toLowerCase())) filters.states.push(state);
+    if (lowerQuery.includes(state.toLowerCase())) {
+      if (!filters.states.includes(state)) filters.states.push(state);
+    }
   });
 
-const underMatch = lowerQuery.match(/(?:less than|under|below|upto|up to|within)\s*(\d+)\s*(?:lakh|lakhs|lac|l)?/i)
-if (underMatch) {
-  const limit = parseInt(underMatch[1])
-  if (limit > 0)  filters.budgetRanges.push("Less than 5 Lakh")
-  if (limit > 5)  filters.budgetRanges.push("5 - 10 Lakh")
-  if (limit > 10) filters.budgetRanges.push("10 - 15 Lakh")
-  if (limit > 15) filters.budgetRanges.push("15 - 20 Lakh")
-  if (limit > 20) filters.budgetRanges.push("Above 20 Lakh")
-} else {
-  const aboveMatch = lowerQuery.match(/(?:above|more than|over)\s*(\d+)\s*(?:lakh|lakhs|lac|l)?/i)
-  if (aboveMatch) {
-    const floor = parseInt(aboveMatch[1])
-    if (floor < 5)  filters.budgetRanges.push("Less than 5 Lakh")
-    if (floor < 10) filters.budgetRanges.push("5 - 10 Lakh")
-    if (floor < 15) filters.budgetRanges.push("10 - 15 Lakh")
-    if (floor < 20) filters.budgetRanges.push("15 - 20 Lakh")
-    filters.budgetRanges.push("Above 20 Lakh")
-  } else {
-    const plainMatch = lowerQuery.match(/(\d+)\s*(?:lakh|lakhs|lac|l)\b/i)
-    if (plainMatch) {
-      const amount = parseInt(plainMatch[1])
-      if (amount <= 5)       filters.budgetRanges.push("Less than 5 Lakh")
-      else if (amount <= 10) filters.budgetRanges.push("5 - 10 Lakh")
-      else if (amount <= 15) filters.budgetRanges.push("10 - 15 Lakh")
-      else if (amount <= 20) filters.budgetRanges.push("15 - 20 Lakh")
-      else                   filters.budgetRanges.push("Above 20 Lakh")
+  // 3. Handle Cities
+  INDIAN_CITIES.forEach(city => {
+    const cityRegex = new RegExp(`\\b${city}\\b`, 'i');
+    if (cityRegex.test(lowerQuery)) {
+      if (!filters.cities.includes(city)) filters.cities.push(city);
+    }
+  });
+
+  // 4. Handle Courses
+  COMMON_COURSES.forEach(course => {
+    const courseRegex = new RegExp(`\\b${course.replace('.', '\\.')}\\b`, 'i');
+    if (courseRegex.test(lowerQuery)) {
+      filters.courses.push(course);
+    }
+  });
+
+  // 5. Handle Exams
+  COMMON_EXAMS.forEach(exam => {
+    const examRegex = new RegExp(`\\b${exam}\\b`, 'i');
+    if (examRegex.test(lowerQuery)) {
+      filters.entranceExams.push(exam);
+    }
+  });
+
+  // 6. Handle Budget
+  const budgetValueMatch = lowerQuery.match(/(\d+)\s*(?:lakh|lakhs|lac|l)\b/i);
+  
+  if (budgetValueMatch) {
+    const amount = parseInt(budgetValueMatch[1]);
+    const isUnder = /(?:less than|under|below|upto|up to|within)/i.test(lowerQuery);
+    const isAbove = /(?:above|more than|over)/i.test(lowerQuery);
+
+    if (isUnder) {
+      if (amount > 0)  filters.budgetRanges.push("Less than 2 Lakh");
+      if (amount > 2)  filters.budgetRanges.push("2 - 5 Lakh");
+      if (amount > 5)  filters.budgetRanges.push("5 - 10 Lakh");
+      if (amount > 10) filters.budgetRanges.push("10 - 15 Lakh");
+      if (amount > 15) filters.budgetRanges.push("15 - 25 Lakh");
+      if (amount > 25) filters.budgetRanges.push("25 - 50 Lakh");
+      if (amount > 50) filters.budgetRanges.push("Above 50 Lakh");
+    } else if (isAbove) {
+      if (amount < 2)  filters.budgetRanges.push("Less than 2 Lakh");
+      if (amount < 5)  filters.budgetRanges.push("2 - 5 Lakh");
+      if (amount < 10) filters.budgetRanges.push("5 - 10 Lakh");
+      if (amount < 15) filters.budgetRanges.push("10 - 15 Lakh");
+      if (amount < 25) filters.budgetRanges.push("15 - 25 Lakh");
+      if (amount < 50) filters.budgetRanges.push("25 - 50 Lakh");
+      filters.budgetRanges.push("Above 50 Lakh");
+    } else {
+      if (amount <= 2)       filters.budgetRanges.push("Less than 2 Lakh");
+      else if (amount <= 5)  filters.budgetRanges.push("2 - 5 Lakh");
+      else if (amount <= 10) filters.budgetRanges.push("5 - 10 Lakh");
+      else if (amount <= 15) filters.budgetRanges.push("10 - 15 Lakh");
+      else if (amount <= 25) filters.budgetRanges.push("15 - 25 Lakh");
+      else if (amount <= 50) filters.budgetRanges.push("25 - 50 Lakh");
+      else                   filters.budgetRanges.push("Above 50 Lakh");
     }
   }
-}
 
-  if (Object.values(filters).every(f => Array.isArray(f) ? f.length === 0 : !f)) {
+  // 7. Fallback to searchText ONLY if absolutely nothing was detected
+  const nothingDetected =
+    filters.cities.length === 0 &&
+    filters.states.length === 0 &&
+    filters.courses.length === 0 &&
+    filters.entranceExams.length === 0 &&
+    filters.budgetRanges.length === 0;
+
+  if (nothingDetected) {
     filters.searchText = query;
   }
 
   return filters;
 };
 
-// --- SECTION 3: IMPROVED BUDGET FILTERING (THE KEY FIX) ---
+// --- BUDGET FILTERING HELPERS ---
 
-const parseFeeToLakhs = (feeStr: string): number | null => {
+export const parseFeeToLakhs = (feeStr: string): number | null => {
   if (!feeStr) return null;
-  let cleaned = feeStr.replace(/₹|Rs\.?|INR|,/gi, '').replace(/Check Details|undefined/gi, '').trim();
+  let cleaned = feeStr.replace(/₹|Rs\.?|INR|,/gi, '').replace(/Check Details|undefined|\(.*?\)/gi, '').trim();
   if (!cleaned) return null;
   
   const match = cleaned.match(/([\d,]+\.?\d*)\s*(Lakh|Lac|L|K|Thousand)?/i);
   if (!match) return null;
   
-  const num = parseFloat(match[1]);
+  const num = parseFloat(match[1].replace(/,/g, ''));
   const unit = match[2]?.toLowerCase();
   
   if (isNaN(num)) return null;
   
   if (unit?.includes('lakh') || unit?.includes('lac') || unit === 'l') return num;
   if (unit === 'k' || unit?.includes('thousand')) return num / 100;
-  return num >= 100000 ? num / 100000 : num >= 100 ? num / 100 : num;
+
+  return num >= 1000 ? num / 100000 : num;
 };
 
 export const parseBudgetToLakhs = (budgetStr: string | null | undefined): { min: number; max: number } | null => {
@@ -179,9 +238,6 @@ export const parseBudgetToLakhs = (budgetStr: string | null | undefined): { min:
   return { min: Math.min(...feeParts), max: Math.max(...feeParts) };
 };
 
-/**
- * FIXED LOGIC: Uses Overlap Detection
- */
 export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRanges: string[]): boolean => {
   if (selectedRanges.length === 0) return true;
   
@@ -194,26 +250,67 @@ export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRa
     let rangeMin: number, rangeMax: number;
     
     switch (range) {
-      case "Less than 5 Lakh": rangeMin = 0; rangeMax = 5; break;
-      case "5 - 10 Lakh": rangeMin = 5; rangeMax = 10; break;
-      case "10 - 15 Lakh": rangeMin = 10; rangeMax = 15; break;
-      case "15 - 20 Lakh": rangeMin = 15; rangeMax = 20; break;
-      case "Above 20 Lakh": rangeMin = 20; rangeMax = Infinity; break;
+      case "Less than 2 Lakh":  rangeMin = 0;  rangeMax = 2;        break;
+      case "2 - 5 Lakh":        rangeMin = 2;  rangeMax = 5;        break;
+      case "5 - 10 Lakh":       rangeMin = 5;  rangeMax = 10;       break;
+      case "10 - 15 Lakh":      rangeMin = 10; rangeMax = 15;       break;
+      case "15 - 25 Lakh":      rangeMin = 15; rangeMax = 25;       break;
+      case "25 - 50 Lakh":      rangeMin = 25; rangeMax = 50;       break;
+      case "Above 50 Lakh":     rangeMin = 50; rangeMax = Infinity; break;
       default: return false;
     }
     
-    // OVERLAP LOGIC: 
-    // College is shown if its fee range touches or crosses the filter range.
-    // College [2.94 - 7.18] touches Filter [5 - 10] because 2.94 <= 10 and 7.18 >= 5.
     return feeMin <= rangeMax && feeMax >= rangeMin;
   });
 };
 
 export const applyBudgetFilter = (colleges: any[], budgetRanges: string[]): any[] => {
-  if (budgetRanges.length === 0) return colleges;
+  if (!budgetRanges || budgetRanges.length === 0) return colleges;
   return colleges.filter(college => {
     const fees = college["Course Fees"] || college.card_detail?.fees || college.fees;
     if (!fees) return false;
     return isBudgetInRange(fees, budgetRanges);
   });
+};
+
+// --- LOCATION & COURSE MATCH HELPERS ---
+
+export const doesCollegeMatchCourse = (
+  collegeCourses: string[] | undefined,
+  selectedCourses: string[]
+): boolean => {
+  if (selectedCourses.length === 0) return true;
+  if (!collegeCourses || collegeCourses.length === 0) return false;
+
+  return selectedCourses.some(selected =>
+    collegeCourses.some(c => {
+      const clean = c
+        .replace(/\(\d+\.?\d*[KkMm]?Views?\)/gi, '')
+        .replace(/\[.*?\]/g, '')
+        .trim();
+      return clean.toLowerCase().includes(selected.toLowerCase());
+    })
+  );
+};
+
+export const doesCollegeMatchLocation = (
+  location: string | undefined,
+  cities: string[],
+  states: string[]
+): boolean => {
+  if (cities.length === 0 && states.length === 0) return true;
+  if (!location) return false;
+
+  const loc = location.toLowerCase();
+
+  const cityMatch = cities.length === 0 ||
+    cities.some(city => loc.includes(city.toLowerCase()));
+
+  const stateMatch = states.length === 0 ||
+    states.some(state => loc.includes(state.toLowerCase()));
+
+  // If both cities and states provided, either can match
+  if (cities.length > 0 && states.length > 0) return cityMatch || stateMatch;
+
+  return cityMatch && stateMatch;
 };
