@@ -2,19 +2,14 @@ import { supabase } from '../../../../lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 const baseUrl = 'https://www.getedunext.com';
-const CHUNK_SIZE = 5000;
-
-const subPaths = [
-  '', 'admission', 'contact', 'courses', 
-  'cutoff', 'fees', 'placement', 'ranking', 'reviews'
-];
+const CHUNK_SIZE = 1000;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }  // ← Promise type
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;  // ← await params
+    const { id } = await params;
     const chunkIndex = parseInt(id.replace('.xml', ''));
 
     console.log('PARAMS ID:', id, 'CHUNK:', chunkIndex);
@@ -28,8 +23,9 @@ export async function GET(
 
     const { data: colleges, error } = await supabase
       .from('college_microsites')
-      .select('slug, updated_at')
-      .range(from, to);
+      .select('slug, updated_at, microsite_data')
+      .range(from, to)
+      .limit(CHUNK_SIZE);
 
     console.log('College Sitemap Fetch:', { chunkIndex, from, to, count: colleges?.length, error });
 
@@ -42,18 +38,41 @@ export async function GET(
       return new NextResponse('No colleges found for this chunk', { status: 404 });
     }
 
-    const urls = colleges.flatMap((college: { slug: string; updated_at?: string }) => {
+    const urls = colleges.flatMap((college: { 
+      slug: string; 
+      updated_at?: string;
+      microsite_data?: any;
+    }) => {
+      const m = college.microsite_data || {};
       const lastMod = new Date(college.updated_at || new Date()).toISOString();
-      return subPaths.map((path) => `
+
+      // ← FIX 1: & replaced with &amp; in path
+      const activePaths = [
+        { path: '',                   show: true },
+        { path: '/admission',         show: !!m.admission },
+        { path: '/contact',           show: true },
+        { path: '/course-&amp;-fees', show: !!(m.fees?.length || m.courses?.length) }, // ← FIXED
+        { path: '/cutoff',            show: !!m.cutoff?.length },
+        { path: '/placement',         show: !!m.placement?.length },
+        { path: '/ranking',           show: !!m.ranking?.length },
+        { path: '/reviews',           show: !!m.reviews?.length },
+      ].filter(item => item.show);
+
+      return activePaths.map(({ path }) => {
+        // ← FIX 2: escape & in slug and path for valid XML
+        const safeSlug = college.slug.replace(/&/g, '&amp;');
+        const safePath = path.replace(/&/g, '&amp;');
+
+        return `
     <url>
-      <loc>${baseUrl}/college/${college.slug}${path ? `/${path}` : ''}</loc>
+      <loc>${baseUrl}/college/${safeSlug}${safePath}</loc>
       <lastmod>${lastMod}</lastmod>
       <changefreq>monthly</changefreq>
       <priority>${path === '' ? '0.9' : '0.6'}</priority>
-    </url>`
-      );
+    </url>`;
+      });
     });
-
+    console.log('Total URLs generated:', urls.length);
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.join('')}
