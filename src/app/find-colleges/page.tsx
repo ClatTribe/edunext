@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect, useCallback } from "react"
+import { cacheData } from '../../../lib/cache'
 import {
   GraduationCap,
   Sparkles,
@@ -158,148 +159,166 @@ const CollegeMicrositesPage: React.FC = () => {
   }
   }, [viewMode, searchQuery, manualFilters, currentPage])
 
-  const fetchColleges = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      // console.log('📊 Fetching with:', { searchQuery, manualFilters })
+ const fetchColleges = async () => {
+  try {
+    setLoading(true)
+    setError(null)
 
-      // Check if budget filter is active
-const budgetRanges = [...manualFilters.budgets]
-if (searchQuery.trim()) {
-  const parsed = parseSearchQuery(searchQuery)
-  parsed.budgetRanges.forEach(r => {
-    if (!budgetRanges.includes(r)) budgetRanges.push(r)
-  })
-}
-const hasBudget = budgetRanges.length > 0
-setHasBudgetFilter(hasBudget)
-
-      let query = supabase
-        .from("college_microsites")
-        .select("id, slug, card_detail", { count: "exact" })
-        .order("id", { ascending: true })
-
-      // Categorize filter conditions by type for AND logic between groups
-     const parsed = searchQuery.trim() ? parseSearchQuery(searchQuery) : null
-
-      // Combine parsed + manual (deduplicated)
-      const allLocations = [...new Set([
-        ...(parsed?.cities || []),
-        ...(parsed?.states || []),
-        ...manualFilters.cities,
-        ...manualFilters.states,
-        ...(manualFilters.city ? [manualFilters.city] : [])
-      ])]
-      const allCourses = [...new Set([
-        ...(parsed?.courses || []),
-        ...manualFilters.courses
-      ])]
-      const allExams = [...new Set([
-        ...(parsed?.entranceExams || []),
-        ...manualFilters.exams
-      ])]
-      const searchText = parsed?.searchText || manualFilters.collegeName || ""
-
-      // Build OR conditions within each group, AND between groups
-      if (searchText) {
-        query = query.or(`card_detail->>college_name.ilike.%${searchText}%`)
-      }
-
-      if (allLocations.length > 0) {
-        const locationConditions = allLocations.map(loc =>
-          `card_detail->>location.ilike.%${loc}%`
-        )
-        query = query.or(locationConditions.join(','))
-      }
-
-      if (allCourses.length > 0) {
-        const courseConditions = allCourses.map(course =>
-          `card_detail->>courses.ilike.%${course.replace(/[%_]/g, '\\$&')}%`
-        )
-        query = query.or(courseConditions.join(','))
-      }
-
-      if (allExams.length > 0) {
-        const examConditions = allExams.map(exam =>
-          `card_detail->>entrance_exam.ilike.%${exam}%`
-        )
-        query = query.or(examConditions.join(','))
-      }
-
-      // HYBRID APPROACH FOR BUDGET FILTER:
-      // If budget filter is active, fetch MORE data (5x) and filter client-side
-      // This ensures we have enough results after filtering
-      let fetchMultiplier = 1
-      if (hasBudget) {
-        fetchMultiplier = 5 // Fetch 5x more data when budget filter is active
-      }
-
-      // Pagination
-      const from = currentPage * perPage * fetchMultiplier
-      const to = from + (perPage * fetchMultiplier) - 1
-      query = query.range(from, to)
-
-      const { data, error: supabaseError, count } = await query
-
-      if (supabaseError) throw supabaseError
-
-      if (data && data.length > 0) {
-        // Map card_detail to College interface
-        let mappedData = data.map((college: any) => ({
-          id: college.id,
-          slug: college.slug,
-          card_detail: college.card_detail,
-          "College Name": college.card_detail?.college_name || null,
-          college_name: college.card_detail?.college_name || null,
-          Location: college.card_detail?.location || null,
-          location: college.card_detail?.location || null,
-          url: college.card_detail?.url || null,
-          contact: college.card_detail?.contact || null,
-          email: college.card_detail?.email || null,
-          "User Rating": college.card_detail?.rating || null,
-          "User Reviews": college.card_detail?.review_count || null,
-          "Average Package": college.card_detail?.avg_package || null,
-          "Highest Package": college.card_detail?.high_package || null,
-          "Course Fees": college.card_detail?.fees || null,
-          Ranking: college.card_detail?.ranking || null,
-          Approvals: college.card_detail?.approvals || null,
-          scholarship: college.card_detail?.scholarship || null,
-          entrance_exam: college.card_detail?.entrance_exam || null,
-          "Application Link": college.card_detail?.url || null,
-        }))
-
-        // Apply budget filter client-side if active
-        if (hasBudget) {
-          mappedData = applyBudgetFilter(mappedData, budgetRanges)
-          // Take only the first 'perPage' results after filtering
-          mappedData = mappedData.slice(0, perPage)
-        }
-
-        const validColleges = mappedData.filter((college) => college["College Name"] !== null)
-
-        setColleges(validColleges)
-        setDisplayedColleges(validColleges)
-        
-        // Update total count
-        if (hasBudget) {
-          // For budget filter, show approximate count
-          setTotalColleges(validColleges.length > 0 ? 500 : 0) // Show "500+" as approximate
-        } else if (count !== null) {
-          setTotalColleges(count)
-        }
-      } else {
-        setColleges([])
-        setDisplayedColleges([])
-        setTotalColleges(0)
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch colleges")
-      console.error("Error fetching colleges:", err)
-    } finally {
-      setLoading(false)
+    // Check if budget filter is active
+    const budgetRanges = [...manualFilters.budgets]
+    if (searchQuery.trim()) {
+      const parsed = parseSearchQuery(searchQuery)
+      parsed.budgetRanges.forEach(r => {
+        if (!budgetRanges.includes(r)) budgetRanges.push(r)
+      })
     }
+    const hasBudget = budgetRanges.length > 0
+    setHasBudgetFilter(hasBudget)
+
+    // ⭐ CREATE CACHE KEY - This identifies what you're caching
+    const cacheKey = `colleges:search:${searchQuery || 'all'}:filters:${JSON.stringify({
+      states: manualFilters.states,
+      cities: manualFilters.cities,
+      city: manualFilters.city,
+      courses: manualFilters.courses,
+      budgets: manualFilters.budgets,
+      exams: manualFilters.exams,
+    })}`
+
+    // ⭐ WRAP YOUR SUPABASE QUERY WITH CACHE
+    const { data, error: supabaseError, count } = await cacheData(
+      cacheKey,
+      async () => {
+        // This function runs ONLY if data is NOT in cache
+        console.log('⏳ Cache MISS - Fetching from Supabase...')
+
+        // Your existing filter logic
+        const parsed = searchQuery.trim() ? parseSearchQuery(searchQuery) : null
+
+        // Combine parsed + manual (deduplicated)
+        const allLocations = [...new Set([
+          ...(parsed?.cities || []),
+          ...(parsed?.states || []),
+          ...manualFilters.cities,
+          ...manualFilters.states,
+          ...(manualFilters.city ? [manualFilters.city] : [])
+        ])]
+        const allCourses = [...new Set([
+          ...(parsed?.courses || []),
+          ...manualFilters.courses
+        ])]
+        const allExams = [...new Set([
+          ...(parsed?.entranceExams || []),
+          ...manualFilters.exams
+        ])]
+        const searchText = parsed?.searchText || manualFilters.collegeName || ""
+
+        // Build your Supabase query
+        let query = supabase
+          .from("college_microsites")
+          .select("id, slug, card_detail", { count: "exact" })
+          .order("id", { ascending: true })
+
+        // Build OR conditions within each group, AND between groups
+        if (searchText) {
+          query = query.or(`card_detail->>college_name.ilike.%${searchText}%`)
+        }
+
+        if (allLocations.length > 0) {
+          const locationConditions = allLocations.map(loc =>
+            `card_detail->>location.ilike.%${loc}%`
+          )
+          query = query.or(locationConditions.join(','))
+        }
+
+        if (allCourses.length > 0) {
+          const courseConditions = allCourses.map(course =>
+            `card_detail->>courses.ilike.%${course.replace(/[%_]/g, '\\$&')}%`
+          )
+          query = query.or(courseConditions.join(','))
+        }
+
+        if (allExams.length > 0) {
+          const examConditions = allExams.map(exam =>
+            `card_detail->>entrance_exam.ilike.%${exam}%`
+          )
+          query = query.or(examConditions.join(','))
+        }
+
+        // HYBRID APPROACH FOR BUDGET FILTER
+        let fetchMultiplier = 1
+        if (hasBudget) {
+          fetchMultiplier = 5
+        }
+
+        // Pagination
+        const from = currentPage * 100 * fetchMultiplier
+        const to = from + (100 * fetchMultiplier) - 1
+        query = query.range(from, to)
+
+        // Execute the query
+        return await query
+      },
+      { ttl: 3600 } // Cache for 1 hour
+    )
+
+    // Handle errors
+    if (supabaseError) throw supabaseError
+
+    if (data && data.length > 0) {
+      // Map card_detail to College interface
+      let mappedData = data.map((college: any) => ({
+        id: college.id,
+        slug: college.slug,
+        card_detail: college.card_detail,
+        "College Name": college.card_detail?.college_name || null,
+        college_name: college.card_detail?.college_name || null,
+        Location: college.card_detail?.location || null,
+        location: college.card_detail?.location || null,
+        url: college.card_detail?.url || null,
+        contact: college.card_detail?.contact || null,
+        email: college.card_detail?.email || null,
+        "User Rating": college.card_detail?.rating || null,
+        "User Reviews": college.card_detail?.review_count || null,
+        "Average Package": college.card_detail?.avg_package || null,
+        "Highest Package": college.card_detail?.high_package || null,
+        "Course Fees": college.card_detail?.fees || null,
+        Ranking: college.card_detail?.ranking || null,
+        Approvals: college.card_detail?.approvals || null,
+        scholarship: college.card_detail?.scholarship || null,
+        entrance_exam: college.card_detail?.entrance_exam || null,
+        "Application Link": college.card_detail?.url || null,
+      }))
+
+      // Apply budget filter client-side if active
+      if (hasBudget) {
+        mappedData = applyBudgetFilter(mappedData, budgetRanges)
+        mappedData = mappedData.slice(0, 100)
+      }
+
+      const validColleges = mappedData.filter((college) => college["College Name"] !== null)
+
+      setColleges(validColleges)
+      setDisplayedColleges(validColleges)
+      
+      // Update total count
+      if (hasBudget) {
+        setTotalColleges(validColleges.length > 0 ? 500 : 0)
+      } else if (count !== null) {
+        setTotalColleges(count)
+      }
+    } else {
+      setColleges([])
+      setDisplayedColleges([])
+      setTotalColleges(0)
+    }
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Failed to fetch colleges")
+    console.error("Error fetching colleges:", err)
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query)

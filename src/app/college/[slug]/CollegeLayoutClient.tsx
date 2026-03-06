@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Link from 'next/link'
 import { usePathname, useParams } from 'next/navigation'
 import { supabase } from "../../../../lib/supabase"
@@ -21,9 +21,22 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
 
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  
+  // State for Incognito Toggle (Mobile Friendly)
+  const [isIncognitoOpen, setIsIncognitoOpen] = useState(false)
+  const incognitoRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetchCollege()
+    
+    // Close incognito badge when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (incognitoRef.current && !incognitoRef.current.contains(event.target as Node)) {
+        setIsIncognitoOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [slug])
 
   const fetchCollege = async () => {
@@ -55,8 +68,6 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
 
   const micrositeData = college?.microsite_data || {}
 
-  // DYNAMIC NAVIGATION LOGIC
-  // We check if the data exists in microsite_data before showing the link
   const allNavItems = [
     { name: 'Overview', path: '', icon: Home, show: true },
     { 
@@ -103,7 +114,6 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
     },
   ]
 
-  // Filter to only show items with data
   const navItems = allNavItems.filter(item => item.show)
 
   return (
@@ -115,19 +125,40 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
           <div className="flex items-center justify-between px-0 py-2.5">
             
             {/* Left: Incognito Mode Styling */}
-            <div className="group">
+            <div 
+              ref={incognitoRef}
+              className="group" 
+              onClick={() => setIsIncognitoOpen(!isIncognitoOpen)}
+            >
               <div className="relative">
-                <div className="absolute -inset-1 bg-amber-600/10 rounded-r-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                <div className="relative flex items-center bg-zinc-900/40 border border-white/5 rounded-r-full shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden group-hover:pr-6 pl-0">
-                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-zinc-800 to-zinc-700 group-hover:from-amber-500 group-hover:to-amber-600 transition-colors duration-500 rounded-r-full">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white group-hover:text-black transition-colors">
-                      <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"/><path d="M17 17l-1.5-1.5M7 17l1.5-1.5"/>
-                    </svg>
+                {/* Glow Background */}
+                <div className={`absolute -inset-1 bg-amber-600/20 rounded-r-full blur-xl transition-opacity duration-700 
+                  ${isIncognitoOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                </div>
+
+                <div className={`relative flex items-center bg-zinc-900/60 border border-white/10 rounded-r-full shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden pl-0 
+                  ${isIncognitoOpen ? 'pr-6' : 'group-hover:pr-6'}`}>
+                  
+                  {/* Image Icon Wrapper */}
+                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-gray-300 to-zinc-300 group-hover:from-amber-500 group-hover:to-amber-600 transition-all duration-500 rounded-r-full">
+                    <img 
+                      src="/icognito.png" 
+                      alt="Incognito" 
+                      className={`w-5 h-5 object-contain transition-all duration-500 
+                        ${isIncognitoOpen ? 'brightness-0' : 'brightness-100 group-hover:brightness-0'}`}
+                    />
                   </div>
-                  <div className="max-w-0 group-hover:max-w-xs transition-all duration-500 ease-in-out overflow-hidden opacity-0 group-hover:opacity-100 whitespace-nowrap hidden md:block">
+
+                  {/* Text Content */}
+                  <div className={`transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap
+                    ${isIncognitoOpen ? 'max-w-xs opacity-100' : 'max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100'}`}>
                     <div className="pl-4">
-                      <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block leading-none mb-0.5">Stealth Active</span>
-                      <span className="text-[12px] font-bold text-slate-100">Incognito Browsing</span>
+                      <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block leading-none mb-0.5">
+                        Privacy Shield
+                      </span>
+                      <span className="text-[12px] font-bold text-slate-100">
+                        Ghost Mode Active
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -160,7 +191,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
         />
       </div>
 
-      {/* SUB-NAVBAR - Only shows items that have data */}
+      {/* SUB-NAVBAR */}
       <nav className="sticky top-0 z-40 bg-[#020205]/90 backdrop-blur-xl border-b border-white/5 w-full">
         <div className="flex gap-1 md:gap-3 overflow-x-auto px-4 py-3 no-scrollbar items-center md:justify-center">
           {navItems.map((item) => {
