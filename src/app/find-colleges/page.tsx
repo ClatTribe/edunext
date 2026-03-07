@@ -159,6 +159,8 @@ const CollegeMicrositesPage: React.FC = () => {
   }
   }, [viewMode, searchQuery, manualFilters, currentPage])
 
+
+ //cache logic start here
  const fetchColleges = async () => {
   try {
     setLoading(true)
@@ -319,6 +321,8 @@ const CollegeMicrositesPage: React.FC = () => {
     setLoading(false)
   }
 }
+
+//cache logic end here
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query)
