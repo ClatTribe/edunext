@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { Phone, MapPin, Globe, Loader2, ArrowUpRight, Headset, Target } from "lucide-react"
+import { MapPin, Globe, Loader2, ArrowUpRight, Headset } from "lucide-react"
 
 const accentColor = '#F59E0B'
 const borderColor = 'rgba(245, 158, 11, 0.15)'
@@ -33,9 +33,13 @@ export default function ContactPage() {
     )
   }
 
+  // Check if any contact data exists at all
+  const hasLocation = college?.location && college.location.trim() !== ''
+  const hasUrl = college?.url && college.url.trim() !== ''
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4">
-      {/* Header Section (Matches Cutoff Style) */}
+      {/* Header Section */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <div className="h-[1.5px] w-8 bg-amber-500" />
@@ -47,8 +51,8 @@ export default function ContactPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Location Card */}
-        {college?.location && (
+        {/* Location Card: Visible only if location exists */}
+        {hasLocation && (
           <div
             className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B]
                        hover:border-amber-500/40 hover:-translate-y-1"
@@ -76,8 +80,8 @@ export default function ContactPage() {
           </div>
         )}
 
-        {/* Website Card */}
-        {college?.url && (
+        {/* Website Card: Visible only if URL exists */}
+        {hasUrl && (
           <div
             className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B]
                        hover:border-amber-500/40 hover:-translate-y-1"
@@ -104,34 +108,34 @@ export default function ContactPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-slate-300 font-medium text-sm md:text-base hover:text-amber-400 transition-colors"
               >
-                {college.url.replace('https://', '').replace('www.', '')}
+                {college.url.replace('https://', '').replace('www.', '').split('/')[0]}
                 <ArrowUpRight size={16} className="text-amber-500" />
               </a>
             </div>
           </div>
         )}
 
-        {/* CTA Card (Refined to match card weights) */}
-        <div className="group relative p-8 md:p-10 rounded-[2rem] border border-white/5 bg-[#050818] overflow-hidden shadow-2xl transition-all duration-500 hover:border-amber-500/30">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[80px] rounded-full -mr-20 -mt-20 group-hover:bg-amber-500/10 transition-colors" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/10 rounded-lg">
-                  <Headset size={20} className="text-amber-500" />
+        {/* CTA Card: Visible only if URL exists */}
+        {hasUrl && (
+          <div className="group relative p-8 md:p-10 rounded-[2rem] border border-white/5 bg-[#050818] overflow-hidden shadow-2xl transition-all duration-500 hover:border-amber-500/30">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[80px] rounded-full -mr-20 -mt-20 group-hover:bg-amber-500/10 transition-colors" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-500/10 rounded-lg">
+                    <Headset size={20} className="text-amber-500" />
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter">
+                    Admission <span className="text-amber-500">Desk.</span>
+                  </h3>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter">
-                  Admission <span className="text-amber-500">Desk.</span>
-                </h3>
+                <p className="text-xs md:text-sm font-medium text-slate-400 max-w-sm leading-relaxed">
+                  Connect with the official administration for personalized counseling and direct admission queries.
+                </p>
               </div>
-              <p className="text-xs md:text-sm font-medium text-slate-400 max-w-sm leading-relaxed">
-                Connect with the official administration for personalized counseling and direct admission queries.
-              </p>
-            </div>
 
-            <div className="flex flex-col gap-4 shrink-0">
-              {college?.url && (
+              <div className="flex flex-col gap-4 shrink-0">
                 <a
                   href={college.url}
                   target="_blank"
@@ -141,13 +145,13 @@ export default function ContactPage() {
                   Apply Directly
                   <ArrowUpRight size={18} />
                 </a>
-              )}
-              <div className="text-[10px] font-black text-center text-slate-600 uppercase tracking-[0.4em]">
-                Official Support
+                <div className="text-[10px] font-black text-center text-slate-600 uppercase tracking-[0.4em]">
+                  Official Support
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

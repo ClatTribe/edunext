@@ -24,12 +24,12 @@ function getTrend(val1: string, val2: string): 'up' | 'down' | 'same' | null {
 
 function ProperTable({ cutoff }: { cutoff: any }) {
   const headers: string[] = cutoff.headers || []
-  const rows: string[][] = cutoff.rows || []
+  const rows: any[][] = cutoff.rows || []
   const colCount = headers.length
 
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-white/5 bg-[#050818]/40">
-      <table className="w-full text-sm border-collapse min-w-[400px]">
+      <table className="w-full text-sm border-separate border-spacing-0 min-w-[400px]">
         <thead>
           <tr className="border-b border-white/10 bg-white/[0.02]">
             {headers.map((h, hi) => (
@@ -53,7 +53,7 @@ function ProperTable({ cutoff }: { cutoff: any }) {
                 key={ri}
                 className="border-b border-white/[0.04] hover:bg-amber-500/[0.04] transition-colors group/tr"
               >
-                {row.map((cell, ci) => (
+                {Array.isArray(row) && row.map((cell, ci) => (
                   <td
                     key={ci}
                     className={`px-6 py-4 text-sm font-medium transition-colors
@@ -81,17 +81,17 @@ function ProperTable({ cutoff }: { cutoff: any }) {
 }
 
 function RawTable({ cutoff }: { cutoff: any }) {
-  const rows: string[][] = cutoff.rows || []
+  const rows: any[][] = cutoff.rows || []
   if (rows.length === 0) return null
 
   const firstRow = rows[0]
-  const looksLikeHeader = firstRow.every(cell => isNaN(parseFloat(cell)))
+  const looksLikeHeader = Array.isArray(firstRow) && firstRow.every(cell => isNaN(parseFloat(cell)))
 
   if (looksLikeHeader && rows.length > 1) {
     return <ProperTable cutoff={{ ...cutoff, headers: firstRow, rows: rows.slice(1) }} />
   }
 
-  const colCount = Math.max(...rows.map(r => r.length), 0)
+  const colCount = Math.max(...rows.map(r => (Array.isArray(r) ? r.length : 0)), 0)
   const syntheticHeaders = colCount === 2 ? ['Category', 'Value'] : Array.from({ length: colCount }, (_, i) => `Col ${i + 1}`)
   
   return <ProperTable cutoff={{ ...cutoff, headers: syntheticHeaders }} />
@@ -100,7 +100,7 @@ function RawTable({ cutoff }: { cutoff: any }) {
 // ─── Wrapper Card ───────────────────────────────────────────────────────────
 
 function CutoffCard({ cutoff }: { cutoff: any }) {
-  const hasHeading = cutoff.heading && cutoff.heading.trim() !== ''
+  const title = cutoff.heading?.trim()
   const hasHeaders = cutoff.headers && cutoff.headers.length > 0
 
   return (
@@ -112,7 +112,8 @@ function CutoffCard({ cutoff }: { cutoff: any }) {
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
                       opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      {hasHeading && (
+      {/* Conditional Header: Only visible if heading exists */}
+      {title && (
         <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]
@@ -123,13 +124,14 @@ function CutoffCard({ cutoff }: { cutoff: any }) {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-tight">
-              {cutoff.heading}
+              {title}
             </h3>
           </div>
         </div>
       )}
 
-      <div className={`relative z-10 px-6 md:px-8 ${hasHeading ? 'py-6' : 'py-8'}`}>
+      {/* Adjusted padding based on header presence */}
+      <div className={`relative z-10 px-6 md:px-8 ${title ? 'py-6' : 'pt-10 pb-8'}`}>
         {!hasHeaders ? <RawTable cutoff={cutoff} /> : <ProperTable cutoff={cutoff} />}
       </div>
     </div>
@@ -176,7 +178,6 @@ export default function CutoffPage() {
           <div className="h-[1.5px] w-8 bg-amber-500" />
           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-500">Official Data</span>
         </div>
-        {/* Adjusted Title Size Below */}
         <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
           Admission <span className="text-amber-500">Thresholds.</span>
         </h1>
