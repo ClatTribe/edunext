@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { Trophy, Loader2, Award, Star, BarChart3 } from "lucide-react"
+import { Trophy, Loader2, Star } from "lucide-react"
 
 const accentColor = '#F59E0B'
 const borderColor = 'rgba(245, 158, 11, 0.15)'
@@ -12,7 +12,6 @@ const borderColor = 'rgba(245, 158, 11, 0.15)'
 function cleanCell(val: any): string {
   if (val === null || val === undefined) return '—'
   const cleaned = val.toString().replace(/Compare$/i, '').trim()
-  // Add a "#" prefix if it's a pure number and in a rank-relevant column
   return cleaned || '—'
 }
 
@@ -96,8 +95,8 @@ function AutoTable({ table }: { table: any }) {
 
 // ─── Ranking Card Wrapper ───────────────────────────────────────────────────
 
-function RankingCard({ table, index }: { table: any; index: number }) {
-  const title = table.heading?.trim() || `Recognition Table ${index + 1}`
+function RankingCard({ table }: { table: any }) {
+  const title = table.heading?.trim()
 
   return (
     <div
@@ -108,25 +107,28 @@ function RankingCard({ table, index }: { table: any; index: number }) {
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
                       opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]
-                     group-hover:scale-110 transition-transform duration-500 shrink-0"
-          style={{ borderColor, color: accentColor }}
-        >
-          <Trophy className="w-5 h-5" />
+      {/* Conditional Header: Only renders if title exists */}
+      {title && (
+        <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]
+                       group-hover:scale-110 transition-transform duration-500 shrink-0"
+            style={{ borderColor, color: accentColor }}
+          >
+            <Trophy className="w-5 h-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-tight">
+              {title}
+            </h3>
+            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+              Excellence Benchmarks
+            </p>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-tight">
-            {title}
-          </h3>
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-            Excellence Benchmarks
-          </p>
-        </div>
-      </div>
+      )}
 
-      <div className="relative z-10 px-6 md:px-8 py-8">
+      <div className={`relative z-10 px-6 md:px-8 ${title ? 'py-8' : 'pt-6 pb-8'}`}>
         <AutoTable table={table} />
       </div>
     </div>
@@ -183,7 +185,7 @@ export default function RankingPage() {
       {/* Main Content */}
       <div className="space-y-10">
         {rankingData.length > 0 ? (
-          rankingData.map((table, index) => <RankingCard key={index} table={table} index={index} />)
+          rankingData.map((table, index) => <RankingCard key={index} table={table} />)
         ) : (
           <div className="text-center py-24 rounded-[2rem] border border-dashed border-white/10 bg-white/[0.02]">
             <Star className="w-16 h-16 mx-auto mb-4 opacity-10 text-amber-500" />

@@ -115,7 +115,7 @@ function AutoTable({ table }: { table: any }) {
 // ─── Placement Card Wrapper ────────────────────────────────────────────────
 
 function PlacementCard({ table, index }: { table: any; index: number }) {
-  const title = table.heading?.trim() || `Placement Metric ${index + 1}`
+  const title = table.heading?.trim()
 
   return (
     <div
@@ -138,9 +138,6 @@ function PlacementCard({ table, index }: { table: any; index: number }) {
           <h3 className="text-lg font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-tight">
             {title}
           </h3>
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-            Career Outcomes & Salary Data
-          </p>
         </div>
       </div>
 

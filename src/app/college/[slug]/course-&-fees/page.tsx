@@ -152,10 +152,8 @@ export default function CoursesAndFeesPage() {
     ? JSON.parse(college.microsite_data)
     : college?.microsite_data
 
-  // Focusing strictly on Fees data as it contains course/eligibility info
   const rawFees: any[] = micrositeData?.fees || college?.fees || []
 
-  // Reorder: Put the "Master" tables (with sub-courses/accordion) at the top
   const sortedFees = [...rawFees].sort((a, b) => {
     const aIsComplex = a.rows?.some((r: any) => !Array.isArray(r) && r.base_data) ? 1 : 0
     const bIsComplex = b.rows?.some((r: any) => !Array.isArray(r) && r.base_data) ? 1 : 0
@@ -164,7 +162,7 @@ export default function CoursesAndFeesPage() {
 
   return (
     <div className="space-y-12 max-w-7xl mx-auto px-4 py-12">
-      {/* Dynamic Header */}
+      {/* Page Header */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <div className="h-[2px] w-12 bg-amber-500" />
@@ -181,35 +179,42 @@ export default function CoursesAndFeesPage() {
       {/* Main Content Grid */}
       <div className="space-y-12">
         {sortedFees.length > 0 ? (
-          sortedFees.map((table, index) => (
-            <div
-              key={index}
-              className="group relative rounded-[2.5rem] border transition-all duration-700 bg-[#0F172B] hover:border-amber-500/40 shadow-2xl overflow-hidden"
-              style={{ borderColor }}
-            >
-              {/* Decorative Background Icon */}
-              <GraduationCap className="absolute -right-8 -top-8 w-40 h-40 text-white/[0.02] -rotate-12 group-hover:rotate-0 transition-transform duration-700 pointer-events-none" />
+          sortedFees.map((table, index) => {
+            const title = table.heading?.trim()
+            
+            return (
+              <div
+                key={index}
+                className="group relative rounded-[2.5rem] border transition-all duration-700 bg-[#0F172B] hover:border-amber-500/40 shadow-2xl overflow-hidden"
+                style={{ borderColor }}
+              >
+                {/* Decorative Background Icon */}
+                <GraduationCap className="absolute -right-8 -top-8 w-40 h-40 text-white/[0.02] -rotate-12 group-hover:rotate-0 transition-transform duration-700 pointer-events-none" />
 
-              <div className="relative z-10 flex items-center gap-4 px-8 pt-8 pb-6 border-b border-white/5">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center border bg-[#050818] border-amber-500/20 text-amber-500 group-hover:scale-110 transition-transform duration-500">
-                  <Wallet className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">
-                    {table.heading || "Program Details"}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Live Academic Schedule</p>
+                {/* Conditional Header: Only visible if heading exists */}
+                {title && (
+                  <div className="relative z-10 flex items-center gap-4 px-8 pt-8 pb-6 border-b border-white/5">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border bg-[#050818] border-amber-500/20 text-amber-500 group-hover:scale-110 transition-transform duration-500">
+                      <Wallet className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">
+                        {title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Live Academic Schedule</p>
+                      </div>
+                    </div>
                   </div>
+                )}
+
+                <div className={`px-4 md:px-8 relative z-10 ${title ? 'py-8' : 'pt-10 pb-8'}`}>
+                  <ProperTable table={table} />
                 </div>
               </div>
-
-              <div className="px-4 md:px-8 py-8 relative z-10">
-                <ProperTable table={table} />
-              </div>
-            </div>
-          ))
+            )
+          })
         ) : (
           <div className="text-center py-32 rounded-[3rem] border border-dashed border-white/10 bg-white/[0.01]">
             <BarChart3 className="w-16 h-16 mx-auto mb-6 opacity-20 text-amber-500" />

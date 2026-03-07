@@ -2,22 +2,22 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { Loader2, Target, CalendarDays, BarChart3 } from "lucide-react"
+import { Loader2, CalendarDays, BarChart3 } from "lucide-react"
 
 const accentColor = '#F59E0B'
 const borderColor = 'rgba(245, 158, 11, 0.15)'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function cleanCell(val: string): string {
+function cleanCell(val: any): string {
   return val?.toString().replace(/Compare$/i, '').trim() || '—'
 }
 
-// ─── Unified Table Component (Matches Cutoff Style) ─────────────────────────
+// ─── Unified Table Component ────────────────────────────────────────────────
 
 function ProperTable({ table }: { table: any }) {
   const headers: string[] = table.headers || []
-  const rows: string[][] = table.rows || []
+  const rows: any[][] = table.rows || []
 
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-white/5 bg-[#050818]/40">
@@ -43,7 +43,7 @@ function ProperTable({ table }: { table: any }) {
               key={ri}
               className="border-b border-white/[0.04] hover:bg-amber-500/[0.04] transition-colors group/tr"
             >
-              {row.map((cell, ci) => (
+              {Array.isArray(row) && row.map((cell, ci) => (
                 <td
                   key={ci}
                   className={`px-6 py-4 text-sm font-medium transition-colors
@@ -63,17 +63,17 @@ function ProperTable({ table }: { table: any }) {
 }
 
 function RawTable({ table }: { table: any }) {
-  const rows: string[][] = table.rows || []
+  const rows: any[][] = table.rows || []
   if (rows.length === 0) return null
 
   const firstRow = rows[0]
-  const looksLikeHeader = firstRow.every(cell => isNaN(parseFloat(cell)))
+  const looksLikeHeader = Array.isArray(firstRow) && firstRow.every(cell => isNaN(parseFloat(cell)))
 
   if (looksLikeHeader && rows.length > 1) {
     return <ProperTable table={{ ...table, headers: firstRow, rows: rows.slice(1) }} />
   }
 
-  const colCount = Math.max(...rows.map(r => r.length), 0)
+  const colCount = Math.max(...rows.map(r => (Array.isArray(r) ? r.length : 0)), 0)
   const syntheticHeaders = colCount === 2 ? ['Category', 'Value'] : Array.from({ length: colCount }, (_, i) => `Col ${i + 1}`)
   
   return <ProperTable table={{ ...table, headers: syntheticHeaders }} />
@@ -82,7 +82,8 @@ function RawTable({ table }: { table: any }) {
 // ─── Wrapper Card ───────────────────────────────────────────────────────────
 
 function AdmissionCard({ table }: { table: any }) {
-  const hasHeading = table.heading && table.heading.trim() !== ''
+  // Check if heading exists and is not just empty whitespace
+  const title = table.heading?.trim()
   const hasHeaders = table.headers && table.headers.length > 0
 
   return (
@@ -94,7 +95,8 @@ function AdmissionCard({ table }: { table: any }) {
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
                       opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      {hasHeading && (
+      {/* Conditional Header Rendering */}
+      {title && (
         <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]
@@ -105,13 +107,14 @@ function AdmissionCard({ table }: { table: any }) {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors leading-tight">
-              {table.heading}
+              {title}
             </h3>
           </div>
         </div>
       )}
 
-      <div className={`relative z-10 px-6 md:px-8 ${hasHeading ? 'py-6' : 'py-8'}`}>
+      {/* Adjust padding based on whether title exists */}
+      <div className={`relative z-10 px-6 md:px-8 ${title ? 'py-6' : 'py-8'}`}>
         {!hasHeaders ? <RawTable table={table} /> : <ProperTable table={table} />}
       </div>
     </div>
