@@ -219,7 +219,9 @@ const CollegeMicrositesPage: React.FC = () => {
         let query = supabase
           .from("college_microsites")
           .select("id, slug, card_detail", { count: "exact" })
+          .order("order_position", { ascending: true })
           .order("id", { ascending: true })
+
 
         // Build OR conditions within each group, AND between groups
         if (searchText) {

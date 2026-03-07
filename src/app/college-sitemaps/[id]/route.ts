@@ -12,7 +12,7 @@ export async function GET(
     const { id } = await params;
     const chunkIndex = parseInt(id.replace('.xml', ''));
 
-    console.log('PARAMS ID:', id, 'CHUNK:', chunkIndex);
+    // console.log('PARAMS ID:', id, 'CHUNK:', chunkIndex);
 
     if (isNaN(chunkIndex) || chunkIndex < 0) {
       return new NextResponse('Invalid sitemap index', { status: 400 });
@@ -21,13 +21,14 @@ export async function GET(
     const from = chunkIndex * CHUNK_SIZE;
     const to = from + CHUNK_SIZE - 1;
 
+    // UPDATED QUERY: Added explicit ordering by updated_at to fix row-shuffling
     const { data: colleges, error } = await supabase
       .from('college_microsites')
       .select('slug, updated_at, microsite_data')
-      .range(from, to)
-      .limit(CHUNK_SIZE);
+      .order('updated_at', { ascending: false, nullsFirst: false }) // Ensures newest/updated rows stay in chunk 0
+      .range(from, to);
 
-    console.log('College Sitemap Fetch:', { chunkIndex, from, to, count: colleges?.length, error });
+    // console.log('College Sitemap Fetch:', { chunkIndex, from, to, count: colleges?.length, error });
 
     if (error) {
       console.error('Supabase error:', error);
@@ -46,20 +47,20 @@ export async function GET(
       const m = college.microsite_data || {};
       const lastMod = new Date(college.updated_at || new Date()).toISOString();
 
-      // ← FIX 1: & replaced with &amp; in path
+      // YOUR EXISTING LOGIC: Keeping the paths as you defined them
       const activePaths = [
-        { path: '',                   show: true },
-        { path: '/admission',         show: !!m.admission },
-        { path: '/contact',           show: true },
-        { path: '/course-&amp;-fees', show: !!(m.fees?.length || m.courses?.length) }, // ← FIXED
-        { path: '/cutoff',            show: !!m.cutoff?.length },
-        { path: '/placement',         show: !!m.placement?.length },
-        { path: '/ranking',           show: !!m.ranking?.length },
-        { path: '/reviews',           show: !!m.reviews?.length },
+        { path: '',                 show: true },
+        { path: '/admission',       show: !!m.admission },
+        { path: '/contact',         show: true },
+        { path: '/course-&-fees',   show: !!(m.fees?.length || m.courses?.length) }, 
+        { path: '/cutoff',          show: !!m.cutoff?.length },
+        { path: '/placement',       show: !!m.placement?.length },
+        { path: '/ranking',         show: !!m.ranking?.length },
+        { path: '/reviews',         show: !!m.reviews?.length },
       ].filter(item => item.show);
 
       return activePaths.map(({ path }) => {
-        // ← FIX 2: escape & in slug and path for valid XML
+        // Safe escaping for XML compatibility
         const safeSlug = college.slug.replace(/&/g, '&amp;');
         const safePath = path.replace(/&/g, '&amp;');
 
@@ -72,7 +73,7 @@ export async function GET(
     </url>`;
       });
     });
-    console.log('Total URLs generated:', urls.length);
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.join('')}
@@ -81,7 +82,7 @@ ${urls.join('')}
     return new NextResponse(xml, {
       headers: {
         'Content-Type': 'application/xml',
-        'Cache-Control': 's-maxage=86400',
+        'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600',
       },
     });
 
