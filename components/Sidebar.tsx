@@ -48,7 +48,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
       { icon: Users, label: "Previous Year Students", path: "/previous-year-students" },
       { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
-      { icon: Building2, label: "Compare Your College", path: "/compare-your-college" },
+      { icon: Building2, label: "Battle Mode", path: "/battle-mode" },
     ],
     applications: [
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },

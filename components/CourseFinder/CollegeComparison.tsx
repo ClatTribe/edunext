@@ -185,7 +185,7 @@ const useCollegeComparison = ({ user, courses }: CollegeComparisonProps) => {
     if (!user && courses.length > 0) {
       localStorage.setItem('allColleges', JSON.stringify(courses))
     }
-    window.location.href = '/compare-your-college'
+    window.location.href = '/battle-mode'
   }
 
   return {
