@@ -201,7 +201,7 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
     if (!user && colleges.length > 0) {
       localStorage.setItem('allCollegeMicrosites', JSON.stringify(colleges))
     }
-    window.location.href = '/compare-your-college'
+    window.location.href = '/battle-mode'
   }
 
   return {
