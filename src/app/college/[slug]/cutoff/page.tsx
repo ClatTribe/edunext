@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { BarChart3, Loader2, Target, TrendingDown, TrendingUp, Minus } from "lucide-react"
+import { BarChart3, Loader2, Target, TrendingDown, TrendingUp, Minus, ChevronDown } from "lucide-react"
 
 const accentColor = '#F59E0B'
 const borderColor = 'rgba(245, 158, 11, 0.15)'
@@ -105,14 +105,13 @@ function CutoffCard({ cutoff }: { cutoff: any }) {
 
   return (
     <div
-      className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B]
-                 hover:border-amber-500/40 hover:-translate-y-1"
+      className="group relative rounded-[2rem] border transition-all duration-700 shadow-xl overflow-hidden bg-[#0F172B]
+                 hover:border-amber-500/40"
       style={{ borderColor }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
                       opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      {/* Conditional Header: Only visible if heading exists */}
       {title && (
         <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
           <div
@@ -130,7 +129,6 @@ function CutoffCard({ cutoff }: { cutoff: any }) {
         </div>
       )}
 
-      {/* Adjusted padding based on header presence */}
       <div className={`relative z-10 px-6 md:px-8 ${title ? 'py-6' : 'pt-10 pb-8'}`}>
         {!hasHeaders ? <RawTable cutoff={cutoff} /> : <ProperTable cutoff={cutoff} />}
       </div>
@@ -145,12 +143,20 @@ export default function CutoffPage() {
   const slug = params?.slug as string
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedHeading, setSelectedHeading] = useState<string>("")
 
   useEffect(() => {
     const fetchCollege = async () => {
       try {
         const { data } = await supabase.from("college_microsites").select("*").eq("slug", slug).single()
         setCollege(data)
+
+        const mData = typeof data?.microsite_data === 'string' ? JSON.parse(data.microsite_data) : data?.microsite_data
+        const rawCutoff = mData?.cutoff || data?.cutoff || []
+        
+        if (rawCutoff.length > 0) {
+          setSelectedHeading(rawCutoff[0].heading?.trim() || "General Data")
+        }
       } finally {
         setLoading(false)
       }
@@ -171,8 +177,14 @@ export default function CutoffPage() {
     : college?.microsite_data
   const cutoffData: any[] = micrositeData?.cutoff || college?.cutoff || []
 
+  // Unique Headings for Dropdown
+  const uniqueHeadings = Array.from(new Set(cutoffData.map(item => item.heading?.trim() || "General Data")))
+  
+  // Filter tables belonging to selected heading
+  const visibleTables = cutoffData.filter(item => (item.heading?.trim() || "General Data") === selectedHeading)
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 pb-20">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <div className="h-[1.5px] w-8 bg-amber-500" />
@@ -183,9 +195,42 @@ export default function CutoffPage() {
         </h1>
       </div>
 
-      <div className="space-y-10">
-        {cutoffData.length > 0 ? (
-          cutoffData.map((cutoff, index) => <CutoffCard key={index} cutoff={cutoff} />)
+      {/* Dropdown Selector with Overlap Fix */}
+      {uniqueHeadings.length > 0 && (
+        <div className="relative max-w-xl group">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block ml-1">
+            Browse Exam Categories
+          </label>
+          <div className="relative flex items-center">
+            <select
+              value={selectedHeading}
+              onChange={(e) => setSelectedHeading(e.target.value)}
+              className="w-full appearance-none bg-[#0F172B] border border-white/10 text-white px-6 pr-14 py-4 rounded-2xl 
+                         font-bold text-sm uppercase tracking-wider focus:outline-none focus:border-amber-500/50 
+                         transition-all cursor-pointer hover:bg-[#161f35] shadow-2xl truncate"
+            >
+              {uniqueHeadings.map((heading, idx) => (
+                <option key={idx} value={heading} className="bg-[#0F172B]">
+                  {heading}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-5 pointer-events-none text-amber-500">
+              <ChevronDown className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grouped Tables with Smooth Animation */}
+      <div 
+        key={selectedHeading} 
+        className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out"
+      >
+        {visibleTables.length > 0 ? (
+          visibleTables.map((cutoff, index) => (
+            <CutoffCard key={index} cutoff={cutoff} />
+          ))
         ) : (
           <div className="text-center py-20 rounded-[2rem] border border-dashed border-white/10 bg-white/[0.02]">
             <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-10 text-amber-500" />

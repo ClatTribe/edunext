@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { supabase } from "../../../../../lib/supabase"
 import { useParams } from "next/navigation"
-import { Trophy, Loader2, Star } from "lucide-react"
+import { Trophy, Loader2, Star, ChevronDown, BarChart3 } from "lucide-react"
 
 const accentColor = '#F59E0B'
 const borderColor = 'rgba(245, 158, 11, 0.15)'
@@ -100,14 +100,13 @@ function RankingCard({ table }: { table: any }) {
 
   return (
     <div
-      className="group relative rounded-[2rem] border transition-all duration-500 shadow-xl overflow-hidden bg-[#0F172B]
-                 hover:border-amber-500/40 hover:-translate-y-1"
+      className="group relative rounded-[2rem] border transition-all duration-700 shadow-xl overflow-hidden bg-[#0F172B]
+                 hover:border-amber-500/40"
       style={{ borderColor }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
                       opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      {/* Conditional Header: Only renders if title exists */}
       {title && (
         <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
           <div
@@ -142,12 +141,20 @@ export default function RankingPage() {
   const slug = params?.slug as string
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedHeading, setSelectedHeading] = useState<string>("")
 
   useEffect(() => {
     const fetchCollege = async () => {
       try {
         const { data } = await supabase.from("college_microsites").select("*").eq("slug", slug).single()
         setCollege(data)
+
+        const mData = typeof data?.microsite_data === 'string' ? JSON.parse(data.microsite_data) : data?.microsite_data
+        const rawRanking = mData?.ranking || data?.ranking || []
+        
+        if (rawRanking.length > 0) {
+          setSelectedHeading(rawRanking[0].heading?.trim() || "General Recognition")
+        }
       } finally {
         setLoading(false)
       }
@@ -169,8 +176,14 @@ export default function RankingPage() {
 
   const rankingData: any[] = micrositeData?.ranking || college?.ranking || []
 
+  // Unique Headings for Dropdown
+  const uniqueHeadings = Array.from(new Set(rankingData.map(item => item.heading?.trim() || "General Recognition")))
+  
+  // Filter tables belonging to selected heading
+  const visibleTables = rankingData.filter(item => (item.heading?.trim() || "General Recognition") === selectedHeading)
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 pb-20">
       {/* Page Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -182,15 +195,47 @@ export default function RankingPage() {
         </h1>
       </div>
 
-      {/* Main Content */}
-      <div className="space-y-10">
-        {rankingData.length > 0 ? (
-          rankingData.map((table, index) => <RankingCard key={index} table={table} />)
+      {/* Dropdown Selector with Overlap Fix */}
+      {uniqueHeadings.length > 0 && (
+        <div className="relative max-w-xl group">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block ml-1">
+            Browse Ranking Categories
+          </label>
+          <div className="relative flex items-center">
+            <select
+              value={selectedHeading}
+              onChange={(e) => setSelectedHeading(e.target.value)}
+              className="w-full appearance-none bg-[#0F172B] border border-white/10 text-white px-6 pr-14 py-4 rounded-2xl 
+                         font-bold text-sm uppercase tracking-wider focus:outline-none focus:border-amber-500/50 
+                         transition-all cursor-pointer hover:bg-[#161f35] shadow-2xl truncate"
+            >
+              {uniqueHeadings.map((heading, idx) => (
+                <option key={idx} value={heading} className="bg-[#0F172B]">
+                  {heading}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-5 pointer-events-none text-amber-500">
+              <ChevronDown className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grouped Tables with Smooth Animation */}
+      <div 
+        key={selectedHeading} 
+        className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out"
+      >
+        {visibleTables.length > 0 ? (
+          visibleTables.map((table, index) => (
+            <RankingCard key={index} table={table} />
+          ))
         ) : (
           <div className="text-center py-24 rounded-[2rem] border border-dashed border-white/10 bg-white/[0.02]">
             <Star className="w-16 h-16 mx-auto mb-4 opacity-10 text-amber-500" />
             <h3 className="text-sm font-bold text-white uppercase tracking-widest">Verification in Progress</h3>
-            <p className="text-slate-500 text-[10px] mt-1 uppercase tracking-widest font-medium">Updating latest NIRF & Global ranking data</p>
+            <p className="text-slate-500 text-[10px] mt-1 uppercase tracking-widest font-medium">Updating latest ranking data</p>
           </div>
         )}
       </div>
