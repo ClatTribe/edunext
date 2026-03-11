@@ -22,16 +22,34 @@ function ProperTable({ table }: { table: any }) {
   const rows: any[][] = table.rows || []
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-white/5 bg-[#050818]/40">
-      <table className="w-full text-sm border-collapse min-w-[600px]">
+    <div className="w-full overflow-x-auto rounded-2xl border border-white/10 bg-[#050818]/40 custom-scrollbar">
+      {/* Custom Scrollbar Styling */}
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(245, 158, 11, 0.4);
+        }
+      `}</style>
+
+      <table className="w-full text-sm border-separate border-spacing-0 min-w-[600px]">
         <thead>
-          <tr className="border-b border-white/10 bg-white/[0.02]">
+          <tr className="bg-white/[0.04]">
             {headers.map((h, hi) => (
               <th
                 key={hi}
-                className={`px-6 py-4 text-left font-black uppercase tracking-widest whitespace-nowrap
+                className={`px-6 py-4 text-left font-black uppercase tracking-widest whitespace-nowrap border-b-2 border-white/20 border-r border-white/10
                   ${hi === 0 
-                    ? 'text-slate-200 sticky left-0 z-10 bg-[#070d1e]' 
+                    ? 'text-slate-200 bg-[#070d1e]' 
                     : 'text-amber-500/90 bg-[#070d1e]'}`}
               >
                 {h || '—'}
@@ -43,15 +61,15 @@ function ProperTable({ table }: { table: any }) {
           {rows.map((row, ri) => (
             <tr
               key={ri}
-              className="border-b border-white/[0.04] hover:bg-amber-500/[0.04] transition-colors group/tr"
+              className="hover:bg-amber-500/[0.04] transition-colors group/tr"
             >
               {Array.isArray(row) ? (
                 row.map((cell, ci) => (
                   <td
                     key={ci}
-                    className={`px-6 py-4 text-sm font-medium transition-colors
+                    className={`px-6 py-4 text-sm font-medium transition-colors border-b border-white/20 border-r border-white/10
                       ${ci === 0
-                        ? 'text-slate-300 sticky left-0 group-hover/tr:text-white bg-[#050818]/80'
+                        ? 'text-slate-200 bg-[#070d1e] group-hover/tr:text-white'
                         : 'text-slate-400 group-hover/tr:text-amber-400'}`}
                   >
                     <span className={ci !== 0 && !isNaN(Number(cell)) ? "font-black text-white group-hover/tr:text-amber-400" : ""}>
@@ -60,7 +78,7 @@ function ProperTable({ table }: { table: any }) {
                   </td>
                 ))
               ) : (
-                <td colSpan={headers.length} className="px-6 py-4 text-slate-500 italic text-center">
+                <td colSpan={headers.length} className="px-6 py-4 text-slate-500 italic text-center border-b border-white/20">
                   Data format error
                 </td>
               )}
@@ -101,17 +119,17 @@ function RankingCard({ table }: { table: any }) {
   return (
     <div
       className="group relative rounded-[2rem] border transition-all duration-700 shadow-xl overflow-hidden bg-[#0F172B]
-                 hover:border-amber-500/40"
+                  hover:border-amber-500/40"
       style={{ borderColor }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-amber-500/5
                       opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       {title && (
-        <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/5">
+        <div className="relative z-10 flex items-center gap-3 px-6 md:px-8 pt-6 md:pt-8 pb-5 border-b border-white/10">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#050818]
-                       group-hover:scale-110 transition-transform duration-500 shrink-0"
+                        group-hover:scale-110 transition-transform duration-500 shrink-0"
             style={{ borderColor, color: accentColor }}
           >
             <Trophy className="w-5 h-5" />
@@ -195,7 +213,7 @@ export default function RankingPage() {
         </h1>
       </div>
 
-      {/* Dropdown Selector with Overlap Fix */}
+      {/* Dropdown Selector */}
       {uniqueHeadings.length > 0 && (
         <div className="relative max-w-xl group">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block ml-1">
@@ -222,7 +240,7 @@ export default function RankingPage() {
         </div>
       )}
 
-      {/* Grouped Tables with Smooth Animation */}
+      {/* Grouped Tables */}
       <div 
         key={selectedHeading} 
         className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out"
