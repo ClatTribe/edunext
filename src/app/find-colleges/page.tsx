@@ -529,19 +529,20 @@ const handleManualFilterChange = useCallback((filters: ManualFilters) => {
 
                   return (
                     <div
-                      key={course.id}
-                      className={`rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all relative backdrop-blur-xl ${
-                        isBlurred ? "overflow-hidden" : ""
-                      }`}
-                      style={{
-                        backgroundColor: secondaryBg,
-                        border: inCompare 
-                          ? '2px solid rgba(168, 85, 247, 0.5)' 
-                          : course.is_priority 
-                          ? `2px solid ${accentColor}` 
-                          : `1px solid ${borderColor}`,
-                      }}
-                    >
+  key={course.id}
+  className={`rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all relative backdrop-blur-xl cursor-pointer ${
+    isBlurred ? "overflow-hidden" : ""
+  }`}
+  onClick={() => course.slug && handleViewMore(course.slug)}
+  style={{
+    backgroundColor: secondaryBg,
+    border: inCompare 
+      ? '2px solid rgba(168, 85, 247, 0.5)' 
+      : course.is_priority 
+      ? `2px solid ${accentColor}` 
+      : `1px solid ${borderColor}`,
+  }}
+>
                       {/* Priority Badges */}
                       {course.is_priority && (
                         <div className="mb-3 flex flex-wrap gap-2">
