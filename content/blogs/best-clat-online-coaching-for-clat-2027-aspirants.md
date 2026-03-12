@@ -1,5 +1,5 @@
 ---
-title: "Best CLAT Online Coaching: For CLAT 2027 Aspirants"
+title: "Best CLAT Online Coaching: For CLAT 2027 Aspirants | CLAT Tribe"
 date: "2026-03-08"
 lastModified: "2026-03-08" # ADD THIS LINE (Use the current date whenever you update)
 author: "CLAT Tribe"
