@@ -681,7 +681,8 @@ const CollegeMicrositesPage: React.FC = () => {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+          {/* Colleges found Tab */}
+          {/* <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
             <div className="flex items-center gap-2">
               <GraduationCap className="flex-shrink-0" style={{ color: accentColor }} size={20} />
               <span className="font-semibold text-base sm:text-lg text-white">
@@ -699,7 +700,7 @@ const CollegeMicrositesPage: React.FC = () => {
                 <span className="text-xs sm:text-sm text-slate-400 font-medium">{compareColleges.length}/3 to compare</span>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* ★★★ PERMANENT CATEGORY TABS - ALWAYS VISIBLE ★★★ */}
           {viewMode === "all" && availableCategories.size > 0 && (
