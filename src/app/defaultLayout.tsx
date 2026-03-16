@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Sidebar from "../../components/Sidebar";
 import ContactButton from "../../components/ContactButton";
 import { useAuth } from "../../contexts/AuthContext";
-import { supabase } from "../../lib/supabase";
 import { useMemo } from "react";
 
 export default function DefaultLayout({
@@ -13,16 +12,12 @@ export default function DefaultLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, loading: authLoading} = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const username = useMemo(() => {
-      return user?.user_metadata?.full_name?.split(' ')[0] || 
-             user?.email?.split('@')[0] || 
+      return user?.user_metadata?.full_name?.split(' ')[0] ||
+             user?.email?.split('@')[0] ||
              'User';
     }, [ user]);
-const logout = async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) console.log(error);
-    };
     
 
   // Color scheme matching the Sidebar and Dashboard
@@ -58,7 +53,7 @@ const logout = async () => {
       className="flex h-screen overflow-hidden"
       style={{ backgroundColor: primaryBg }}
     >
-      <Sidebar userName={username ?? "User"} onSignOut={logout} />
+      <Sidebar userName={username ?? "User"} onSignOut={signOut} />
       <div 
         className="flex-1 overflow-auto"
         style={{ backgroundColor: primaryBg }}

@@ -96,12 +96,12 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
   const handleLogout = async () => {
     try {
-      await onSignOut();
       setIsLoggingOut(true);
+      await onSignOut();
+      // Small delay to let React state clear before navigating
       router.push("/register");
     } catch (error) {
       console.error("Logout error:", error);
-    } finally {
       setIsLoggingOut(false);
     }
   };
