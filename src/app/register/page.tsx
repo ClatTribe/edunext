@@ -75,14 +75,20 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
   const handleGoogleSignIn = async () => {
     setError('');
     setIsSubmitting(true);
-    
+
     try {
+      // Set the role BEFORE redirecting to Google OAuth.
+      // The /auth/callback page requires this to know which profile table to use.
+      localStorage.setItem('pendingUserRole', 'student');
+
       const { error } = await signInWithGoogle();
       if (error) {
+        localStorage.removeItem('pendingUserRole');
         setError(error.message || 'Failed to sign in with Google');
         setIsSubmitting(false);
       }
     } catch (err) {
+      localStorage.removeItem('pendingUserRole');
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
       setIsSubmitting(false);
