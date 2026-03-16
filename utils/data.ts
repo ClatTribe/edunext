@@ -138,7 +138,9 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     entranceExams: []
   };
 
-  // 1. Handle State Aliases
+  let cleanText = lowerQuery;
+
+  // 1. Handle State Aliases (Do not remove from cleanText to keep them available for name search)
   Object.entries(STATE_ALIASES).forEach(([alias, fullName]) => {
     const aliasRegex = new RegExp(`\\b${alias}\\b`, 'i');
     if (aliasRegex.test(lowerQuery)) {
@@ -161,38 +163,42 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     }
   });
 
-  // 4. Handle Courses
+  // 4. Handle Courses (Strip from cleanText)
   COMMON_COURSES.forEach(course => {
-    const courseRegex = new RegExp(`\\b${course.replace('.', '\\.')}\\b`, 'i');
-    if (courseRegex.test(lowerQuery)) {
-      filters.courses.push(course);
+    const courseRegex = new RegExp(`\\b${course.replace(/\\./g, '\\\\.')}\\b`, 'i');
+    if (courseRegex.test(cleanText)) {
+      if (!filters.courses.includes(course)) filters.courses.push(course);
+      cleanText = cleanText.replace(courseRegex, ' ');
     }
   });
 
-  // 5. Handle Exams
+  // 5. Handle Exams (Strip from cleanText)
   COMMON_EXAMS.forEach(exam => {
     const examRegex = new RegExp(`\\b${exam}\\b`, 'i');
-    if (examRegex.test(lowerQuery)) {
-      filters.entranceExams.push(exam);
+    if (examRegex.test(cleanText)) {
+      if (!filters.entranceExams.includes(exam)) filters.entranceExams.push(exam);
+      cleanText = cleanText.replace(examRegex, ' ');
     }
   });
 
-  // 6. Handle Budget
-  const budgetValueMatch = lowerQuery.match(/(\d+)\s*(?:lakh|lakhs|lac|l)\b/i);
+  // 6. Handle Budget (Strip from cleanText)
+  const budgetRegex = /(?:(?:less than|under|below|upto|up to|within|above|more than|over)\s+)?(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|l)\b/i;
+  const budgetValueMatch = cleanText.match(budgetRegex);
   
   if (budgetValueMatch) {
-    const amount = parseInt(budgetValueMatch[1]);
-    const isUnder = /(?:less than|under|below|upto|up to|within)/i.test(lowerQuery);
-    const isAbove = /(?:above|more than|over)/i.test(lowerQuery);
+    const amountStr = budgetValueMatch[1];
+    const amount = parseFloat(amountStr);
+    const isUnder = /(?:less than|under|below|upto|up to|within)/i.test(budgetValueMatch[0]);
+    const isAbove = /(?:above|more than|over)/i.test(budgetValueMatch[0]);
 
     if (isUnder) {
-      if (amount > 0)  filters.budgetRanges.push("Less than 2 Lakh");
-      if (amount > 2)  filters.budgetRanges.push("2 - 5 Lakh");
-      if (amount > 5)  filters.budgetRanges.push("5 - 10 Lakh");
-      if (amount > 10) filters.budgetRanges.push("10 - 15 Lakh");
-      if (amount > 15) filters.budgetRanges.push("15 - 25 Lakh");
-      if (amount > 25) filters.budgetRanges.push("25 - 50 Lakh");
       if (amount > 50) filters.budgetRanges.push("Above 50 Lakh");
+      if (amount > 25) filters.budgetRanges.push("25 - 50 Lakh");
+      if (amount > 15) filters.budgetRanges.push("15 - 25 Lakh");
+      if (amount > 10) filters.budgetRanges.push("10 - 15 Lakh");
+      if (amount > 5)  filters.budgetRanges.push("5 - 10 Lakh");
+      if (amount > 2)  filters.budgetRanges.push("2 - 5 Lakh");
+      if (amount > 0)  filters.budgetRanges.push("Less than 2 Lakh");
     } else if (isAbove) {
       if (amount < 2)  filters.budgetRanges.push("Less than 2 Lakh");
       if (amount < 5)  filters.budgetRanges.push("2 - 5 Lakh");
@@ -210,18 +216,16 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
       else if (amount <= 50) filters.budgetRanges.push("25 - 50 Lakh");
       else                   filters.budgetRanges.push("Above 50 Lakh");
     }
+
+    cleanText = cleanText.replace(budgetValueMatch[0], ' ');
   }
 
-  // 7. Fallback to searchText ONLY if absolutely nothing was detected
-  const nothingDetected =
-    filters.cities.length === 0 &&
-    filters.states.length === 0 &&
-    filters.courses.length === 0 &&
-    filters.entranceExams.length === 0 &&
-    filters.budgetRanges.length === 0;
+  // 7. Strip common connecting/noise words and clean up space
+  cleanText = cleanText.replace(/\b(?:in|at|for|fees?|budget|top|best)\b/gi, ' ');
+  cleanText = cleanText.replace(/\s+/g, ' ').trim();
 
-  if (nothingDetected) {
-    filters.searchText = query;
+  if (cleanText) {
+    filters.searchText = cleanText;
   }
 
   return filters;
