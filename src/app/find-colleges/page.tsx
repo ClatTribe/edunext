@@ -123,7 +123,7 @@ function isRankingArray(ranking: any): ranking is RankingEntry[] {
 // ✅ FIXED: Only 4 categories - no auto-extraction
 function getAllRankingCategories(ranking: RankingEntry[] | string | null | undefined): Set<string> {
   // Return only these 4 categories - ignore all others
-  return new Set(["Overall", "MBA", "B.Tech", "Research"])
+  return new Set(["Overall", "MBA", "B.Tech", "Medical"])
 }
 
 // Get ranking for a specific category from all sources
@@ -204,7 +204,7 @@ function getBestRanking(ranking: RankingEntry[] | string | null | undefined): To
     if (entry) {
       const bestRow = entry.rows.reduce((best: RankingRow, row: RankingRow) =>
         row.value < best.value ? row : best
-      , entry.rows[0])
+        , entry.rows[0])
 
       const source = heading.replace(/ Ranking$/i, "")
       return { source, category: bestRow.category, value: bestRow.value }
@@ -216,7 +216,7 @@ function getBestRanking(ranking: RankingEntry[] | string | null | undefined): To
     if (entry.heading && Array.isArray(entry.rows) && entry.rows.length > 0) {
       const bestRow = entry.rows.reduce((best: RankingRow, row: RankingRow) =>
         row.value < best.value ? row : best
-      , entry.rows[0])
+        , entry.rows[0])
       const source = entry.heading.replace(/ Ranking$/i, "")
       return { source, category: bestRow.category, value: bestRow.value }
     }
@@ -469,8 +469,8 @@ const CollegeMicrositesPage: React.FC = () => {
         setDisplayedColleges(enrichedColleges)
 
         // ★★★ FIX #2: ALWAYS SHOW ALL 4 TABS (even without ranking data) ★★★
-        // Always display all 4 tabs in order: Overall, MBA, B.Tech, Research
-        const allCategories = new Set<string>(["Overall", "MBA", "B.Tech", "Research"])
+        // Always display all 4 tabs in order: Overall, MBA, B.Tech, Medical
+        const allCategories = new Set<string>(["Overall", "MBA", "B.Tech", "Medical"])
         setAvailableCategories(allCategories)
         // ✅ DO NOT RESET selectedCategory - keep user's selection
 
@@ -483,7 +483,7 @@ const CollegeMicrositesPage: React.FC = () => {
         setColleges([])
         setDisplayedColleges([])
         setTotalColleges(0)
-        setAvailableCategories(new Set(["Overall", "MBA", "B.Tech", "Research"]))
+        setAvailableCategories(new Set(["Overall", "MBA", "B.Tech", "Medical"]))
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch colleges")
@@ -503,10 +503,10 @@ const CollegeMicrositesPage: React.FC = () => {
       // If both have rankings
       if (rankingsA.length > 0 && rankingsB.length > 0) {
         // Compare by source priority first (NIRF vs EduNext, etc.)
-        const priorityA = RANKING_PRIORITY.findIndex(p => 
+        const priorityA = RANKING_PRIORITY.findIndex(p =>
           p.toLowerCase().includes(rankingsA[0].source.toLowerCase())
         )
-        const priorityB = RANKING_PRIORITY.findIndex(p => 
+        const priorityB = RANKING_PRIORITY.findIndex(p =>
           p.toLowerCase().includes(rankingsB[0].source.toLowerCase())
         )
 
@@ -707,8 +707,8 @@ const CollegeMicrositesPage: React.FC = () => {
             <div className="sticky top-0 z-40 mb-6 rounded-lg p-3 sm:p-4 backdrop-blur-xl overflow-x-auto" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
               <div className="flex gap-2 sm:gap-3 min-w-max">
                 {Array.from(availableCategories).sort((a, b) => {
-                  // Custom sort: MBA, B.Tech, Research, Overall
-                  const order = ["MBA", "B.Tech", "Research", "Overall"]
+                  // Custom sort: MBA, B.Tech, Medical, Overall
+                  const order = ["MBA", "B.Tech", "Medical", "Overall"]
                   return order.indexOf(a) - order.indexOf(b)
                 }).map((category) => (
                   <button
@@ -772,21 +772,20 @@ const CollegeMicrositesPage: React.FC = () => {
                   return (
                     <div
                       key={course.id}
-                      className={`rounded-xl p-4 sm:p-6 hover:shadow-2xl transition-all duration-300 relative backdrop-blur-xl cursor-pointer group ${
-                        isBlurred ? "overflow-hidden" : ""
-                      }`}
+                      className={`rounded-xl p-4 sm:p-6 hover:shadow-2xl transition-all duration-300 relative backdrop-blur-xl cursor-pointer group ${isBlurred ? "overflow-hidden" : ""
+                        }`}
                       onClick={() => course.slug && handleViewMore(course.slug)}
                       style={{
-                        backgroundColor: inCompare 
-                          ? 'rgba(168, 85, 247, 0.1)' 
-                          : course.is_priority 
-                            ? 'rgba(245, 158, 11, 0.08)' 
+                        backgroundColor: inCompare
+                          ? 'rgba(168, 85, 247, 0.1)'
+                          : course.is_priority
+                            ? 'rgba(245, 158, 11, 0.08)'
                             : secondaryBg,
                         border: inCompare
                           ? '2px solid rgba(168, 85, 247, 0.5)'
                           : course.is_priority
-                          ? `2px solid ${accentColor}`
-                          : `1px solid ${borderColor}`,
+                            ? `2px solid ${accentColor}`
+                            : `1px solid ${borderColor}`,
                         boxShadow: inCompare ? '0 0 20px rgba(168, 85, 247, 0.2)' : 'none'
                       }}
                     >
@@ -883,13 +882,12 @@ const CollegeMicrositesPage: React.FC = () => {
                           <button
                             onClick={() => toggleSavedMicrosite(course as any)}
                             disabled={isBlurred}
-                            className={`transition-all flex-shrink-0 transform hover:scale-110 ${
-                              isBlurred
-                                ? "opacity-50 cursor-not-allowed"
-                                : savedMicrositeCourses.has(course.id)
-                                  ? ""
-                                  : "text-slate-500"
-                            }`}
+                            className={`transition-all flex-shrink-0 transform hover:scale-110 ${isBlurred
+                              ? "opacity-50 cursor-not-allowed"
+                              : savedMicrositeCourses.has(course.id)
+                                ? ""
+                                : "text-slate-500"
+                              }`}
                             style={savedMicrositeCourses.has(course.id) ? { color: accentColor } : {}}
                             title={
                               isBlurred
@@ -972,7 +970,7 @@ const CollegeMicrositesPage: React.FC = () => {
                             <button
                               onClick={() => handleViewMore(course.slug)}
                               className="flex-1 text-white rounded-lg py-2.5 px-4 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
-                              style={{ 
+                              style={{
                                 backgroundColor: accentColor,
                                 boxShadow: `0 4px 15px rgba(245, 158, 11, 0.3)`
                               }}
@@ -981,7 +979,7 @@ const CollegeMicrositesPage: React.FC = () => {
                               <span>View Full Details</span>
                             </button>
                           )}
-                          
+
                           {course.card_detail?.url && (
                             <button
                               onClick={(e) => {

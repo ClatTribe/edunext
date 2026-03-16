@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Metadata } from 'next';
 import BlogSidebar from '../BlogSidebar';
+import Navbar from "../../../../components/Navbar";
+import Footer from "../../../../components/Footer";
 
 interface BlogPageProps {
   params: Promise<{
@@ -19,9 +21,10 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
   const { slug } = await params;
+
   try {
     const blog = await getBlogBySlug(slug);
-    
+
     return {
       title: `${blog.title} | EduNext`,
       description: blog.excerpt || `Read ${blog.title}`,
@@ -59,120 +62,136 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 export default async function BlogPage({ params }: BlogPageProps) {
   const { slug } = await params;
   let blog;
-  
+
   try {
     blog = await getBlogBySlug(slug);
-  } catch (error) {
+  } catch {
     notFound();
   }
 
   const allBlogs = await getAllBlogs();
+
   const latestBlogs = allBlogs
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .filter(b => b.slug !== slug);
+    .filter((b) => b.slug !== slug);
 
   return (
-    <div 
-      className="min-h-screen w-full"
-      style={{ backgroundColor: '#050818' }}
-    >
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        
-        {/* IMAGE SECTION: Centered and kept at original max-w-4xl size */}
-        {blog.coverImage && (
-          <div className="flex justify-center mb-8 sm:mb-12">
-            <div 
-              className="relative w-full rounded-xl overflow-hidden shadow-2xl max-w-4xl"
-              style={{ 
-                border: '1px solid rgba(245, 158, 11, 0.15)',
-                aspectRatio: '16/9'
-              }}
-            >
-              <Image
-                src={blog.coverImage}
-                alt={blog.title}
-                width={2400}
-                height={1350}
-                priority
-                className="object-contain w-full h-full"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 896px, 896px"
-                quality={90}
-              />
-            </div>
-          </div>
-        )}
+    <>
+      <Navbar />
 
-        {/* CONTENT SECTION: Sidebar and Article now start below the image */}
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 max-w-6xl mx-auto">
-          
-          <article className="flex-1 min-w-0">
-            {/* Header Section */}
-            <header className="mb-6 sm:mb-8">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                {blog.title}
-              </h1>
-              
-              <div className="flex items-center gap-3 sm:gap-4 text-slate-400 mb-4 text-sm md:text-base flex-wrap">
-                <time className="font-medium">
-                  Published: {new Date(blog.date).toLocaleDateString('en-US', {
-                    year: 'numeric', month: 'long', day: 'numeric',
-                  })}
-                </time>
-                
-                {blog.lastModified && (
-                  <>
-                    <span className="text-slate-600">•</span>
-                    <span className="text-[#F59E0B] font-semibold italic">
-                      Updated: {new Date(blog.lastModified).toLocaleDateString('en-US', {
-                        year: 'numeric', month: 'long', day: 'numeric',
-                      })}
-                    </span>
-                  </>
-                )}
+      <div
+        className="min-h-screen w-full pt-12"
+        style={{ backgroundColor: '#050818' }}
+      >
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
-                {blog.author && (
-                  <>
-                    <span className="text-slate-600">•</span>
-                    <span className="font-medium">{blog.author}</span>
-                  </>
-                )}
+          {/* COVER IMAGE */}
+          {blog.coverImage && (
+            <div className="flex justify-center mb-8 sm:mb-12">
+              <div
+                className="relative w-full rounded-xl overflow-hidden shadow-2xl max-w-4xl"
+                style={{
+                  border: '1px solid rgba(245, 158, 11, 0.15)',
+                  aspectRatio: '16/9',
+                }}
+              >
+                <Image
+                  src={blog.coverImage}
+                  alt={blog.title}
+                  width={2400}
+                  height={1350}
+                  priority
+                  className="object-contain w-full h-full"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 896px, 896px"
+                  quality={90}
+                />
               </div>
-              
-              {blog.tags && blog.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {blog.tags.map((tag: string) => (
-                    <span
-                      key={tag}
-                      className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
-                      style={{
-                        backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                        color: '#a5b4fc',
-                        border: '1px solid rgba(245, 158, 11, 0.15)',
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
+            </div>
+          )}
+
+          {/* MAIN CONTENT */}
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 max-w-6xl mx-auto">
+
+            {/* ARTICLE */}
+            <article className="flex-1 min-w-0">
+
+              <header className="mb-6 sm:mb-8">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+                  {blog.title}
+                </h1>
+
+                <div className="flex items-center gap-3 sm:gap-4 text-slate-400 mb-4 text-sm md:text-base flex-wrap">
+
+                  <time className="font-medium">
+                    Published: {new Date(blog.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </time>
+
+                  {blog.lastModified && (
+                    <>
+                      <span className="text-slate-600">•</span>
+
+                      <span className="text-[#F59E0B] font-semibold italic">
+                        Updated: {new Date(blog.lastModified).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </>
+                  )}
+
+                  {blog.author && (
+                    <>
+                      <span className="text-slate-600">•</span>
+                      <span className="font-medium">{blog.author}</span>
+                    </>
+                  )}
+
+                </div>
+
+                {blog.tags && blog.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {blog.tags.map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
+                        style={{
+                          backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                          color: '#a5b4fc',
+                          border: '1px solid rgba(245, 158, 11, 0.15)',
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+              </header>
+
+              {/* AUDIO PLAYER */}
+              {blog.audioUrl && (
+                <div className="mb-8 p-4 rounded-lg border border-[rgba(245,158,11,0.15)] bg-[#0F172B]">
+
+                  <h2 className="text-white font-semibold mb-3 flex items-center gap-2">
+                    🎧 Listen to this article
+                  </h2>
+
+                  <audio controls className="w-full">
+                    <source src={blog.audioUrl} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+
                 </div>
               )}
-            </header>
 
-            {/* Audio Player */}
-            {blog.audioUrl && (
-              <div className="mb-8 p-4 rounded-lg border border-[rgba(245,158,11,0.15)] bg-[#0F172B]">
-                <h2 className="text-white font-semibold mb-3 flex items-center gap-2">
-                  🎧 Listen to this article
-                </h2>
-                <audio controls className="w-full">
-                  <source src={blog.audioUrl} type="audio/mpeg" />
-                  Your browser does not support the audio element.
-                </audio>
-              </div>
-            )}
-
-            {/* Content Area */}
-            <div
-              className="prose prose-lg prose-invert max-w-none
+              {/* BLOG CONTENT */}
+              <div
+                className="prose prose-lg prose-invert max-w-none
                 prose-headings:font-montserrat prose-headings:font-bold prose-headings:text-white prose-headings:mt-8 prose-headings:mb-4
                 prose-h1:text-3xl prose-h1:md:text-4xl
                 prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:border-b prose-h2:border-slate-700 prose-h2:pb-2
@@ -197,22 +216,29 @@ export default async function BlogPage({ params }: BlogPageProps) {
                 prose-tr:border-b prose-tr:border-[rgba(245,158,11,0.1)]
                 [&_table]:overflow-x-auto [&_table]:block
                 [&_tbody_tr:hover]:bg-[rgba(245,158,11,0.05)]"
-              dangerouslySetInnerHTML={{ __html: blog.content }}
-            />
-          </article>
-
-          {/* Sidebar Area */}
-          <aside className="lg:w-80 xl:w-96 flex-shrink-0">
-            <div className="lg:sticky lg:top-8">
-              <BlogSidebar 
-                latestBlogs={latestBlogs}
-                currentSlug={slug}
-                currentTitle={blog.title}
+                dangerouslySetInnerHTML={{ __html: blog.content }}
               />
-            </div>
-          </aside>
+
+            </article>
+
+            {/* SIDEBAR */}
+            <aside className="lg:w-80 xl:w-96 flex-shrink-0">
+              <div className="lg:sticky lg:top-8">
+
+                <BlogSidebar
+                  latestBlogs={latestBlogs}
+                  currentSlug={slug}
+                  currentTitle={blog.title}
+                />
+
+              </div>
+            </aside>
+
+          </div>
         </div>
       </div>
-    </div>
+
+      <Footer />
+    </>
   );
 }
