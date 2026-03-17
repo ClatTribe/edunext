@@ -1,8 +1,9 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, BookOpen, Users, Building2, UserCheck, Sparkles, Trophy, Award, Target, Filter, X } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import DefaultLayout from '../defaultLayout';
+import Pagination from '../../../components/CourseFinder/Pagination';
 
 interface TestScore {
   exam: string;
@@ -35,9 +36,10 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
 
 const AdmitFinder: React.FC = () => {
-  const [profiles, setProfiles] = useState<PreviousStudent[]>([]);
+  const [allProfiles, setAllProfiles] = useState<PreviousStudent[]>([]);  // Full dataset (fetched once)
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedCollege, setSelectedCollege] = useState('');
   const [viewMode, setViewMode] = useState<'all' | 'recommended'>('all');
@@ -45,16 +47,30 @@ const AdmitFinder: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const perPage = 21; // 7 rows × 3 cols grid
+
+  // Debounce search input (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset page on any filter change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [debouncedSearch, selectedCity, selectedCollege, viewMode]);
 
   useEffect(() => {
     fetchCurrentUserProfile();
   }, []);
 
+  // Fetch ALL profiles once, then filter client-side
   useEffect(() => {
     if (!loadingProfile) {
       fetchProfiles();
     }
-  }, [searchQuery, selectedCity, selectedCollege, viewMode, loadingProfile]);
+  }, [loadingProfile]);
 
   const fetchCurrentUserProfile = async () => {
     try {
@@ -201,61 +217,66 @@ const AdmitFinder: React.FC = () => {
   const fetchProfiles = async () => {
     try {
       setLoading(true);
-      
-      let query = supabase
+
+      const { data, error } = await supabase
         .from('previous_student')
-        .select('*');
-
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,mba_college.ilike.%${searchQuery}%,ug_degree.ilike.%${searchQuery}%`);
-      }
-
-      if (selectedCity) {
-        query = query.eq('city', selectedCity);
-      }
-
-      if (selectedCollege) {
-        query = query.eq('mba_college', selectedCollege);
-      }
-
-      const { data, error } = await query.order('id', { ascending: true });
+        .select('*')
+        .order('id', { ascending: true });
 
       if (error) {
         console.error('Error fetching profiles:', error);
-        setProfiles([]);
-        setLoading(false);
+        setAllProfiles([]);
         return;
       }
 
-      let allProfiles = data || [];
-      console.log(`Fetched ${allProfiles.length} total profiles from database`);
-
-      if (viewMode === 'recommended' && userProfile) {
-        console.log('Calculating match scores...');
-        
-        const profilesWithScores = allProfiles.map((profile: PreviousStudent) => ({
-          ...profile,
-          matchScore: calculateMatchScore(profile)
-        }));
-
-        const recommendedProfiles = profilesWithScores
-          .filter((p: PreviousStudent) => (p.matchScore || 0) >= 20)
-          .sort((a: PreviousStudent, b: PreviousStudent) => (b.matchScore || 0) - (a.matchScore || 0))
-          .slice(0, 10);
-
-        console.log(`Found ${recommendedProfiles.length} recommended profiles`);
-        setProfiles(recommendedProfiles);
-      } else {
-        console.log(`Showing ${allProfiles.length} profiles`);
-        setProfiles(allProfiles);
-      }
+      setAllProfiles(data || []);
     } catch (error) {
       console.error('Error in fetchProfiles:', error);
-      setProfiles([]);
+      setAllProfiles([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Client-side filtering + recommended scoring (runs on filter/search change, NOT a new fetch)
+  const filteredProfiles = useMemo(() => {
+    let result = [...allProfiles];
+
+    // Apply search filter
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(p =>
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.mba_college && p.mba_college.toLowerCase().includes(q)) ||
+        (p.ug_degree && p.ug_degree.toLowerCase().includes(q))
+      );
+    }
+
+    // Apply city filter
+    if (selectedCity) {
+      result = result.filter(p => p.city === selectedCity);
+    }
+
+    // Apply college filter
+    if (selectedCollege) {
+      result = result.filter(p => p.mba_college === selectedCollege);
+    }
+
+    // Recommended mode: score + sort + limit
+    if (viewMode === 'recommended' && userProfile) {
+      result = result.map(p => ({ ...p, matchScore: calculateMatchScore(p) }))
+        .filter(p => (p.matchScore || 0) >= 20)
+        .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+        .slice(0, 10);
+    }
+
+    return result;
+  }, [allProfiles, debouncedSearch, selectedCity, selectedCollege, viewMode, userProfile]);
+
+  // Paginated slice for rendering
+  const paginatedProfiles = useMemo(() => {
+    return filteredProfiles.slice(currentPage * perPage, (currentPage + 1) * perPage);
+  }, [filteredProfiles, currentPage, perPage]);
 
   const getMatchBadge = (profile: PreviousStudent) => {
     if (viewMode !== 'recommended' || !profile.matchScore) return null;
@@ -439,7 +460,7 @@ const AdmitFinder: React.FC = () => {
             <div className="flex items-center gap-2">
               <Users className="flex-shrink-0" style={{ color: accentColor }} size={20} />
               <span className="font-semibold text-sm sm:text-base text-white">
-                {profiles.length} {viewMode === 'recommended' ? 'recommended ' : ''}student{profiles.length !== 1 ? 's' : ''} found
+                {filteredProfiles.length} {viewMode === 'recommended' ? 'recommended ' : ''}student{filteredProfiles.length !== 1 ? 's' : ''} found
               </span>
             </div>
           </div>
@@ -452,7 +473,7 @@ const AdmitFinder: React.FC = () => {
                 <p className="text-sm sm:text-base text-slate-400">Loading profiles...</p>
               </div>
             </div>
-          ) : profiles.length === 0 ? (
+          ) : filteredProfiles.length === 0 ? (
             <div className="text-center py-12 sm:py-16 rounded-lg shadow-sm backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
               <UserCheck size={40} className="sm:w-12 sm:h-12 mx-auto text-slate-600 mb-4" />
               <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
@@ -467,8 +488,9 @@ const AdmitFinder: React.FC = () => {
               </p>
             </div>
           ) : (
+            <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {profiles.map((profile) => (
+              {paginatedProfiles.map((profile) => (
                 <div 
                   key={profile.id} 
                   className="rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow backdrop-blur-xl"
@@ -527,6 +549,17 @@ const AdmitFinder: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Pagination */}
+            {filteredProfiles.length > perPage && (
+              <Pagination
+                totalItems={filteredProfiles.length}
+                currentPage={currentPage}
+                perPage={perPage}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </>
           )}
         </div>
       </div>

@@ -267,7 +267,8 @@ const CollegeMicrositesPage: React.FC = () => {
     goToComparison,
   } = useCollegeMicrositeComparison({ user, colleges: colleges as any })
 
-  const perPage = 100
+  const perPage = 20           // Cards rendered per page (fast DOM)
+  const FETCH_SIZE = 1000      // Rows fetched from Supabase (enough for correct ranking)
 
   // Read URL parameters
   useEffect(() => {
@@ -298,15 +299,17 @@ const CollegeMicrositesPage: React.FC = () => {
     }
   }, [hasBudgetFilter])
 
-  // Fetch colleges
+  // Fetch colleges — only when filters/search change, NOT on page change
+  // Pagination is now client-side (slice sortedColleges)
   useEffect(() => {
     if (viewMode === "all") {
+      setCurrentPage(0) // Reset to first page on any filter change
       const timer = setTimeout(() => {
         fetchColleges()
       }, 300)
       return () => clearTimeout(timer)
     }
-  }, [viewMode, searchQuery, manualFilters, currentPage])
+  }, [viewMode, searchQuery, manualFilters])
 
   const fetchColleges = async () => {
     try {
@@ -396,14 +399,9 @@ const CollegeMicrositesPage: React.FC = () => {
             query = query.or(examConditions.join(','))
           }
 
-          let fetchMultiplier = 5
-          if (hasBudget) {
-            fetchMultiplier = 10
-          }
-
-          const from = currentPage * 100 * fetchMultiplier
-          const to = from + (100 * fetchMultiplier) - 1
-          query = query.range(from, to)
+          // Fetch a large batch for correct ranking order
+          // Client-side sorting + pagination handles the rest
+          query = query.range(0, FETCH_SIZE - 1)
 
           return await query
         },
@@ -438,44 +436,20 @@ const CollegeMicrositesPage: React.FC = () => {
 
         if (hasBudget) {
           mappedData = applyBudgetFilter(mappedData, budgetRanges)
-          mappedData = mappedData.slice(0, 100)
         }
 
         const validColleges = mappedData.filter((college) => college["College Name"] !== null)
 
-        // ★★★ FIX #1: Enrich colleges with ranking data - PRESERVE RANKING ★★★
-        const enrichedColleges = validColleges.map(college => {
-          const rankingByCategory = new Map<string, TopRanking>()
-          const categories = getAllRankingCategories(college.Ranking)
+        // ✅ Store raw data — NO enrichment here (deferred to render-time useMemo)
+        // Sorting uses getRankingsByCategory() directly on raw Ranking field
+        setColleges(validColleges)
+        setDisplayedColleges(validColleges)
 
-          // Get best ranking for each category (primary only)
-          for (const cat of categories) {
-            const rankings = getRankingsByCategory(college.Ranking, cat)
-            if (rankings.length > 0) {
-              rankingByCategory.set(cat, rankings[0]) // Store primary ranking
-            }
-          }
-
-          return {
-            ...college,
-            rankingByCategory,
-            bestRankOverall: getBestRanking(college.Ranking),
-            Ranking: college.Ranking // ✅ PRESERVE RANKING DATA
-          } as College
-        })
-
-        // ✅ Keep original order - let useMemo sort by selected tab category
-        setColleges(enrichedColleges)
-        setDisplayedColleges(enrichedColleges)
-
-        // ★★★ FIX #2: ALWAYS SHOW ALL 4 TABS (even without ranking data) ★★★
-        // Always display all 4 tabs in order: Overall, MBA, B.Tech, Medical
-        const allCategories = new Set<string>(["Overall", "MBA", "B.Tech", "Medical"])
-        setAvailableCategories(allCategories)
-        // ✅ DO NOT RESET selectedCategory - keep user's selection
+        // Always display all 4 tabs
+        setAvailableCategories(new Set(["Overall", "MBA", "B.Tech", "Medical"]))
 
         if (hasBudget) {
-          setTotalColleges(enrichedColleges.length > 0 ? 500 : 0)
+          setTotalColleges(validColleges.length > 0 ? 500 : 0)
         } else if (count !== null) {
           setTotalColleges(count)
         }
@@ -493,16 +467,13 @@ const CollegeMicrositesPage: React.FC = () => {
     }
   }
 
-  // ★★★ FIX #3: Advanced sorting - WORKS FOR ALL CATEGORIES ★★★
+  // ★ STEP 1: Sort all colleges by ranking (lightweight — no enrichment)
   const sortedColleges = useMemo(() => {
     return [...displayedColleges].sort((a, b) => {
-      // Get all rankings for each college in selected category
       const rankingsA = getRankingsByCategory(a.Ranking, selectedCategory)
       const rankingsB = getRankingsByCategory(b.Ranking, selectedCategory)
 
-      // If both have rankings
       if (rankingsA.length > 0 && rankingsB.length > 0) {
-        // Compare by source priority first (NIRF vs EduNext, etc.)
         const priorityA = RANKING_PRIORITY.findIndex(p =>
           p.toLowerCase().includes(rankingsA[0].source.toLowerCase())
         )
@@ -511,21 +482,42 @@ const CollegeMicrositesPage: React.FC = () => {
         )
 
         if (priorityA !== priorityB) {
-          return priorityA - priorityB // Lower index = higher priority = comes first
+          return priorityA - priorityB
         }
 
-        // Same source? Compare by rank value
         return rankingsA[0].value - rankingsB[0].value
       }
 
-      // Ranked colleges come first
       if (rankingsA.length > 0 && rankingsB.length === 0) return -1
       if (rankingsA.length === 0 && rankingsB.length > 0) return 1
 
-      // Neither have ranking? Keep original order
       return 0
     })
   }, [displayedColleges, selectedCategory])
+
+  // ★ STEP 2: Paginate + enrich ONLY the visible cards (20 instead of 1000)
+  const paginatedColleges = useMemo(() => {
+    const pageSlice = sortedColleges.slice(currentPage * perPage, (currentPage + 1) * perPage)
+
+    // Enrich only these 20 cards with ranking maps (heavy computation)
+    return pageSlice.map(college => {
+      const rankingByCategory = new Map<string, TopRanking>()
+      const categories = getAllRankingCategories(college.Ranking)
+
+      for (const cat of categories) {
+        const rankings = getRankingsByCategory(college.Ranking, cat)
+        if (rankings.length > 0) {
+          rankingByCategory.set(cat, rankings[0])
+        }
+      }
+
+      return {
+        ...college,
+        rankingByCategory,
+        bestRankOverall: getBestRanking(college.Ranking),
+      } as College
+    })
+  }, [sortedColleges, currentPage, perPage])
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query)
@@ -715,6 +707,7 @@ const CollegeMicrositesPage: React.FC = () => {
                     key={category}
                     onClick={() => {
                       setSelectedCategory(category)
+                      setCurrentPage(0) // Reset to page 1 when switching category
                     }}
                     className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all whitespace-nowrap flex items-center gap-2"
                     style={selectedCategory === category
@@ -763,7 +756,7 @@ const CollegeMicrositesPage: React.FC = () => {
             <>
               {/* Course Cards Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-20">
-                {sortedColleges.map((course, index) => {
+                {paginatedColleges.map((course, index) => {
                   const isBlurred = viewMode === "recommended" && index >= 2
                   const inCompare = isInCompare(course.id)
                   const rankings = getRankingsByCategory(course.Ranking, selectedCategory)
@@ -1005,22 +998,14 @@ const CollegeMicrositesPage: React.FC = () => {
                 })}
               </div>
 
-              {/* Pagination Component */}
-              {viewMode === "all" && !hasBudgetFilter && (
+              {/* Pagination Component — paginate the sorted client-side list */}
+              {viewMode === "all" && sortedColleges.length > perPage && (
                 <Pagination
-                  totalItems={totalColleges}
+                  totalItems={sortedColleges.length}
                   currentPage={currentPage}
                   perPage={perPage}
                   onPageChange={setCurrentPage}
                 />
-              )}
-
-              {viewMode === "all" && hasBudgetFilter && sortedColleges.length > 0 && (
-                <div className="text-center py-4 rounded-lg" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-                  <p className="text-sm text-slate-400">
-                    Showing results filtered by budget. <button onClick={() => setCurrentPage(currentPage + 1)} className="underline hover:opacity-80 transition-opacity" style={{ color: accentColor }}>Load more colleges</button>
-                  </p>
-                </div>
               )}
             </>
           )}
