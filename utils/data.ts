@@ -119,14 +119,79 @@ const INDIAN_CITIES = [
 ];
 
 const COMMON_COURSES = [
-  'MBA', 'BBA', 'BCA', 'MCA', 'B.Tech', 'M.Tech', 'B.Com', 'M.Com', 'B.Sc', 'M.Sc',
-  'Finance', 'Marketing', 'HR', 'Business Analytics', 'Data Science', 'Computer Science',
-  'Civil Engineering', 'Mechanical Engineering', 'Electrical Engineering', 'Biotechnology'
+  // Undergraduate Degrees
+  'B.Tech', 'BTech', 'B Tech',
+  'B.E', 'BE', 'B E',
+  'B.Sc', 'BSc', 'B Sc',
+  'B.Com', 'BCom', 'B Com',
+  'BBA', 'B.B.A',
+  'BCA', 'B.C.A',
+  'B.A', 'BA', 'B A',
+  'LL.B', 'LLB', 'LL B',
+  'B.Pharm', 'BPharm', 'B Pharm',
+  'B.Arch', 'BArch', 'B Arch',
+  'BJMC', 'B.J.M.C',
+  'B.Des', 'BDes', 'B Des',
+  
+  // Postgraduate Degrees
+  'M.Tech', 'MTech', 'M Tech',
+  'M.E', 'ME', 'M E',
+  'M.Sc', 'MSc', 'M Sc',
+  'M.Com', 'MCom', 'M Com',
+  'MBA', 'M.B.A',
+  'MCA', 'M.C.A',
+  'M.A', 'MA', 'M A',
+  'LL.M', 'LLM', 'LL M',
+  'M.Pharm', 'MPharm', 'M Pharm',
+  'M.Arch', 'MArch', 'M Arch',
+  'MJMC', 'M.J.M.C',
+  'M.Des', 'MDes', 'M Des',
+  
+  // Engineering Specializations
+  'Civil Engineering', 'Civil',
+  'Mechanical Engineering', 'Mechanical',
+  'Electrical Engineering', 'Electrical',
+  'Electronics Engineering', 'Electronics', 'E&C', 'ECE',
+  'Computer Science', 'CSE', 'CS',
+  'IT', 'Information Technology',
+  'Chemical Engineering', 'Chemical',
+  'Aerospace Engineering', 'Aerospace',
+  'Biotechnology', 'Bio-technology', 'Biotech',
+  'Environmental Engineering', 'Environmental',
+  'Production Engineering', 'Production',
+  'Textile Engineering', 'Textile',
+  
+  // Management Specializations
+  'Finance', 'Financial Management',
+  'Marketing', 'Marketing Management',
+  'HR', 'Human Resources', 'Human Resource Management',
+  'Operations', 'Operations Management',
+  'Business Analytics',
+  'Data Science', 'Data Analytics',
+  'Supply Chain Management',
+  'International Business',
+  
+  // Other Common Courses
+  'B.Ed', 'BEd', 'B Ed',
+  'M.Ed', 'MEd', 'M Ed',
+  'Diploma', 'Diploma Engineering'
 ];
 
 const COMMON_EXAMS = [
   'CAT', 'XAT', 'CMAT', 'MAT', 'GMAT', 'NMAT', 'SNAP', 'ATMA', 'JEE', 'GATE', 'TANCET'
 ];
+
+// Helper function to normalize course names (remove dots and extra spaces)
+const normalizeCourse = (course: string): string => {
+  return course.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+};
+
+// Create a normalized course map for quick lookup
+const NORMALIZED_COURSE_MAP: Record<string, string> = {};
+COMMON_COURSES.forEach(course => {
+  const normalized = normalizeCourse(course);
+  NORMALIZED_COURSE_MAP[normalized] = course;
+});
 
 export const parseSearchQuery = (query: string): ParsedFilters => {
   const lowerQuery = query.toLowerCase().trim();
@@ -163,11 +228,24 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     }
   });
 
-  // 4. Handle Courses (Strip from cleanText)
+  // 4. Handle Courses (with normalization for variations like B.Tech, BTech, B Tech)
   COMMON_COURSES.forEach(course => {
-    const courseRegex = new RegExp(`\\b${course.replace(/\\./g, '\\\\.')}\\b`, 'i');
+    // Create regex that matches the course with or without dots and spaces
+    const courseParts = course.split(/[\s.]+/).filter(part => part.length > 0);
+    const courseRegex = new RegExp(
+      courseParts.map(part => `${part}`).join('\\.?\\s*'),
+      'i'
+    );
+    
     if (courseRegex.test(cleanText)) {
-      if (!filters.courses.includes(course)) filters.courses.push(course);
+      // Use normalized version for tracking to avoid duplicates
+      const normalized = normalizeCourse(course);
+      const canonicalCourse = NORMALIZED_COURSE_MAP[normalized];
+      
+      if (!filters.courses.some(c => normalizeCourse(c) === normalized)) {
+        filters.courses.push(canonicalCourse);
+      }
+      
       cleanText = cleanText.replace(courseRegex, ' ');
     }
   });
@@ -182,7 +260,7 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
   });
 
   // 6. Handle Budget (Strip from cleanText)
-  const budgetRegex = /(?:(?:less than|under|below|upto|up to|within|above|more than|over)\s+)?(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|l)\b/i;
+  const budgetRegex = /(?:(?:less than|under|below|upto|up to|within|above|more than|over)\s+)?(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|lacs)\b/i;
   const budgetValueMatch = cleanText.match(budgetRegex);
   
   if (budgetValueMatch) {
@@ -303,15 +381,17 @@ export const doesCollegeMatchCourse = (
   if (selectedCourses.length === 0) return true;
   if (!collegeCourses || collegeCourses.length === 0) return false;
 
-  return selectedCourses.some(selected =>
-    collegeCourses.some(c => {
+  return selectedCourses.some(selected => {
+    const selectedNormalized = normalizeCourse(selected);
+    return collegeCourses.some(c => {
       const clean = c
         .replace(/\(\d+\.?\d*[KkMm]?Views?\)/gi, '')
         .replace(/\[.*?\]/g, '')
         .trim();
-      return clean.toLowerCase().includes(selected.toLowerCase());
-    })
-  );
+      const collegeNormalized = normalizeCourse(clean);
+      return collegeNormalized.includes(selectedNormalized) || selectedNormalized.includes(collegeNormalized);
+    });
+  });
 };
 
 export const doesCollegeMatchLocation = (
