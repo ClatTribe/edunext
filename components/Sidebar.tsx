@@ -16,6 +16,7 @@ import {
   TrendingUp,
   SearchCheck,
   Calculator,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -29,14 +30,15 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   // Color scheme matching the TrustSection component
-const accentColor = '#F59E0B';
-const primaryBg = '#050818'; // Very dark navy blue
-const secondaryBg = '#0F172B'; // Slightly lighter navy
-const borderColor = 'rgba(245, 158, 11, 0.15)';
+  const accentColor = '#F59E0B';
+  const primaryBg = '#050818'; // Very dark navy blue
+  const secondaryBg = '#0F172B'; // Slightly lighter navy
+  const borderColor = 'rgba(245, 158, 11, 0.15)';
 
   const navItems = {
     main: [
@@ -122,6 +124,21 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
   }, []);
 
   useEffect(() => {
+    // Keep Tools dropdown open if the current path matches one of the tool options
+    const isAtTool = [
+      "/cat-percentile-predictor",
+      "/cat-college-predictor",
+      "/xat-score-calculator-2026",
+      "/jee-tool",
+      "/exams-and-deadline",
+      "/study-material",
+    ].includes(pathname);
+    if (isAtTool) {
+      setIsToolsOpen(true);
+    }
+  }, [pathname]);
+
+  useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -135,27 +152,27 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
   return (
     <>
       {/* Mobile Header */}
-      <div 
+      <div
         className="md:hidden fixed top-0 left-0 right-0 border-b shadow-lg z-40"
-        style={{ 
+        style={{
           background: `linear-gradient(to right, ${primaryBg}, ${secondaryBg})`,
-          borderColor: borderColor 
+          borderColor: borderColor
         }}
       >
         <div className="flex items-center justify-between p-4">
           <Link href="/" className="flex items-center gap-2 mb-2">
-              <img
-                src="/whitelogo.svg"
-                alt="EduNext Logo"
-                width={32}
-                height={32}
-                className="h-10 w-32 object-contain brightness-110"
-              />
-            </Link>
+            <img
+              src="/whitelogo.svg"
+              alt="EduNext Logo"
+              width={32}
+              height={32}
+              className="h-10 w-32 object-contain brightness-110"
+            />
+          </Link>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 rounded-lg transition-colors"
-            style={{ 
+            style={{
               backgroundColor: isMobileMenuOpen ? 'rgba(255, 255, 255, 0.05)' : 'transparent'
             }}
             aria-label="Toggle menu"
@@ -191,7 +208,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
         `}
-        style={{ 
+        style={{
           background: `linear-gradient(to bottom, ${primaryBg}, ${secondaryBg})`,
           borderRight: `1px solid ${borderColor}`
         }}
@@ -209,7 +226,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
                 className="h-12 w-32 object-contain brightness-110"
               />
             </Link>
-            <div 
+            <div
               className="h-1 w-16 rounded-full"
               style={{ backgroundColor: accentColor }}
             ></div>
@@ -228,16 +245,16 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
           {/* Welcome Message */}
           <div className="px-4 pb-4">
-            <div 
+            <div
               className="rounded-lg p-3 shadow-lg border"
-              style={{ 
+              style={{
                 backgroundColor: secondaryBg,
-                borderColor: borderColor 
+                borderColor: borderColor
               }}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <div className="text-sm text-slate-400 shrink-0">Welcome,</div>
-                <div 
+                <div
                   className="font-semibold truncate lowercase first-letter:uppercase"
                   style={{ color: accentColor }}
                 >
@@ -255,18 +272,17 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
                 <button
                   key={item.path}
                   onClick={() => handleNavClick(item.path)}
-                  className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
-                    isActive(item.path)
+                  className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${isActive(item.path)
                       ? "shadow-lg"
                       : "hover:bg-white/5"
-                  }`}
+                    }`}
                   style={
                     isActive(item.path)
                       ? {
-                          backgroundColor: secondaryBg,
-                          borderLeft: `4px solid ${accentColor}`,
-                          color: accentColor,
-                        }
+                        backgroundColor: secondaryBg,
+                        borderLeft: `4px solid ${accentColor}`,
+                        color: accentColor,
+                      }
                       : { color: '#cbd5e1' }
                   }
                 >
@@ -278,9 +294,8 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
                     }}
                   />
                   <span
-                    className={`text-sm transition-colors ${
-                      isActive(item.path) ? "font-semibold" : ""
-                    }`}
+                    className={`text-sm transition-colors ${isActive(item.path) ? "font-semibold" : ""
+                      }`}
                     style={{
                       color: isActive(item.path) ? accentColor : '#cbd5e1',
                     }}
@@ -293,13 +308,13 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
               {/* Explore Section */}
               <div className="pt-4">
                 <div className="flex items-center gap-2 mb-2 px-2">
-                  <div 
+                  <div
                     className="text-xs font-bold uppercase tracking-wider"
                     style={{ color: accentColor }}
                   >
                     Explore
                   </div>
-                  <div 
+                  <div
                     className="flex-1 h-px"
                     style={{ backgroundColor: borderColor }}
                   ></div>
@@ -308,18 +323,17 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
                   <button
                     key={item.path}
                     onClick={() => handleNavClick(item.path)}
-                    className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
-                      isActive(item.path)
+                    className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${isActive(item.path)
                         ? "shadow-lg"
                         : "hover:bg-white/5"
-                    }`}
+                      }`}
                     style={
                       isActive(item.path)
                         ? {
-                            backgroundColor: secondaryBg,
-                            borderLeft: `4px solid ${accentColor}`,
-                            color: accentColor,
-                          }
+                          backgroundColor: secondaryBg,
+                          borderLeft: `4px solid ${accentColor}`,
+                          color: accentColor,
+                        }
                         : { color: '#cbd5e1' }
                     }
                   >
@@ -331,9 +345,8 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
                       }}
                     />
                     <span
-                      className={`text-sm transition-colors ${
-                        isActive(item.path) ? "font-semibold" : ""
-                      }`}
+                      className={`text-sm transition-colors ${isActive(item.path) ? "font-semibold" : ""
+                        }`}
                       style={{
                         color: isActive(item.path) ? accentColor : '#cbd5e1',
                       }}
@@ -346,64 +359,83 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
 
               {/* Tools Section */}
               <div className="pt-4">
-                <div className="flex items-center gap-2 mb-2 px-2">
-                  <div 
-                    className="text-xs font-bold uppercase tracking-wider"
+                <button
+                  onClick={() => setIsToolsOpen(!isToolsOpen)}
+                  className="w-full flex items-center gap-2 mb-2 px-2 group cursor-pointer transition-all focus:outline-none"
+                  aria-expanded={isToolsOpen}
+                >
+                  <div
+                    className="text-xs font-bold uppercase tracking-wider group-hover:opacity-80 transition-opacity"
                     style={{ color: accentColor }}
                   >
-                    Tools
+                    Our Tools
                   </div>
-                  <div 
+                  <div
                     className="flex-1 h-px"
                     style={{ backgroundColor: borderColor }}
                   ></div>
-                </div>
-                {toolOptions.map((tool) => (
-                  <button
-                    key={tool.path}
-                    onClick={() => handleNavClick(tool.path)}
-                    className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
-                      isActive(tool.path)
-                        ? "shadow-lg"
-                        : "hover:bg-white/5"
-                    }`}
-                    style={
-                      isActive(tool.path)
-                        ? {
-                            backgroundColor: secondaryBg,
-                            borderLeft: `4px solid ${accentColor}`,
-                            color: accentColor,
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-300 ease-in-out ${isToolsOpen ? "rotate-180" : "rotate-0"}`}
+                    style={{ color: accentColor }}
+                  />
+                </button>
+                <div
+                  className="grid transition-all duration-300 ease-in-out"
+                  style={{
+                    gridTemplateRows: isToolsOpen ? "1fr" : "0fr",
+                    opacity: isToolsOpen ? 1 : 0
+                  }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="flex flex-col">
+                      {toolOptions.map((tool) => (
+                        <button
+                          key={tool.path}
+                          onClick={() => handleNavClick(tool.path)}
+                          className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${isActive(tool.path)
+                              ? "shadow-lg"
+                              : "hover:bg-white/5"
+                            }`}
+                          style={
+                            isActive(tool.path)
+                              ? {
+                                backgroundColor: secondaryBg,
+                                borderLeft: `4px solid ${accentColor}`,
+                                color: accentColor,
+                              }
+                              : { color: '#cbd5e1' }
                           }
-                        : { color: '#cbd5e1' }
-                    }
-                  >
-                    <tool.icon
-                      size={18}
-                      className="transition-colors"
-                      style={{
-                        color: isActive(tool.path) ? accentColor : '#94a3b8',
-                      }}
-                    />
-                    <span
-                      className={`text-sm transition-colors ${
-                        isActive(tool.path) ? "font-semibold" : ""
-                      }`}
-                      style={{
-                        color: isActive(tool.path) ? accentColor : '#cbd5e1',
-                      }}
-                    >
-                      {tool.label}
-                    </span>
-                  </button>
-                ))}
+                        >
+                          <tool.icon
+                            size={18}
+                            className="transition-colors"
+                            style={{
+                              color: isActive(tool.path) ? accentColor : '#94a3b8',
+                            }}
+                          />
+                          <span
+                            className={`text-sm transition-colors ${isActive(tool.path) ? "font-semibold" : ""
+                              }`}
+                            style={{
+                              color: isActive(tool.path) ? accentColor : '#cbd5e1',
+                            }}
+                          >
+                            {tool.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </nav>
           </div>
 
           {/* Logout Button - Always visible at bottom */}
-          <div 
+          <div
             className="p-3  pt-0 border-t"
-            style={{ 
+            style={{
               borderColor: borderColor,
               background: `linear-gradient(to bottom, ${primaryBg}, ${secondaryBg})`
             }}
@@ -426,13 +458,13 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
             >
               <div className="flex items-center gap-3 ">
                 {isLoggingOut ? (
-                  <div 
+                  <div
                     className="animate-spin rounded-full h-4 w-4 border-b-2"
                     style={{ borderColor: accentColor }}
                   ></div>
                 ) : (
-                  <LogOut 
-                    size={18} 
+                  <LogOut
+                    size={18}
                     className="group-hover:scale-110 transition-transform"
                     style={{ color: accentColor }}
                   />
@@ -444,9 +476,8 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
               {!isLoggingOut && (
                 <ThumbsUp
                   size={16}
-                  className={`transition-all duration-300 ${
-                    isLogoutHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
-                  }`}
+                  className={`transition-all duration-300 ${isLogoutHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
+                    }`}
                   style={{ color: accentColor }}
                 />
               )}
@@ -467,7 +498,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
           scrollbar-width: none;
         }
       `}</style>
-    </> 
+    </>
   );
 };
 
