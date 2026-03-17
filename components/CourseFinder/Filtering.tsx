@@ -122,16 +122,23 @@ const FilterComponent: React.FC<FilterProps> = ({
     setAvailableCourses(sortedCourses)
   }, [allColleges])
 
-  // Initialize search query from URL
+  // Initialize / overwrite filters whenever search query changes
+  // REPLACES old parsed values with new ones (fixes overwrite bug)
   useEffect(() => {
     if (initialQuery) {
       setSearchQuery(initialQuery)
-      // Auto-parse and set filters
       const parsed = parseSearchQuery(initialQuery)
-      if (parsed.states.length > 0) setSelectedStates(parsed.states)
-      if (parsed.budgetRanges.length > 0) setSelectedBudgets(parsed.budgetRanges)
-      if (parsed.entranceExams.length > 0) setSelectedExams(parsed.entranceExams)
-      if (parsed.courses.length > 0) setSelectedCourses(parsed.courses)
+      // Always overwrite — so "lucknow" → "mumbai" replaces, not appends
+      setSelectedStates(parsed.states)
+      setSelectedBudgets(parsed.budgetRanges)
+      setSelectedExams(parsed.entranceExams)
+      setSelectedCourses(parsed.courses)
+    } else {
+      // Query cleared — reset all parsed filters
+      setSelectedStates([])
+      setSelectedBudgets([])
+      setSelectedExams([])
+      setSelectedCourses([])
     }
   }, [initialQuery])
 
@@ -299,53 +306,23 @@ const FilterComponent: React.FC<FilterProps> = ({
           </button>
         </div>
 
-        {/* Active Filters Display */}
+        {/* Active Filters Display — single set of chips (no duplicates) */}
         {activeFiltersCount > 0 && (
   <div className="flex flex-wrap gap-2 mb-4">
+    {/* City chip from parsed search query (not in manual state) */}
     {(() => {
       const parsed = searchQuery ? parseSearchQuery(searchQuery) : null
-      return <>
-        {parsed?.cities && parsed.cities.length > 0 && (
+      if (parsed?.cities && parsed.cities.length > 0) {
+        return (
           <div
             className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
             style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
           >
             <span className="font-medium">City: {parsed.cities.join(", ")}</span>
           </div>
-        )}
-        {parsed?.states && parsed.states.length > 0 && (
-          <div
-            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-          >
-            <span className="font-medium">State: {parsed.states.join(", ")}</span>
-          </div>
-        )}
-        {parsed?.budgetRanges && parsed.budgetRanges.length > 0 && (
-          <div
-            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-          >
-            <span className="font-medium">Budget: {parsed.budgetRanges.join(", ")}</span>
-          </div>
-        )}
-        {parsed?.courses && parsed.courses.length > 0 && (
-          <div
-            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-          >
-            <span className="font-medium">Courses: {parsed.courses.join(", ")}</span>
-          </div>
-        )}
-        {parsed?.entranceExams && parsed.entranceExams.length > 0 && (
-          <div
-            className="px-3 py-1 rounded-full text-sm flex items-center gap-2"
-            style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}
-          >
-            <span className="font-medium">Exams: {parsed.entranceExams.join(", ")}</span>
-          </div>
-        )}
-      </>
+        )
+      }
+      return null
     })()}
 
     {selectedStates.length > 0 && (
