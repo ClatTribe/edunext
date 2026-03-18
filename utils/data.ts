@@ -123,15 +123,13 @@ const COMMON_COURSES = [
   'B.Tech', 'BTech', 'B Tech',
   'B.E', 'BE', 'B E',
   'B.Sc', 'BSc', 'B Sc',
-  'B.Com', 'BCom', 'B Com',
-  'BBA', 'B.B.A',
-  'BCA', 'B.C.A',
+  'B.Com', 'BCom',
+  'BBA',
+  'BCA',
   'B.A', 'BA', 'B A',
   'LL.B', 'LLB', 'LL B',
   'B.Pharm', 'BPharm', 'B Pharm',
   'B.Arch', 'BArch', 'B Arch',
-  'BJMC', 'B.J.M.C',
-  'B.Des', 'BDes', 'B Des',
   
   // Postgraduate Degrees
   'M.Tech', 'MTech', 'M Tech',
@@ -181,12 +179,12 @@ const COMMON_EXAMS = [
   'CAT', 'XAT', 'CMAT', 'MAT', 'GMAT', 'NMAT', 'SNAP', 'ATMA', 'JEE', 'GATE', 'TANCET'
 ];
 
-// Helper function to normalize course names (remove dots and extra spaces)
+// Helper function to normalize course names
 const normalizeCourse = (course: string): string => {
   return course.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
 };
 
-// Create a normalized course map for quick lookup
+// Create normalized course map
 const NORMALIZED_COURSE_MAP: Record<string, string> = {};
 COMMON_COURSES.forEach(course => {
   const normalized = normalizeCourse(course);
@@ -205,7 +203,7 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
 
   let cleanText = lowerQuery;
 
-  // 1. Handle State Aliases (Do not remove from cleanText to keep them available for name search)
+  // 1. Handle State Aliases
   Object.entries(STATE_ALIASES).forEach(([alias, fullName]) => {
     const aliasRegex = new RegExp(`\\b${alias}\\b`, 'i');
     if (aliasRegex.test(lowerQuery)) {
@@ -228,9 +226,8 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     }
   });
 
-  // 4. Handle Courses (with normalization for variations like B.Tech, BTech, B Tech)
+  // 4. Handle Courses
   COMMON_COURSES.forEach(course => {
-    // Create regex that matches the course with or without dots and spaces
     const courseParts = course.split(/[\s.]+/).filter(part => part.length > 0);
     const courseRegex = new RegExp(
       courseParts.map(part => `${part}`).join('\\.?\\s*'),
@@ -238,7 +235,6 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     );
     
     if (courseRegex.test(cleanText)) {
-      // Use normalized version for tracking to avoid duplicates
       const normalized = normalizeCourse(course);
       const canonicalCourse = NORMALIZED_COURSE_MAP[normalized];
       
@@ -250,7 +246,7 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     }
   });
 
-  // 5. Handle Exams (Strip from cleanText)
+  // 5. Handle Exams
   COMMON_EXAMS.forEach(exam => {
     const examRegex = new RegExp(`\\b${exam}\\b`, 'i');
     if (examRegex.test(cleanText)) {
@@ -259,9 +255,10 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     }
   });
 
-  // 6. Handle Budget (Strip from cleanText)
-  const budgetRegex = /(?:(?:less than|under|below|upto|up to|within|above|more than|over)\s+)?(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|lacs)\b/i;
-  const budgetValueMatch = cleanText.match(budgetRegex);
+  // 6. Handle Budget - IMPROVED VERSION
+  // This regex now properly handles: "10 lakh", "10 lakhs", "10 lac", "10 lacs", "10l"
+  const budgetRegex = /(?:(?:less than|under|below|upto|up to|within|above|more than|over)\s+)?(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|lacs|l)\b/i;
+  let budgetValueMatch = cleanText.match(budgetRegex);
   
   if (budgetValueMatch) {
     const amountStr = budgetValueMatch[1];
@@ -269,7 +266,15 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     const isUnder = /(?:less than|under|below|upto|up to|within)/i.test(budgetValueMatch[0]);
     const isAbove = /(?:above|more than|over)/i.test(budgetValueMatch[0]);
 
+    console.log("🎯 Budget Match:", {
+      fullMatch: budgetValueMatch[0],
+      amount,
+      isUnder,
+      isAbove
+    });
+
     if (isUnder) {
+      // Under 10 lakhs = show all ranges below 10
       if (amount > 50) filters.budgetRanges.push("Above 50 Lakh");
       if (amount > 25) filters.budgetRanges.push("25 - 50 Lakh");
       if (amount > 15) filters.budgetRanges.push("15 - 25 Lakh");
@@ -278,6 +283,7 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
       if (amount > 2)  filters.budgetRanges.push("2 - 5 Lakh");
       if (amount > 0)  filters.budgetRanges.push("Less than 2 Lakh");
     } else if (isAbove) {
+      // Above 10 lakhs = show all ranges from 10 and above
       if (amount < 2)  filters.budgetRanges.push("Less than 2 Lakh");
       if (amount < 5)  filters.budgetRanges.push("2 - 5 Lakh");
       if (amount < 10) filters.budgetRanges.push("5 - 10 Lakh");
@@ -286,6 +292,7 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
       if (amount < 50) filters.budgetRanges.push("25 - 50 Lakh");
       filters.budgetRanges.push("Above 50 Lakh");
     } else {
+      // Exact amount = find the matching range
       if (amount <= 2)       filters.budgetRanges.push("Less than 2 Lakh");
       else if (amount <= 5)  filters.budgetRanges.push("2 - 5 Lakh");
       else if (amount <= 10) filters.budgetRanges.push("5 - 10 Lakh");
@@ -295,10 +302,11 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
       else                   filters.budgetRanges.push("Above 50 Lakh");
     }
 
+    console.log("📊 Budget Ranges Extracted:", filters.budgetRanges);
     cleanText = cleanText.replace(budgetValueMatch[0], ' ');
   }
 
-  // 7. Strip common connecting/noise words and clean up space
+  // 7. Strip common connecting/noise words
   cleanText = cleanText.replace(/\b(?:in|at|for|fees?|budget|top|best)\b/gi, ' ');
   cleanText = cleanText.replace(/\s+/g, ' ').trim();
 
@@ -306,39 +314,89 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     filters.searchText = cleanText;
   }
 
+  console.log("✅ Final Parsed Filters:", filters);
   return filters;
 };
 
 // --- BUDGET FILTERING HELPERS ---
 
+/**
+ * Parse fee string to Lakhs
+ * Handles: "50000", "5 lakh", "5.5 lac", "₹5,00,000", etc.
+ */
 export const parseFeeToLakhs = (feeStr: string): number | null => {
   if (!feeStr) return null;
-  let cleaned = feeStr.replace(/₹|Rs\.?|INR|,/gi, '').replace(/Check Details|undefined|\(.*?\)/gi, '').trim();
+  
+  // Remove currency symbols and common text
+  let cleaned = feeStr
+    .replace(/₹|Rs\.?|INR/gi, '')
+    .replace(/,/g, '')
+    .replace(/Check Details|undefined|\(.*?\)/gi, '')
+    .trim();
+  
   if (!cleaned) return null;
-  
-  const match = cleaned.match(/([\d,]+\.?\d*)\s*(Lakh|Lac|L|K|Thousand)?/i);
-  if (!match) return null;
-  
-  const num = parseFloat(match[1].replace(/,/g, ''));
-  const unit = match[2]?.toLowerCase();
-  
-  if (isNaN(num)) return null;
-  
-  if (unit?.includes('lakh') || unit?.includes('lac') || unit === 'l') return num;
-  if (unit === 'k' || unit?.includes('thousand')) return num / 100;
 
-  return num >= 1000 ? num / 100000 : num;
+  // Try to match number with optional unit
+  const match = cleaned.match(/([\d.]+)\s*(lakh|lakhs?|lac|lacs?|l|k|thousand)?/i);
+  if (!match) return null;
+
+  const num = parseFloat(match[1]);
+  const unit = match[2]?.toLowerCase();
+
+  if (isNaN(num)) return null;
+
+  // Handle different units
+  if (!unit) {
+    // If no unit, assume it's in rupees and convert to lakhs
+    return num >= 1000 ? num / 100000 : num;
+  }
+
+  if (unit.includes('lakh') || unit.includes('lac') || unit === 'l') {
+    return num;
+  }
+  
+  if (unit === 'k' || unit.includes('thousand')) {
+    return num / 100; // 1000 rupees = 0.01 lakh
+  }
+
+  return num;
 };
 
+/**
+ * Parse budget range string to lakhs
+ * Handles: "5-10 Lakh", "10 to 15 Lakh", "₹5,00,000 - ₹10,00,000"
+ */
 export const parseBudgetToLakhs = (budgetStr: string | null | undefined): { min: number; max: number } | null => {
   if (!budgetStr) return null;
-  const feeParts = budgetStr.split(/[-–—]/).map(part => parseFeeToLakhs(part)).filter(v => v !== null && v > 0) as number[];
+  
+  // Split by common range separators
+  const parts = budgetStr.split(/[-–—to]+/).map(p => p.trim());
+  
+  // Filter and convert to numbers
+  const feeParts = parts
+    .map(part => parseFeeToLakhs(part))
+    .filter((v): v is number => v !== null && v > 0);
+
   if (feeParts.length === 0) return null;
-  return { min: Math.min(...feeParts), max: Math.max(...feeParts) };
+
+  // If only one value, treat as exact range with small margin
+  if (feeParts.length === 1) {
+    const val = feeParts[0];
+    return { min: val, max: val };
+  }
+
+  return { 
+    min: Math.min(...feeParts), 
+    max: Math.max(...feeParts) 
+  };
 };
 
+/**
+ * Check if a budget falls within selected ranges
+ */
 export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRanges: string[]): boolean => {
   if (selectedRanges.length === 0) return true;
+  if (!budgetStr) return false;
   
   const feeRange = parseBudgetToLakhs(budgetStr);
   if (!feeRange) return false;
@@ -359,21 +417,37 @@ export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRa
       default: return false;
     }
     
+    // Check for overlap between fee range and selected range
     return feeMin <= rangeMax && feeMax >= rangeMin;
   });
 };
 
+/**
+ * Apply budget filter to colleges array
+ */
 export const applyBudgetFilter = (colleges: any[], budgetRanges: string[]): any[] => {
   if (!budgetRanges || budgetRanges.length === 0) return colleges;
+  
   return colleges.filter(college => {
-    const fees = college["Course Fees"] || college.card_detail?.fees || college.fees;
+    // Try multiple paths to get fees
+    const fees = 
+      college["Course Fees"] || 
+      college.card_detail?.fees || 
+      college.fees ||
+      college.courseFees ||
+      college["fees"];
+    
     if (!fees) return false;
+    
     return isBudgetInRange(fees, budgetRanges);
   });
 };
 
 // --- LOCATION & COURSE MATCH HELPERS ---
 
+/**
+ * Check if college offers any of the selected courses
+ */
 export const doesCollegeMatchCourse = (
   collegeCourses: string[] | undefined,
   selectedCourses: string[]
@@ -384,16 +458,23 @@ export const doesCollegeMatchCourse = (
   return selectedCourses.some(selected => {
     const selectedNormalized = normalizeCourse(selected);
     return collegeCourses.some(c => {
+      // Clean college course name
       const clean = c
         .replace(/\(\d+\.?\d*[KkMm]?Views?\)/gi, '')
         .replace(/\[.*?\]/g, '')
         .trim();
       const collegeNormalized = normalizeCourse(clean);
-      return collegeNormalized.includes(selectedNormalized) || selectedNormalized.includes(collegeNormalized);
+      
+      // Check for match both ways
+      return collegeNormalized.includes(selectedNormalized) || 
+             selectedNormalized.includes(collegeNormalized);
     });
   });
 };
 
+/**
+ * Check if college is in selected location (cities and/or states)
+ */
 export const doesCollegeMatchLocation = (
   location: string | undefined,
   cities: string[],
@@ -414,4 +495,20 @@ export const doesCollegeMatchLocation = (
   if (cities.length > 0 && states.length > 0) return cityMatch || stateMatch;
 
   return cityMatch && stateMatch;
+};
+
+// --- DEBUG HELPER ---
+
+/**
+ * Debug: Log parsed filters in a readable format
+ */
+export const debugParsedFilters = (filters: ParsedFilters) => {
+  console.group("🔍 Parsed Filters Debug");
+  console.log("Search Text:", filters.searchText || "(none)");
+  console.log("Cities:", filters.cities.length > 0 ? filters.cities : "(none)");
+  console.log("States:", filters.states.length > 0 ? filters.states : "(none)");
+  console.log("Courses:", filters.courses.length > 0 ? filters.courses : "(none)");
+  console.log("Budget Ranges:", filters.budgetRanges.length > 0 ? filters.budgetRanges : "(none)");
+  console.log("Entrance Exams:", filters.entranceExams.length > 0 ? filters.entranceExams : "(none)");
+  console.groupEnd();
 };
