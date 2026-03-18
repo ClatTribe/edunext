@@ -169,7 +169,7 @@ function getRankingsByCategory(
     if (entry.heading) {
       const source = entry.heading.replace(/ Ranking$/i, "")
       if (!seenSources.has(entry.heading)) {
-        const matchingRow = entry.rows.find((row: RankingRow) => row.category === category)
+        const matchingRow = entry.rows?.find((row: RankingRow) => row.category === category)
         if (matchingRow) {
           rankings.push({
             source,
