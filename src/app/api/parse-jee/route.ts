@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchUrl } from "../../../../lib/fetcher";
 
 // ─────────────────────────────────────────────
 //  PASTE YOUR ANSWER KEY HERE
@@ -955,6 +956,8 @@ function extractQuestionData(chunk: string, sectionName: string): Question {
 // ─────────────────────────────────────────────
 //  SCORE CALCULATOR
 // ─────────────────────────────────────────────
+
+
 function calculateScores(questions: Question[]) {
   const subjects = ["Physics", "Chemistry", "Mathematics"] as const;
   type Subject = typeof subjects[number];
@@ -1017,30 +1020,9 @@ function calculateScores(questions: Question[]) {
 // ─────────────────────────────────────────────
 //  URL FETCHER
 // ─────────────────────────────────────────────
-const PROXIES = [
-  (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-  (u: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-];
 
-async function fetchUrl(url: string): Promise<string> {
-  try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9" },
-      signal: AbortSignal.timeout(15000),
-    });
-    if (res.ok) return await res.text();
-  } catch { /* try proxies */ }
 
-  for (const proxy of PROXIES) {
-    try {
-      const res = await fetch(proxy(url), { signal: AbortSignal.timeout(15000) });
-      if (res.ok) return await res.text();
-    } catch { continue; }
-  }
 
-  throw new Error("All fetch methods failed");
-}
 
 // ─────────────────────────────────────────────
 //  NEXT.JS ROUTE HANDLER
