@@ -49,7 +49,7 @@ export const overallData: ScoreMap = {
 export const getPercentile = (type: 'VA' | 'QA' | 'DILR' | 'Overall', score: number): number => {
   let map: any;
   let maxScore: number;
-  
+
   switch (type) {
     case 'VA': map = vaData; maxScore = 48; break;
     case 'QA': map = qaData; maxScore = 45; break;
@@ -62,7 +62,7 @@ export const getPercentile = (type: 'VA' | 'QA' | 'DILR' | 'Overall', score: num
   const lookupScore = Math.round(score);
   if (map[lookupScore] !== undefined) return map[lookupScore];
   if (lookupScore >= maxScore) return 100;
-  return 0; 
+  return 0;
 };
 
 export interface ParsedFilters {
@@ -75,10 +75,10 @@ export interface ParsedFilters {
 }
 
 const INDIAN_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
-  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
-  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
-  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
   "Uttarakhand", "West Bengal", "Delhi", "Delhi NCR", "Jammu and Kashmir", "Ladakh"
 ];
 
@@ -97,83 +97,98 @@ const STATE_ALIASES: Record<string, string> = {
 
 const INDIAN_CITIES = [
   "Mumbai", "Delhi", "Bangalore", "Bengaluru", "Chennai", "Hyderabad", "Kolkata",
-  "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Chandigarh", "Noida", "Gurugram", 
-  "Gurgaon", "Indore", "Bhopal", "Nagpur", "Coimbatore", "Kochi", "Cochin", 
-  "Visakhapatnam", "Vizag", "Surat", "Vadodara", "Baroda", "Patna", "Bhubaneswar", 
-  "Thiruvananthapuram", "Trivandrum", "Mysuru", "Mysore", "Ranchi", "Guwahati", 
-  "Dehradun", "Amritsar", "Ludhiana", "Agra", "Varanasi", "Meerut", "Faridabad", 
-  "Ghaziabad", "Vijayawada", "Tiruchirappalli", "Trichy", "Madurai", "Salem", 
-  "Nashik", "Aurangabad", "Raipur", "Jodhpur", "Udaipur", "Kota", "Allahabad", 
-  "Prayagraj", "Jabalpur", "Gwalior", "Rajkot", "Mangalore", "Mangaluru", 
-  "Hubli", "Dharwad", "Belgaum", "Belagavi", "Warangal", "Guntur", "Nellore", 
-  "Tirupati", "Kakinada", "Rajahmundry", "Pondicherry", "Puducherry", "Vellore", 
-  "Tirunelveli", "Erode", "Tiruppur", "Kanpur", "Bareilly", "Moradabad", 
+  "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Chandigarh", "Noida", "Gurugram",
+  "Gurgaon", "Indore", "Bhopal", "Nagpur", "Coimbatore", "Kochi", "Cochin",
+  "Visakhapatnam", "Vizag", "Surat", "Vadodara", "Baroda", "Patna", "Bhubaneswar",
+  "Thiruvananthapuram", "Trivandrum", "Mysuru", "Mysore", "Ranchi", "Guwahati",
+  "Dehradun", "Amritsar", "Ludhiana", "Agra", "Varanasi", "Meerut", "Faridabad",
+  "Ghaziabad", "Vijayawada", "Tiruchirappalli", "Trichy", "Madurai", "Salem",
+  "Nashik", "Aurangabad", "Raipur", "Jodhpur", "Udaipur", "Kota", "Allahabad",
+  "Prayagraj", "Jabalpur", "Gwalior", "Rajkot", "Mangalore", "Mangaluru",
+  "Hubli", "Dharwad", "Belgaum", "Belagavi", "Warangal", "Guntur", "Nellore",
+  "Tirupati", "Kakinada", "Rajahmundry", "Pondicherry", "Puducherry", "Vellore",
+  "Tirunelveli", "Erode", "Tiruppur", "Kanpur", "Bareilly", "Moradabad",
   "Aligarh", "Gorakhpur", "Firozabad", "Jammu", "Srinagar", "Shimla", "Leh",
-  "Kolhapur", "Sangli", "Solapur", "Amravati", "Akola", "Latur", "Bilaspur", 
+  "Kolhapur", "Sangli", "Solapur", "Amravati", "Akola", "Latur", "Bilaspur",
   "Bhilai", "Korba", "Durg", "Ajmer", "Bikaner", "Bhilwara", "Alwar", "Sikar",
-  "Dhanbad", "Bokaro", "Jamshedpur", "Cuttack", "Rourkela", "Berhampur", 
-  "Sambalpur", "Silchar", "Dibrugarh", "Jorhat", "Imphal", "Shillong", 
+  "Dhanbad", "Bokaro", "Jamshedpur", "Cuttack", "Rourkela", "Berhampur",
+  "Sambalpur", "Silchar", "Dibrugarh", "Jorhat", "Imphal", "Shillong",
   "Aizawl", "Agartala", "Kohima", "Itanagar", "Gangtok", "Panaji", "Margao",
-  "Kozhikode", "Calicut", "Thrissur", "Kollam", "Kannur", "Tiruvannamalai", 
+  "Kozhikode", "Calicut", "Thrissur", "Kollam", "Kannur", "Tiruvannamalai",
   "Dindigul", "Thanjavur", "Muzaffarpur", "Gaya", "Bhagalpur", "Darbhanga"
 ];
 
-const COMMON_COURSES = [
+// --- COURSE DEFINITIONS ---
+// Each entry has a canonical name and an array of patterns to match.
+// ORDER MATTERS: Longer/compound names come first so they match before shorter substrings.
+// e.g. "MBA" is checked before "BA", "MCA" before "CA", etc.
+
+interface CourseDefinition {
+  canonical: string;
+  patterns: string[];
+}
+
+const COURSE_DEFINITIONS: CourseDefinition[] = [
+  // Engineering Specializations (before generic B.Tech/M.Tech)
+  { canonical: 'Civil Engineering', patterns: ['Civil Engineering', 'Civil'] },
+  { canonical: 'Mechanical Engineering', patterns: ['Mechanical Engineering', 'Mechanical'] },
+  { canonical: 'Electrical Engineering', patterns: ['Electrical Engineering', 'Electrical'] },
+  { canonical: 'Electronics Engineering', patterns: ['Electronics Engineering', 'Electronics', 'ECE', 'E&C'] },
+  { canonical: 'Computer Science', patterns: ['Computer Science', 'CSE', 'CS'] },
+  { canonical: 'Information Technology', patterns: ['Information Technology', 'IT'] },
+  { canonical: 'Chemical Engineering', patterns: ['Chemical Engineering', 'Chemical'] },
+  { canonical: 'Aerospace Engineering', patterns: ['Aerospace Engineering', 'Aerospace'] },
+  { canonical: 'Biotechnology', patterns: ['Biotechnology', 'Bio-technology', 'Biotech'] },
+  { canonical: 'Environmental Engineering', patterns: ['Environmental Engineering', 'Environmental'] },
+  { canonical: 'Production Engineering', patterns: ['Production Engineering', 'Production'] },
+  { canonical: 'Textile Engineering', patterns: ['Textile Engineering', 'Textile'] },
+
+  // Management Specializations (before generic MBA)
+  { canonical: 'Financial Management', patterns: ['Financial Management', 'Finance'] },
+  { canonical: 'Marketing Management', patterns: ['Marketing Management', 'Marketing'] },
+  { canonical: 'Human Resource Management', patterns: ['Human Resource Management', 'Human Resources', 'HR'] },
+  { canonical: 'Operations Management', patterns: ['Operations Management', 'Operations'] },
+  { canonical: 'Business Analytics', patterns: ['Business Analytics'] },
+  { canonical: 'Data Science', patterns: ['Data Science', 'Data Analytics'] },
+  { canonical: 'Supply Chain Management', patterns: ['Supply Chain Management'] },
+  { canonical: 'International Business', patterns: ['International Business'] },
+
+  // Postgraduate Degrees (MUST come before undergraduate so MBA matches before BA, MCA before CA, etc.)
+  { canonical: 'MBA', patterns: ['MBA', 'M.B.A'] },
+  { canonical: 'MCA', patterns: ['MCA', 'M.C.A'] },
+  { canonical: 'M.Tech', patterns: ['M.Tech', 'MTech', 'M Tech'] },
+  { canonical: 'M.E', patterns: ['M.E', 'ME', 'M E'] },
+  { canonical: 'M.Sc', patterns: ['M.Sc', 'MSc', 'M Sc'] },
+  { canonical: 'M.Com', patterns: ['M.Com', 'MCom', 'M Com'] },
+  { canonical: 'M.A', patterns: ['M.A', 'MA', 'M A'] },
+  { canonical: 'LL.M', patterns: ['LL.M', 'LLM', 'LL M'] },
+  { canonical: 'M.Pharm', patterns: ['M.Pharm', 'MPharm', 'M Pharm'] },
+  { canonical: 'M.Arch', patterns: ['M.Arch', 'MArch', 'M Arch'] },
+  { canonical: 'MJMC', patterns: ['MJMC', 'M.J.M.C'] },
+  { canonical: 'M.Des', patterns: ['M.Des', 'MDes', 'M Des'] },
+  { canonical: 'M.Ed', patterns: ['M.Ed', 'MEd', 'M Ed'] },
+
   // Undergraduate Degrees
-  'B.Tech', 'BTech', 'B Tech',
-  'B.E', 'BE', 'B E',
-  'B.Sc', 'BSc', 'B Sc',
-  'B.Com', 'BCom',
-  'BBA',
-  'BCA',
-  'B.A', 'BA', 'B A',
-  'LL.B', 'LLB', 'LL B',
-  'B.Pharm', 'BPharm', 'B Pharm',
-  'B.Arch', 'BArch', 'B Arch',
-  
-  // Postgraduate Degrees
-  'M.Tech', 'MTech', 'M Tech',
-  'M.E', 'ME', 'M E',
-  'M.Sc', 'MSc', 'M Sc',
-  'M.Com', 'MCom', 'M Com',
-  'MBA', 'M.B.A',
-  'MCA', 'M.C.A',
-  'M.A', 'MA', 'M A',
-  'LL.M', 'LLM', 'LL M',
-  'M.Pharm', 'MPharm', 'M Pharm',
-  'M.Arch', 'MArch', 'M Arch',
-  'MJMC', 'M.J.M.C',
-  'M.Des', 'MDes', 'M Des',
-  
-  // Engineering Specializations
-  'Civil Engineering', 'Civil',
-  'Mechanical Engineering', 'Mechanical',
-  'Electrical Engineering', 'Electrical',
-  'Electronics Engineering', 'Electronics', 'E&C', 'ECE',
-  'Computer Science', 'CSE', 'CS',
-  'IT', 'Information Technology',
-  'Chemical Engineering', 'Chemical',
-  'Aerospace Engineering', 'Aerospace',
-  'Biotechnology', 'Bio-technology', 'Biotech',
-  'Environmental Engineering', 'Environmental',
-  'Production Engineering', 'Production',
-  'Textile Engineering', 'Textile',
-  
-  // Management Specializations
-  'Finance', 'Financial Management',
-  'Marketing', 'Marketing Management',
-  'HR', 'Human Resources', 'Human Resource Management',
-  'Operations', 'Operations Management',
-  'Business Analytics',
-  'Data Science', 'Data Analytics',
-  'Supply Chain Management',
-  'International Business',
-  
-  // Other Common Courses
-  'B.Ed', 'BEd', 'B Ed',
-  'M.Ed', 'MEd', 'M Ed',
-  'Diploma', 'Diploma Engineering'
+  { canonical: 'B.Tech', patterns: ['B.Tech', 'BTech', 'B Tech'] },
+  { canonical: 'B.E', patterns: ['B.E', 'BE', 'B E'] },
+  { canonical: 'B.Sc', patterns: ['B.Sc', 'BSc', 'B Sc'] },
+  { canonical: 'B.Com', patterns: ['B.Com', 'BCom', 'B Com'] },
+  { canonical: 'BBA', patterns: ['BBA', 'B.B.A'] },
+  { canonical: 'BCA', patterns: ['BCA', 'B.C.A'] },
+  { canonical: 'B.A', patterns: ['B.A', 'BA', 'B A'] },
+  { canonical: 'LL.B', patterns: ['LL.B', 'LLB', 'LL B'] },
+  { canonical: 'B.Pharm', patterns: ['B.Pharm', 'BPharm', 'B Pharm'] },
+  { canonical: 'B.Arch', patterns: ['B.Arch', 'BArch', 'B Arch'] },
+  { canonical: 'BJMC', patterns: ['BJMC', 'B.J.M.C'] },
+  { canonical: 'B.Des', patterns: ['B.Des', 'BDes', 'B Des'] },
+  { canonical: 'B.Ed', patterns: ['B.Ed', 'BEd', 'B Ed'] },
+
+  // Other
+  { canonical: 'Diploma', patterns: ['Diploma Engineering', 'Diploma'] },
 ];
+
+// Build a flat list of all course names for backward compatibility with doesCollegeMatchCourse
+const COMMON_COURSES: string[] = COURSE_DEFINITIONS.flatMap(def => [def.canonical, ...def.patterns]);
 
 const COMMON_EXAMS = [
   'CAT', 'XAT', 'CMAT', 'MAT', 'GMAT', 'NMAT', 'SNAP', 'ATMA', 'JEE', 'GATE', 'TANCET'
@@ -184,19 +199,28 @@ const normalizeCourse = (course: string): string => {
   return course.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
 };
 
-// Create normalized course map
-const NORMALIZED_COURSE_MAP: Record<string, string> = {};
-COMMON_COURSES.forEach(course => {
-  const normalized = normalizeCourse(course);
-  NORMALIZED_COURSE_MAP[normalized] = course;
-});
+// Escape regex special characters
+const escapeRegex = (str: string): string => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+/**
+ * Build a word-bounded regex for a course pattern like "B.Tech", "MBA", "M.B.A"
+ * Splits on dots/spaces, joins with optional-dot + optional-space, wraps with \b
+ * This ensures "BA" does NOT match inside "MBA", "MCA", etc.
+ */
+const buildCourseRegex = (pattern: string): RegExp => {
+  const parts = pattern.split(/[\s.]+/).filter(p => p.length > 0);
+  const regexStr = parts.map(p => escapeRegex(p)).join('\\.?\\s*');
+  return new RegExp(`(?:^|\\b)${regexStr}(?:\\b|$)`, 'i');
+};
 
 export const parseSearchQuery = (query: string): ParsedFilters => {
   const lowerQuery = query.toLowerCase().trim();
-  const filters: ParsedFilters = { 
-    cities: [], 
-    states: [], 
-    budgetRanges: [], 
+  const filters: ParsedFilters = {
+    cities: [],
+    states: [],
+    budgetRanges: [],
     courses: [],
     entranceExams: []
   };
@@ -226,25 +250,26 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     }
   });
 
-  // 4. Handle Courses
-  COMMON_COURSES.forEach(course => {
-    const courseParts = course.split(/[\s.]+/).filter(part => part.length > 0);
-    const courseRegex = new RegExp(
-      courseParts.map(part => `${part}`).join('\\.?\\s*'),
-      'i'
-    );
-    
-    if (courseRegex.test(cleanText)) {
-      const normalized = normalizeCourse(course);
-      const canonicalCourse = NORMALIZED_COURSE_MAP[normalized];
-      
-      if (!filters.courses.some(c => normalizeCourse(c) === normalized)) {
-        filters.courses.push(canonicalCourse);
+  // 4. Handle Courses - uses COURSE_DEFINITIONS with word-bounded regex
+  // Iterates in definition order (longer/compound names first, PG before UG)
+  // so "MBA" is checked before "BA", "MCA" before "CA", etc.
+  for (const def of COURSE_DEFINITIONS) {
+    // Sort patterns longest-first within each definition for safety
+    const sortedPatterns = [...def.patterns].sort((a, b) => b.length - a.length);
+
+    for (const pattern of sortedPatterns) {
+      const regex = buildCourseRegex(pattern);
+
+      if (regex.test(cleanText)) {
+        if (!filters.courses.includes(def.canonical)) {
+          filters.courses.push(def.canonical);
+        }
+        // Remove matched text to prevent double-matching
+        cleanText = cleanText.replace(regex, ' ').replace(/\s+/g, ' ').trim();
+        break; // Only need one pattern per definition to match
       }
-      
-      cleanText = cleanText.replace(courseRegex, ' ');
     }
-  });
+  }
 
   // 5. Handle Exams
   COMMON_EXAMS.forEach(exam => {
@@ -255,18 +280,17 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     }
   });
 
-  // 6. Handle Budget - IMPROVED VERSION
-  // This regex now properly handles: "10 lakh", "10 lakhs", "10 lac", "10 lacs", "10l"
+  // 6. Handle Budget
   const budgetRegex = /(?:(?:less than|under|below|upto|up to|within|above|more than|over)\s+)?(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|lacs|l)\b/i;
   let budgetValueMatch = cleanText.match(budgetRegex);
-  
+
   if (budgetValueMatch) {
     const amountStr = budgetValueMatch[1];
     const amount = parseFloat(amountStr);
     const isUnder = /(?:less than|under|below|upto|up to|within)/i.test(budgetValueMatch[0]);
     const isAbove = /(?:above|more than|over)/i.test(budgetValueMatch[0]);
 
-    console.log("🎯 Budget Match:", {
+    console.log("Budget Match:", {
       fullMatch: budgetValueMatch[0],
       amount,
       isUnder,
@@ -274,7 +298,6 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
     });
 
     if (isUnder) {
-      // Under 10 lakhs = show all ranges below 10
       if (amount > 50) filters.budgetRanges.push("Above 50 Lakh");
       if (amount > 25) filters.budgetRanges.push("25 - 50 Lakh");
       if (amount > 15) filters.budgetRanges.push("15 - 25 Lakh");
@@ -283,7 +306,6 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
       if (amount > 2)  filters.budgetRanges.push("2 - 5 Lakh");
       if (amount > 0)  filters.budgetRanges.push("Less than 2 Lakh");
     } else if (isAbove) {
-      // Above 10 lakhs = show all ranges from 10 and above
       if (amount < 2)  filters.budgetRanges.push("Less than 2 Lakh");
       if (amount < 5)  filters.budgetRanges.push("2 - 5 Lakh");
       if (amount < 10) filters.budgetRanges.push("5 - 10 Lakh");
@@ -292,7 +314,6 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
       if (amount < 50) filters.budgetRanges.push("25 - 50 Lakh");
       filters.budgetRanges.push("Above 50 Lakh");
     } else {
-      // Exact amount = find the matching range
       if (amount <= 2)       filters.budgetRanges.push("Less than 2 Lakh");
       else if (amount <= 5)  filters.budgetRanges.push("2 - 5 Lakh");
       else if (amount <= 10) filters.budgetRanges.push("5 - 10 Lakh");
@@ -302,19 +323,19 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
       else                   filters.budgetRanges.push("Above 50 Lakh");
     }
 
-    console.log("📊 Budget Ranges Extracted:", filters.budgetRanges);
+    console.log("Budget Ranges Extracted:", filters.budgetRanges);
     cleanText = cleanText.replace(budgetValueMatch[0], ' ');
   }
 
   // 7. Strip common connecting/noise words
-  cleanText = cleanText.replace(/\b(?:in|at|for|fees?|budget|top|best)\b/gi, ' ');
+  cleanText = cleanText.replace(/\b(?:in|at|for|fees?|budget|top|best|colleges?|university|universities)\b/gi, ' ');
   cleanText = cleanText.replace(/\s+/g, ' ').trim();
 
   if (cleanText) {
     filters.searchText = cleanText;
   }
 
-  console.log("✅ Final Parsed Filters:", filters);
+  console.log("Final Parsed Filters:", filters);
   return filters;
 };
 
@@ -326,17 +347,15 @@ export const parseSearchQuery = (query: string): ParsedFilters => {
  */
 export const parseFeeToLakhs = (feeStr: string): number | null => {
   if (!feeStr) return null;
-  
-  // Remove currency symbols and common text
+
   let cleaned = feeStr
     .replace(/₹|Rs\.?|INR/gi, '')
     .replace(/,/g, '')
     .replace(/Check Details|undefined|\(.*?\)/gi, '')
     .trim();
-  
+
   if (!cleaned) return null;
 
-  // Try to match number with optional unit
   const match = cleaned.match(/([\d.]+)\s*(lakh|lakhs?|lac|lacs?|l|k|thousand)?/i);
   if (!match) return null;
 
@@ -345,18 +364,16 @@ export const parseFeeToLakhs = (feeStr: string): number | null => {
 
   if (isNaN(num)) return null;
 
-  // Handle different units
   if (!unit) {
-    // If no unit, assume it's in rupees and convert to lakhs
     return num >= 1000 ? num / 100000 : num;
   }
 
   if (unit.includes('lakh') || unit.includes('lac') || unit === 'l') {
     return num;
   }
-  
+
   if (unit === 'k' || unit.includes('thousand')) {
-    return num / 100; // 1000 rupees = 0.01 lakh
+    return num / 100;
   }
 
   return num;
@@ -368,26 +385,23 @@ export const parseFeeToLakhs = (feeStr: string): number | null => {
  */
 export const parseBudgetToLakhs = (budgetStr: string | null | undefined): { min: number; max: number } | null => {
   if (!budgetStr) return null;
-  
-  // Split by common range separators
+
   const parts = budgetStr.split(/[-–—to]+/).map(p => p.trim());
-  
-  // Filter and convert to numbers
+
   const feeParts = parts
     .map(part => parseFeeToLakhs(part))
     .filter((v): v is number => v !== null && v > 0);
 
   if (feeParts.length === 0) return null;
 
-  // If only one value, treat as exact range with small margin
   if (feeParts.length === 1) {
     const val = feeParts[0];
     return { min: val, max: val };
   }
 
-  return { 
-    min: Math.min(...feeParts), 
-    max: Math.max(...feeParts) 
+  return {
+    min: Math.min(...feeParts),
+    max: Math.max(...feeParts)
   };
 };
 
@@ -397,15 +411,15 @@ export const parseBudgetToLakhs = (budgetStr: string | null | undefined): { min:
 export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRanges: string[]): boolean => {
   if (selectedRanges.length === 0) return true;
   if (!budgetStr) return false;
-  
+
   const feeRange = parseBudgetToLakhs(budgetStr);
   if (!feeRange) return false;
-  
+
   const { min: feeMin, max: feeMax } = feeRange;
-  
+
   return selectedRanges.some(range => {
     let rangeMin: number, rangeMax: number;
-    
+
     switch (range) {
       case "Less than 2 Lakh":  rangeMin = 0;  rangeMax = 2;        break;
       case "2 - 5 Lakh":        rangeMin = 2;  rangeMax = 5;        break;
@@ -416,8 +430,7 @@ export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRa
       case "Above 50 Lakh":     rangeMin = 50; rangeMax = Infinity; break;
       default: return false;
     }
-    
-    // Check for overlap between fee range and selected range
+
     return feeMin <= rangeMax && feeMax >= rangeMin;
   });
 };
@@ -427,18 +440,17 @@ export const isBudgetInRange = (budgetStr: string | null | undefined, selectedRa
  */
 export const applyBudgetFilter = (colleges: any[], budgetRanges: string[]): any[] => {
   if (!budgetRanges || budgetRanges.length === 0) return colleges;
-  
+
   return colleges.filter(college => {
-    // Try multiple paths to get fees
-    const fees = 
-      college["Course Fees"] || 
-      college.card_detail?.fees || 
+    const fees =
+      college["Course Fees"] ||
+      college.card_detail?.fees ||
       college.fees ||
       college.courseFees ||
       college["fees"];
-    
+
     if (!fees) return false;
-    
+
     return isBudgetInRange(fees, budgetRanges);
   });
 };
@@ -464,9 +476,9 @@ export const doesCollegeMatchCourse = (
         .replace(/\[.*?\]/g, '')
         .trim();
       const collegeNormalized = normalizeCourse(clean);
-      
+
       // Check for match both ways
-      return collegeNormalized.includes(selectedNormalized) || 
+      return collegeNormalized.includes(selectedNormalized) ||
              selectedNormalized.includes(collegeNormalized);
     });
   });
@@ -491,7 +503,6 @@ export const doesCollegeMatchLocation = (
   const stateMatch = states.length === 0 ||
     states.some(state => loc.includes(state.toLowerCase()));
 
-  // If both cities and states provided, either can match
   if (cities.length > 0 && states.length > 0) return cityMatch || stateMatch;
 
   return cityMatch && stateMatch;
@@ -503,7 +514,7 @@ export const doesCollegeMatchLocation = (
  * Debug: Log parsed filters in a readable format
  */
 export const debugParsedFilters = (filters: ParsedFilters) => {
-  console.group("🔍 Parsed Filters Debug");
+  console.group("Parsed Filters Debug");
   console.log("Search Text:", filters.searchText || "(none)");
   console.log("Cities:", filters.cities.length > 0 ? filters.cities : "(none)");
   console.log("States:", filters.states.length > 0 ? filters.states : "(none)");
