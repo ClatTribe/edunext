@@ -33,7 +33,6 @@ import { parseSearchQuery, applyBudgetFilter, doesCollegeMatchCourse, doesColleg
 import type { ManualFilters } from "../../../components/CourseFinder/Filtering"
 
 // ─── TYPE DEFINITIONS ───────────────────────────────────────────────────
-// Keep existing interface but extend it for ranking data
 
 interface RankingRow {
   value: number
@@ -46,9 +45,9 @@ interface RankingEntry {
 }
 
 interface TopRanking {
-  source: string        // e.g. "NIRF"
-  category: string      // e.g. "B.Tech" or "Overall"
-  value: number         // e.g. 1
+  source: string
+  category: string
+  value: number
 }
 
 interface College {
@@ -65,7 +64,7 @@ interface College {
     avg_package?: string
     high_package?: string
     fees?: string
-    ranking?: RankingEntry[] | string  // Support both types
+    ranking?: RankingEntry[] | string
     approvals?: string
     scholarship?: string
     entrance_exam?: string
@@ -95,13 +94,11 @@ interface College {
   entrance_exam?: string | null
   is_priority?: boolean
   matchScore?: number
-  // NEW: Enriched data
   rankingByCategory?: Map<string, TopRanking>
   bestRankOverall?: TopRanking | null
 }
 
 // ─── RANKING PRIORITY ───────────────────────────────────────────────────
-// Priority: NIRF > EduNext > QS > Indiatoday > The Week > Outlook > IIRF > TOI
 
 const RANKING_PRIORITY: string[] = [
   "NIRF Ranking",
@@ -114,20 +111,106 @@ const RANKING_PRIORITY: string[] = [
   "TOI Ranking",
 ]
 
+// ─── DEFAULT CATEGORY TABS ──────────────────────────────────────────────
+
+const DEFAULT_CATEGORIES = ["MBA", "B.Tech", "Medical", "Overall"]
+
+// ─── COURSE → RANKING CATEGORY MAPPING ──────────────────────────────────
+// Maps parsed course canonical names to ranking categories in card_detail
+
+const COURSE_TO_RANKING_CATEGORY: Record<string, string> = {
+  // Direct degree matches
+  'MBA': 'MBA',
+  'B.Tech': 'B.Tech',
+  'B.E': 'B.Tech',
+  'BBA': 'BBA/BMS',
+  'BCA': 'BCA',
+  'MCA': 'Computer Applications',
+  'B.Com': 'Commerce',
+  'M.Com': 'Commerce',
+  'B.Sc': 'Science',
+  'M.Sc': 'Science',
+  'B.A': 'Arts',
+  'M.A': 'Arts',
+  'LL.B': 'Law',
+  'LL.M': 'Law',
+  'B.Pharm': 'Pharmacy',
+  'M.Pharm': 'Pharmacy',
+  'B.Arch': 'Architecture',
+  'M.Arch': 'Architecture',
+  'B.Ed': 'Education',
+  'M.Ed': 'Education',
+  'B.Des': 'Design',
+  'M.Des': 'Design',
+  'BJMC': 'Journalism',
+  'MJMC': 'Mass Communications',
+  'M.Tech': 'B.Tech',
+  'M.E': 'B.Tech',
+  'Diploma': 'B.Tech',
+
+  // Engineering specializations → B.Tech
+  'Civil Engineering': 'B.Tech',
+  'Mechanical Engineering': 'B.Tech',
+  'Electrical Engineering': 'B.Tech',
+  'Electronics Engineering': 'B.Tech',
+  'Computer Science': 'B.Tech',
+  'Information Technology': 'Computer Applications',
+  'Chemical Engineering': 'B.Tech',
+  'Aerospace Engineering': 'B.Tech',
+  'Biotechnology': 'B.Tech',
+  'Environmental Engineering': 'B.Tech',
+  'Production Engineering': 'B.Tech',
+  'Textile Engineering': 'B.Tech',
+
+  // Management specializations → MBA
+  'Financial Management': 'MBA',
+  'Marketing Management': 'MBA',
+  'Human Resource Management': 'MBA',
+  'Operations Management': 'MBA',
+  'Business Analytics': 'MBA',
+  'Supply Chain Management': 'MBA',
+  'International Business': 'MBA',
+  'Data Science': 'Computer Applications',
+}
+
+/**
+ * Find the ranking category for a course name.
+ * Tries exact match, then normalized match, then falls back to null.
+ */
+function findRankingCategory(courseName: string): string | null {
+  // Exact match
+  if (COURSE_TO_RANKING_CATEGORY[courseName]) {
+    return COURSE_TO_RANKING_CATEGORY[courseName]
+  }
+
+  // Normalized match
+  const normalized = courseName.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim()
+  for (const [key, value] of Object.entries(COURSE_TO_RANKING_CATEGORY)) {
+    const keyNorm = key.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim()
+    if (keyNorm === normalized) return value
+  }
+
+  return null
+}
+
 // ─── UTILITY FUNCTIONS ───────────────────────────────────────────────────
 
 function isRankingArray(ranking: any): ranking is RankingEntry[] {
   return Array.isArray(ranking) && ranking.length > 0 && 'heading' in ranking[0]
 }
 
-// ✅ FIXED: Only 4 categories - no auto-extraction
-function getAllRankingCategories(ranking: RankingEntry[] | string | null | undefined): Set<string> {
-  // Return only these 4 categories - ignore all others
-  return new Set(["Overall", "MBA", "B.Tech", "Medical"])
+// Returns the set of categories to enrich for ranking badges
+// Always includes the 4 defaults + optional dynamic category
+function getAllRankingCategories(
+  ranking: RankingEntry[] | string | null | undefined,
+  extraCategory?: string | null
+): Set<string> {
+  const cats = new Set(DEFAULT_CATEGORIES)
+  if (extraCategory) cats.add(extraCategory)
+  return cats
 }
 
 // Get ranking for a specific category from all sources
-// Returns array of rankings sorted by source priority, with duplicates removed
 function getRankingsByCategory(
   ranking: RankingEntry[] | string | null | undefined,
   category: string
@@ -139,7 +222,6 @@ function getRankingsByCategory(
   const rankings: TopRanking[] = []
   const seenSources = new Set<string>()
 
-  // Build map of heading → entry
   const map = new Map<string, RankingEntry>()
   for (const entry of ranking) {
     if (entry.heading && Array.isArray(entry.rows) && entry.rows.length > 0) {
@@ -147,11 +229,11 @@ function getRankingsByCategory(
     }
   }
 
-  // Walk through priority and collect rankings for this category
+  // Walk through priority sources
   for (const heading of RANKING_PRIORITY) {
     const entry = map.get(heading)
     if (entry) {
-      const matchingRow = entry.rows.find((row: RankingRow) => row.category === category)
+      const matchingRow = entry.rows?.find((row: RankingRow) => row.category === category)
       if (matchingRow && !seenSources.has(heading)) {
         const source = heading.replace(/ Ranking$/i, "")
         rankings.push({
@@ -164,7 +246,7 @@ function getRankingsByCategory(
     }
   }
 
-  // If no priority match found, check remaining sources
+  // Check remaining non-priority sources
   for (const entry of ranking) {
     if (entry.heading) {
       const source = entry.heading.replace(/ Ranking$/i, "")
@@ -198,7 +280,6 @@ function getBestRanking(ranking: RankingEntry[] | string | null | undefined): To
     }
   }
 
-  // Walk through priority
   for (const heading of RANKING_PRIORITY) {
     const entry = map.get(heading)
     if (entry) {
@@ -211,7 +292,6 @@ function getBestRanking(ranking: RankingEntry[] | string | null | undefined): To
     }
   }
 
-  // Fallback to first available
   for (const entry of ranking) {
     if (entry.heading && Array.isArray(entry.rows) && entry.rows.length > 0) {
       const bestRow = entry.rows.reduce((best: RankingRow, row: RankingRow) =>
@@ -239,7 +319,7 @@ const CollegeMicrositesPage: React.FC = () => {
   const [totalColleges, setTotalColleges] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("MBA")
-  const [availableCategories, setAvailableCategories] = useState<Set<string>>(new Set(["Overall"]))
+  const [dynamicCategory, setDynamicCategory] = useState<string | null>(null)
   const [manualFilters, setManualFilters] = useState<ManualFilters>({
     states: [],
     cities: [],
@@ -250,6 +330,15 @@ const CollegeMicrositesPage: React.FC = () => {
     courses: []
   })
   const [hasBudgetFilter, setHasBudgetFilter] = useState(false)
+
+  // ★ Computed: available categories = 4 defaults + optional dynamic tab
+  const availableCategories = useMemo(() => {
+    const cats = new Set(DEFAULT_CATEGORIES)
+    if (dynamicCategory && !cats.has(dynamicCategory)) {
+      cats.add(dynamicCategory)
+    }
+    return cats
+  }, [dynamicCategory])
 
   // Color scheme
   const accentColor = '#F59E0B'
@@ -267,8 +356,8 @@ const CollegeMicrositesPage: React.FC = () => {
     goToComparison,
   } = useCollegeMicrositeComparison({ user, colleges: colleges as any })
 
-  const perPage = 20           // Cards rendered per page (fast DOM)
-  const FETCH_SIZE = 1000      // Rows fetched from Supabase (enough for correct ranking)
+  const perPage = 20
+  const FETCH_SIZE = 1000
 
   // Read URL parameters
   useEffect(() => {
@@ -276,6 +365,21 @@ const CollegeMicrositesPage: React.FC = () => {
     const queryParam = params.get('q')
     if (queryParam) {
       setSearchQuery(queryParam)
+      // Also detect category from URL query on initial load
+      const parsed = parseSearchQuery(queryParam)
+      if (parsed.courses.length > 0) {
+        const mappedCategory = findRankingCategory(parsed.courses[0])
+        if (mappedCategory) {
+          if (DEFAULT_CATEGORIES.includes(mappedCategory)) {
+            setSelectedCategory(mappedCategory)
+          } else {
+            setDynamicCategory(mappedCategory)
+            setSelectedCategory(mappedCategory)
+          }
+        } else {
+          setSelectedCategory("Overall")
+        }
+      }
     }
   }, [])
 
@@ -300,10 +404,9 @@ const CollegeMicrositesPage: React.FC = () => {
   }, [hasBudgetFilter])
 
   // Fetch colleges — only when filters/search change, NOT on page change
-  // Pagination is now client-side (slice sortedColleges)
   useEffect(() => {
     if (viewMode === "all") {
-      setCurrentPage(0) // Reset to first page on any filter change
+      setCurrentPage(0)
       const timer = setTimeout(() => {
         fetchColleges()
       }, 300)
@@ -362,9 +465,7 @@ const CollegeMicrositesPage: React.FC = () => {
             .select("id, slug, college_name, card_detail", { count: "exact" })
             .order("id", { ascending: true })
 
-          // ✅ If no search/filters, filter by MBA ranking (default)
           if (!searchText && allLocations.length === 0 && allCourses.length === 0 && allExams.length === 0) {
-            // Default case: get colleges with MBA rankings
             query = query.or(`card_detail->>ranking.ilike.%MBA%`)
           }
 
@@ -399,8 +500,6 @@ const CollegeMicrositesPage: React.FC = () => {
             query = query.or(examConditions.join(','))
           }
 
-          // Fetch a large batch for correct ranking order
-          // Client-side sorting + pagination handles the rest
           query = query.range(0, FETCH_SIZE - 1)
 
           return await query
@@ -440,13 +539,8 @@ const CollegeMicrositesPage: React.FC = () => {
 
         const validColleges = mappedData.filter((college) => college["College Name"] !== null)
 
-        // ✅ Store raw data — NO enrichment here (deferred to render-time useMemo)
-        // Sorting uses getRankingsByCategory() directly on raw Ranking field
         setColleges(validColleges)
         setDisplayedColleges(validColleges)
-
-        // Always display all 4 tabs
-        setAvailableCategories(new Set(["Overall", "MBA", "B.Tech", "Medical"]))
 
         if (hasBudget) {
           setTotalColleges(validColleges.length > 0 ? 500 : 0)
@@ -457,7 +551,6 @@ const CollegeMicrositesPage: React.FC = () => {
         setColleges([])
         setDisplayedColleges([])
         setTotalColleges(0)
-        setAvailableCategories(new Set(["Overall", "MBA", "B.Tech", "Medical"]))
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch colleges")
@@ -467,7 +560,7 @@ const CollegeMicrositesPage: React.FC = () => {
     }
   }
 
-  // ★ STEP 1: Sort all colleges by ranking (lightweight — no enrichment)
+  // ★ Sort colleges by ranking for the selected category
   const sortedColleges = useMemo(() => {
     return [...displayedColleges].sort((a, b) => {
       const rankingsA = getRankingsByCategory(a.Ranking, selectedCategory)
@@ -495,14 +588,13 @@ const CollegeMicrositesPage: React.FC = () => {
     })
   }, [displayedColleges, selectedCategory])
 
-  // ★ STEP 2: Paginate + enrich ONLY the visible cards (20 instead of 1000)
+  // ★ Paginate + enrich only visible cards
   const paginatedColleges = useMemo(() => {
     const pageSlice = sortedColleges.slice(currentPage * perPage, (currentPage + 1) * perPage)
 
-    // Enrich only these 20 cards with ranking maps (heavy computation)
     return pageSlice.map(college => {
       const rankingByCategory = new Map<string, TopRanking>()
-      const categories = getAllRankingCategories(college.Ranking)
+      const categories = getAllRankingCategories(college.Ranking, dynamicCategory)
 
       for (const cat of categories) {
         const rankings = getRankingsByCategory(college.Ranking, cat)
@@ -517,13 +609,55 @@ const CollegeMicrositesPage: React.FC = () => {
         bestRankOverall: getBestRanking(college.Ranking),
       } as College
     })
-  }, [sortedColleges, currentPage, perPage])
+  }, [sortedColleges, currentPage, perPage, dynamicCategory])
+
+  // ★ Helper: detect ranking category from courses (search or manual filter)
+  const detectCategoryFromCourses = useCallback((courses: string[]) => {
+    if (courses.length === 0) return null
+
+    // Try each parsed course until we find a matching ranking category
+    for (const course of courses) {
+      const mapped = findRankingCategory(course)
+      if (mapped) return mapped
+    }
+
+    return null
+  }, [])
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query)
     setCurrentPage(0)
-    setSelectedCategory("MBA") // Reset to MBA when searching
 
+    if (!query.trim()) {
+      // ★ Clear: reset to defaults (4 tabs, MBA selected)
+      setDynamicCategory(null)
+      setSelectedCategory("MBA")
+    } else {
+      const parsed = parseSearchQuery(query)
+      const mappedCategory = detectCategoryFromCourses(parsed.courses)
+
+      if (mappedCategory) {
+        if (DEFAULT_CATEGORIES.includes(mappedCategory)) {
+          // Course maps to an existing default tab → just select it
+          setDynamicCategory(null)
+          setSelectedCategory(mappedCategory)
+        } else {
+          // Course maps to a NEW category → create dynamic tab & select it
+          setDynamicCategory(mappedCategory)
+          setSelectedCategory(mappedCategory)
+        }
+      } else if (parsed.courses.length > 0) {
+        // Course found but no ranking category match → select Overall
+        setDynamicCategory(null)
+        setSelectedCategory("Overall")
+      } else {
+        // No course in query → keep MBA default
+        setDynamicCategory(null)
+        setSelectedCategory("MBA")
+      }
+    }
+
+    // Update URL
     const params = new URLSearchParams(window.location.search)
     if (query) {
       params.set('q', query)
@@ -532,15 +666,36 @@ const CollegeMicrositesPage: React.FC = () => {
     }
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     window.history.replaceState({}, '', newUrl)
-  }, [])
+  }, [detectCategoryFromCourses])
 
   const handleManualFilterChange = useCallback((filters: ManualFilters) => {
     setManualFilters(prev => {
       return JSON.parse(JSON.stringify(filters))
     })
     setCurrentPage(0)
-    setSelectedCategory("MBA") // Reset to MBA when filtering
-  }, [])
+
+    // ★ Also detect category from manually selected courses
+    if (filters.courses.length > 0) {
+      const mappedCategory = detectCategoryFromCourses(filters.courses)
+
+      if (mappedCategory) {
+        if (DEFAULT_CATEGORIES.includes(mappedCategory)) {
+          setDynamicCategory(null)
+          setSelectedCategory(mappedCategory)
+        } else {
+          setDynamicCategory(mappedCategory)
+          setSelectedCategory(mappedCategory)
+        }
+      } else {
+        setDynamicCategory(null)
+        setSelectedCategory("Overall")
+      }
+    } else if (!searchQuery.trim()) {
+      // No courses in filter AND no search → reset to defaults
+      setDynamicCategory(null)
+      setSelectedCategory("MBA")
+    }
+  }, [searchQuery, detectCategoryFromCourses])
 
   const handleRecommendedCoursesChange = useCallback((recommendedCourses: any[]) => {
     setDisplayedColleges(recommendedCourses as College[])
@@ -673,41 +828,32 @@ const CollegeMicrositesPage: React.FC = () => {
             </div>
           )}
 
-          {/* Colleges found Tab */}
-          {/* <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="flex-shrink-0" style={{ color: accentColor }} size={20} />
-              <span className="font-semibold text-base sm:text-lg text-white">
-                {hasBudgetFilter ? `${totalColleges}+` : totalColleges.toLocaleString()} {viewMode === "recommended" ? "recommended " : ""}
-                college{totalColleges !== 1 ? "s" : ""} found
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Heart style={{ color: accentColor }} size={16} />
-                <span className="text-xs sm:text-sm text-slate-400">{savedMicrositeCourses.size} saved</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <GitCompare className="text-purple-400" size={16} />
-                <span className="text-xs sm:text-sm text-slate-400 font-medium">{compareColleges.length}/3 to compare</span>
-              </div>
-            </div>
-          </div> */}
-
-          {/* ★★★ PERMANENT CATEGORY TABS - ALWAYS VISIBLE ★★★ */}
+          {/* ★★★ CATEGORY TABS - 4 defaults + optional dynamic tab ★★★ */}
           {viewMode === "all" && availableCategories.size > 0 && (
             <div className="sticky top-0 z-40 mb-6 rounded-lg p-3 sm:p-4 backdrop-blur-xl overflow-x-auto" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
               <div className="flex gap-2 sm:gap-3 min-w-max">
                 {Array.from(availableCategories).sort((a, b) => {
-                  // Custom sort: MBA, B.Tech, Medical, Overall
-                  const order = ["MBA", "B.Tech", "Medical", "Overall"]
-                  return order.indexOf(a) - order.indexOf(b)
+                  // ★ Dynamic category goes first when active, then defaults in fixed order
+                  const defaultOrder = DEFAULT_CATEGORIES
+                  const aIsDefault = defaultOrder.includes(a)
+                  const bIsDefault = defaultOrder.includes(b)
+
+                  // Dynamic category always first
+                  if (!aIsDefault && bIsDefault) return -1
+                  if (aIsDefault && !bIsDefault) return 1
+
+                  // Both defaults: use fixed order
+                  if (aIsDefault && bIsDefault) {
+                    return defaultOrder.indexOf(a) - defaultOrder.indexOf(b)
+                  }
+
+                  return 0
                 }).map((category) => (
                   <button
                     key={category}
                     onClick={() => {
                       setSelectedCategory(category)
-                      setCurrentPage(0) // Reset to page 1 when switching category
+                      setCurrentPage(0)
                     }}
                     className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all whitespace-nowrap flex items-center gap-2"
                     style={selectedCategory === category
@@ -803,7 +949,7 @@ const CollegeMicrositesPage: React.FC = () => {
                       {/* Course Card Content */}
                       <div className="flex items-start justify-between mb-4 gap-3">
                         <div className="flex-1 min-w-0 pr-2">
-                          {/* ★ Ranking Badge - PRIMARY ONLY (NIRF) */}
+                          {/* ★ Ranking Badge */}
                           {rankings.length > 0 && (
                             <div className="mb-3">
                               <span
@@ -816,7 +962,6 @@ const CollegeMicrositesPage: React.FC = () => {
                                 }}
                               >
                                 <Trophy size={13} className="flex-shrink-0" />
-                                {/* Show ONLY the first (primary) ranking */}
                                 <span>{rankings[0].source} {selectedCategory} #{rankings[0].value}</span>
                               </span>
                             </div>
@@ -856,8 +1001,7 @@ const CollegeMicrositesPage: React.FC = () => {
                         </div>
 
                         {/* Compare Checkbox + Heart Button */}
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          {/* Compare Checkbox */}
+                        <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           <label className="flex items-center gap-1.5 cursor-pointer group/compare hover:opacity-80 transition-opacity" title="Add to compare">
                             <input
                               type="checkbox"
@@ -871,7 +1015,6 @@ const CollegeMicrositesPage: React.FC = () => {
                             </span>
                           </label>
 
-                          {/* Heart Button */}
                           <button
                             onClick={() => toggleSavedMicrosite(course as any)}
                             disabled={isBlurred}
@@ -930,7 +1073,6 @@ const CollegeMicrositesPage: React.FC = () => {
 
                         {/* Scholarship & Exam Details */}
                         <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-4 sm:pt-4" style={{ borderTop: `1px solid ${borderColor}` }}>
-                          {/* Scholarship */}
                           {course.scholarship && (
                             <div className="group/card">
                               <h4 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-1 group-hover/card:text-amber-300 transition-colors">
@@ -943,7 +1085,6 @@ const CollegeMicrositesPage: React.FC = () => {
                             </div>
                           )}
 
-                          {/* Exam Accepted */}
                           {course.entrance_exam && (
                             <div className="group/card">
                               <h4 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-1 group-hover/card:text-amber-300 transition-colors">
@@ -957,7 +1098,7 @@ const CollegeMicrositesPage: React.FC = () => {
                           )}
                         </div>
 
-                        {/* CTA Buttons - View Details & Website */}
+                        {/* CTA Buttons */}
                         <div className="flex items-center gap-3 pt-4 sm:pt-4" style={{ borderTop: `1px solid ${borderColor}` }}>
                           {course.slug && (
                             <button
@@ -998,7 +1139,7 @@ const CollegeMicrositesPage: React.FC = () => {
                 })}
               </div>
 
-              {/* Pagination Component — paginate the sorted client-side list */}
+              {/* Pagination */}
               {viewMode === "all" && sortedColleges.length > perPage && (
                 <Pagination
                   totalItems={sortedColleges.length}
