@@ -1,0 +1,25 @@
+/* Route-scoped styling for the imported Vite JEE Starter Kit UI */
+
+.jee-starterkit-root {
+  background-color: #05070a;
+  color: #e2e8f0;
+  overflow-x: hidden;
+}
+
+.jee-starterkit-root ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.jee-starterkit-root ::-webkit-scrollbar-track {
+  background: #0a0c14;
+}
+
+.jee-starterkit-root ::-webkit-scrollbar-thumb {
+  background: #f9a01b;
+  border-radius: 10px;
+}
+
+.jee-starterkit-root ::-webkit-scrollbar-thumb:hover {
+  background: #e08e15;
+}
+

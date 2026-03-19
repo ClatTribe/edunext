@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     {
       icon: Calculator,
       label: "JEE Score Calculator",
-      path: "/jee-tool",
+      path: "/jee-marks-calculator",
     },
     {
       icon: FileCheck,
@@ -129,7 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       "/cat-percentile-predictor",
       "/cat-college-predictor",
       "/xat-score-calculator-2026",
-      "/jee-tool",
+      "/jee-marks-calculator",
       "/exams-and-deadline",
       "/study-material",
     ].includes(pathname);
