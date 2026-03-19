@@ -455,7 +455,7 @@ const QuickActionCard: React.FC<{
 );
 
 const CollegeCard: React.FC<{ college: any }> = ({ college }) => (
-  <div className="rounded-2xl overflow-hidden group hover:translate-y-[-4px] transition-all duration-300 border border-[#1a1f2e] bg-[#0f172a]/60">
+  <div className="rounded-2xl overflow-hidden group hover:translate-y-[-4px] transition-all duration-300 border border-[#1a1f2e] bg-[#0f172a]/60 h-full block cursor-pointer">
     <div className="h-40 overflow-hidden relative">
       <img src={college.imageUrl} alt={college.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
     </div>
@@ -494,10 +494,10 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   };
 
   const featuredColleges = [
-    { id: "1", name: "IIM Ahmedabad", location: "Ahmedabad, Gujarat", tags: ["CAT", "Global Rank #1"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766476599/iima_ije8kq.jpg" },
-    { id: "2", name: "IIT Delhi", location: "New Delhi, Delhi", tags: ["JEE", "Innovation"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1770034871/iit_delhi_tqucbp.jpg" },
-    { id: "3", name: "Chandigarh University", location: "Chandigarh, Punjab", tags: ["B.sc", "Legacy"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766558377/CU_e1aozd.jpg" },
-    { id: "4", name: "Amity Noida", location: "Noida, Uttar Pradesh", tags: ["CAT", "Best ROI"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766558375/download_1_vb2xaq.jpg" },
+    { id: "1", name: "IIM Ahmedabad", location: "Ahmedabad, Gujarat", tags: ["CAT", "Global Rank #1"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766476599/iima_ije8kq.jpg", url: "https://www.getedunext.com/college/iim-ahmedabad" },
+    { id: "2", name: "IIT Delhi", location: "New Delhi, Delhi", tags: ["JEE", "Innovation"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1770034871/iit_delhi_tqucbp.jpg", url: "https://www.getedunext.com/college/iit-delhi" },
+    { id: "3", name: "Chandigarh University", location: "Chandigarh, Punjab", tags: ["B.sc", "Legacy"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766558377/CU_e1aozd.jpg", url: "https://www.getedunext.com/college/chandigarh-university" },
+    { id: "4", name: "Amity Noida", location: "Noida, Uttar Pradesh", tags: ["CAT", "Best ROI"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766558375/download_1_vb2xaq.jpg", url: "https://www.getedunext.com/college/amity-business-school-noida" },
   ];
 
   return (
@@ -606,7 +606,9 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1440px] mx-auto">
           {featuredColleges.map((college) => (
-            <CollegeCard key={college.id} college={college} />
+            <Link key={college.id} href={college.url} passHref className="block h-full">
+              <CollegeCard college={college} />
+            </Link>
           ))}
         </div>
       </section>
