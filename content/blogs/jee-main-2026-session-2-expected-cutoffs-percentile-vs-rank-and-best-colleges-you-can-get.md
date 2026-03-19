@@ -91,7 +91,7 @@ The qualifying cutoff determines who is eligible for JEE Advanced (top 2,50,000 
 
 **Note for reserved category students:** The SC/ST/EWS cutoffs are significantly lower. If you belong to a reserved category, don't panic if your percentile seems low compared to General — check the category-specific cutoff above.
 
-> **Also check:** Use EduNext's free **[JEE Main Score Calculator](https://www.getedunext.com/jee-tool)** to see if you qualify — no sign-up, no spam calls. Visit [getedunext.com](https://www.getedunext.com/)
+> **Also check:** Use EduNext's free **[JEE Main Score Calculator](https://www.getedunext.com/jee-marks-calculator)** to see if you qualify — no sign-up, no spam calls. Visit [getedunext.com](https://www.getedunext.com/)
 
 ---
 ![JEE Main Percentile vs Rank](https://res.cloudinary.com/db14ukba7/image/upload/v1773567877/Untitled_design_38_1_wdfft7.png)
