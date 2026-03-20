@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ResourceTab } from '../types';
 import { PYQSection } from './sections/PYQSection';
@@ -12,12 +11,12 @@ import  MindJournalsSection  from './sections/MindJournalsSection';
 import UnifiedCutoffsPage from './cut-offs/UnifiedCutoffsPage';
 import { Contact } from 'lucide-react';
 import ContactSection from './sections/ContactSection';
-
-
+ 
+ 
 interface Props {
   activeTab: ResourceTab;
 }
-
+ 
 export const ResourceContent: React.FC<Props> = ({ activeTab }) => {
   const renderContent = () => {
     switch (activeTab) {
@@ -43,7 +42,7 @@ export const ResourceContent: React.FC<Props> = ({ activeTab }) => {
         return <div className="text-white">Content for {activeTab} is coming soon!</div>;
     }
   };
-
+ 
   return (
     <div className="animate-in fade-in zoom-in-95 duration-500">
       {renderContent()}

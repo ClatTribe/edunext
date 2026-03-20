@@ -1,13 +1,12 @@
-
 import React from 'react';
 import { RESOURCE_TABS } from '../constant';
 import { ResourceTab } from '../types';
-
+ 
 interface Props {
   activeTab: ResourceTab;
   setActiveTab: (tab: ResourceTab) => void;
 }
-
+ 
 export const ResourceTabs: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide no-scrollbar -mx-2 px-2 sticky -top-8 z-20 bg-[#05070a]/80 backdrop-blur-md pt-4">

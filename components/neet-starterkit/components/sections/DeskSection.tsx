@@ -11,15 +11,15 @@ import {
   Area,
 } from "recharts";
 import { History, Target, TrendingUp } from "lucide-react";
-
+ 
 const data = [
-  { year: "2020", applicants: 1050000 },
-  { year: "2021", applicants: 940000 },
-  { year: "2022", applicants: 905000 },
-  { year: "2023", applicants: 1113000 },
-  { year: "2024", applicants: 1410000 },
+  { year: "2020", applicants: 1597435 },
+  { year: "2021", applicants: 1614777 },
+  { year: "2022", applicants: 1872343 },
+  { year: "2023", applicants: 2087462 },
+  { year: "2024", applicants: 2406079 },
 ];
-
+ 
 export const DeskSection: React.FC = () => {
   return (
     <div className="space-y-12 pb-12">
@@ -30,23 +30,23 @@ export const DeskSection: React.FC = () => {
             <History className="w-6 h-6" />
           </div>
           <h2 className="text-3xl font-black mb-6 leading-tight">
-            History & Evolution of JEE Main
+            History & Evolution of NEET UG
           </h2>
           <div className="space-y-4 text-slate-400 leading-relaxed text-lg">
             <p>
-              JEE Main was evolved from the AIEEE (All India Engineering
-              Entrance Examination) in 2013 to create a common platform for
-              admission to premier technical institutes. What started as a
-              single-day offline test has transformed into a sophisticated,
-              multi-session Computer Based Test (CBT) conducted by the National
-              Testing Agency (NTA).
+              NEET (National Eligibility cum Entrance Test) was introduced in
+              2013 to replace multiple state-level and institution-level medical
+              entrance exams with a single national examination. After legal
+              challenges, it became the sole gateway for MBBS and BDS admissions
+              across India from 2016, conducted by the National Testing Agency
+              (NTA).
             </p>
             <p>
-              Over the decades, the exam has shifted from simple
-              calculation-based problems to a deeper, application-oriented
-              format. It now serves as the exclusive gateway for NITs, IIITs,
-              and GFTIs, while also acting as the mandatory screening for
-              JEE Advanced.
+              Over the years, NEET has evolved from a controversial reform to
+              India's largest undergraduate entrance exam. It now governs
+              admissions to all government and private medical colleges,
+              including AIIMS and JIPMER (merged into NEET from 2020), making it
+              the single most important exam for aspiring doctors in India.
             </p>
           </div>
         </div>
@@ -87,40 +87,47 @@ export const DeskSection: React.FC = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          
+ 
           {/* Applicant Data Table */}
           <div className="mt-6 pt-6 border-t border-slate-800">
             <p className="text-sm text-slate-400 mb-4">
-              The JEE Main remains India's largest competitive exam by volume. After a slight dip during the pandemic years, the numbers have surged to record highs as the demand for STEM education continues to climb.
+              NEET UG is India's largest undergraduate entrance exam by volume.
+              With 24 lakh+ registrations in 2024, competition intensifies every
+              year as demand for MBBS seats continues to soar across government
+              and private medical colleges.
             </p>
           </div>
         </div>
       </section>
-
-      {/* Stats Grid - Updated with correct JEE Main data */}
+ 
+      {/* Stats Grid - Updated with correct NEET data */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800">
           <p className="text-slate-500 text-sm font-bold uppercase mb-2">
-            Total Seats
+            Total MBBS Seats
           </p>
-          <div className="text-4xl font-black text-white">~57,000</div>
-          <p className="text-xs text-slate-500 mt-2">Across NITs, IIITs, and GFTIs</p>
+          <div className="text-4xl font-black text-white">~1,08,000+</div>
+          <p className="text-xs text-slate-500 mt-2">
+            Across Govt, Private & Deemed Medical Colleges
+          </p>
         </div>
         <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800">
           <p className="text-slate-500 text-sm font-bold uppercase mb-2">
             Selection %
           </p>
-          <div className="text-4xl font-black text-white">~4.0%</div>
+          <div className="text-4xl font-black text-white">~4.5%</div>
           <p className="text-xs text-slate-500 mt-2">
-            For top-tier branches/colleges
+            For government medical college seats
           </p>
         </div>
         <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800">
           <p className="text-slate-500 text-sm font-bold uppercase mb-2">
             Ideal Score
           </p>
-          <div className="text-4xl font-black text-white">180 - 210+</div>
-          <p className="text-xs text-slate-500 mt-2">Out of 300 (For Top 5 NITs)</p>
+          <div className="text-4xl font-black text-white">650 - 700+</div>
+          <p className="text-xs text-slate-500 mt-2">
+            Out of 720 (For Top AIIMS & Govt Colleges)
+          </p>
         </div>
       </div>
     </div>

@@ -1,27 +1,27 @@
 import React, { useState } from "react";
-import JEEAdvancedCutoffTable from "./Neetadvancedcutofftable";
-
+import NEETCutoffTable from "./Neetadvancedcutofftable";
+ 
 const primaryColor = "#F59E0B"; // Amber/Orange
 const secondaryColor = "#10B981"; // Emerald
 const accentColor = "#F59E0B"; // Amber
-
-// Define available years for JEE
-const jeeYearsData = {
-  advanced: {
-    name: "JEE Advanced",
+ 
+// Define available years for NEET
+const neetYearsData = {
+  neet_ug: {
+    name: "NEET UG",
     years: [2025, 2024, 2023, 2022, 2021, 2020],
   },
 };
-
-const UnifiedJEECutoffsPage = () => {
-  const [selectedExam] = useState<keyof typeof jeeYearsData>("advanced");
+ 
+const UnifiedNEETCutoffsPage = () => {
+  const [selectedExam] = useState<keyof typeof neetYearsData>("neet_ug");
   const [selectedYear, setSelectedYear] = useState(2025);
-
+ 
   // Render the appropriate component based on selection
   const renderCutoffComponent = () => {
-    return <JEEAdvancedCutoffTable selectedYear={selectedYear} />;
+    return <NEETCutoffTable selectedYear={selectedYear} />;
   };
-
+ 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div className="max-w-7xl mx-auto p-4 md:p-8">
@@ -29,7 +29,7 @@ const UnifiedJEECutoffsPage = () => {
         <div className="text-center mb-12 relative">
           <div className="absolute inset-0 blur-3xl opacity-20 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 mb-4 relative animate-fade-in">
-            JEE Advanced
+            NEET UG
           </h1>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white relative">
             Cutoff <span style={{ color: secondaryColor }}>Analysis</span>
@@ -37,13 +37,13 @@ const UnifiedJEECutoffsPage = () => {
           <p className="text-slate-400 text-sm mt-3 font-medium tracking-wide">
             Historical Data & Trends • 2020-2025
           </p>
-          
+ 
           {/* Decorative Line */}
           <div className="mt-6 flex justify-center">
             <div className="h-1 w-32 bg-gradient-to-r from-transparent via-amber-500 to-transparent rounded-full"></div>
           </div>
         </div>
-
+ 
         {/* Year Selector with Modern Design */}
         <div className="max-w-2xl mx-auto mb-12">
           <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-slate-800/50">
@@ -58,7 +58,7 @@ const UnifiedJEECutoffsPage = () => {
                 borderColor: primaryColor,
               }}
             >
-              {jeeYearsData[selectedExam].years.map((year) => (
+              {neetYearsData[selectedExam].years.map((year) => (
                 <option key={year} value={year}>
                   {year}
                 </option>
@@ -66,7 +66,7 @@ const UnifiedJEECutoffsPage = () => {
             </select>
           </div>
         </div>
-
+ 
         {/* Info Card with Gradient Border */}
         <div className="max-w-3xl mx-auto mb-12">
           <div className="relative group">
@@ -77,17 +77,17 @@ const UnifiedJEECutoffsPage = () => {
                   Currently Viewing:
                 </span>{" "}
                 <span className="text-white font-semibold">
-                  {jeeYearsData[selectedExam].name} - {selectedYear}
+                  {neetYearsData[selectedExam].name} - {selectedYear}
                 </span>
               </p>
             </div>
           </div>
         </div>
-
+ 
         {/* Render Selected Component */}
         <div className="animate-fade-in">{renderCutoffComponent()}</div>
       </div>
-
+ 
       {/* Custom CSS for animations */}
       <style jsx>{`
         @keyframes fade-in {
@@ -100,7 +100,7 @@ const UnifiedJEECutoffsPage = () => {
             transform: translateY(0);
           }
         }
-
+ 
         .animate-fade-in {
           animation: fade-in 0.6s ease-out;
         }
@@ -108,5 +108,6 @@ const UnifiedJEECutoffsPage = () => {
     </div>
   );
 };
-
-export default UnifiedJEECutoffsPage;
+ 
+export default UnifiedNEETCutoffsPage;
+ 

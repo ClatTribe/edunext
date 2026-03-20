@@ -2,16 +2,16 @@ import React, { useState } from "react";
 import { ResourceTabs } from "./components/ResourceTabs";
 import { ResourceContent } from "./components/ResourceContent";
 import { ResourceTab } from "./types";
-
+ 
 const NeetStarterKitApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ResourceTab>(ResourceTab.PYQ);
-
+ 
   return (
     <div className="flex h-screen bg-[#05070a] text-slate-200 overflow-hidden font-sans">
       <div className="flex-1 flex flex-col relative overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-500/10 blur-[120px] rounded-full -z-10"></div>
         <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-500/5 blur-[100px] rounded-full -z-10"></div>
-
+ 
         <main className="flex-1 overflow-y-auto px-6 py-8 md:px-12 lg:px-16 scroll-smooth">
           <div className="max-w-6xl mx-auto">
             <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -31,9 +31,9 @@ const NeetStarterKitApp: React.FC = () => {
                 community and secure your MBBS seat.{" "}
               </p>
             </div>
-
+ 
             <ResourceTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
+ 
             <div className="mt-8">
               <ResourceContent activeTab={activeTab} />
             </div>
@@ -43,6 +43,5 @@ const NeetStarterKitApp: React.FC = () => {
     </div>
   );
 };
-
+ 
 export default NeetStarterKitApp;
-

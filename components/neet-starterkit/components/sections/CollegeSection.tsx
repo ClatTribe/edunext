@@ -1,19 +1,18 @@
-
 import React from 'react';
 import { COLLEGES_DATA } from '../../constant';
 import { MapPin, Trophy, Briefcase, Users, ChevronRight } from 'lucide-react';
-
+ 
 export const CollegeSection: React.FC = () => {
   return (
     <div className="space-y-10">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold mb-1">Explore NLUs</h2>
-          <p className="text-slate-500 text-sm">Find your dream college and understand its metrics.</p>
+          <h2 className="text-2xl font-bold mb-1">Explore Top Medical Colleges</h2>
+          <p className="text-slate-500 text-sm">Find your dream medical college and understand its metrics.</p>
         </div>
         <button className="text-sm font-bold text-[#f9a01b] hover:underline">Compare All Colleges</button>
       </div>
-
+ 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {COLLEGES_DATA.map((college, i) => (
           <div key={i} className="group bg-[#0d111d] rounded-[2rem] border border-slate-800 overflow-hidden hover:border-slate-700 transition-all flex flex-col">
@@ -24,7 +23,7 @@ export const CollegeSection: React.FC = () => {
                 <span className="bg-[#f9a01b] text-slate-900 text-[10px] font-black px-2 py-1 rounded-md">RANK #{college.rank}</span>
               </div>
             </div>
-            
+ 
             <div className="p-8 flex-1 flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div>
@@ -34,14 +33,14 @@ export const CollegeSection: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+ 
               <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
                 {college.description}
               </p>
-              
+ 
               <div className="grid grid-cols-3 gap-2 mb-8">
                 <div className="p-3 bg-slate-900/50 rounded-2xl text-center">
-                  <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Seats</p>
+                  <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">MBBS Seats</p>
                   <p className="text-sm font-black text-white">{college.stats.seats}</p>
                 </div>
                 <div className="p-3 bg-slate-900/50 rounded-2xl text-center">
@@ -53,7 +52,7 @@ export const CollegeSection: React.FC = () => {
                   <p className="text-[10px] font-black text-white whitespace-nowrap">{college.stats.cutOff}</p>
                 </div>
               </div>
-
+ 
               <button className="w-full flex items-center justify-center gap-2 py-4 bg-slate-800 hover:bg-[#f9a01b] hover:text-slate-900 text-white font-bold rounded-2xl transition-all">
                 Full Details <ChevronRight className="w-4 h-4" />
               </button>
@@ -64,3 +63,4 @@ export const CollegeSection: React.FC = () => {
     </div>
   );
 };
+ 

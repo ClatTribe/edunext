@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Search, Bell, User } from 'lucide-react';
-
+ 
 export const TopNav: React.FC = () => {
   return (
     <nav className="h-20 border-b border-slate-800/50 bg-[#05070a]/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-8">
@@ -15,7 +14,7 @@ export const TopNav: React.FC = () => {
           />
         </div>
       </div>
-
+ 
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-4 text-sm font-medium text-slate-400">
           <a href="#" className="hover:text-white transition-colors">Home</a>
@@ -25,7 +24,7 @@ export const TopNav: React.FC = () => {
         </div>
         
         <div className="h-6 w-px bg-slate-800"></div>
-
+ 
         <div className="flex items-center gap-3">
           <button className="p-2.5 rounded-full hover:bg-slate-800 transition-colors relative">
             <Bell className="w-5 h-5 text-slate-400" />

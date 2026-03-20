@@ -10,9 +10,9 @@ import {
   StepForward,
   X,
 } from "lucide-react";
-
+ 
 const ACCENT = "#f9a01b";
-
+ 
 const audioLogs = [
   {
     id: 1,
@@ -42,7 +42,7 @@ const audioLogs = [
     audio: "/Parental%20expectation.m4a",
   },
 ];
-
+ 
 export default function Component() {
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -50,9 +50,9 @@ export default function Component() {
   const [currentTime, setCurrentTime] = useState(0);
   const [durations, setDurations] = useState<Record<number, number>>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
+ 
   const currentLog = currentIndex !== null ? audioLogs[currentIndex] : null;
-
+ 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return "0:00";
@@ -60,7 +60,7 @@ export default function Component() {
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
-
+ 
   // Load all audio durations on mount
   useEffect(() => {
     const loadDurations = async () => {
@@ -84,18 +84,18 @@ export default function Component() {
       
       setDurations(newDurations);
     };
-
+ 
     loadDurations();
   }, []);
-
+ 
   const playAudio = (index: number) => {
     const audio = audioRef.current;
     if (!audio) return;
-
+ 
     setCurrentIndex(index);
     setProgress(0);
     setCurrentTime(0);
-
+ 
     audio.src = audioLogs[index].audio;
     audio.load();
     audio
@@ -108,16 +108,16 @@ export default function Component() {
         setIsPlaying(false);
       });
   };
-
+ 
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
+ 
     if (currentIndex === null) {
       playAudio(0);
       return;
     }
-
+ 
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
@@ -132,17 +132,17 @@ export default function Component() {
         });
     }
   };
-
+ 
   const next = () => {
     if (currentIndex === null) return;
     playAudio((currentIndex + 1) % audioLogs.length);
   };
-
+ 
   const prev = () => {
     if (currentIndex === null) return;
     playAudio((currentIndex - 1 + audioLogs.length) % audioLogs.length);
   };
-
+ 
   const closePlayer = () => {
     const audio = audioRef.current;
     if (audio) {
@@ -154,37 +154,37 @@ export default function Component() {
     setProgress(0);
     setCurrentTime(0);
   };
-
+ 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
+ 
     const handleTimeUpdate = () => {
       if (audio.duration) {
         setProgress((audio.currentTime / audio.duration) * 100);
         setCurrentTime(audio.currentTime);
       }
     };
-
+ 
     const handleEnded = () => {
       const nextIdx =
         currentIndex !== null ? (currentIndex + 1) % audioLogs.length : 0;
       playAudio(nextIdx);
     };
-
+ 
     const handlePause = () => {
       setIsPlaying(false);
     };
-
+ 
     const handlePlay = () => {
       setIsPlaying(true);
     };
-
+ 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("pause", handlePause);
     audio.addEventListener("play", handlePlay);
-
+ 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
@@ -192,7 +192,7 @@ export default function Component() {
       audio.removeEventListener("play", handlePlay);
     };
   }, [currentIndex]);
-
+ 
   return (
     <div className="min-h-screen bg-slate-950 px-4 pb-32">
       <div className="max-w-4xl mx-auto pt-10">
@@ -207,12 +207,12 @@ export default function Component() {
             the rank.
           </p>
         </div>
-
+ 
         <div className="space-y-4">
           {audioLogs.map((log, index) => {
             const Icon = log.icon;
             const active = currentIndex === index;
-
+ 
             return (
               <div
                 key={log.id}
@@ -233,7 +233,7 @@ export default function Component() {
                   >
                     <Icon className="w-6 h-6" />
                   </div>
-
+ 
                   <div className="flex-1">
                     <h3
                       className={`text-xl font-bold transition-colors ${
@@ -243,16 +243,16 @@ export default function Component() {
                       {log.title}
                     </h3>
                   </div>
-
+ 
                   <span className="px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/20">
                     {durations[index] ? formatTime(durations[index]) : "Loading..."}
                   </span>
                 </div>
-
+ 
                 <p className="text-slate-400 mb-4 leading-relaxed">
                   {log.description}
                 </p>
-
+ 
                 <div className="flex flex-wrap gap-2">
                   {log.tags.map((tag) => (
                     <span
@@ -268,7 +268,7 @@ export default function Component() {
           })}
         </div>
       </div>
-
+ 
       <div
         className={`fixed bottom-0 left-0 w-full bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 transition-transform ${
           currentLog ? "translate-y-0" : "translate-y-full"
@@ -281,7 +281,7 @@ export default function Component() {
             background: ACCENT,
           }}
         />
-
+ 
         <div className="max-w-4xl mx-auto flex items-center gap-4 px-4 py-4">
           <button
             onClick={closePlayer}
@@ -290,21 +290,21 @@ export default function Component() {
           >
             <X className="w-5 h-5" />
           </button>
-
+ 
           <div className="flex-1">
             <p className="font-bold text-white">{currentLog?.title}</p>
             <p className="text-sm font-bold text-orange-400">
               {isPlaying ? "Now Playing" : "Paused"} • {formatTime(currentTime)} / {currentIndex !== null && durations[currentIndex] ? formatTime(durations[currentIndex]) : "0:00"}
             </p>
           </div>
-
+ 
           <button
             onClick={prev}
             className="p-3 rounded-full border border-slate-700 hover:border-slate-600 hover:bg-slate-800 transition-all text-slate-300 hover:text-white"
           >
             <StepBack className="w-5 h-5" />
           </button>
-
+ 
           <button
             onClick={togglePlay}
             className="p-4 rounded-full text-black shadow-lg hover:shadow-xl transition-all hover:scale-105"
@@ -316,7 +316,7 @@ export default function Component() {
               <Play className="w-6 h-6" />
             )}
           </button>
-
+ 
           <button
             onClick={next}
             className="p-3 rounded-full border border-slate-700 hover:border-slate-600 hover:bg-slate-800 transition-all text-slate-300 hover:text-white"
@@ -325,7 +325,7 @@ export default function Component() {
           </button>
         </div>
       </div>
-
+ 
       <audio ref={audioRef} preload="metadata" />
     </div>
   );

@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { FORMS_DATA } from '../../constant';
 import { Calendar, ExternalLink, AlertCircle } from 'lucide-react';
-
+ 
 export const FormsSection: React.FC = () => {
   return (
     <div className="space-y-8">
@@ -34,7 +33,7 @@ export const FormsSection: React.FC = () => {
                 <span className="text-red-400 font-bold">{form.endDate}</span>
               </div>
             </div>
-
+ 
             <div className="flex items-center justify-between pt-6 border-t border-slate-800">
               <span className={`text-xs font-black uppercase tracking-tighter px-3 py-1 rounded-full ${
                 form.status === 'Open' ? 'bg-green-500/10 text-green-400' : 'bg-slate-800 text-slate-500'

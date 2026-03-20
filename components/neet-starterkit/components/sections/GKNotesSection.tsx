@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Download, ChevronRight, FileText } from 'lucide-react';
-
+ 
 export const PYQSection: React.FC = () => {
   const years = [2025, 2024, 2023, 2022, 2021, 2020];
-
+ 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

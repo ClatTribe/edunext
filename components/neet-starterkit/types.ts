@@ -1,16 +1,15 @@
-
 export enum ResourceTab {
   PYQ = 'PYQ',
   CHEATSHEETS = 'CheatSheets',
   TOPPERS = 'From the Topper\'s mouth',
   GK_NOTES = 'GK Notes',
   FORMS = 'Forms & Deadlines',
-  DESK = 'From the desk of ClatTribe',
+  DESK = 'From the desk of EduNext',
   COLLEGES = 'Know your college',
   MIND_JOURNALS = 'Voices',
   CONTACTS = 'Contact',
 }
-
+ 
 export interface CollegeInfo {
   name: string;
   location: string;
@@ -22,7 +21,7 @@ export interface CollegeInfo {
     cutOff: string;
   };
 }
-
+ 
 export interface ExamForm {
   name: string;
   startDate: string;
