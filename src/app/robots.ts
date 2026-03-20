@@ -15,10 +15,9 @@ export default function robots(): MetadataRoute.Robots {
         '/api/',
       ],
     },
-    // We use an array here to tell Google about both sitemaps
     sitemap: [
       'https://www.getedunext.com/sitemap.xml',
-      'https://www.getedunext.com/college-list/sitemap.xml',
+      'https://www.getedunext.com/college-sitemaps/index.xml',
     ],
   };
 }
