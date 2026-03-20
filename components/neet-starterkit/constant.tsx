@@ -14,22 +14,22 @@ import {
   CreditCard,
 } from "lucide-react";
 import { ResourceTab, CollegeInfo, ExamForm } from "./types";
-
+ 
 export const SIDEBAR_ITEMS = [
   {
-    id: "nlu_predictor",
-    label: "NLU Predictor",
+    id: "neet_predictor",
+    label: "NEET College Predictor",
     icon: <LayoutDashboard className="w-5 h-5" />,
     active: true,
   },
   {
-    id: "pref_list",
-    label: "NLU Preference List",
+    id: "rank_predictor",
+    label: "NEET Rank Predictor",
     icon: <BarChart3 className="w-5 h-5" />,
   },
   {
-    id: "ailet_predictor",
-    label: "AILET Predictor",
+    id: "cutoff_analyzer",
+    label: "Cutoff Analyzer",
     icon: <BarChart3 className="w-5 h-5" />,
   },
   {
@@ -49,11 +49,11 @@ export const SIDEBAR_ITEMS = [
   },
   {
     id: "flashcards",
-    label: "GK Flashcards",
+    label: "Biology Flashcards",
     icon: <CreditCard className="w-5 h-5" />,
   },
 ];
-
+ 
 export const RESOURCE_TABS = [
   { id: ResourceTab.PYQ, icon: <FileText className="w-5 h-5" />, label: "PYQ" },
   {
@@ -76,7 +76,7 @@ export const RESOURCE_TABS = [
   {
     id: ResourceTab.DESK,
     icon: <Info className="w-5 h-5" />,
-    label: "Desk of JEE",
+    label: "Desk of NEET",
   },
   {
     id: ResourceTab.COLLEGES,
@@ -89,180 +89,145 @@ export const RESOURCE_TABS = [
     label: "Contacts",
   },
 ];
-
+ 
 export const COLLEGES_DATA: CollegeInfo[] = [
   {
-    name: "NLSIU Bangalore",
-    location: "Karnataka",
+    name: "AIIMS New Delhi",
+    location: "New Delhi",
     rank: 1,
     description:
-      "The Harvard of the East, NLSIU is the premier law institute in India known for its rigorous academic culture.",
-    stats: { seats: 240, medianPackage: "18.5 LPA", cutOff: "Rank 1-100" },
+      "India's premier medical institution, AIIMS Delhi is the gold standard for medical education with world-class faculty, research, and clinical exposure.",
+    stats: { seats: 107, medianPackage: "24 LPA", cutOff: "NEET 715+" },
   },
   {
-    name: "NALSAR Hyderabad",
-    location: "Telangana",
+    name: "CMC Vellore",
+    location: "Tamil Nadu",
     rank: 2,
     description:
-      "Famous for its liberal culture and beautiful residential campus, NALSAR consistently produces top legal minds.",
-    stats: { seats: 132, medianPackage: "16 LPA", cutOff: "Rank 101-250" },
+      "Christian Medical College is renowned for its exceptional clinical training, community outreach, and a deeply compassionate approach to medicine.",
+    stats: { seats: 100, medianPackage: "18 LPA", cutOff: "NEET 690+" },
   },
   {
-    name: "WBNUJS Kolkata",
-    location: "West Bengal",
+    name: "JIPMER Puducherry",
+    location: "Puducherry",
     rank: 3,
     description:
-      "Strongly focused on corporate law and public litigation, NUJS has a vibrant student community.",
-    stats: { seats: 127, medianPackage: "15 LPA", cutOff: "Rank 251-450" },
+      "A top-tier medical institute known for its strong research programs, excellent patient care, and consistently high placement records.",
+    stats: { seats: 200, medianPackage: "16 LPA", cutOff: "NEET 680+" },
   },
 ];
-
+ 
 export const FORMS_DATA: ExamForm[] = [
   {
-    name: "BITSAT 2026 (Session 1)",
-    startDate: "Dec 15, 2025",
-    endDate: "Mar 16, 2026",
-    link: "https://admissions.bits-pilani.ac.in/FD/FD.html",
-    status: "Open",
-  },
-  {
-    name: "BITSAT 2026 (Session 2)",
-    startDate: "Apr 20, 2026",
-    endDate: "May 2, 2026",
-    link: "https://admissions.bits-pilani.ac.in/FD/FD.html",
+    name: "NEET UG 2026",
+    startDate: "Feb 2026 (Expected)",
+    endDate: "Mar 2026 (Expected)",
+    link: "https://neet.nta.nic.in/",
     status: "Coming Soon",
   },
   {
-    name: "VITEEE 2026",
-    startDate: "Oct 24, 2025",
-    endDate: "Mar 31, 2026",
-    link: "https://viteee.vit.ac.in/",
-    status: "Open",
-  },
-  {
-    name: "SRMJEEE 2026 (Phase 1)",
-    startDate: "Oct 30, 2025",
-    endDate: "Apr 16, 2026",
-    link: "https://www.srmist.edu.in/",
-    status: "Open",
-  },
-  {
-    name: "Manipal University",
-    startDate: "Currently Open",
-    endDate: "Mar 15, 2026",
-    link: "https://manipal.edu/",
-    status: "Open",
-  },
-  {
-    name: "UPES 2026",
-    startDate: "Open",
-    endDate: "Jan 20, 2026",
-    link: "https://admission.upes.ac.in/Login",
-    status: "Open",
-  },
-  {
-    name: "COMEDK UGET 2026",
-    startDate: "Feb 3, 2026",
-    endDate: "Mar 16, 2026",
-    link: "https://www.comedk.org/about-uget-and-notification-2026",
+    name: "MCC NEET UG Counselling 2026",
+    startDate: "After NEET Results",
+    endDate: "Ongoing Rounds",
+    link: "https://mcc.nic.in/",
     status: "Coming Soon",
   },
   {
-    name: "MHT CET 2026",
+    name: "AFMC Pune (via NEET)",
+    startDate: "Post NEET Registration",
+    endDate: "Jun 2026 (Expected)",
+    link: "https://www.afmc.nic.in/",
+    status: "Coming Soon",
+  },
+  {
+    name: "AIIMS (via NEET UG)",
+    startDate: "Through MCC Counselling",
+    endDate: "As per MCC Schedule",
+    link: "https://www.aiims.edu/",
+    status: "Coming Soon",
+  },
+  {
+    name: "JIPMER (via NEET UG)",
+    startDate: "Through MCC Counselling",
+    endDate: "As per MCC Schedule",
+    link: "https://jipmer.edu.in/",
+    status: "Coming Soon",
+  },
+  {
+    name: "MHT CET 2026 (Medical)",
     startDate: "Jan 10, 2026",
     endDate: "Feb 12, 2026",
     link: "https://cetcell.mahacet.org/",
     status: "Open",
   },
   {
-    name: "PESSAT 2026",
-    startDate: "Sep 5, 2025",
-    endDate: "Jul 2026 (Tentative)",
-    link: "https://admissions.pes.edu/registration/",
-    status: "Open",
-  },
-  {
-    name: "KCET 2026",
+    name: "KCET 2026 (Medical)",
     startDate: "Jan 17, 2026",
     endDate: "Feb 17, 2026",
     link: "https://cetonline.karnataka.gov.in/kea/",
     status: "Open",
   },
   {
-    name: "KLEEE 2026",
-    startDate: "Open",
-    endDate: "Mar 2026",
-    link: "https://www.kluniversity.in/admissions/#online-application",
-    status: "Open",
-  },
-  {
-    name: "MRNAT 2026",
+    name: "Manipal MBBS 2026 (via NEET)",
     startDate: "Currently Open",
-    endDate: "Ongoing Process",
-    link: "https://manavrachna.edu.in/admissions/mrnat",
+    endDate: "Mar 15, 2026",
+    link: "https://manipal.edu/",
     status: "Open",
   },
   {
-    name: "AEEE 2026",
-    startDate: "Open",
-    endDate: "Apr 10, 2026",
-    link: "https://aeee.amrita.edu/",
-    status: "Open",
-  },
-  {
-    name: "LPUNEST 2026",
-    startDate: "Currently Open",
-    endDate: "Feb 5, 2026",
-    link: "https://www.lpu.in/nest/",
-    status: "Open",
-  },
-  {
-    name: "CUSAT CAT 2026",
-    startDate: "Feb 2026",
-    endDate: "Apr 2026",
-    link: "https://admissions.cusat.ac.in/",
+    name: "CMC Vellore MBBS 2026",
+    startDate: "Mar 2026 (Expected)",
+    endDate: "May 2026 (Expected)",
+    link: "https://www.cmch-vellore.edu/",
     status: "Coming Soon",
   },
   {
-    name: "TG-EAPCET 2026",
+    name: "BHU MBBS 2026 (via NEET)",
+    startDate: "Through CSAB Counselling",
+    endDate: "As per Schedule",
+    link: "https://www.bhu.ac.in/",
+    status: "Coming Soon",
+  },
+  {
+    name: "AMU MBBS 2026 (via NEET)",
+    startDate: "Post NEET Results",
+    endDate: "As per AMU Schedule",
+    link: "https://www.amu.ac.in/",
+    status: "Coming Soon",
+  },
+  {
+    name: "TG EAMCET 2026 (Medical)",
     startDate: "Mar 2026",
     endDate: "Apr 2026",
     link: "https://eapcet.tgche.ac.in/",
     status: "Coming Soon",
   },
   {
-    name: "GUJCET 2026",
+    name: "GUJCET 2026 (Medical)",
     startDate: "Jan 2, 2026",
     endDate: "Jan 25, 2026",
     link: "https://gujcet.gseb.org/",
     status: "Open",
   },
   {
-    name: "KIITEE 2026 (Phase 1)",
-    startDate: "Nov 10, 2025",
-    endDate: "Mar 20, 2026",
-    link: "https://kiit.ac.in/",
-    status: "Open",
-  },
-  {
-    name: "PESSAT 2026",
-    startDate: "Oct 2025",
-    endDate: "Apr 2026",
-    link: "https://www.pessat.com/",
-    status: "Open",
-  },
-  {
-    name: "NATA 2026",
-    startDate: "Feb 2026 (TBA)",
-    endDate: "Apr 2026",
-    link: "https://www.nata.in/",
-    status: "Coming Soon",
-  },
-  {
-    name: "KEAM 2026",
+    name: "KEAM 2026 (Medical)",
     startDate: "Mar 2026 (TBA)",
     endDate: "Apr 2026",
     link: "https://cee.kerala.gov.in/",
+    status: "Coming Soon",
+  },
+  {
+    name: "WBJEE 2026 (Medical)",
+    startDate: "Dec 2025",
+    endDate: "Feb 2026",
+    link: "https://wbjeeb.nic.in/",
+    status: "Open",
+  },
+  {
+    name: "UP NEET State Counselling 2026",
+    startDate: "Post NEET Results",
+    endDate: "As per DGME Schedule",
+    link: "https://upneet.gov.in/",
     status: "Coming Soon",
   },
 ];
