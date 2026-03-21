@@ -10,9 +10,9 @@ export const CheatSheetsSection: React.FC = () => {
       bg: "bg-blue-400/10",
       subtitle: "Key Laws, Derivations & Formula summaries",
       driveLink:
-        "https://drive.google.com/file/d/1PbN4RJYwpbitjvvCeLUqr-gNQ0_87YD3/view?usp=drive_link",
+        "https://www.selfstudys.com/books/neet-formula/english/physics",
       downloadLink:
-        "https://drive.google.com/uc?export=download&id=1PbN4RJYwpbitjvvCeLUqr-gNQ0_87YD3",
+        "",
     },
     {
       title: "Biology Sheet",
@@ -21,9 +21,9 @@ export const CheatSheetsSection: React.FC = () => {
       bg: "bg-orange-400/10",
       subtitle: "NCERT-based diagrams, processes & key terms",
       driveLink:
-        "https://drive.google.com/file/d/16czfTrntD7G1C9Kc-rmsZFXYh2UOl1_w/view?usp=drive_link",
+        "https://www.vedantu.com/neet/neet-biology-revision-notes",
       downloadLink:
-        "https://drive.google.com/uc?export=download&id=16czfTrntD7G1C9Kc-rmsZFXYh2UOl1_w",
+        "",
     },
     {
       title: "Chemistry Sheet",
@@ -32,9 +32,9 @@ export const CheatSheetsSection: React.FC = () => {
       bg: "bg-green-400/10",
       subtitle: "Organic Reactions, Periodic trends & Inorganic mnemonics",
       driveLink:
-        "https://drive.google.com/file/d/1T4uvNxAhdPOQeHBtJPAOM4T4Xt4QiNPV/view?usp=drive_link",
+        "https://www.selfstudys.com/books/neet-formula",
       downloadLink:
-        "https://drive.google.com/uc?export=download&id=1T4uvNxAhdPOQeHBtJPAOM4T4Xt4QiNPV",
+        "",
     },
     {
       title: "Syllabus for NEET",
@@ -43,9 +43,9 @@ export const CheatSheetsSection: React.FC = () => {
       bg: "bg-purple-400/10",
       subtitle: "High-weightage topics & priority list for NEET UG",
       driveLink:
-        "https://drive.google.com/file/d/18Qhphnj8KSlzW3vyjQt1W2x-e_hj8jzL/view?usp=drive_link",
+        "https://www.nta.ac.in/Download/Notice/Notice_20260108180635.pdf",
       downloadLink:
-        "https://drive.google.com/uc?export=download&id=18Qhphnj8KSlzW3vyjQt1W2x-e_hj8jzL",
+        "",
     },
   ] as const satisfies readonly {
     title: string;
