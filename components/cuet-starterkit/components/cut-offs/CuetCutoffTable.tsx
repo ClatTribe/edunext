@@ -12,7 +12,14 @@ import {
   Line,
 } from "recharts";
 
-const yearlyData = {
+type CutoffRow = {
+  category: string;
+  score: number;
+};
+
+type YearlyData = Record<number, { cutoffs: CutoffRow[] }>;
+
+const yearlyData: YearlyData = {
   2025: {
     cutoffs: [
       { category: "General", score: 98.0 },
@@ -40,7 +47,7 @@ const yearlyData = {
       { category: "EWS", score: 92.1 },
     ],
   },
-} as const;
+};
 
 const trendData = [
   { year: "2023", General: 96.5, OBC: 93.8, SC: 88.0, ST: 84.1, EWS: 92.1 },
