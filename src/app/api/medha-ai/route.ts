@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyASihqx48z4Gl5fhUT9iS5zm0vx8XJpfM0";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const SYSTEM_PROMPT = `You are Medha AI, the intelligent counselling assistant for EduNext (getedunext.com) — India's privacy-first college discovery platform.
 
@@ -32,6 +32,13 @@ When greeting a new student, introduce yourself briefly and ask about their exam
 
 export async function POST(request: NextRequest) {
   try {
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: "Gemini API key not configured" },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const { messages, mode = "chat" } = body;
 
@@ -42,13 +49,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert messages to Gemini format
     const geminiMessages = messages.map((msg: { role: string; content: string }) => ({
       role: msg.role === "assistant" ? "model" : "user",
       parts: [{ text: msg.content }],
     }));
 
-    // Use Gemini 2.0 Flash for chat, 2.5 Pro for deep analysis
     const model = mode === "deep" ? "gemini-2.5-pro-preview-06-05" : "gemini-2.0-flash";
 
     const response = await fetch(
