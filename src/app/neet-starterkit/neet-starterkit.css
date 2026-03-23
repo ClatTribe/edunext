@@ -1,0 +1,25 @@
+/* Route-scoped styling for the NEET Starter Kit UI */
+
+.neet-starterkit-root {
+  background-color: #05070a;
+  color: #e2e8f0;
+  overflow-x: hidden;
+}
+
+.neet-starterkit-root ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.neet-starterkit-root ::-webkit-scrollbar-track {
+  background: #0a0c14;
+}
+
+.neet-starterkit-root ::-webkit-scrollbar-thumb {
+  background: #f9a01b;
+  border-radius: 10px;
+}
+
+.neet-starterkit-root ::-webkit-scrollbar-thumb:hover {
+  background: #e08e15;
+}
+
