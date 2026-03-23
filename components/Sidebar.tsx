@@ -7,7 +7,7 @@ import {
   IndianRupee,
   Users,
   Building2,
-  GraduationCap,
+  GraduationCap
   LogOut,
   ThumbsUp,
   Menu,
@@ -17,6 +17,7 @@ import {
   SearchCheck,
   Calculator,
   ChevronDown,
+    Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -51,6 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
       { icon: Building2, label: "Battle Mode", path: "/battle-mode" },
+      { icon: Sparkles, label: "Medha AI", path: "/medha-ai" },
     ],
     applications: [
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
