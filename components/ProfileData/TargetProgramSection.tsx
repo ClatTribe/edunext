@@ -1,19 +1,16 @@
-import React from "react"
+import React, { useState } from "react"
 import { Target } from "lucide-react"
 
-// Color scheme matching the college compare page
-const accentColor = '#F59E0B';
-const primaryBg = '#050818'; // Very dark navy blue
-const secondaryBg = '#0F172B'; // Slightly lighter navy
-const borderColor = 'rgba(245, 158, 11, 0.15)';
-
+const accentColor = '#F59E0B'
+const primaryBg = '#050818'
+const borderColor = 'rgba(245, 158, 11, 0.15)'
 
 interface TargetProgramSectionProps {
   formData: {
     target_state: string[]
     target_degree: string
     academic_year: string
-    budget: string[] // Changed from string to string[]
+    budget: string[]
   }
   isEditing: boolean
   isExpanded: boolean
@@ -26,10 +23,53 @@ interface TargetProgramSectionProps {
   SelectField: any
 }
 
-const COUNTRIES = ["Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Haryana", "West Bengal (Other)"]
+// ─── All Indian States & UTs ─────────────────────────────────────────────────
+
+const STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh",
+  "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra",
+  "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha",
+  "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
+  "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Chandigarh", "Jammu & Kashmir", "Puducherry",
+]
+
+// ─── Degree / Stream Options (your 33 categories + Other) ────────────────────
 
 const DEGREE_OPTIONS = [
+  { value: "B.Tech", label: "B.Tech / Engineering" },
   { value: "MBA", label: "MBA" },
+  { value: "BBA/BMS", label: "BBA / BMS" },
+  { value: "Medical", label: "Medical (MBBS)" },
+  { value: "Commerce", label: "Commerce (B.Com / M.Com)" },
+  { value: "Science", label: "Science (B.Sc / M.Sc)" },
+  { value: "Arts", label: "Arts (BA / MA)" },
+  { value: "Dental", label: "Dental (BDS)" },
+  { value: "Computer Applications", label: "Computer Applications (MCA)" },
+  { value: "BCA", label: "BCA" },
+  { value: "Pharmacy", label: "Pharmacy (B.Pharm / M.Pharm)" },
+  { value: "Law", label: "Law (LLB / LLM)" },
+  { value: "Architecture", label: "Architecture (B.Arch)" },
+  { value: "Hotel Management", label: "Hotel Management" },
+  { value: "Hospitality Management", label: "Hospitality Management" },
+  { value: "Education", label: "Education (B.Ed / M.Ed)" },
+  { value: "Mass Communications", label: "Mass Communications" },
+  { value: "Journalism", label: "Journalism" },
+  { value: "Nursing", label: "Nursing (B.Sc / M.Sc)" },
+  { value: "Design", label: "Design" },
+  { value: "Fashion Design", label: "Fashion Design" },
+  { value: "Fashion Technology", label: "Fashion Technology" },
+  { value: "Agriculture", label: "Agriculture (B.Sc Agri)" },
+  { value: "Physiotherapy", label: "Physiotherapy (BPT)" },
+  { value: "Social Work", label: "Social Work (BSW / MSW)" },
+  { value: "Animation", label: "Animation & Multimedia" },
+  { value: "Research", label: "Research / PhD" },
+  { value: "Veterinary Sciences", label: "Veterinary Sciences" },
+  { value: "Executive MBA", label: "Executive MBA" },
+  { value: "Ayurved", label: "Ayurveda (BAMS)" },
+  { value: "Open University", label: "Open / Distance Learning" },
+  { value: "Other", label: "Other" },
 ]
 
 const TERM_OPTIONS = [
@@ -39,24 +79,57 @@ const TERM_OPTIONS = [
 ]
 
 const BUDGET_OPTIONS = [
-  { value: "5L", label: "₹5 Lakhs" },
-  { value: "5-10L", label: "₹5-10 Lakhs" },
-  { value: "10-15L", label: "₹10-15 Lakhs" },
-  { value: "Above 15L", label: "Above ₹15 Lakhs" },
+  { value: "Under 1L", label: "Under ₹1 Lakh" },
+  { value: "1-3L", label: "₹1–3 Lakhs" },
+  { value: "3-5L", label: "₹3–5 Lakhs" },
+  { value: "5-10L", label: "₹5–10 Lakhs" },
+  { value: "10-15L", label: "₹10–15 Lakhs" },
+  { value: "15-25L", label: "₹15–25 Lakhs" },
+  { value: "Above 25L", label: "Above ₹25 Lakhs" },
 ]
 
+// ─── Pill Button (reusable for states & budget) ─────────────────────────────
+
+function PillButton({
+  label, selected, disabled, onClick,
+}: {
+  label: string; selected: boolean; disabled: boolean; onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => !disabled && onClick()}
+      disabled={disabled}
+      className={`px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
+        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+      }`}
+      style={
+        selected
+          ? { borderColor: accentColor, backgroundColor: 'rgba(245, 158, 11, 0.12)', color: accentColor }
+          : { borderColor: borderColor, backgroundColor: primaryBg, color: '#FFFFFF' }
+      }
+    >
+      {label}
+    </button>
+  )
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 const TargetProgramSection: React.FC<TargetProgramSectionProps> = ({
-  formData,
-  isEditing,
-  isExpanded,
-  isComplete,
-  onToggle,
-  onInputChange,
-  onMultiSelect,
-  onMultiSelectBudget,
-  Section,
-  SelectField,
+  formData, isEditing, isExpanded, isComplete,
+  onToggle, onInputChange, onMultiSelect, onMultiSelectBudget,
+  Section, SelectField,
 }) => {
+  const [showAllStates, setShowAllStates] = useState(false)
+  const [customDegree, setCustomDegree] = useState("")
+
+  // Show 8 popular states initially, expand to all on click
+  const popularStates = ["Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Haryana", "Tamil Nadu", "West Bengal", "Rajasthan"]
+  const visibleStates = showAllStates ? STATES : popularStates
+
+  const isOtherSelected = formData.target_degree === "Other"
+
   return (
     <Section
       id="target"
@@ -66,53 +139,47 @@ const TargetProgramSection: React.FC<TargetProgramSectionProps> = ({
       isComplete={isComplete}
       onToggle={onToggle}
     >
-      <div className="mb-4">
+      {/* ── Preferred States ── */}
+      <div className="mb-5">
         <label className="block text-sm font-medium text-white mb-2">
           Preferred States <span style={{ color: accentColor }}>*</span>
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-          {COUNTRIES.map((country) => (
-            <button
-              key={country}
-              type="button"
-              onClick={() => isEditing && onMultiSelect(country)}
+        <div className="flex flex-wrap gap-2">
+          {visibleStates.map((state) => (
+            <PillButton
+              key={state}
+              label={state}
+              selected={formData.target_state.includes(state)}
               disabled={!isEditing}
-              className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base font-medium ${
-                !isEditing ? "opacity-60 cursor-not-allowed" : ""
-              }`}
-              style={
-                formData.target_state.includes(country)
-                  ? {
-                      borderColor: accentColor,
-                      backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                      color: accentColor,
-                    }
-                  : {
-                      borderColor: borderColor,
-                      backgroundColor: primaryBg,
-                      color: '#FFFFFF',
-                    }
-              }
-              onMouseEnter={(e) => {
-                if (isEditing && !formData.target_state.includes(country)) {
-                  e.currentTarget.style.borderColor = accentColor
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isEditing && !formData.target_state.includes(country)) {
-                  e.currentTarget.style.borderColor = borderColor
-                }
-              }}
-            >
-              {country}
-            </button>
+              onClick={() => onMultiSelect(state)}
+            />
           ))}
         </div>
+        {!showAllStates && (
+          <button
+            type="button"
+            onClick={() => setShowAllStates(true)}
+            className="mt-2 text-xs font-bold uppercase tracking-wider hover:underline transition-colors"
+            style={{ color: accentColor }}
+          >
+            + Show all states
+          </button>
+        )}
+        {showAllStates && (
+          <button
+            type="button"
+            onClick={() => setShowAllStates(false)}
+            className="mt-2 text-xs font-bold uppercase tracking-wider text-slate-500 hover:underline transition-colors"
+          >
+            Show less
+          </button>
+        )}
       </div>
-      
+
+      {/* ── Degree + Year ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <SelectField
-          label="What degree are you applying for?"
+          label="What degree / stream are you targeting?"
           value={formData.target_degree}
           onChange={onInputChange}
           field="target_degree"
@@ -129,47 +196,50 @@ const TargetProgramSection: React.FC<TargetProgramSectionProps> = ({
           disabled={!isEditing}
         />
       </div>
-      
-      <div className="mb-4">
+
+      {/* ── "Other" custom input ── */}
+      {isOtherSelected && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Specify your stream / degree <span style={{ color: accentColor }}>*</span>
+          </label>
+          <input
+            type="text"
+            value={customDegree}
+            onChange={(e) => {
+              setCustomDegree(e.target.value)
+              // Store the custom value in specialization field so it's not lost
+              onInputChange("specialization", e.target.value)
+            }}
+            placeholder="e.g. Integrated M.Sc, BDes, B.Voc..."
+            disabled={!isEditing}
+            className="w-full px-4 py-3 text-sm rounded-lg focus:outline-none text-white placeholder:text-slate-500"
+            style={{
+              backgroundColor: primaryBg,
+              border: `1px solid ${borderColor}`,
+              ...((!isEditing) && { backgroundColor: 'rgba(99, 102, 241, 0.05)' })
+            }}
+          />
+          <p className="text-[10px] text-slate-500 mt-1">
+            This helps us match colleges that offer your specific program
+          </p>
+        </div>
+      )}
+
+      {/* ── Budget ── */}
+      <div className="mb-2">
         <label className="block text-sm font-medium text-white mb-2">
-          Budget Range (Annual) <span className="text-slate-500 text-xs">(Select all that apply)</span>
+          Annual Budget Range <span className="text-slate-500 text-xs">(Select all that fit)</span>
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="flex flex-wrap gap-2">
           {BUDGET_OPTIONS.map((option) => (
-            <button
+            <PillButton
               key={option.value}
-              type="button"
-              onClick={() => isEditing && onMultiSelectBudget(option.value)}
+              label={option.label}
+              selected={formData.budget.includes(option.value)}
               disabled={!isEditing}
-              className={`px-3 sm:px-4 py-2 rounded-lg border-2 transition-all text-sm sm:text-base font-medium ${
-                !isEditing ? "opacity-60 cursor-not-allowed" : ""
-              }`}
-              style={
-                formData.budget.includes(option.value)
-                  ? {
-                      borderColor: accentColor,
-                      backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                      color: accentColor,
-                    }
-                  : {
-                      borderColor: borderColor,
-                      backgroundColor: primaryBg,
-                      color: '#FFFFFF',
-                    }
-              }
-              onMouseEnter={(e) => {
-                if (isEditing && !formData.budget.includes(option.value)) {
-                  e.currentTarget.style.borderColor = accentColor
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isEditing && !formData.budget.includes(option.value)) {
-                  e.currentTarget.style.borderColor = borderColor
-                }
-              }}
-            >
-              {option.label}
-            </button>
+              onClick={() => onMultiSelectBudget(option.value)}
+            />
           ))}
         </div>
       </div>
