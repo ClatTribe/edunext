@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { supabase } from "../../../../lib/supabase"
 import { useParams, usePathname } from "next/navigation"
+import CollegeMatchCard from "../../../../components/CollegeMatchCard"
 import {
   Loader2, Eye, Target, Phone, Globe, GraduationCap,
   MapPin, ArrowUpRight, BarChart3, Wallet, Award,
@@ -112,8 +113,30 @@ export default function CollegeOverviewPage() {
 
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isProfileComplete, setIsProfileComplete] = useState(false)
 
   useEffect(() => { fetchCollege() }, [slug])
+
+  // ─── Check if user has filled their profile ───
+  useEffect(() => {
+    const checkProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: profile } = await supabase
+          .from("admit_profiles")
+          .select("name, degree, city")
+          .eq("user_id", user.id)
+          .single()
+        if (profile?.name && profile?.degree) {
+          setIsProfileComplete(true)
+        }
+      } catch {
+        // Not logged in or no profile — stays false
+      }
+    }
+    checkProfile()
+  }, [])
 
   useEffect(() => {
     const urlParts = pathname.split('/')
@@ -159,26 +182,23 @@ export default function CollegeOverviewPage() {
   const allRows = placementData.flatMap(t => t.rows || [])
   const collegeNameLower = college.college_name?.toLowerCase() || ""
 
-  // 1. Strict Highest Package Search
-  const hpMatch = allRows.find(r => 
-    (r[0]?.toString().toLowerCase().includes("highest package") || 
+  const hpMatch = allRows.find(r =>
+    (r[0]?.toString().toLowerCase().includes("highest package") ||
      r[0]?.toString().toLowerCase().includes(collegeNameLower)) &&
-    !r[1]?.toString().toLowerCase().includes("salary") && 
+    !r[1]?.toString().toLowerCase().includes("salary") &&
     r[1] !== '—' && r[1] !== '-'
   )
   const finalHighest = hpMatch?.[1] || null
 
-  // 2. Strict Average Package Search
-  const apMatch = allRows.find(r => 
-    (r[0]?.toString().toLowerCase().includes("average package") || 
+  const apMatch = allRows.find(r =>
+    (r[0]?.toString().toLowerCase().includes("average package") ||
      r[0]?.toString().toLowerCase().includes("median package")) &&
     r[1] !== '—' && r[1] !== '-'
   )
   const finalAverage = apMatch?.[1] || null
 
-  // 3. Smart Recruiter Filter
-  const recTable = placementData.find(t => 
-    t.heading?.toLowerCase().includes("recruiters") || 
+  const recTable = placementData.find(t =>
+    t.heading?.toLowerCase().includes("recruiters") ||
     t.headers?.some((h:string) => h.toLowerCase().includes("companies"))
   )
   const allCompanies = recTable ? recTable.rows.flat().filter((c:any) => c && c.length > 2 && c !== '—' && c !== '-') : []
@@ -195,7 +215,6 @@ export default function CollegeOverviewPage() {
   const admissionBasis = basicInfo.find((r: any[]) => r[0]?.toString().toLowerCase().includes("basis"))?.[1] || "Merit/Entrance"
   const scholarshipAvail = basicInfo.find((r: any[]) => r[0]?.toString().toLowerCase().includes("scholarship"))?.[1] || "Available"
 
-  // Visibility Flags
   const showAbout = !!(aboutText || vision || mission)
   const showCourses = !!firstFeeTable
   const showAdmission = !!admissionTables.length
@@ -241,6 +260,13 @@ export default function CollegeOverviewPage() {
           )}
         </section>
       )}
+
+      {/* ── COLLEGE MATCH CARD ── */}
+      <CollegeMatchCard
+        college={college}
+        micrositeData={micrositeData}
+        isProfileComplete={isProfileComplete}
+      />
 
       {/* ── COURSES & FEES ── */}
       {showCourses && (
