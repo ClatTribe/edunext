@@ -7,7 +7,7 @@ import {
   IndianRupee,
   Users,
   Building2,
-  GraduationCap
+  GraduationCap,
   LogOut,
   ThumbsUp,
   Menu,
