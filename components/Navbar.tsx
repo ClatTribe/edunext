@@ -64,6 +64,15 @@ const Navbar: React.FC = () => {
           >
             Contact Us
           </a>
+          <a
+            href="https://jeetribechallenge.getedunext.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium transition-colors cursor-pointer"
+            style={{ color: "#94a3b8" }}
+          >
+            JEE DSB Challenge
+          </a>
 
           {user ? (
             <>
@@ -156,6 +165,15 @@ const Navbar: React.FC = () => {
             style={{ color: "#f8fafc" }}
           >
             Blogs
+          </a>
+          <a
+            href="https://jeetribechallenge.getedunext.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-lg font-medium cursor-pointer"
+            style={{ color: "#f8fafc" }}
+          >
+            JEE DSB Challenge
           </a>
 
           <hr style={{ borderColor: "rgba(99, 102, 241, 0.1)" }} />
