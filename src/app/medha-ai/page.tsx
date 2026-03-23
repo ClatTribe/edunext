@@ -1,536 +1,779 @@
 "use client";
-
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../../../contexts/AuthContext";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare global {
+    interface Window {
+        SpeechRecognition: any;
+        webkitSpeechRecognition: any;
+    }
+}
+type SpeechRecognition = any;
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Sparkles,
-  ChevronRight,
-  GraduationCap,
-  FileCheck,
-  Award,
-  Zap,
-  MessageCircle,
-  Brain,
-  RefreshCw,
+    Send,
+    Mic,
+    MicOff,
+    Sparkles,
+    School,
+    BookOpen,
+    TrendingUp,
+    GraduationCap,
+    Volume2,
+    VolumeX,
+    Loader2,
+    ChevronRight,
+    Bot,
+    User,
+    Zap,
+    MessageCircle,
+    Brain,
+    Target,
 } from "lucide-react";
+import DefaultLayout from "../defaultLayout";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
-// College matchmaking data
-const COLLEGES = [
-  { name: "IIT Bombay", category: "AMBITIOUS", branch: "CS" },
-  { name: "NIT Trichy", category: "TARGET", branch: "ECE" },
-  { name: "BITS Pilani", category: "SAFETY", branch: "DUAL DEGREE" },
+interface Message {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    timestamp: Date;
+}
+
+const QUICK_PROMPTS = [
+    {
+        icon: School,
+        label: "College\nRecommendation",
+        prompt: "I need help choosing the right college based on my rank and preferences.",
+        desc: "Find your perfect college match",
+        gradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(255, 193, 116, 0.06))",
+    },
+    {
+        icon: TrendingUp,
+        label: "Cutoff\nPrediction",
+        prompt: "What are the expected cutoffs for top NITs this year?",
+        desc: "AI-powered cutoff forecasts",
+        gradient: "linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06))",
+    },
+    {
+        icon: BookOpen,
+        label: "Exam\nStrategy",
+        prompt: "Help me plan my preparation strategy for JEE Advanced.",
+        desc: "Personalized study roadmap",
+        gradient: "linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(16, 185, 129, 0.06))",
+    },
+    {
+        icon: GraduationCap,
+        label: "Scholarship\nHelp",
+        prompt: "What scholarships am I eligible for as a general category student?",
+        desc: "Discover funding opportunities",
+        gradient: "linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(244, 114, 182, 0.06))",
+    },
 ];
 
-// Application timeline data
-const TIMELINE_EVENTS = [
-  {
-    date: "APR 15, 2024",
-    title: "JEE Advanced Registration Closes",
-    subtitle: "Action Required: Upload EWS Cert",
-    urgent: true,
-  },
-  {
-    date: "MAY 02, 2024",
-    title: "VITEEE Slot Booking",
-    subtitle: "Scheduled for Automated Alert",
-    urgent: false,
-  },
-  {
-    date: "JUN 10, 2024",
-    title: "JoSAA Counseling Phase 1",
-    subtitle: "",
-    urgent: false,
-  },
-];
-
-// Scholarships data
-const SCHOLARSHIPS = [
-  {
-    type: "STATE MERIT",
-    name: "UP State Scholarship",
-    amount: "‚Çπ50,000",
-    period: "/ ANNUM",
-  },
-  {
-    type: "CORPORATE",
-    name: "Reliance Foundation",
-    amount: "‚Çπ2.0L",
-    period: "/ FULL COURSE",
-  },
-];
-
-// Next Steps data
-const NEXT_STEPS = [
-  {
-    number: "01",
-    title: "Refine Category Certificate",
-    description:
-      "Your OBC-NCL certificate needs renewal for the 2024-25 session. AI recommends completing this by April 10th to avoid registration delays.",
-  },
-  {
-    number: "02",
-    title: "Analyze Mock Test 4",
-    description:
-      "Your chemistry percentile is dragging the overall score. Focus on 'Organic Synthesis' modules in the Resource library to bridge the 15-mark gap.",
-  },
-  {
-    number: "03",
-    title: "Schedule Mentor Call",
-    description:
-      "Book a slot with Expert Mentor 'Dr. Sharma' to finalize your NIT priority list before the JoSAA mock allotment begins.",
-  },
-];
-
-// Progress steps
-const PROGRESS_STEPS = [
-  { label: "JEE Registration", completed: true },
-  { label: "Profile Verification", completed: true },
-  { label: "Choice Filling", completed: false },
-  { label: "Seat Allotment", completed: false },
+const AI_FEATURES = [
+    { icon: Brain, label: "Deep Analysis", desc: "Powered by Gemini 2.5 Pro" },
+    { icon: MessageCircle, label: "Voice Chat", desc: "Speak naturally in Hindi/English" },
+    { icon: Target, label: "Personalized", desc: "Tailored to your profile" },
 ];
 
 export default function MedhaAIPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [autoSpeak, setAutoSpeak] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+    const recognitionRef = useRef<SpeechRecognition | null>(null);
+    const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  if (loading) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "#050818" }}
-      >
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-400 text-sm">Loading Medha AI...</p>
-        </div>
-      </div>
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push("/register");
+        }
+    }, [user, authLoading, router]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const SpeechRecognition =
+                (window as any).SpeechRecognition ||
+                (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = "en-IN";
+                recognition.onresult = (event: any) => {
+                    const transcript = Array.from(event.results)
+                        .map((result: any) => result[0].transcript)
+                        .join("");
+                    setInput(transcript);
+                    if (event.results[0].isFinal) setIsListening(false);
+                };
+                recognition.onerror = () => setIsListening(false);
+                recognition.onend = () => setIsListening(false);
+                recognitionRef.current = recognition;
+            }
+        }
+    }, []);
+
+    const speakText = useCallback(
+        (text: string) => {
+            if (!autoSpeak) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "en-IN";
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            utterance.onstart = () => setIsSpeaking(true);
+            utterance.onend = () => setIsSpeaking(false);
+            synthRef.current = utterance;
+            window.speechSynthesis.speak(utterance);
+        },
+        [autoSpeak]
     );
-  }
 
-  if (!user) {
-    router.push("/register");
-    return null;
-  }
+    const stopSpeaking = () => {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+    };
 
-  const displayName =
-    user?.user_metadata?.full_name ||
-    user?.email?.split("@")[0] ||
-    "Student";
+    const toggleListening = () => {
+        if (!recognitionRef.current) return;
+        if (isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        } else {
+            recognitionRef.current.start();
+            setIsListening(true);
+        }
+    };
 
-  return (
-    <div
-      className="min-h-screen overflow-y-auto px-4 py-6 md:px-8 md:py-8"
-      style={{ background: "#050818", color: "#f0f0f8" }}
-    >
-      {/* ===== WELCOME SECTION ===== */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Welcome back, {displayName}
-          </h1>
-          <p className="text-slate-400 text-sm">
-            Your AI journey to the top Indian engineering colleges is underway.
-          </p>
-        </div>
-        <div
-          className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-wider flex-shrink-0"
-          style={{
-            background: "rgba(245,158,11,0.12)",
-            color: "#f59e0b",
-            border: "1px solid rgba(245,158,11,0.25)",
-          }}
-        >
-          <Zap size={14} />
-          AI ENGINE ACTIVE
-        </div>
-      </div>
+    const sendMessage = async (content: string) => {
+        if (!content.trim() || isLoading) return;
+        const userMessage: Message = {
+            id: Date.now().toString(),
+            role: "user",
+            content: content.trim(),
+            timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, userMessage]);
+        setInput("");
+        setIsLoading(true);
+        try {
+            const apiMessages = [...messages, userMessage].map((m) => ({
+                role: m.role,
+                content: m.content,
+            }));
+            const res = await fetch("/api/medha-ai", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: apiMessages }),
+            });
+            const data = await res.json();
+            const assistantMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content:
+                    data.response ||
+                    "Sorry, I couldn't process that. Please try again.",
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            speakText(assistantMessage.content);
+        } catch {
+            const errorMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content:
+                    "Oops! Something went wrong. Please try again in a moment.",
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-      {/* ===== DOMESTIC ADMISSION NAVIGATOR ===== */}
-      <div
-        className="rounded-xl p-6 mb-6"
-        style={{
-          background: "#0f172a",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-white">
-              Domestic Admission Navigator
-            </h2>
-            <p className="text-[11px] tracking-widest text-slate-500 mt-1">
-              TARGETING IIT/NIT ADMISSION
-            </p>
-          </div>
-          <div className="text-right">
-            <span className="text-3xl font-bold text-white">45%</span>
-            <p className="text-[10px] tracking-widest text-slate-500">
-              COMPLETE
-            </p>
-          </div>
-        </div>
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(input);
+        }
+    };
 
-        {/* Progress Bar */}
-        <div
-          className="w-full h-2 rounded-full mb-5"
-          style={{ background: "rgba(255,255,255,0.06)" }}
-        >
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: "45%",
-              background: "linear-gradient(90deg, #f59e0b, #d97706)",
-            }}
-          />
-        </div>
+    const formatMessage = (text: string) => {
+        return text
+            .replace(
+                /\*\*(.*?)\*\*/g,
+                '<strong class="text-amber-400">$1</strong>'
+            )
+            .replace(/\n/g, "<br />");
+    };
 
-        {/* Progress Steps */}
-        <div className="flex items-center gap-6 flex-wrap">
-          {PROGRESS_STEPS.map((step, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full flex items-center justify-center"
-                style={{
-                  background: step.completed ? "#f59e0b" : "transparent",
-                  border: step.completed
-                    ? "none"
-                    : "1.5px solid #475569",
-                }}
-              >
-                {step.completed && (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path
-                      d="M2 5L4 7L8 3"
-                      stroke="#050818"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+    if (authLoading) {
+        return (
+            <DefaultLayout>
+                <div className="flex items-center justify-center h-full">
+                    <Loader2
+                        className="animate-spin"
+                        size={32}
+                        style={{ color: "#F59E0B" }}
                     />
-                  </svg>
-                )}
-              </div>
-              <span
-                className={`text-xs ${
-                  step.completed ? "text-slate-300" : "text-slate-500"
-                }`}
-              >
-                {step.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+                </div>
+            </DefaultLayout>
+        );
+    }
 
-      {/* ===== COUNSEL & PROFILE + COLLEGE MATCHMAKING ROW ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-        {/* Counsel & Profile Card */}
-        <div
-          className="lg:col-span-3 rounded-xl p-6"
-          style={{
-            background: "#0f172a",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <div
-            className="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-widest mb-4"
-            style={{
-              border: "1px solid rgba(245,158,11,0.4)",
-              color: "#f59e0b",
-            }}
-          >
-            AI INSIGHT
-          </div>
-
-          <div className="flex items-start justify-between">
-            <div className="flex-1 pr-4">
-              <h2 className="text-xl font-bold text-white mb-3">
-                Counsel & Profile
-              </h2>
-              <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                Your academic trajectory aligns 92% with the top-tier NIT
-                mechanical engineering programs based on recent mock trends.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  className="px-5 py-2.5 rounded-lg text-xs font-bold tracking-wider transition-all hover:scale-105"
-                  style={{
-                    background: "rgba(245,158,11,0.12)",
-                    color: "#f59e0b",
-                    border: "1px solid rgba(245,158,11,0.3)",
-                  }}
-                >
-                  DEEP DIVE COUNSEL
-                </button>
-                <button
-                  className="px-5 py-2.5 rounded-lg text-xs font-bold tracking-wider transition-all hover:scale-105"
-                  style={{
-                    background: "transparent",
-                    color: "#94a3b8",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                  }}
-                >
-                  UPDATE MOCK SCORES
-                </button>
-              </div>
-            </div>
-
-            {/* 92% Circle */}
+    return (
+        <DefaultLayout>
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{
-                background: "rgba(245,158,11,0.1)",
-                border: "2px solid rgba(245,158,11,0.3)",
-              }}
+                className="flex flex-col h-screen max-h-screen"
+                style={{ backgroundColor: "#050818" }}
             >
-              <span className="text-lg font-bold" style={{ color: "#f59e0b" }}>
-                92%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* College Matchmaking Card */}
-        <div
-          className="lg:col-span-2 rounded-xl p-6"
-          style={{
-            background: "#0f172a",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-bold text-white">
-              College Matchmaking
-            </h2>
-            <button className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
-              <RefreshCw size={14} className="text-slate-500" />
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            {COLLEGES.map((college, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-white/5 cursor-pointer"
-                style={{
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.04)",
-                }}
-              >
+                {/* ‚îÄ‚îÄ‚îÄ Premium Header ‚îÄ‚îÄ‚îÄ */}
                 <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(245,158,11,0.1)" }}
-                >
-                  <GraduationCap size={16} style={{ color: "#f59e0b" }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white">
-                    {college.name}
-                  </p>
-                  <p className="text-[10px] tracking-wider text-slate-500">
-                    {college.category} &bull; {college.branch}
-                  </p>
-                </div>
-                <ChevronRight
-                  size={14}
-                  className="text-slate-600 flex-shrink-0"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ===== APPLICATION TRACKER + SCHOLARSHIP GUIDANCE ROW ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Application Tracker */}
-        <div
-          className="rounded-xl p-6"
-          style={{
-            background: "#0f172a",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <div className="flex items-center gap-2 mb-5">
-            <FileCheck size={16} className="text-white" />
-            <h2 className="text-base font-bold text-white">
-              Application Tracker
-            </h2>
-            <div
-              className="w-2 h-2 rounded-full ml-auto"
-              style={{ background: "#f59e0b" }}
-            />
-          </div>
-
-          <div className="relative pl-4">
-            {/* Timeline line */}
-            <div
-              className="absolute left-[7px] top-2 bottom-2 w-px"
-              style={{ background: "rgba(255,255,255,0.08)" }}
-            />
-
-            <div className="flex flex-col gap-5">
-              {TIMELINE_EVENTS.map((event, i) => (
-                <div key={i} className="relative pl-5">
-                  <div
-                    className="absolute left-[-13px] top-1.5 w-3 h-3 rounded-full"
+                    className="flex items-center justify-between px-6 py-3 shrink-0"
                     style={{
-                      background: event.urgent
-                        ? "#f59e0b"
-                        : "rgba(255,255,255,0.1)",
-                      border: event.urgent
-                        ? "none"
-                        : "1.5px solid #475569",
+                        background:
+                            "linear-gradient(135deg, rgba(15, 23, 43, 0.98), rgba(5, 8, 24, 0.95))",
+                        borderBottom: "1px solid rgba(245, 158, 11, 0.08)",
+                        backdropFilter: "blur(24px)",
                     }}
-                  />
-                  <p className="text-[10px] tracking-wider text-slate-500 mb-1">
-                    {event.date}
-                  </p>
-                  <p className="text-sm font-semibold text-white">
-                    {event.title}
-                  </p>
-                  {event.subtitle && (
-                    <p
-                      className="text-xs mt-0.5"
-                      style={{
-                        color: event.urgent ? "#f59e0b" : "#64748b",
-                      }}
-                    >
-                      {event.subtitle}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Scholarship Guidance */}
-        <div
-          className="rounded-xl p-6 relative"
-          style={{
-            background: "#0f172a",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <div className="flex items-center gap-2 mb-5">
-            <Award size={16} className="text-white" />
-            <h2 className="text-base font-bold text-white">
-              Scholarship Guidance
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {SCHOLARSHIPS.map((sch, i) => (
-              <div
-                key={i}
-                className="rounded-lg p-4"
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <p
-                  className="text-[10px] tracking-widest font-bold mb-2"
-                  style={{ color: i === 0 ? "#f59e0b" : "#94a3b8" }}
                 >
-                  {sch.type}
-                </p>
-                <p className="text-sm font-semibold text-white mb-1">
-                  {sch.name}
-                </p>
-                <p className="text-white">
-                  <span className="text-lg font-bold">{sch.amount}</span>
-                  <span className="text-[10px] tracking-wider text-slate-500 ml-1">
-                    {sch.period}
-                  </span>
-                </p>
-              </div>
-            ))}
-          </div>
+                    <div className="flex items-center gap-4">
+                        <div
+                            className="h-11 w-11 rounded-xl flex items-center justify-center shadow-lg"
+                            style={{
+                                background:
+                                    "linear-gradient(135deg, #f59e0b, #fbbf24)",
+                                boxShadow:
+                                    "0 4px 20px rgba(245, 158, 11, 0.25)",
+                            }}
+                        >
+                            <Sparkles
+                                size={22}
+                                style={{ color: "#050818" }}
+                            />
+                        </div>
+                        <div>
+                            <h1
+                                className="text-lg font-bold tracking-tight"
+                                style={{ color: "#f0f0f8" }}
+                            >
+                                Medha AI
+                            </h1>
+                            <p
+                                className="text-xs font-medium"
+                                style={{ color: "#64748b" }}
+                            >
+                                Your AI College Counsellor
+                            </p>
+                        </div>
+                        <div
+                            className="hidden md:flex items-center gap-1 ml-4 px-3 py-1 rounded-full"
+                            style={{
+                                background:
+                                    "linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.04))",
+                                border: "1px solid rgba(245, 158, 11, 0.12)",
+                            }}
+                        >
+                            <Zap
+                                size={12}
+                                style={{ color: "#fbbf24" }}
+                            />
+                            <span
+                                className="text-xs font-semibold uppercase tracking-wider"
+                                style={{ color: "#fbbf24" }}
+                            >
+                                AI Engine Active
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => {
+                                if (isSpeaking) stopSpeaking();
+                                setAutoSpeak(!autoSpeak);
+                            }}
+                            className="p-2.5 rounded-xl transition-all duration-300"
+                            style={{
+                                backgroundColor: autoSpeak
+                                    ? "rgba(245, 158, 11, 0.12)"
+                                    : "rgba(255,255,255,0.04)",
+                                color: autoSpeak ? "#fbbf24" : "#64748b",
+                                border: autoSpeak
+                                    ? "1px solid rgba(245, 158, 11, 0.2)"
+                                    : "1px solid rgba(255,255,255,0.06)",
+                            }}
+                            title={
+                                autoSpeak
+                                    ? "Voice responses ON"
+                                    : "Voice responses OFF"
+                            }
+                        >
+                            {autoSpeak ? (
+                                <Volume2 size={18} />
+                            ) : (
+                                <VolumeX size={18} />
+                            )}
+                        </button>
+                        <div
+                            className="px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-2"
+                            style={{
+                                background:
+                                    "linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(34, 197, 94, 0.04))",
+                                color: "#4ade80",
+                                border: "1px solid rgba(34, 197, 94, 0.15)",
+                            }}
+                        >
+                            <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                            Online
+                        </div>
+                    </div>
+                </div>
 
-          {/* Chat bubble icon */}
-          <div
-            className="absolute right-6 top-14 w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(245,158,11,0.15)" }}
-          >
-            <MessageCircle size={18} style={{ color: "#f59e0b" }} />
-          </div>
+                {/* ‚îÄ‚îÄ‚îÄ Messages Area ‚îÄ‚îÄ‚îÄ */}
+                <div
+                    className="flex-1 overflow-y-auto px-4 md:px-8 py-6"
+                    style={{
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "#1e293b transparent",
+                    }}
+                >
+                    {messages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto">
+                            {/* AI Insight Badge */}
+                            <div
+                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8"
+                                style={{
+                                    background:
+                                        "linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))",
+                                    border: "1px solid rgba(245, 158, 11, 0.15)",
+                                }}
+                            >
+                                <Sparkles
+                                    size={14}
+                                    style={{ color: "#fbbf24" }}
+                                />
+                                <span
+                                    className="text-xs font-bold uppercase tracking-widest"
+                                    style={{ color: "#fbbf24" }}
+                                >
+                                    AI Counsellor
+                                </span>
+                            </div>
 
-          <button
-            className="w-full py-3 rounded-lg text-xs font-bold tracking-wider mt-2 transition-all hover:bg-white/5"
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              color: "#94a3b8",
-              border: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            EXPLORE 12 MORE MATCHES
-          </button>
-        </div>
-      </div>
+                            {/* Welcome Card */}
+                            <div
+                                className="w-full rounded-2xl p-8 md:p-10 mb-8"
+                                style={{
+                                    background:
+                                        "linear-gradient(145deg, rgba(15, 23, 43, 0.7), rgba(15, 23, 43, 0.4))",
+                                    border: "1px solid rgba(245, 158, 11, 0.1)",
+                                    backdropFilter: "blur(20px)",
+                                    boxShadow:
+                                        "0 8px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)",
+                                }}
+                            >
+                                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                                    <div
+                                        className="h-20 w-20 rounded-2xl flex items-center justify-center shrink-0"
+                                        style={{
+                                            background:
+                                                "linear-gradient(135deg, #f59e0b, #fbbf24)",
+                                            boxShadow:
+                                                "0 8px 30px rgba(245, 158, 11, 0.3)",
+                                        }}
+                                    >
+                                        <Sparkles
+                                            size={36}
+                                            style={{ color: "#050818" }}
+                                        />
+                                    </div>
+                                    <div className="text-center md:text-left">
+                                        <h2
+                                            className="text-2xl md:text-3xl font-bold mb-2"
+                                            style={{ color: "#f0f0f8" }}
+                                        >
+                                            Namaste! I&apos;m{" "}
+                                            <span style={{ color: "#fbbf24" }}>
+                                                Medha AI
+                                            </span>
+                                        </h2>
+                                        <p
+                                            className="text-sm md:text-base max-w-md leading-relaxed"
+                                            style={{ color: "#94a3b8" }}
+                                        >
+                                            Your personal AI college counsellor.
+                                            Ask me about colleges, cutoffs,
+                                            scholarships, or career paths.
+                                        </p>
+                                    </div>
+                                </div>
 
-      {/* ===== NEXT STEPS BY EDUNEXT AI ===== */}
-      <div
-        className="rounded-xl p-6"
-        style={{
-          background: "#0f172a",
-          border: "1px solid rgba(245,158,11,0.15)",
-        }}
-      >
-        <div className="flex items-center gap-3 mb-1">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "rgba(245,158,11,0.12)" }}
-          >
-            <Sparkles size={16} style={{ color: "#f59e0b" }} />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-white">
-              Next Steps by EduNext AI
-            </h2>
-            <p className="text-xs text-slate-500">
-              Personalized roadmap based on your profile completion
-            </p>
-          </div>
-        </div>
+                                {/* AI Features Strip */}
+                                <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-8 pt-6" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                                    {AI_FEATURES.map((f) => (
+                                        <div
+                                            key={f.label}
+                                            className="flex items-center gap-2.5 px-4 py-2 rounded-xl"
+                                            style={{
+                                                backgroundColor:
+                                                    "rgba(255,255,255,0.03)",
+                                                border: "1px solid rgba(255,255,255,0.05)",
+                                            }}
+                                        >
+                                            <f.icon
+                                                size={15}
+                                                style={{ color: "#fbbf24" }}
+                                            />
+                                            <div>
+                                                <div
+                                                    className="text-xs font-semibold"
+                                                    style={{
+                                                        color: "#e2e8f0",
+                                                    }}
+                                                >
+                                                    {f.label}
+                                                </div>
+                                                <div
+                                                    className="text-xs"
+                                                    style={{
+                                                        color: "#64748b",
+                                                    }}
+                                                >
+                                                    {f.desc}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
-          {NEXT_STEPS.map((step, i) => (
-            <div key={i} className="flex gap-3">
-              <span
-                className="text-2xl font-bold flex-shrink-0"
-                style={{ color: "rgba(245,158,11,0.3)" }}
-              >
-                {step.number}
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-white mb-1.5">
-                  {step.title}
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
+                            {/* Quick Prompt Cards */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                                {QUICK_PROMPTS.map((qp) => (
+                                    <button
+                                        key={qp.label}
+                                        onClick={() => sendMessage(qp.prompt)}
+                                        className="flex flex-col items-start p-4 md:p-5 rounded-xl text-left transition-all duration-300 group hover:scale-[1.02]"
+                                        style={{
+                                            background: qp.gradient,
+                                            border: "1px solid rgba(255, 255, 255, 0.06)",
+                                            backdropFilter: "blur(12px)",
+                                        }}
+                                    >
+                                        <div
+                                            className="h-9 w-9 rounded-lg flex items-center justify-center mb-3"
+                                            style={{
+                                                backgroundColor:
+                                                    "rgba(255,255,255,0.06)",
+                                                border: "1px solid rgba(255,255,255,0.08)",
+                                            }}
+                                        >
+                                            <qp.icon
+                                                size={18}
+                                                style={{ color: "#fbbf24" }}
+                                            />
+                                        </div>
+                                        <span
+                                            className="text-sm font-semibold leading-tight whitespace-pre-line"
+                                            style={{ color: "#e2e8f0" }}
+                                        >
+                                            {qp.label}
+                                        </span>
+                                        <span
+                                            className="text-xs mt-1.5 leading-snug"
+                                            style={{ color: "#64748b" }}
+                                        >
+                                            {qp.desc}
+                                        </span>
+                                        <ChevronRight
+                                            size={14}
+                                            className="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1"
+                                            style={{ color: "#fbbf24" }}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="max-w-4xl mx-auto space-y-5">
+                            {messages.map((msg) => (
+                                <div
+                                    key={msg.id}
+                                    className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                                >
+                                    {msg.role === "assistant" && (
+                                        <div
+                                            className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 mt-1 shadow-lg"
+                                            style={{
+                                                background:
+                                                    "linear-gradient(135deg, #f59e0b, #fbbf24)",
+                                                boxShadow:
+                                                    "0 4px 15px rgba(245, 158, 11, 0.2)",
+                                            }}
+                                        >
+                                            <Bot
+                                                size={16}
+                                                style={{ color: "#050818" }}
+                                            />
+                                        </div>
+                                    )}
+                                    <div
+                                        className="max-w-[75%] md:max-w-[65%] rounded-2xl px-5 py-4"
+                                        style={
+                                            msg.role === "user"
+                                                ? {
+                                                      background:
+                                                          "linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(255, 193, 116, 0.08))",
+                                                      border: "1px solid rgba(245, 158, 11, 0.2)",
+                                                      borderBottomRightRadius:
+                                                          "6px",
+                                                  }
+                                                : {
+                                                      background:
+                                                          "linear-gradient(145deg, rgba(15, 23, 43, 0.7), rgba(15, 23, 43, 0.4))",
+                                                      border: "1px solid rgba(255, 255, 255, 0.06)",
+                                                      borderBottomLeftRadius:
+                                                          "6px",
+                                                      backdropFilter:
+                                                          "blur(16px)",
+                                                      boxShadow:
+                                                          "0 4px 20px rgba(0,0,0,0.15)",
+                                                  }
+                                        }
+                                    >
+                                        <div
+                                            className="text-sm leading-relaxed"
+                                            style={{
+                                                color:
+                                                    msg.role === "user"
+                                                        ? "#fde68a"
+                                                        : "#e2e8f0",
+                                            }}
+                                            dangerouslySetInnerHTML={{
+                                                __html: formatMessage(
+                                                    msg.content
+                                                ),
+                                            }}
+                                        />
+                                        <div
+                                            className="text-xs mt-2.5"
+                                            style={{ color: "#475569" }}
+                                        >
+                                            {msg.timestamp.toLocaleTimeString(
+                                                "en-IN",
+                                                {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                }
+                                            )}
+                                        </div>
+                                    </div>
+                                    {msg.role === "user" && (
+                                        <div
+                                            className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 mt-1"
+                                            style={{
+                                                backgroundColor:
+                                                    "rgba(99, 102, 241, 0.1)",
+                                                border: "1px solid rgba(99, 102, 241, 0.15)",
+                                            }}
+                                        >
+                                            <User
+                                                size={16}
+                                                style={{ color: "#818cf8" }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+
+                            {isLoading && (
+                                <div className="flex gap-3 justify-start">
+                                    <div
+                                        className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+                                        style={{
+                                            background:
+                                                "linear-gradient(135deg, #f59e0b, #fbbf24)",
+                                            boxShadow:
+                                                "0 4px 15px rgba(245, 158, 11, 0.2)",
+                                        }}
+                                    >
+                                        <Bot
+                                            size={16}
+                                            style={{ color: "#050818" }}
+                                        />
+                                    </div>
+                                    <div
+                                        className="rounded-2xl px-5 py-4"
+                                        style={{
+                                            background:
+                                                "linear-gradient(145deg, rgba(15, 23, 43, 0.7), rgba(15, 23, 43, 0.4))",
+                                            border: "1px solid rgba(255, 255, 255, 0.06)",
+                                            backdropFilter: "blur(16px)",
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex gap-1.5">
+                                                <div
+                                                    className="h-2 w-2 rounded-full animate-bounce"
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#fbbf24",
+                                                        animationDelay: "0ms",
+                                                    }}
+                                                />
+                                                <div
+                                                    className="h-2 w-2 rounded-full animate-bounce"
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#fbbf24",
+                                                        animationDelay:
+                                                            "150ms",
+                                                    }}
+                                                />
+                                                <div
+                                                    className="h-2 w-2 rounded-full animate-bounce"
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#fbbf24",
+                                                        animationDelay:
+                                                            "300ms",
+                                                    }}
+                                                />
+                                            </div>
+                                            <span
+                                                className="text-xs font-medium"
+                                                style={{ color: "#64748b" }}
+                                            >
+                                                Medha is thinking...
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    )}
+                </div>
+
+                {/* ‚îÄ‚îÄ‚îÄ Premium Input Area ‚îÄ‚îÄ‚îÄ */}
+                <div
+                    className="px-4 md:px-8 py-4 shrink-0"
+                    style={{
+                        background:
+                            "linear-gradient(to top, rgba(5, 8, 24, 1), rgba(5, 8, 24, 0.95))",
+                        borderTop: "1px solid rgba(255, 255, 255, 0.04)",
+                    }}
+                >
+                    <div
+                        className="flex items-end gap-3 max-w-4xl mx-auto rounded-2xl p-2"
+                        style={{
+                            background:
+                                "linear-gradient(145deg, rgba(15, 23, 43, 0.6), rgba(15, 23, 43, 0.3))",
+                            border: "1px solid rgba(245, 158, 11, 0.1)",
+                            backdropFilter: "blur(20px)",
+                            boxShadow:
+                                "0 -4px 30px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.02)",
+                        }}
+                    >
+                        <button
+                            onClick={toggleListening}
+                            className="p-3 rounded-xl transition-all duration-300 shrink-0"
+                            style={{
+                                backgroundColor: isListening
+                                    ? "rgba(239, 68, 68, 0.15)"
+                                    : "rgba(255, 255, 255, 0.04)",
+                                color: isListening ? "#ef4444" : "#64748b",
+                                border: isListening
+                                    ? "1px solid rgba(239, 68, 68, 0.2)"
+                                    : "1px solid rgba(255, 255, 255, 0.06)",
+                            }}
+                            title={
+                                isListening
+                                    ? "Stop listening"
+                                    : "Start voice input"
+                            }
+                        >
+                            {isListening ? (
+                                <MicOff
+                                    size={18}
+                                    className="animate-pulse"
+                                />
+                            ) : (
+                                <Mic size={18} />
+                            )}
+                        </button>
+                        <textarea
+                            ref={inputRef}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={
+                                isListening
+                                    ? "Listening... speak now"
+                                    : "Ask Medha about colleges, cutoffs, careers..."
+                            }
+                            rows={1}
+                            className="flex-1 resize-none bg-transparent outline-none text-sm py-3 placeholder-slate-600"
+                            style={{
+                                color: "#e2e8f0",
+                                maxHeight: "120px",
+                                minHeight: "44px",
+                            }}
+                            onInput={(e) => {
+                                const t = e.target as HTMLTextAreaElement;
+                                t.style.height = "44px";
+                                t.style.height = t.scrollHeight + "px";
+                            }}
+                        />
+                        <button
+                            onClick={() => sendMessage(input)}
+                            disabled={!input.trim() || isLoading}
+                            className="p-3 rounded-xl transition-all duration-300 shrink-0 disabled:opacity-20"
+                            style={{
+                                background:
+                                    input.trim() && !isLoading
+                                        ? "linear-gradient(135deg, #f59e0b, #fbbf24)"
+                                        : "rgba(255, 255, 255, 0.04)",
+                                color:
+                                    input.trim() && !isLoading
+                                        ? "#050818"
+                                        : "#64748b",
+                                boxShadow:
+                                    input.trim() && !isLoading
+                                        ? "0 4px 15px rgba(245, 158, 11, 0.25)"
+                                        : "none",
+                            }}
+                        >
+                            {isLoading ? (
+                                <Loader2
+                                    size={18}
+                                    className="animate-spin"
+                                />
+                            ) : (
+                                <Send size={18} />
+                            )}
+                        </button>
+                    </div>
+                    <p
+                        className="text-center text-xs mt-2.5 font-medium"
+                        style={{ color: "#334155" }}
+                    >
+                        Medha AI can make mistakes. Verify important info on
+                        official websites.
+                    </p>
+                </div>
             </div>
-          ))}
-        </div>
-
-        <div
-          className="flex items-center justify-between mt-6 pt-4"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <p className="text-[11px] text-slate-600 italic">
-            AI Advice updated 2 hours ago based on your latest activity.
-          </p>
-          <button
-            className="px-6 py-2.5 rounded-lg text-xs font-bold tracking-wider transition-all hover:scale-105"
-            style={{ background: "#f59e0b", color: "#050818" }}
-          >
-            EXECUTE AI ROADMAP
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+        </DefaultLayout>
+    );
 }
