@@ -1,4 +1,12 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare global {
+    interface Window {
+          SpeechRecognition: typeof SpeechRecognition;
+          webkitSpeechRecognition: typeof SpeechRecognition;
+    }
+}
+type SpeechRecognition = any;
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Send,
