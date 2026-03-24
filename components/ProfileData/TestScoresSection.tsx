@@ -1,12 +1,67 @@
-import React from "react"
-import { BookOpen, Plus, Minus } from "lucide-react"
+"use client"
 
-// Color scheme matching the college compare page
-const accentColor = '#F59E0B';
-const primaryBg = '#050818'; // Very dark navy blue
-const secondaryBg = '#0F172B'; // Slightly lighter navy
-const borderColor = 'rgba(245, 158, 11, 0.15)';
+import React, { useState } from "react"
+import { ClipboardCheck, Plus, Trash2 } from "lucide-react"
 
+const accentColor = '#F59E0B'
+const primaryBg = '#050818'
+const borderColor = 'rgba(245, 158, 11, 0.15)'
+
+// ─── Category → Exams Map ────────────────────────────────────────────────────
+// Category is ONLY a UI filter — never saved to DB.
+// Only exam + percentile go to test_scores JSONB column.
+
+const EXAM_CATEGORIES: Record<string, { label: string; exams: string[] }> = {
+  engineering: {
+    label: "Engineering",
+    exams: [
+      "JEE Main", "JEE Advanced", "BITSAT", "VITEEE", "SRMJEEE",
+      "MET (Manipal)", "COMEDK", "WBJEE", "KCET", "MHT CET",
+      "AP EAMCET", "TS EAMCET", "CUET",
+    ],
+  },
+  management: {
+    label: "Management",
+    exams: [
+      "CAT", "XAT", "MAT", "CMAT", "NMAT", "SNAP",
+      "IPMAT", "TISSNET", "ATMA", "CUET",
+    ],
+  },
+  medical: {
+    label: "Medical",
+    exams: ["NEET UG", "NEET PG", "AIIMS", "JIPMER"],
+  },
+  law: {
+    label: "Law",
+    exams: ["CLAT", "AILET", "LSAT India", "MH CET Law", "CUET"],
+  },
+  design: {
+    label: "Design / Arch",
+    exams: ["NATA", "JEE Main (B.Arch)", "NID DAT", "NIFT", "UCEED", "CEED"],
+  },
+  science: {
+    label: "Science",
+    exams: ["CUET", "GATE", "IIT JAM", "JEST", "CSIR NET"],
+  },
+  commerce: {
+    label: "Commerce",
+    exams: ["CUET", "CA Foundation", "CS Foundation"],
+  },
+  pharmacy: {
+    label: "Pharmacy",
+    exams: ["GPAT", "NEET UG", "MHT CET"],
+  },
+  hotel: {
+    label: "Hotel Mgmt",
+    exams: ["NCHMCT JEE", "CUET"],
+  },
+  education: {
+    label: "Education",
+    exams: ["CUET", "State B.Ed CET"],
+  },
+}
+
+// ─── Props — matches EXACTLY what profile page passes ────────────────────────
 
 interface TestScore {
   exam: string
@@ -25,119 +80,201 @@ interface TestScoresSectionProps {
   Section: any
 }
 
-const COMMON_EXAMS = ["CAT", "NMAT", "MAT", "XAT", "BITSAT", "GMAT", "CMAT", "SNAP", "Other"]
+// ─── Category Pill ───────────────────────────────────────────────────────────
+
+function CategoryPill({
+  label, selected, onClick,
+}: {
+  label: string; selected: boolean; onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="px-3 py-1.5 rounded-lg border transition-all text-xs font-semibold cursor-pointer"
+      style={
+        selected
+          ? { borderColor: accentColor, backgroundColor: 'rgba(245, 158, 11, 0.12)', color: accentColor }
+          : { borderColor: borderColor, backgroundColor: primaryBg, color: '#94a3b8' }
+      }
+    >
+      {label}
+    </button>
+  )
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 const TestScoresSection: React.FC<TestScoresSectionProps> = ({
-  testScores,
-  isEditing,
-  isExpanded,
-  isComplete,
-  onToggle,
-  onAdd,
-  onRemove,
-  onChange,
-  Section,
+  testScores, isEditing, isExpanded, isComplete,
+  onToggle, onAdd, onRemove, onChange, Section,
 }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
+  // Get exams for selected category, filtering out already-added ones
+  const categoryExams = selectedCategory ? EXAM_CATEGORIES[selectedCategory]?.exams || [] : []
+  const addedExamNames = testScores.map(ts => ts.exam)
+  const availableExams = categoryExams.filter(e => !addedExamNames.includes(e))
+
+  // When user picks an exam from a category, we:
+  // 1. Call onAdd() to add an empty row to formData.testScores
+  // 2. Immediately set the exam name on that new row via onChange()
+  const handleExamSelect = (examName: string) => {
+    onAdd() // Adds { exam: "", percentile: "" } to the array
+    // The new row is at the end of the array = testScores.length (before the add)
+    const newIndex = testScores.length
+    // Use setTimeout to ensure state has updated from onAdd first
+    setTimeout(() => {
+      onChange(newIndex, "exam", examName)
+    }, 0)
+  }
+
   return (
     <Section
       id="tests"
-      title="Test Scores"
-      icon={BookOpen}
+      title="Entrance Exam Scores"
+      icon={ClipboardCheck}
       isExpanded={isExpanded}
       isComplete={isComplete}
       onToggle={onToggle}
     >
-      <div className="flex items-center justify-between mb-4">
-        {isEditing && (
-          <button
-            onClick={onAdd}
-            className="flex items-center gap-2 text-white px-3 sm:px-4 py-2 rounded-lg transition-all ml-auto text-sm sm:text-base hover:opacity-90"
-            style={{ background: accentColor }}
-          >
-            <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
-            Add Test
-          </button>
-        )}
-      </div>
-      {testScores.length === 0 ? (
-        <div className="text-center py-6 sm:py-8 text-slate-400 text-sm sm:text-base">
-          {isEditing ? (
-            <p>No test scores added yet. Click &quot;Add Test&quot; to add your scores.</p>
-          ) : (
-            <p>No test scores available.</p>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {testScores.map((test, index) => (
-            <div 
-              key={index} 
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start p-3 sm:p-4 rounded-lg"
-              style={{ backgroundColor: 'rgba(99, 102, 241, 0.05)', border: `1px solid ${borderColor}` }}
-            >
-              <div className="flex-1 w-full">
-                <label className="block text-sm font-medium text-slate-300 mb-2">Exam Type</label>
-                {isEditing ? (
-                  <select
-                    value={test.exam}
-                    onChange={(e) => onChange(index, "exam", e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg focus:outline-none text-white"
-                    style={{ 
-                      backgroundColor: primaryBg, 
+      {/* ── Already added scores ── */}
+      {testScores.length > 0 && (
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-white mb-2">
+            Your Scores
+          </label>
+          <div className="space-y-2">
+            {testScores.map((ts, i) => (
+              <div
+                key={`score-${i}`}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg border"
+                style={{ borderColor: borderColor, backgroundColor: 'rgba(245, 158, 11, 0.04)' }}
+              >
+                {/* Exam name — if it was set via category picker, show as label. Otherwise editable. */}
+                <div className="flex-1 min-w-0">
+                  {ts.exam ? (
+                    <span className="text-sm font-bold text-white">{ts.exam}</span>
+                  ) : (
+                    <input
+                      type="text"
+                      value={ts.exam}
+                      onChange={(e) => onChange(i, "exam", e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="Exam name"
+                      className="w-full bg-transparent text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none"
+                    />
+                  )}
+                </div>
+
+                {/* Percentile input */}
+                <div className="w-24 shrink-0">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={ts.percentile}
+                    onChange={(e) => onChange(i, "percentile", e.target.value)}
+                    disabled={!isEditing}
+                    placeholder="%ile"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg text-white placeholder:text-slate-600 focus:outline-none text-right font-bold"
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.04)',
                       border: `1px solid ${borderColor}`,
                     }}
-                    onFocus={(e) => e.target.style.border = `2px solid ${accentColor}`}
-                    onBlur={(e) => e.target.style.border = `1px solid ${borderColor}`}
+                  />
+                </div>
+
+                {/* Percentile label */}
+                {ts.percentile && (
+                  <span className="text-[10px] text-slate-500 font-medium shrink-0">%ile</span>
+                )}
+
+                {/* Remove button */}
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => onRemove(i)}
+                    className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors shrink-0"
                   >
-                    <option value="">Select Exam</option>
-                    {COMMON_EXAMS.map((exam) => (
-                      <option key={exam} value={exam}>
-                        {exam}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p 
-                    className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg text-white"
-                    style={{ backgroundColor: primaryBg }}
-                  >
-                    {test.exam}
-                  </p>
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  </button>
                 )}
               </div>
-              <div className="flex-1 w-full">
-                <label className="block text-sm font-medium text-slate-300 mb-2">Percentile</label>
-                <input
-                  type="text"
-                  value={test.percentile}
-                  onChange={(e) => onChange(index, "percentile", e.target.value)}
-                  disabled={!isEditing}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg focus:outline-none text-white placeholder:text-slate-500"
-                  style={{ 
-                    backgroundColor: primaryBg, 
-                    border: `1px solid ${borderColor}`,
-                    ...(isEditing && {})
-                  }}
-                  onFocus={(e) => isEditing && (e.target.style.border = `2px solid ${accentColor}`)}
-                  onBlur={(e) => isEditing && (e.target.style.border = `1px solid ${borderColor}`)}
-                  placeholder="e.g., 85, 90, 95"
-                />
-              </div>
-              {isEditing && (
-                <button
-                  onClick={() => onRemove(index)}
-                  className="sm:mt-8 p-2 sm:p-3 rounded-lg transition-all self-end sm:self-auto"
-                  style={{ color: accentColor, backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)'}
-                  title="Remove test"
-                >
-                  <Minus size={18} className="sm:w-[20px] sm:h-[20px]" />
-                </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Add new score (only in edit mode) ── */}
+      {isEditing && (
+        <div>
+          <label className="block text-sm font-medium text-white mb-2">
+            {testScores.length > 0 ? "Add Another Exam" : "Add Exam Score"}
+          </label>
+
+          {/* Step 1: Pick a category */}
+          <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">
+            Select exam category
+          </p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {Object.entries(EXAM_CATEGORIES).map(([key, cat]) => (
+              <CategoryPill
+                key={key}
+                label={cat.label}
+                selected={selectedCategory === key}
+                onClick={() => setSelectedCategory(selectedCategory === key ? null : key)}
+              />
+            ))}
+          </div>
+
+          {/* Step 2: Pick exam from category */}
+          {selectedCategory && (
+            <div
+              className="p-3 rounded-xl border"
+              style={{ borderColor: borderColor, backgroundColor: 'rgba(5, 8, 24, 0.5)' }}
+            >
+              <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">
+                Tap an exam to add it
+              </p>
+              {availableExams.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {availableExams.map((exam) => (
+                    <button
+                      key={exam}
+                      type="button"
+                      onClick={() => handleExamSelect(exam)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-all cursor-pointer hover:border-amber-500/40 hover:bg-amber-500/[0.06]"
+                      style={{ borderColor: borderColor, backgroundColor: primaryBg, color: '#FFFFFF' }}
+                    >
+                      <Plus className="w-3 h-3 text-amber-500" />
+                      {exam}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] text-amber-500/70">
+                  All exams in this category already added
+                </p>
               )}
             </div>
-          ))}
+          )}
+
+          {/* Helper text */}
+          {!selectedCategory && testScores.length === 0 && (
+            <p className="text-[10px] text-slate-500 mt-1">
+              Adding your exam scores helps us check if you meet college cutoffs
+            </p>
+          )}
         </div>
+      )}
+
+      {/* ── View-only empty state ── */}
+      {!isEditing && testScores.length === 0 && (
+        <p className="text-sm text-slate-500">
+          No exam scores added yet. Click Edit to add your scores.
+        </p>
       )}
     </Section>
   )
