@@ -1452,3 +1452,5 @@ export default function MedhaAIDashboard() {
     </DefaultLayout>
   );
 }
+
+// minor fix
