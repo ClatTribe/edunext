@@ -271,22 +271,33 @@ export default function MedhaAIDashboard() {
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student';
 
-  // Fetch user profile from Supabase
+  // Fetch user profile from Supabase (admit_profiles table has the actual data)
   const fetchProfile = useCallback(async () => {
     if (!user) return;
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('admit_profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
 
       if (!error && data) {
-        setProfileData(data);
-        // Check if profile has essential fields filled
-        const hasDegree = data.target_degree && data.target_degree.trim() !== '';
-        const hasName = data.name || data.full_name;
-        setHasProfile(!!(hasDegree && hasName));
+        // Map admit_profiles columns to our ProfileData interface
+        setProfileData({
+          target_degree: data.degree || '',
+          target_field: data.program || '',
+          target_state: data.target_state || [],
+          name: data.name || user?.user_metadata?.full_name || '',
+          email: data.email || user?.email || '',
+          phone: data.phone || '',
+          city: data.city || '',
+          state: data.state || '',
+          academic_year: data.academic_year || '',
+          budget: data.budget || [],
+        });
+        // Profile is complete if they've selected a degree
+        const hasDegree = data.degree && data.degree.trim() !== '';
+        setHasProfile(!!hasDegree);
       } else {
         setHasProfile(false);
       }
@@ -377,33 +388,61 @@ export default function MedhaAIDashboard() {
     }
   }, [user, fetchProfile, fetchShortlist]);
 
-  // Get deadlines filtered by user's target_degree
+  // Get deadlines filtered by user's target_degree (case-insensitive)
   const getFilteredDeadlines = () => {
     if (!profileData?.target_degree) return ALL_DEADLINES.slice(0, 4);
-    return ALL_DEADLINES.filter((d) =>
-      d.degreeTypes.includes(profileData.target_degree)
-    ).slice(0, 5);
+    const userDegree = profileData.target_degree.trim().toLowerCase();
+    const filtered = ALL_DEADLINES.filter((d) =>
+      d.degreeTypes.some((dt) => dt.toLowerCase() === userDegree)
+    );
+    return filtered.length > 0 ? filtered.slice(0, 5) : ALL_DEADLINES.slice(0, 4);
   };
 
   const filteredDeadlines = getFilteredDeadlines();
 
-  const colleges = [
-    {
-      name: 'IIT Bombay',
-      category: 'AMBITIOUS',
-      branch: 'Computer Science',
-    },
-    {
-      name: 'BITS Pilani',
-      category: 'TARGET',
-      branch: 'Electronics',
-    },
-    {
-      name: 'NIT Bangalore',
-      category: 'TARGET',
-      branch: 'Mechanical',
-    },
-  ];
+  // Dynamic recommendations based on user's target degree
+  const getRecommendedColleges = () => {
+    const degree = (profileData?.target_degree || '').toLowerCase();
+    if (degree === 'mba') {
+      return [
+        { name: 'IIM Ahmedabad', category: 'AMBITIOUS', branch: 'Management' },
+        { name: 'IIM Bangalore', category: 'AMBITIOUS', branch: 'Management' },
+        { name: 'XLRI Jamshedpur', category: 'TARGET', branch: 'Management' },
+      ];
+    } else if (degree === 'b.tech') {
+      return [
+        { name: 'IIT Bombay', category: 'AMBITIOUS', branch: 'Computer Science' },
+        { name: 'BITS Pilani', category: 'TARGET', branch: 'Electronics' },
+        { name: 'NIT Trichy', category: 'TARGET', branch: 'Mechanical' },
+      ];
+    } else if (degree === 'medical' || degree === 'mbbs') {
+      return [
+        { name: 'AIIMS Delhi', category: 'AMBITIOUS', branch: 'Medicine' },
+        { name: 'CMC Vellore', category: 'TARGET', branch: 'Medicine' },
+        { name: 'JIPMER Puducherry', category: 'TARGET', branch: 'Medicine' },
+      ];
+    } else if (degree === 'law') {
+      return [
+        { name: 'NLSIU Bangalore', category: 'AMBITIOUS', branch: 'Law' },
+        { name: 'NALSAR Hyderabad', category: 'TARGET', branch: 'Law' },
+        { name: 'NLU Delhi', category: 'TARGET', branch: 'Law' },
+      ];
+    } else if (degree === 'bba/bms') {
+      return [
+        { name: 'IIM Indore (IPM)', category: 'AMBITIOUS', branch: 'Management' },
+        { name: 'NMIMS Mumbai', category: 'TARGET', branch: 'Management' },
+        { name: 'Christ University', category: 'TARGET', branch: 'Management' },
+      ];
+    } else {
+      return [
+        { name: 'Delhi University', category: 'AMBITIOUS', branch: profileData?.target_field || 'General' },
+        { name: 'JNU Delhi', category: 'TARGET', branch: profileData?.target_field || 'General' },
+        { name: 'BHU Varanasi', category: 'TARGET', branch: profileData?.target_field || 'General' },
+      ];
+    }
+  };
+
+  const colleges = getRecommendedColleges();
 
   const aiTips = [
     {
@@ -425,6 +464,32 @@ export default function MedhaAIDashboard() {
 
   const formatResponse = (text: string) => {
     return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  };
+
+  // Extract follow-up questions from AI response text
+  const extractFollowUps = (text: string): { mainText: string; questions: string[] } => {
+    const questions: string[] = [];
+    const lines = text.split('\n');
+    const mainLines: string[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      // Match lines that are questions (end with ?)
+      // Skip very short or very long lines
+      if (trimmed.endsWith('?') && trimmed.length > 15 && trimmed.length < 120) {
+        // Clean up markdown bullets/numbers
+        const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '');
+        questions.push(cleaned);
+      } else {
+        mainLines.push(line);
+      }
+    }
+
+    // Only separate questions if we found some, keep max 3
+    return {
+      mainText: questions.length > 0 ? mainLines.join('\n').replace(/\n{3,}/g, '\n\n').trim() : text,
+      questions: questions.slice(0, 3),
+    };
   };
 
   const handleSearch = async (query: string) => {
@@ -656,22 +721,52 @@ export default function MedhaAIDashboard() {
                       </p>
                     </div>
                   </div>
-                ) : (
-                  <div className="flex gap-3">
-                    <Sparkles className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: COLORS.primary }} />
-                    <div className="flex-1">
-                      <div
-                        className="prose prose-invert text-sm max-w-none"
-                        style={{ color: COLORS.onSurface }}
-                        dangerouslySetInnerHTML={{
-                          __html: formatResponse(
-                            messages[messages.length - 1]?.content || ''
-                          ),
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
+                ) : (() => {
+                  const lastMsg = messages[messages.length - 1]?.content || '';
+                  const { mainText, questions } = extractFollowUps(lastMsg);
+                  return (
+                    <>
+                      <div className="flex gap-3">
+                        <Sparkles className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: COLORS.primary }} />
+                        <div className="flex-1">
+                          <div
+                            className="prose prose-invert text-sm max-w-none"
+                            style={{ color: COLORS.onSurface }}
+                            dangerouslySetInnerHTML={{
+                              __html: formatResponse(mainText),
+                            }}
+                          />
+                        </div>
+                      </div>
+                      {questions.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-4 pl-8">
+                          {questions.map((q, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleSearch(q)}
+                              className="px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 text-left"
+                              style={{
+                                backgroundColor: 'rgba(255, 193, 116, 0.1)',
+                                color: COLORS.primary,
+                                border: `1px solid ${COLORS.primary}35`,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = COLORS.primary;
+                                e.currentTarget.style.color = COLORS.onPrimary;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255, 193, 116, 0.1)';
+                                e.currentTarget.style.color = COLORS.primary;
+                              }}
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {!isLoading && (
                   <button
