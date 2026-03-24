@@ -270,7 +270,7 @@ export default function MedhaAIDashboard() {
   const quickSuggestions = [
     'MBA colleges in Pune',
     'I want to build rockets but bad at maths',
-    'Earn âÃÏ25 LPA after 5 years',
+    'Earn â¹25 LPA after 5 years',
     'Best engineering colleges in Delhi',
     'Entrepreneurship focused colleges',
   ];
