@@ -42,6 +42,34 @@ interface ShortlistItem {
   course?: any;
 }
 
+interface MicrositeShortlistItem {
+  id: number;
+  user_id: string;
+  college_microsite_id: number;
+  notes: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  college_microsite?: {
+    id: number;
+    slug: string;
+    college_name: string;
+    location: string;
+    microsite_data?: any;
+  };
+}
+
+// Unified type for display in shortlist section
+interface DisplayCollege {
+  id: number;
+  name: string;
+  location: string;
+  specialization?: string;
+  fees?: string;
+  slug?: string;
+  source: 'course' | 'microsite';
+}
+
 interface ProfileData {
   target_degree: string;
   target_field: string;
@@ -225,7 +253,7 @@ export default function MedhaAIDashboard() {
   const { user, loading } = useAuth();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [hasProfile, setHasProfile] = useState(false);
-  const [shortlistedColleges, setShortlistedColleges] = useState<ShortlistItem[]>([]);
+  const [displayColleges, setDisplayColleges] = useState<DisplayCollege[]>([]);
   const [shortlistLoading, setShortlistLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -267,35 +295,74 @@ export default function MedhaAIDashboard() {
     }
   }, [user]);
 
-  // Fetch shortlisted colleges from Supabase
+  // Fetch shortlisted colleges from both tables and combine
   const fetchShortlist = useCallback(async () => {
     if (!user) return;
     setShortlistLoading(true);
     try {
-      const { data: shortlistData, error: shortlistError } = await supabase
+      const allDisplayColleges: DisplayCollege[] = [];
+
+      // 1. Fetch from shortlist_builder (regular courses)
+      const { data: shortlistData } = await supabase
         .from('shortlist_builder')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (shortlistError) throw shortlistError;
-
-      // Fetch course details for each shortlisted item
-      const itemsWithDetails = await Promise.all(
-        (shortlistData || []).map(async (item: any) => {
-          if (item.item_type === 'course' && item.course_id) {
+      if (shortlistData) {
+        const courseItems = await Promise.all(
+          shortlistData.filter((item: any) => item.item_type === 'course' && item.course_id).map(async (item: any) => {
             const { data: courseData } = await supabase
               .from('courses')
               .select('*')
               .eq('id', item.course_id)
               .single();
-            return { ...item, course: courseData };
-          }
-          return item;
-        })
-      );
+            return courseData ? {
+              id: item.id,
+              name: courseData['College Name'] || 'Unknown College',
+              location: [courseData.City, courseData.State].filter(Boolean).join(', '),
+              specialization: courseData.Specialization || '',
+              fees: courseData['Course Fees'] || '',
+              slug: (courseData['College Name'] || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, ''),
+              source: 'course' as const,
+            } : null;
+          })
+        );
+        allDisplayColleges.push(...courseItems.filter(Boolean) as DisplayCollege[]);
+      }
 
-      setShortlistedColleges(itemsWithDetails.filter((item: any) => item.item_type === 'course' && item.course));
+      // 2. Fetch from shortlist_builder_microsite (featured colleges)
+      const { data: micrositeData } = await supabase
+        .from('shortlist_builder_microsite')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (micrositeData) {
+        const micrositeItems = await Promise.all(
+          micrositeData.map(async (item: any) => {
+            const { data: collegeData } = await supabase
+              .from('college_microsites')
+              .select('id, slug, college_name, location, microsite_data')
+              .eq('id', item.college_microsite_id)
+              .single();
+            if (!collegeData) return null;
+            const fees = collegeData.microsite_data?.fees?.[0]?.rows?.[0]?.[Object.keys(collegeData.microsite_data?.fees?.[0]?.rows?.[0] || {})[0]] || '';
+            return {
+              id: item.id,
+              name: collegeData.college_name || 'Unknown College',
+              location: collegeData.location || '',
+              specialization: '',
+              fees: fees,
+              slug: collegeData.slug || '',
+              source: 'microsite' as const,
+            };
+          })
+        );
+        allDisplayColleges.push(...micrositeItems.filter(Boolean) as DisplayCollege[]);
+      }
+
+      setDisplayColleges(allDisplayColleges);
     } catch (err) {
       console.error('Error fetching shortlist:', err);
     } finally {
@@ -714,9 +781,9 @@ export default function MedhaAIDashboard() {
                     color: COLORS.onPrimary,
                   }}
                 >
-                  {shortlistedColleges.length}
+                  {displayColleges.length}
                 </span>
-                {shortlistedColleges.length > 0 && (
+                {displayColleges.length > 0 && (
                   <button
                     onClick={() => router.push('/your-shortlist')}
                     className="flex items-center gap-1 text-sm font-semibold transition-all duration-200"
@@ -733,7 +800,7 @@ export default function MedhaAIDashboard() {
                 <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 mb-2" style={{ borderColor: COLORS.primary }}></div>
                 <p style={{ color: COLORS.onSurfaceVariant }}>Loading your shortlist...</p>
               </div>
-            ) : shortlistedColleges.length === 0 ? (
+            ) : displayColleges.length === 0 ? (
               <div
                 style={glassEffect}
                 className="rounded-xl p-8 text-center"
@@ -758,15 +825,14 @@ export default function MedhaAIDashboard() {
               </div>
             ) : (
               <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
-                {shortlistedColleges.slice(0, 6).map((item, index) => (
+                {displayColleges.slice(0, 6).map((college, index) => (
                   <div
-                    key={index}
+                    key={`${college.source}-${college.id}-${index}`}
                     style={glassEffect}
                     className="rounded-xl p-4 flex-shrink-0 w-72 transition-all duration-200 hover:border-opacity-100 cursor-pointer"
                     onClick={() => {
-                      if (item.course?.['College Name']) {
-                        const slug = item.course['College Name'].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
-                        router.push(`/college/${slug}`);
+                      if (college.slug) {
+                        router.push(`/college/${college.slug}`);
                       }
                     }}
                   >
@@ -775,13 +841,13 @@ export default function MedhaAIDashboard() {
                       <ChevronRight className="w-4 h-4" style={{ color: COLORS.onSurfaceVariant }} />
                     </div>
                     <h3 className="font-bold mb-1 text-sm leading-tight" style={{ color: COLORS.onSurface }}>
-                      {item.course?.['College Name'] || 'Unknown College'}
+                      {college.name}
                     </h3>
                     <p className="text-xs mb-2" style={{ color: COLORS.onSurfaceVariant }}>
-                      {item.course?.City || item.course?.State || item.course?.Location || ''}
+                      {college.location}
                     </p>
                     <div className="flex gap-2 flex-wrap">
-                      {item.course?.Specialization && (
+                      {college.specialization && (
                         <span
                           className="text-xs px-2 py-0.5 rounded"
                           style={{
@@ -789,10 +855,10 @@ export default function MedhaAIDashboard() {
                             color: COLORS.primary,
                           }}
                         >
-                          {item.course.Specialization}
+                          {college.specialization}
                         </span>
                       )}
-                      {item.course?.['Course Fees'] && (
+                      {college.fees && (
                         <span
                           className="text-xs px-2 py-0.5 rounded"
                           style={{
@@ -800,7 +866,7 @@ export default function MedhaAIDashboard() {
                             color: COLORS.tertiary,
                           }}
                         >
-                          {item.course['Course Fees']}
+                          {college.fees}
                         </span>
                       )}
                     </div>
