@@ -259,7 +259,13 @@ export default function MedhaAIDashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResponse, setShowResponse] = useState(false);
+  const [followUpState, setFollowUpState] = useState<{
+    questions: string[];
+    currentIndex: number;
+    answers: Record<number, string>;
+  } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const followUpTriggeredRef = useRef(false);
 
   const quickSuggestions = [
     'MBA colleges in Pune',
@@ -525,6 +531,8 @@ export default function MedhaAIDashboard() {
 
     setSearchQuery('');
     setIsLoading(true);
+    setFollowUpState(null);
+    followUpTriggeredRef.current = false;
     const newMessages: Message[] = [
       ...messages,
       { role: 'user', content: query },
@@ -565,9 +573,81 @@ export default function MedhaAIDashboard() {
   const handleAskAnother = () => {
     setMessages([]);
     setShowResponse(false);
+    setFollowUpState(null);
+    followUpTriggeredRef.current = false;
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
+  };
+
+  // Generate smart options for follow-up questions based on question content
+  const generateOptions = (question: string): string[] => {
+    const q = question.toLowerCase();
+    if (q.includes('entrance exam') || q.includes('preparing for') || q.includes('appeared for') || q.includes('which exam')) {
+      return ['JEE Main', 'JEE Advanced', 'CAT', 'NEET', 'CLAT', 'GATE', 'XAT', 'Other'];
+    }
+    if (q.includes('class') || q.includes('grade') || q.includes('currently in') || q.includes('which year')) {
+      return ['Class 9', 'Class 10', 'Class 11', 'Class 12 / Just appeared', 'Already graduated (12th done)'];
+    }
+    if (q.includes('score') || q.includes('rank') || q.includes('percentile') || q.includes('marks')) {
+      return ['Haven\'t taken yet', 'Below average', 'Average (50th-70th percentile)', 'Good (70th-90th percentile)', 'Excellent (90th+ percentile)'];
+    }
+    if (q.includes('branch') || q.includes('field') || q.includes('stream') || q.includes('specific area') || q.includes('engineering')) {
+      return ['Computer Science / IT', 'Mechanical', 'Electrical / Electronics', 'Aerospace', 'Civil', 'Chemical', 'Biotech', 'Other'];
+    }
+    if (q.includes('budget') || q.includes('fee') || q.includes('afford')) {
+      return ['Under \u20B95 Lakh', '\u20B95-10 Lakh', '\u20B910-20 Lakh', '\u20B920 Lakh+', 'No constraint'];
+    }
+    if (q.includes('location') || q.includes('city') || q.includes('state') || q.includes('where') || q.includes('region')) {
+      return ['Delhi NCR', 'Mumbai / Pune', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad', 'Anywhere in India'];
+    }
+    if (q.includes('undergraduate') || q.includes('postgraduate') || q.includes('looking for') || (q.includes('degree') && q.includes('?'))) {
+      return ['Undergraduate (B.Tech / B.Sc / BBA)', 'Postgraduate (MBA / M.Tech / M.Sc)', 'Diploma / Certificate', 'PhD / Doctoral'];
+    }
+    if (q.includes('help') || q.includes('looking for') || q.includes('need') || q.includes('guidance')) {
+      return ['College recommendations', 'Exam preparation tips', 'Career guidance', 'Scholarship info', 'Admission process help'];
+    }
+    // Default: no options, user will type freely
+    return [];
+  };
+
+  // Handle answer selection in follow-up card
+  const handleFollowUpAnswer = (answer: string) => {
+    if (!followUpState) return;
+    const newAnswers = { ...followUpState.answers, [followUpState.currentIndex]: answer };
+    const nextIndex = followUpState.currentIndex + 1;
+
+    if (nextIndex >= followUpState.questions.length) {
+      // All questions answered â€” compile and send as a single message
+      const compiled = followUpState.questions
+        .map((q, i) => `${q} ${newAnswers[i] || 'Skipped'}`)
+        .join('\n');
+      setFollowUpState(null);
+      handleSearch(compiled);
+    } else {
+      setFollowUpState({ ...followUpState, currentIndex: nextIndex, answers: newAnswers });
+    }
+  };
+
+  // Skip current follow-up question
+  const handleFollowUpSkip = () => {
+    if (!followUpState) return;
+    const nextIndex = followUpState.currentIndex + 1;
+    if (nextIndex >= followUpState.questions.length) {
+      // All done â€” send whatever we have
+      const compiled = followUpState.questions
+        .map((q, i) => `${q} ${followUpState.answers[i] || 'Skipped'}`)
+        .join('\n');
+      setFollowUpState(null);
+      handleSearch(compiled);
+    } else {
+      setFollowUpState({ ...followUpState, currentIndex: nextIndex });
+    }
+  };
+
+  // Close follow-up card entirely
+  const handleFollowUpClose = () => {
+    setFollowUpState(null);
   };
 
   if (loading) {
@@ -752,49 +832,185 @@ export default function MedhaAIDashboard() {
                 ) : (() => {
                   const lastMsg = messages[messages.length - 1]?.content || '';
                   const { mainText, questions } = extractFollowUps(lastMsg);
+
+                  // Trigger follow-up card mode if questions found and not already triggered
+                  if (questions.length > 0 && !followUpState && !isLoading && !followUpTriggeredRef.current) {
+                    followUpTriggeredRef.current = true;
+                    setTimeout(() => {
+                      setFollowUpState({
+                        questions,
+                        currentIndex: 0,
+                        answers: {},
+                      });
+                    }, 600);
+                  }
+
                   return (
-                    <>
-                      <div className="flex gap-3">
-                        <Sparkles className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: COLORS.primary }} />
-                        <div className="flex-1">
-                          <div
-                            className="prose prose-invert text-sm max-w-none"
-                            style={{ color: COLORS.onSurface }}
-                            dangerouslySetInnerHTML={{
-                              __html: formatResponse(mainText),
-                            }}
-                          />
-                        </div>
+                    <div className="flex gap-3">
+                      <Sparkles className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: COLORS.primary }} />
+                      <div className="flex-1">
+                        <div
+                          className="prose prose-invert text-sm max-w-none"
+                          style={{ color: COLORS.onSurface }}
+                          dangerouslySetInnerHTML={{
+                            __html: formatResponse(mainText),
+                          }}
+                        />
                       </div>
-                      {questions.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-4 pl-8">
-                          {questions.map((q, i) => (
-                            <button
-                              key={i}
-                              onClick={() => handleSearch(q)}
-                              className="px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 text-left"
-                              style={{
-                                backgroundColor: 'rgba(255, 193, 116, 0.1)',
-                                color: COLORS.primary,
-                                border: `1px solid ${COLORS.primary}35`,
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = COLORS.primary;
-                                e.currentTarget.style.color = COLORS.onPrimary;
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(255, 193, 116, 0.1)';
-                                e.currentTarget.style.color = COLORS.primary;
-                              }}
-                            >
-                              {q}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </>
+                    </div>
                   );
                 })()}
+
+                {/* Follow-up Question Card (Claude-style, one at a time) */}
+                {followUpState && !isLoading && (
+                  <div
+                    className="mt-4 rounded-xl overflow-hidden"
+                    style={{
+                      backgroundColor: COLORS.surfaceContainerHigh,
+                      border: `1px solid ${COLORS.primary}30`,
+                    }}
+                  >
+                    {/* Card Header */}
+                    <div
+                      className="flex items-center justify-between px-4 py-3"
+                      style={{ borderBottom: `1px solid ${COLORS.primary}20` }}
+                    >
+                      <p className="text-sm font-medium" style={{ color: COLORS.onSurface }}>
+                        {followUpState.questions[followUpState.currentIndex]}
+                      </p>
+                      <div className="flex items-center gap-3 ml-3 flex-shrink-0">
+                        {/* Navigation: prev */}
+                        <button
+                          onClick={() => followUpState.currentIndex > 0 && setFollowUpState({
+                            ...followUpState,
+                            currentIndex: followUpState.currentIndex - 1,
+                          })}
+                          disabled={followUpState.currentIndex === 0}
+                          className="text-xs"
+                          style={{
+                            color: followUpState.currentIndex === 0
+                              ? COLORS.onSurfaceVariant + '40'
+                              : COLORS.onSurfaceVariant,
+                            cursor: followUpState.currentIndex === 0 ? 'default' : 'pointer',
+                          }}
+                        >
+                          &lt;
+                        </button>
+                        <span className="text-xs" style={{ color: COLORS.onSurfaceVariant }}>
+                          {followUpState.currentIndex + 1} of {followUpState.questions.length}
+                        </span>
+                        {/* Navigation: next */}
+                        <button
+                          onClick={() => followUpState.currentIndex < followUpState.questions.length - 1 && setFollowUpState({
+                            ...followUpState,
+                            currentIndex: followUpState.currentIndex + 1,
+                          })}
+                          disabled={followUpState.currentIndex === followUpState.questions.length - 1}
+                          className="text-xs"
+                          style={{
+                            color: followUpState.currentIndex === followUpState.questions.length - 1
+                              ? COLORS.onSurfaceVariant + '40'
+                              : COLORS.onSurfaceVariant,
+                            cursor: followUpState.currentIndex === followUpState.questions.length - 1 ? 'default' : 'pointer',
+                          }}
+                        >
+                          &gt;
+                        </button>
+                        {/* Close button */}
+                        <button
+                          onClick={handleFollowUpClose}
+                          className="text-xs ml-1"
+                          style={{ color: COLORS.onSurfaceVariant }}
+                        >
+                          âœ•
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Options */}
+                    <div className="px-3 py-2 space-y-1">
+                      {generateOptions(followUpState.questions[followUpState.currentIndex]).map((option, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleFollowUpAnswer(option)}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-all duration-150"
+                          style={{
+                            color: COLORS.onSurface,
+                            backgroundColor: 'transparent',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = `${COLORS.primary}15`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <span
+                            className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0"
+                            style={{
+                              backgroundColor: `${COLORS.primary}20`,
+                              color: COLORS.primary,
+                            }}
+                          >
+                            {idx + 1}
+                          </span>
+                          <span>{option}</span>
+                          <ChevronRight
+                            className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 flex-shrink-0"
+                            style={{ color: COLORS.onSurfaceVariant }}
+                          />
+                        </button>
+                      ))}
+
+                      {/* "Something else" / free-text option */}
+                      <div className="flex items-center gap-2 px-3 py-2">
+                        <span className="text-sm" style={{ color: COLORS.onSurfaceVariant }}>
+                          âœï¸
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="Something else..."
+                          className="flex-1 bg-transparent text-sm outline-none"
+                          style={{
+                            color: COLORS.onSurface,
+                            borderBottom: `1px solid ${COLORS.primary}30`,
+                            paddingBottom: '4px',
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) {
+                              handleFollowUpAnswer((e.target as HTMLInputElement).value.trim());
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Skip button */}
+                    <div
+                      className="flex justify-end px-4 py-2"
+                      style={{ borderTop: `1px solid ${COLORS.primary}10` }}
+                    >
+                      <button
+                        onClick={handleFollowUpSkip}
+                        className="px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-150"
+                        style={{
+                          color: COLORS.onSurfaceVariant,
+                          backgroundColor: `${COLORS.surfaceContainer}`,
+                          border: `1px solid ${COLORS.primary}20`,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = `${COLORS.primary}15`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = COLORS.surfaceContainer;
+                        }}
+                      >
+                        Skip
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {!isLoading && (
                   <button
