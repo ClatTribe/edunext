@@ -484,39 +484,36 @@ export default function MedhaAIDashboard() {
       }
     }
 
-    // Strategy 2: If no newline-separated questions found, look for inline numbered questions
-    // Pattern: "1. Question? 2. Another question?" or "(a) Question? (b) Question?"
-    if (questions.length === 0) {
-      const inlinePattern = /\d+\.\s+([^?]+\?)/g;
-      let match;
-      const foundInline: string[] = [];
-      while ((match = inlinePattern.exec(text)) !== null) {
-        const q = match[1].trim().replace(/\*\*/g, '');
-        if (q.length > 15 && q.length < 150) {
-          foundInline.push(q);
-        }
-      }
-
-      if (foundInline.length >= 2) {
-        // Remove the questions from the main text
-        let cleanedText = text;
-        for (const q of foundInline) {
-          // Remove the numbered question pattern from the text
-          cleanedText = cleanedText.replace(new RegExp('\\d+\\.\\s*\\*{0,2}' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*\\\*/g, '\\*{0,2}') + '\\*{0,2}', 'g'), '');
-        }
-        // Clean up leftover whitespace/punctuation
-        cleanedText = cleanedText.replace(/\s{2,}/g, ' ').replace(/\s+([.,!])/g, '$1').trim();
-        // Remove trailing "Once I have this information..." type sentences
-        cleanedText = cleanedText.replace(/\s*(Once I have|Once you provide|With this information|Let me know|Please share)[\s\S]*$/i, '').trim();
-
-        return {
-          mainText: cleanedText,
-          questions: foundInline.slice(0, 4),
-        };
+    // Strategy 2: Also look for inline numbered questions in the text
+    // Pattern: "1. Question? 2. Another question?" all on one line
+    // Run this if Strategy 1 found fewer than 2 questions (might have missed inline ones)
+    const inlinePattern = /\d+\.\s+([^?]+\?)/g;
+    let match;
+    const foundInline: string[] = [];
+    while ((match = inlinePattern.exec(text)) !== null) {
+      const q = match[1].trim().replace(/\*\*/g, '');
+      if (q.length > 15 && q.length < 150) {
+        foundInline.push(q);
       }
     }
 
-    // Return newline-based extraction if it worked
+    // Use inline results if they found more questions than Strategy 1
+    if (foundInline.length >= 2 && foundInline.length > questions.length) {
+      // Remove the numbered questions + trailing filler from the main text
+      let cleanedText = text;
+      for (const q of foundInline) {
+        cleanedText = cleanedText.replace(new RegExp('\\d+\\.\\s*\\*{0,2}' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*\\\*/g, '\\*{0,2}') + '\\*{0,2}', 'g'), '');
+      }
+      cleanedText = cleanedText.replace(/\s{2,}/g, ' ').replace(/\s+([.,!])/g, '$1').trim();
+      cleanedText = cleanedText.replace(/\s*(Once I have|Once you provide|With this information|Let me know|Please share|To help you best|We'll figure)[\s\S]*$/i, '').trim();
+
+      return {
+        mainText: cleanedText,
+        questions: foundInline.slice(0, 4),
+      };
+    }
+
+    // Otherwise use Strategy 1 results
     return {
       mainText: questions.length > 0 ? mainLines.join('\n').replace(/\n{3,}/g, '\n\n').trim() : text,
       questions: questions.slice(0, 4),
