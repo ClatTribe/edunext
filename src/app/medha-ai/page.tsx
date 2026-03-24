@@ -1,779 +1,682 @@
-"use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-declare global {
-    interface Window {
-        SpeechRecognition: any;
-        webkitSpeechRecognition: any;
-    }
-}
-type SpeechRecognition = any;
-import React, { useState, useRef, useEffect, useCallback } from "react";
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../../contexts/AuthContext';
+import DefaultLayout from '../defaultLayout';
 import {
-    Send,
-    Mic,
-    MicOff,
-    Sparkles,
-    School,
-    BookOpen,
-    TrendingUp,
-    GraduationCap,
-    Volume2,
-    VolumeX,
-    Loader2,
-    ChevronRight,
-    Bot,
-    User,
-    Zap,
-    MessageCircle,
-    Brain,
-    Target,
-} from "lucide-react";
-import DefaultLayout from "../defaultLayout";
-import { useAuth } from "../../../contexts/AuthContext";
-import { useRouter } from "next/navigation";
+  Search,
+  Send,
+  Sparkles,
+  Zap,
+  School,
+  ChevronRight,
+  AlertCircle,
+  CheckCircle,
+} from 'lucide-react';
 
 interface Message {
-    id: string;
-    role: "user" | "assistant";
-    content: string;
-    timestamp: Date;
+  role: 'user' | 'assistant';
+  content: string;
 }
 
-const QUICK_PROMPTS = [
+interface AIResponse {
+  response: string;
+}
+
+const COLORS = {
+  background: '#0f1223',
+  surfaceContainer: '#1b1f30',
+  surfaceContainerLow: '#171b2b',
+  surfaceContainerHigh: '#25293b',
+  primary: '#ffc174',
+  primaryContainer: '#f59e0b',
+  onPrimary: '#472a00',
+  onSurface: '#dfe1f9',
+  onSurfaceVariant: '#d8c3ad',
+  tertiary: '#bccbff',
+  error: '#ffb4ab',
+};
+
+const glassEffect = {
+  background: 'rgba(27, 31, 48, 0.4)',
+  backdropFilter: 'blur(12px)',
+  border: `1px solid rgba(255, 193, 116, 0.1)`,
+};
+
+export default function MedhaAIDashboard() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [hasProfile, setHasProfile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showResponse, setShowResponse] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const quickSuggestions = [
+    'MBA colleges in Pune',
+    'I want to build rockets',
+    'Colleges for ‚Çπ25 LPA salary',
+    'Best engineering colleges in Delhi',
+  ];
+
+  const colleges = [
     {
-        icon: School,
-        label: "College\nRecommendation",
-        prompt: "I need help choosing the right college based on my rank and preferences.",
-        desc: "Find your perfect college match",
-        gradient: "linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(255, 193, 116, 0.06))",
+      name: 'IIT Bombay',
+      category: 'AMBITIOUS',
+      branch: 'Computer Science',
     },
     {
-        icon: TrendingUp,
-        label: "Cutoff\nPrediction",
-        prompt: "What are the expected cutoffs for top NITs this year?",
-        desc: "AI-powered cutoff forecasts",
-        gradient: "linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06))",
+      name: 'BITS Pilani',
+      category: 'TARGET',
+      branch: 'Electronics',
     },
     {
-        icon: BookOpen,
-        label: "Exam\nStrategy",
-        prompt: "Help me plan my preparation strategy for JEE Advanced.",
-        desc: "Personalized study roadmap",
-        gradient: "linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(16, 185, 129, 0.06))",
+      name: 'NIT Bangalore',
+      category: 'TARGET',
+      branch: 'Mechanical',
+    },
+  ];
+
+  const shortlistedColleges = [
+    { name: 'IIT Delhi', location: 'New Delhi', branch: 'CSE' },
+    { name: 'IISER Pune', location: 'Pune', branch: 'Physics' },
+  ];
+
+  const upcomingDeadlines = [
+    {
+      date: 'APR 15, 2026',
+      title: 'JEE Advanced Registration Closes',
+      subtitle: 'Action Required: Upload EWS Cert',
+      urgent: true,
     },
     {
-        icon: GraduationCap,
-        label: "Scholarship\nHelp",
-        prompt: "What scholarships am I eligible for as a general category student?",
-        desc: "Discover funding opportunities",
-        gradient: "linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(244, 114, 182, 0.06))",
+      date: 'MAY 02, 2026',
+      title: 'VITEEE Slot Booking',
+      subtitle: 'Scheduled for Automated Alert',
+      urgent: false,
     },
-];
+    {
+      date: 'JUN 10, 2026',
+      title: 'JoSAA Counseling Phase 1',
+      subtitle: 'Mark your calendar',
+      urgent: false,
+    },
+  ];
 
-const AI_FEATURES = [
-    { icon: Brain, label: "Deep Analysis", desc: "Powered by Gemini 2.5 Pro" },
-    { icon: MessageCircle, label: "Voice Chat", desc: "Speak naturally in Hindi/English" },
-    { icon: Target, label: "Personalized", desc: "Tailored to your profile" },
-];
+  const aiTips = [
+    {
+      number: '01',
+      title: 'Research Like a Pro',
+      description: 'Use our AI to compare colleges based on your preferences and career goals',
+    },
+    {
+      number: '02',
+      title: 'Track Deadlines Smart',
+      description: 'Get automated reminders for important application and registration dates',
+    },
+    {
+      number: '03',
+      title: 'Build Your Shortlist',
+      description: 'Create a personalized college list matched to your scores and aspirations',
+    },
+  ];
 
-export default function MedhaAIPage() {
-    const { user, loading: authLoading } = useAuth();
-    const router = useRouter();
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [isListening, setIsListening] = useState(false);
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const [autoSpeak, setAutoSpeak] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLTextAreaElement>(null);
-    const recognitionRef = useRef<SpeechRecognition | null>(null);
-    const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student';
 
-    useEffect(() => {
-        if (!authLoading && !user) {
-            router.push("/register");
-        }
-    }, [user, authLoading, router]);
+  const formatResponse = (text: string) => {
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  };
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) return;
 
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const SpeechRecognition =
-                (window as any).SpeechRecognition ||
-                (window as any).webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                const recognition = new SpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = true;
-                recognition.lang = "en-IN";
-                recognition.onresult = (event: any) => {
-                    const transcript = Array.from(event.results)
-                        .map((result: any) => result[0].transcript)
-                        .join("");
-                    setInput(transcript);
-                    if (event.results[0].isFinal) setIsListening(false);
-                };
-                recognition.onerror = () => setIsListening(false);
-                recognition.onend = () => setIsListening(false);
-                recognitionRef.current = recognition;
-            }
-        }
-    }, []);
+    setSearchQuery('');
+    setIsLoading(true);
+    const newMessages: Message[] = [
+      ...messages,
+      { role: 'user', content: query },
+    ];
+    setMessages(newMessages);
+    setShowResponse(true);
 
-    const speakText = useCallback(
-        (text: string) => {
-            if (!autoSpeak) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "en-IN";
-            utterance.rate = 1;
-            utterance.pitch = 1;
-            utterance.onstart = () => setIsSpeaking(true);
-            utterance.onend = () => setIsSpeaking(false);
-            synthRef.current = utterance;
-            window.speechSynthesis.speak(utterance);
+    try {
+      const response = await fetch('/api/medha-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: newMessages }),
+      });
+
+      const data: AIResponse = await response.json();
+      setMessages([
+        ...newMessages,
+        { role: 'assistant', content: data.response },
+      ]);
+    } catch (error) {
+      console.error('API Error:', error);
+      setMessages([
+        ...newMessages,
+        {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
         },
-        [autoSpeak]
-    );
-
-    const stopSpeaking = () => {
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-    };
-
-    const toggleListening = () => {
-        if (!recognitionRef.current) return;
-        if (isListening) {
-            recognitionRef.current.stop();
-            setIsListening(false);
-        } else {
-            recognitionRef.current.start();
-            setIsListening(true);
-        }
-    };
-
-    const sendMessage = async (content: string) => {
-        if (!content.trim() || isLoading) return;
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            role: "user",
-            content: content.trim(),
-            timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, userMessage]);
-        setInput("");
-        setIsLoading(true);
-        try {
-            const apiMessages = [...messages, userMessage].map((m) => ({
-                role: m.role,
-                content: m.content,
-            }));
-            const res = await fetch("/api/medha-ai", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: apiMessages }),
-            });
-            const data = await res.json();
-            const assistantMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: "assistant",
-                content:
-                    data.response ||
-                    "Sorry, I couldn't process that. Please try again.",
-                timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, assistantMessage]);
-            speakText(assistantMessage.content);
-        } catch {
-            const errorMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: "assistant",
-                content:
-                    "Oops! Something went wrong. Please try again in a moment.",
-                timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, errorMessage]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage(input);
-        }
-    };
-
-    const formatMessage = (text: string) => {
-        return text
-            .replace(
-                /\*\*(.*?)\*\*/g,
-                '<strong class="text-amber-400">$1</strong>'
-            )
-            .replace(/\n/g, "<br />");
-    };
-
-    if (authLoading) {
-        return (
-            <DefaultLayout>
-                <div className="flex items-center justify-center h-full">
-                    <Loader2
-                        className="animate-spin"
-                        size={32}
-                        style={{ color: "#F59E0B" }}
-                    />
-                </div>
-            </DefaultLayout>
-        );
+      ]);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  const handleQuickSuggestion = (suggestion: string) => {
+    handleSearch(suggestion);
+  };
+
+  const handleAskAnother = () => {
+    setMessages([]);
+    setShowResponse(false);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
+
+  if (loading) {
     return (
-        <DefaultLayout>
-            <div
-                className="flex flex-col h-screen max-h-screen"
-                style={{ backgroundColor: "#050818" }}
-            >
-                {/* ‚îÄ‚îÄ‚îÄ Premium Header ‚îÄ‚îÄ‚îÄ */}
-                <div
-                    className="flex items-center justify-between px-6 py-3 shrink-0"
-                    style={{
-                        background:
-                            "linear-gradient(135deg, rgba(15, 23, 43, 0.98), rgba(5, 8, 24, 0.95))",
-                        borderBottom: "1px solid rgba(245, 158, 11, 0.08)",
-                        backdropFilter: "blur(24px)",
-                    }}
-                >
-                    <div className="flex items-center gap-4">
-                        <div
-                            className="h-11 w-11 rounded-xl flex items-center justify-center shadow-lg"
-                            style={{
-                                background:
-                                    "linear-gradient(135deg, #f59e0b, #fbbf24)",
-                                boxShadow:
-                                    "0 4px 20px rgba(245, 158, 11, 0.25)",
-                            }}
-                        >
-                            <Sparkles
-                                size={22}
-                                style={{ color: "#050818" }}
-                            />
-                        </div>
-                        <div>
-                            <h1
-                                className="text-lg font-bold tracking-tight"
-                                style={{ color: "#f0f0f8" }}
-                            >
-                                Medha AI
-                            </h1>
-                            <p
-                                className="text-xs font-medium"
-                                style={{ color: "#64748b" }}
-                            >
-                                Your AI College Counsellor
-                            </p>
-                        </div>
-                        <div
-                            className="hidden md:flex items-center gap-1 ml-4 px-3 py-1 rounded-full"
-                            style={{
-                                background:
-                                    "linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.04))",
-                                border: "1px solid rgba(245, 158, 11, 0.12)",
-                            }}
-                        >
-                            <Zap
-                                size={12}
-                                style={{ color: "#fbbf24" }}
-                            />
-                            <span
-                                className="text-xs font-semibold uppercase tracking-wider"
-                                style={{ color: "#fbbf24" }}
-                            >
-                                AI Engine Active
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => {
-                                if (isSpeaking) stopSpeaking();
-                                setAutoSpeak(!autoSpeak);
-                            }}
-                            className="p-2.5 rounded-xl transition-all duration-300"
-                            style={{
-                                backgroundColor: autoSpeak
-                                    ? "rgba(245, 158, 11, 0.12)"
-                                    : "rgba(255,255,255,0.04)",
-                                color: autoSpeak ? "#fbbf24" : "#64748b",
-                                border: autoSpeak
-                                    ? "1px solid rgba(245, 158, 11, 0.2)"
-                                    : "1px solid rgba(255,255,255,0.06)",
-                            }}
-                            title={
-                                autoSpeak
-                                    ? "Voice responses ON"
-                                    : "Voice responses OFF"
-                            }
-                        >
-                            {autoSpeak ? (
-                                <Volume2 size={18} />
-                            ) : (
-                                <VolumeX size={18} />
-                            )}
-                        </button>
-                        <div
-                            className="px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-2"
-                            style={{
-                                background:
-                                    "linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(34, 197, 94, 0.04))",
-                                color: "#4ade80",
-                                border: "1px solid rgba(34, 197, 94, 0.15)",
-                            }}
-                        >
-                            <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                            Online
-                        </div>
-                    </div>
-                </div>
-
-                {/* ‚îÄ‚îÄ‚îÄ Messages Area ‚îÄ‚îÄ‚îÄ */}
-                <div
-                    className="flex-1 overflow-y-auto px-4 md:px-8 py-6"
-                    style={{
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "#1e293b transparent",
-                    }}
-                >
-                    {messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto">
-                            {/* AI Insight Badge */}
-                            <div
-                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8"
-                                style={{
-                                    background:
-                                        "linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))",
-                                    border: "1px solid rgba(245, 158, 11, 0.15)",
-                                }}
-                            >
-                                <Sparkles
-                                    size={14}
-                                    style={{ color: "#fbbf24" }}
-                                />
-                                <span
-                                    className="text-xs font-bold uppercase tracking-widest"
-                                    style={{ color: "#fbbf24" }}
-                                >
-                                    AI Counsellor
-                                </span>
-                            </div>
-
-                            {/* Welcome Card */}
-                            <div
-                                className="w-full rounded-2xl p-8 md:p-10 mb-8"
-                                style={{
-                                    background:
-                                        "linear-gradient(145deg, rgba(15, 23, 43, 0.7), rgba(15, 23, 43, 0.4))",
-                                    border: "1px solid rgba(245, 158, 11, 0.1)",
-                                    backdropFilter: "blur(20px)",
-                                    boxShadow:
-                                        "0 8px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)",
-                                }}
-                            >
-                                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                                    <div
-                                        className="h-20 w-20 rounded-2xl flex items-center justify-center shrink-0"
-                                        style={{
-                                            background:
-                                                "linear-gradient(135deg, #f59e0b, #fbbf24)",
-                                            boxShadow:
-                                                "0 8px 30px rgba(245, 158, 11, 0.3)",
-                                        }}
-                                    >
-                                        <Sparkles
-                                            size={36}
-                                            style={{ color: "#050818" }}
-                                        />
-                                    </div>
-                                    <div className="text-center md:text-left">
-                                        <h2
-                                            className="text-2xl md:text-3xl font-bold mb-2"
-                                            style={{ color: "#f0f0f8" }}
-                                        >
-                                            Namaste! I&apos;m{" "}
-                                            <span style={{ color: "#fbbf24" }}>
-                                                Medha AI
-                                            </span>
-                                        </h2>
-                                        <p
-                                            className="text-sm md:text-base max-w-md leading-relaxed"
-                                            style={{ color: "#94a3b8" }}
-                                        >
-                                            Your personal AI college counsellor.
-                                            Ask me about colleges, cutoffs,
-                                            scholarships, or career paths.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* AI Features Strip */}
-                                <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-8 pt-6" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                                    {AI_FEATURES.map((f) => (
-                                        <div
-                                            key={f.label}
-                                            className="flex items-center gap-2.5 px-4 py-2 rounded-xl"
-                                            style={{
-                                                backgroundColor:
-                                                    "rgba(255,255,255,0.03)",
-                                                border: "1px solid rgba(255,255,255,0.05)",
-                                            }}
-                                        >
-                                            <f.icon
-                                                size={15}
-                                                style={{ color: "#fbbf24" }}
-                                            />
-                                            <div>
-                                                <div
-                                                    className="text-xs font-semibold"
-                                                    style={{
-                                                        color: "#e2e8f0",
-                                                    }}
-                                                >
-                                                    {f.label}
-                                                </div>
-                                                <div
-                                                    className="text-xs"
-                                                    style={{
-                                                        color: "#64748b",
-                                                    }}
-                                                >
-                                                    {f.desc}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Quick Prompt Cards */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
-                                {QUICK_PROMPTS.map((qp) => (
-                                    <button
-                                        key={qp.label}
-                                        onClick={() => sendMessage(qp.prompt)}
-                                        className="flex flex-col items-start p-4 md:p-5 rounded-xl text-left transition-all duration-300 group hover:scale-[1.02]"
-                                        style={{
-                                            background: qp.gradient,
-                                            border: "1px solid rgba(255, 255, 255, 0.06)",
-                                            backdropFilter: "blur(12px)",
-                                        }}
-                                    >
-                                        <div
-                                            className="h-9 w-9 rounded-lg flex items-center justify-center mb-3"
-                                            style={{
-                                                backgroundColor:
-                                                    "rgba(255,255,255,0.06)",
-                                                border: "1px solid rgba(255,255,255,0.08)",
-                                            }}
-                                        >
-                                            <qp.icon
-                                                size={18}
-                                                style={{ color: "#fbbf24" }}
-                                            />
-                                        </div>
-                                        <span
-                                            className="text-sm font-semibold leading-tight whitespace-pre-line"
-                                            style={{ color: "#e2e8f0" }}
-                                        >
-                                            {qp.label}
-                                        </span>
-                                        <span
-                                            className="text-xs mt-1.5 leading-snug"
-                                            style={{ color: "#64748b" }}
-                                        >
-                                            {qp.desc}
-                                        </span>
-                                        <ChevronRight
-                                            size={14}
-                                            className="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1"
-                                            style={{ color: "#fbbf24" }}
-                                        />
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="max-w-4xl mx-auto space-y-5">
-                            {messages.map((msg) => (
-                                <div
-                                    key={msg.id}
-                                    className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                                >
-                                    {msg.role === "assistant" && (
-                                        <div
-                                            className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 mt-1 shadow-lg"
-                                            style={{
-                                                background:
-                                                    "linear-gradient(135deg, #f59e0b, #fbbf24)",
-                                                boxShadow:
-                                                    "0 4px 15px rgba(245, 158, 11, 0.2)",
-                                            }}
-                                        >
-                                            <Bot
-                                                size={16}
-                                                style={{ color: "#050818" }}
-                                            />
-                                        </div>
-                                    )}
-                                    <div
-                                        className="max-w-[75%] md:max-w-[65%] rounded-2xl px-5 py-4"
-                                        style={
-                                            msg.role === "user"
-                                                ? {
-                                                      background:
-                                                          "linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(255, 193, 116, 0.08))",
-                                                      border: "1px solid rgba(245, 158, 11, 0.2)",
-                                                      borderBottomRightRadius:
-                                                          "6px",
-                                                  }
-                                                : {
-                                                      background:
-                                                          "linear-gradient(145deg, rgba(15, 23, 43, 0.7), rgba(15, 23, 43, 0.4))",
-                                                      border: "1px solid rgba(255, 255, 255, 0.06)",
-                                                      borderBottomLeftRadius:
-                                                          "6px",
-                                                      backdropFilter:
-                                                          "blur(16px)",
-                                                      boxShadow:
-                                                          "0 4px 20px rgba(0,0,0,0.15)",
-                                                  }
-                                        }
-                                    >
-                                        <div
-                                            className="text-sm leading-relaxed"
-                                            style={{
-                                                color:
-                                                    msg.role === "user"
-                                                        ? "#fde68a"
-                                                        : "#e2e8f0",
-                                            }}
-                                            dangerouslySetInnerHTML={{
-                                                __html: formatMessage(
-                                                    msg.content
-                                                ),
-                                            }}
-                                        />
-                                        <div
-                                            className="text-xs mt-2.5"
-                                            style={{ color: "#475569" }}
-                                        >
-                                            {msg.timestamp.toLocaleTimeString(
-                                                "en-IN",
-                                                {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                }
-                                            )}
-                                        </div>
-                                    </div>
-                                    {msg.role === "user" && (
-                                        <div
-                                            className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 mt-1"
-                                            style={{
-                                                backgroundColor:
-                                                    "rgba(99, 102, 241, 0.1)",
-                                                border: "1px solid rgba(99, 102, 241, 0.15)",
-                                            }}
-                                        >
-                                            <User
-                                                size={16}
-                                                style={{ color: "#818cf8" }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-
-                            {isLoading && (
-                                <div className="flex gap-3 justify-start">
-                                    <div
-                                        className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
-                                        style={{
-                                            background:
-                                                "linear-gradient(135deg, #f59e0b, #fbbf24)",
-                                            boxShadow:
-                                                "0 4px 15px rgba(245, 158, 11, 0.2)",
-                                        }}
-                                    >
-                                        <Bot
-                                            size={16}
-                                            style={{ color: "#050818" }}
-                                        />
-                                    </div>
-                                    <div
-                                        className="rounded-2xl px-5 py-4"
-                                        style={{
-                                            background:
-                                                "linear-gradient(145deg, rgba(15, 23, 43, 0.7), rgba(15, 23, 43, 0.4))",
-                                            border: "1px solid rgba(255, 255, 255, 0.06)",
-                                            backdropFilter: "blur(16px)",
-                                        }}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex gap-1.5">
-                                                <div
-                                                    className="h-2 w-2 rounded-full animate-bounce"
-                                                    style={{
-                                                        backgroundColor:
-                                                            "#fbbf24",
-                                                        animationDelay: "0ms",
-                                                    }}
-                                                />
-                                                <div
-                                                    className="h-2 w-2 rounded-full animate-bounce"
-                                                    style={{
-                                                        backgroundColor:
-                                                            "#fbbf24",
-                                                        animationDelay:
-                                                            "150ms",
-                                                    }}
-                                                />
-                                                <div
-                                                    className="h-2 w-2 rounded-full animate-bounce"
-                                                    style={{
-                                                        backgroundColor:
-                                                            "#fbbf24",
-                                                        animationDelay:
-                                                            "300ms",
-                                                    }}
-                                                />
-                                            </div>
-                                            <span
-                                                className="text-xs font-medium"
-                                                style={{ color: "#64748b" }}
-                                            >
-                                                Medha is thinking...
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            <div ref={messagesEndRef} />
-                        </div>
-                    )}
-                </div>
-
-                {/* ‚îÄ‚îÄ‚îÄ Premium Input Area ‚îÄ‚îÄ‚îÄ */}
-                <div
-                    className="px-4 md:px-8 py-4 shrink-0"
-                    style={{
-                        background:
-                            "linear-gradient(to top, rgba(5, 8, 24, 1), rgba(5, 8, 24, 0.95))",
-                        borderTop: "1px solid rgba(255, 255, 255, 0.04)",
-                    }}
-                >
-                    <div
-                        className="flex items-end gap-3 max-w-4xl mx-auto rounded-2xl p-2"
-                        style={{
-                            background:
-                                "linear-gradient(145deg, rgba(15, 23, 43, 0.6), rgba(15, 23, 43, 0.3))",
-                            border: "1px solid rgba(245, 158, 11, 0.1)",
-                            backdropFilter: "blur(20px)",
-                            boxShadow:
-                                "0 -4px 30px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.02)",
-                        }}
-                    >
-                        <button
-                            onClick={toggleListening}
-                            className="p-3 rounded-xl transition-all duration-300 shrink-0"
-                            style={{
-                                backgroundColor: isListening
-                                    ? "rgba(239, 68, 68, 0.15)"
-                                    : "rgba(255, 255, 255, 0.04)",
-                                color: isListening ? "#ef4444" : "#64748b",
-                                border: isListening
-                                    ? "1px solid rgba(239, 68, 68, 0.2)"
-                                    : "1px solid rgba(255, 255, 255, 0.06)",
-                            }}
-                            title={
-                                isListening
-                                    ? "Stop listening"
-                                    : "Start voice input"
-                            }
-                        >
-                            {isListening ? (
-                                <MicOff
-                                    size={18}
-                                    className="animate-pulse"
-                                />
-                            ) : (
-                                <Mic size={18} />
-                            )}
-                        </button>
-                        <textarea
-                            ref={inputRef}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder={
-                                isListening
-                                    ? "Listening... speak now"
-                                    : "Ask Medha about colleges, cutoffs, careers..."
-                            }
-                            rows={1}
-                            className="flex-1 resize-none bg-transparent outline-none text-sm py-3 placeholder-slate-600"
-                            style={{
-                                color: "#e2e8f0",
-                                maxHeight: "120px",
-                                minHeight: "44px",
-                            }}
-                            onInput={(e) => {
-                                const t = e.target as HTMLTextAreaElement;
-                                t.style.height = "44px";
-                                t.style.height = t.scrollHeight + "px";
-                            }}
-                        />
-                        <button
-                            onClick={() => sendMessage(input)}
-                            disabled={!input.trim() || isLoading}
-                            className="p-3 rounded-xl transition-all duration-300 shrink-0 disabled:opacity-20"
-                            style={{
-                                background:
-                                    input.trim() && !isLoading
-                                        ? "linear-gradient(135deg, #f59e0b, #fbbf24)"
-                                        : "rgba(255, 255, 255, 0.04)",
-                                color:
-                                    input.trim() && !isLoading
-                                        ? "#050818"
-                                        : "#64748b",
-                                boxShadow:
-                                    input.trim() && !isLoading
-                                        ? "0 4px 15px rgba(245, 158, 11, 0.25)"
-                                        : "none",
-                            }}
-                        >
-                            {isLoading ? (
-                                <Loader2
-                                    size={18}
-                                    className="animate-spin"
-                                />
-                            ) : (
-                                <Send size={18} />
-                            )}
-                        </button>
-                    </div>
-                    <p
-                        className="text-center text-xs mt-2.5 font-medium"
-                        style={{ color: "#334155" }}
-                    >
-                        Medha AI can make mistakes. Verify important info on
-                        official websites.
-                    </p>
-                </div>
-            </div>
-        </DefaultLayout>
+      <DefaultLayout>
+        <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }} className="flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: COLORS.primary }}></div>
+            <p className="mt-4" style={{ color: COLORS.onSurface }}>Loading...</p>
+          </div>
+        </div>
+      </DefaultLayout>
     );
+  }
+
+  if (!user) {
+    return (
+      <DefaultLayout>
+        <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }} className="flex items-center justify-center px-4">
+          <div style={glassEffect} className="rounded-2xl p-8 max-w-md w-full text-center">
+            <Sparkles className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.primary }} />
+            <h2 className="text-2xl font-bold mb-2" style={{ color: COLORS.onSurface }}>
+              Welcome to Medha AI
+            </h2>
+            <p className="mb-6" style={{ color: COLORS.onSurfaceVariant }}>
+              Sign in with Google to access Medha AI
+            </p>
+            <button
+              onClick={() => router.push('/register')}
+              className="w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200"
+              style={{
+                backgroundColor: COLORS.primary,
+                color: COLORS.onPrimary,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primaryContainer;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primary;
+              }}
+            >
+              Sign in with Google
+            </button>
+          </div>
+        </div>
+      </DefaultLayout>
+    );
+  }
+
+  return (
+    <DefaultLayout>
+      <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }} className="py-8">
+        <div className="max-w-7xl mx-auto px-4 space-y-8">
+          {/* Welcome Header */}
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-2" style={{ color: COLORS.onSurface }}>
+                Welcome back, {displayName}
+              </h1>
+              <p className="text-lg" style={{ color: COLORS.onSurfaceVariant }}>
+                Your AI-powered college counsellor is ready.
+              </p>
+            </div>
+            <div
+              className="flex items-center gap-2 px-4 py-2 rounded-full"
+              style={{ backgroundColor: COLORS.primaryContainer, color: COLORS.onPrimary }}
+            >
+              <Zap className="w-4 h-4" />
+              <span className="text-sm font-semibold">AI ENGINE ACTIVE</span>
+            </div>
+          </div>
+
+          {/* AI Search Bar */}
+          <div className="space-y-4">
+            <div
+              style={glassEffect}
+              className="rounded-2xl p-4 flex items-center gap-3 transition-all duration-200 hover:border-opacity-20"
+            >
+              <Search className="w-5 h-5 flex-shrink-0" style={{ color: COLORS.primary }} />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch(searchQuery);
+                  }
+                }}
+                placeholder="Ask me anything about your career, colleges, courses..."
+                className="flex-1 bg-transparent outline-none text-base"
+                style={{ color: COLORS.onSurface }}
+              />
+              <button
+                onClick={() => handleSearch(searchQuery)}
+                disabled={isLoading}
+                className="p-2 rounded-lg transition-all duration-200 disabled:opacity-50"
+                style={{
+                  backgroundColor: COLORS.primary,
+                  color: COLORS.onPrimary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.primaryContainer;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.primary;
+                }}
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Suggestion Chips */}
+            <div className="flex flex-wrap gap-2">
+              {quickSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleQuickSuggestion(suggestion)}
+                  className="px-4 py-2 rounded-full text-sm transition-all duration-200"
+                  style={{
+                    backgroundColor: COLORS.surfaceContainerHigh,
+                    color: COLORS.onSurfaceVariant,
+                    border: `1px solid ${COLORS.primary}40`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.primary;
+                    e.currentTarget.style.color = COLORS.onPrimary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.surfaceContainerHigh;
+                    e.currentTarget.style.color = COLORS.onSurfaceVariant;
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+
+            {/* AI Response Card */}
+            {showResponse && messages.length > 0 && (
+              <div
+                style={glassEffect}
+                className="rounded-2xl p-6 space-y-4 mt-6"
+              >
+                {/* User Message */}
+                <div className="flex justify-end">
+                  <div
+                    className="max-w-2xl rounded-xl px-4 py-3"
+                    style={{
+                      backgroundColor: COLORS.primary,
+                      color: COLORS.onPrimary,
+                    }}
+                  >
+                    <p className="text-sm">
+                      {messages[0]?.content}
+                    </p>
+                  </div>
+                </div>
+
+                {/* AI Response */}
+                {isLoading ? (
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: COLORS.primary }} />
+                    <div className="space-y-2">
+                      <p className="text-sm" style={{ color: COLORS.onSurfaceVariant }}>
+                        Thinking<span className="inline-block">
+                          <span className="animate-bounce inline-block" style={{ animationDelay: '0s' }}>.</span>
+                          <span className="animate-bounce inline-block" style={{ animationDelay: '0.2s' }}>.</span>
+                          <span className="animate-bounce inline-block" style={{ animationDelay: '0.4s' }}>.</span>
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <Sparkles className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: COLORS.primary }} />
+                    <div className="flex-1">
+                      <div
+                        className="prose prose-invert text-sm max-w-none"
+                        style={{ color: COLORS.onSurface }}
+                        dangerouslySetInnerHTML={{
+                          __html: formatResponse(
+                            messages[messages.length - 1]?.content || ''
+                          ),
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {!isLoading && (
+                  <button
+                    onClick={handleAskAnother}
+                    className="mt-4 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                    style={{
+                      backgroundColor: COLORS.surfaceContainerHigh,
+                      color: COLORS.primary,
+                      border: `1px solid ${COLORS.primary}40`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = COLORS.primary;
+                      e.currentTarget.style.color = COLORS.onPrimary;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = COLORS.surfaceContainerHigh;
+                      e.currentTarget.style.color = COLORS.primary;
+                    }}
+                  >
+                    Ask another question
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Profile Completion Card */}
+          <div
+            style={{
+              ...glassEffect,
+              borderImage: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryContainer}) 1`,
+            }}
+            className="rounded-2xl p-6 border-2"
+          >
+            {!hasProfile ? (
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold mb-1" style={{ color: COLORS.onSurface }}>
+                    Complete your profile
+                  </h3>
+                  <p style={{ color: COLORS.onSurfaceVariant }}>
+                    Get personalized college recommendations from Medha AI
+                  </p>
+                </div>
+                <button
+                  onClick={() => setHasProfile(true)}
+                  className="px-6 py-2 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap ml-4"
+                  style={{
+                    backgroundColor: COLORS.primary,
+                    color: COLORS.onPrimary,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.primaryContainer;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.primary;
+                  }}
+                >
+                  Fill Profile Now
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6" style={{ color: COLORS.primary }} />
+                  <div>
+                    <h3 className="text-lg font-bold" style={{ color: COLORS.onSurface }}>
+                      Profile Complete
+                    </h3>
+                    <p style={{ color: COLORS.onSurfaceVariant }}>
+                      92% Match Score
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* College Recommendations Section */}
+          <div>
+            <div className="flex items-center gap-2 mb-6">
+              <Sparkles className="w-5 h-5" style={{ color: COLORS.primary }} />
+              <h2 className="text-2xl font-bold" style={{ color: COLORS.onSurface }}>
+                Your College Recommendations
+              </h2>
+            </div>
+
+            {!hasProfile ? (
+              <div
+                style={glassEffect}
+                className="rounded-xl p-8 text-center"
+              >
+                <p style={{ color: COLORS.onSurfaceVariant }}>
+                  Complete your profile to unlock AI-powered college recommendations
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {colleges.map((college, index) => (
+                  <div
+                    key={index}
+                    style={glassEffect}
+                    className="rounded-xl p-4 cursor-pointer transition-all duration-200 hover:border-opacity-100 group"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <School className="w-5 h-5" style={{ color: COLORS.primary }} />
+                      <ChevronRight
+                        className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1"
+                        style={{ color: COLORS.onSurfaceVariant }}
+                      />
+                    </div>
+                    <h3 className="font-bold text-base mb-2" style={{ color: COLORS.onSurface }}>
+                      {college.name}
+                    </h3>
+                    <div className="flex gap-2 flex-wrap">
+                      <span
+                        className="text-xs px-2 py-1 rounded"
+                        style={{
+                          backgroundColor:
+                            college.category === 'AMBITIOUS'
+                              ? `${COLORS.primary}20`
+                              : `${COLORS.tertiary}20`,
+                          color:
+                            college.category === 'AMBITIOUS'
+                              ? COLORS.primary
+                              : COLORS.tertiary,
+                        }}
+                      >
+                        {college.category}
+                      </span>
+                      <span
+                        className="text-xs px-2 py-1 rounded"
+                        style={{
+                          backgroundColor: `${COLORS.onSurfaceVariant}15`,
+                          color: COLORS.onSurfaceVariant,
+                        }}
+                      >
+                        {college.branch}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* My Shortlist Section */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: COLORS.onSurface }}>
+                My Shortlist
+              </h2>
+              <span
+                className="px-3 py-1 rounded-full text-sm font-semibold"
+                style={{
+                  backgroundColor: COLORS.primary,
+                  color: COLORS.onPrimary,
+                }}
+              >
+                {shortlistedColleges.length}
+              </span>
+            </div>
+
+            {shortlistedColleges.length === 0 ? (
+              <div
+                style={glassEffect}
+                className="rounded-xl p-8 text-center"
+              >
+                <p style={{ color: COLORS.onSurfaceVariant }}>
+                  No colleges shortlisted yet. Use the search to discover colleges!
+                </p>
+              </div>
+            ) : (
+              <div className="flex gap-4 overflow-x-auto pb-2">
+                {shortlistedColleges.map((college, index) => (
+                  <div
+                    key={index}
+                    style={glassEffect}
+                    className="rounded-xl p-4 flex-shrink-0 w-64 transition-all duration-200 hover:border-opacity-100"
+                  >
+                    <h3 className="font-bold mb-1" style={{ color: COLORS.onSurface }}>
+                      {college.name}
+                    </h3>
+                    <p className="text-sm mb-2" style={{ color: COLORS.onSurfaceVariant }}>
+                      {college.location}
+                    </p>
+                    <span
+                      className="text-xs px-2 py-1 rounded inline-block"
+                      style={{
+                        backgroundColor: `${COLORS.primary}20`,
+                        color: COLORS.primary,
+                      }}
+                    >
+                      {college.branch}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Upcoming Deadlines Section */}
+          <div>
+            <div className="flex items-center gap-2 mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: COLORS.onSurface }}>
+                Upcoming Deadlines
+              </h2>
+              <div
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ backgroundColor: COLORS.error }}
+              ></div>
+            </div>
+
+            <div className="space-y-4">
+              {upcomingDeadlines.map((deadline, index) => (
+                <div
+                  key={index}
+                  style={glassEffect}
+                  className="rounded-xl p-4 flex gap-4"
+                >
+                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{
+                        backgroundColor: deadline.urgent
+                          ? COLORS.error
+                          : COLORS.primary,
+                      }}
+                    ></div>
+                    {index < upcomingDeadlines.length - 1 && (
+                      <div
+                        className="w-0.5 h-8"
+                        style={{
+                          backgroundColor: `${COLORS.primary}40`,
+                        }}
+                      ></div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p
+                      className="text-xs font-semibold mb-1"
+                      style={{
+                        color: deadline.urgent
+                          ? COLORS.error
+                          : COLORS.primary,
+                      }}
+                    >
+                      {deadline.date}
+                    </p>
+                    <h4 className="font-bold mb-1" style={{ color: COLORS.onSurface }}>
+                      {deadline.title}
+                    </h4>
+                    <p className="text-sm" style={{ color: COLORS.onSurfaceVariant }}>
+                      {deadline.subtitle}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* AI Tips Section */}
+          <div
+            style={{
+              backgroundColor: COLORS.surfaceContainer,
+              borderLeft: `4px solid ${COLORS.primary}`,
+            }}
+            className="rounded-xl p-6"
+          >
+            <h2 className="text-2xl font-bold mb-6" style={{ color: COLORS.onSurface }}>
+              Next Steps by Medha AI
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {aiTips.map((tip, index) => (
+                <div key={index}>
+                  <p
+                    className="text-sm font-bold mb-2"
+                    style={{ color: COLORS.primary }}
+                  >
+                    {tip.number}
+                  </p>
+                  <h3 className="font-bold mb-2" style={{ color: COLORS.onSurface }}>
+                    {tip.title}
+                  </h3>
+                  <p className="text-sm" style={{ color: COLORS.onSurfaceVariant }}>
+                    {tip.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <button
+              className="px-6 py-2 rounded-lg font-semibold transition-all duration-200"
+              style={{
+                backgroundColor: COLORS.primary,
+                color: COLORS.onPrimary,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primaryContainer;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primary;
+              }}
+            >
+              Execute AI Roadmap
+            </button>
+          </div>
+        </div>
+      </div>
+    </DefaultLayout>
+  );
 }
