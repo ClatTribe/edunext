@@ -264,7 +264,7 @@ export default function MedhaAIDashboard() {
   const quickSuggestions = [
     'MBA colleges in Pune',
     'I want to build rockets but bad at maths',
-    'Earn ‚Çπ25 LPA after 5 years',
+    'Earn â€šÃ‡Ï€25 LPA after 5 years',
     'Best engineering colleges in Delhi',
     'Entrepreneurship focused colleges',
   ];
@@ -469,26 +469,57 @@ export default function MedhaAIDashboard() {
   // Extract follow-up questions from AI response text
   const extractFollowUps = (text: string): { mainText: string; questions: string[] } => {
     const questions: string[] = [];
+
+    // Strategy 1: Split by newlines and find question lines
     const lines = text.split('\n');
     const mainLines: string[] = [];
 
     for (const line of lines) {
       const trimmed = line.trim();
-      // Match lines that are questions (end with ?)
-      // Skip very short or very long lines
-      if (trimmed.endsWith('?') && trimmed.length > 15 && trimmed.length < 120) {
-        // Clean up markdown bullets/numbers
-        const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '');
+      if (trimmed.endsWith('?') && trimmed.length > 15 && trimmed.length < 150) {
+        const cleaned = trimmed.replace(/^[-*â€¢]\s*/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '');
         questions.push(cleaned);
       } else {
         mainLines.push(line);
       }
     }
 
-    // Only separate questions if we found some, keep max 3
+    // Strategy 2: If no newline-separated questions found, look for inline numbered questions
+    // Pattern: "1. Question? 2. Another question?" or "(a) Question? (b) Question?"
+    if (questions.length === 0) {
+      const inlinePattern = /\d+\.\s+([^?]+\?)/g;
+      let match;
+      const foundInline: string[] = [];
+      while ((match = inlinePattern.exec(text)) !== null) {
+        const q = match[1].trim().replace(/\*\*/g, '');
+        if (q.length > 15 && q.length < 150) {
+          foundInline.push(q);
+        }
+      }
+
+      if (foundInline.length >= 2) {
+        // Remove the questions from the main text
+        let cleanedText = text;
+        for (const q of foundInline) {
+          // Remove the numbered question pattern from the text
+          cleanedText = cleanedText.replace(new RegExp('\\d+\\.\\s*\\*{0,2}' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*\\\*/g, '\\*{0,2}') + '\\*{0,2}', 'g'), '');
+        }
+        // Clean up leftover whitespace/punctuation
+        cleanedText = cleanedText.replace(/\s{2,}/g, ' ').replace(/\s+([.,!])/g, '$1').trim();
+        // Remove trailing "Once I have this information..." type sentences
+        cleanedText = cleanedText.replace(/\s*(Once I have|Once you provide|With this information|Let me know|Please share)[\s\S]*$/i, '').trim();
+
+        return {
+          mainText: cleanedText,
+          questions: foundInline.slice(0, 4),
+        };
+      }
+    }
+
+    // Return newline-based extraction if it worked
     return {
       mainText: questions.length > 0 ? mainLines.join('\n').replace(/\n{3,}/g, '\n\n').trim() : text,
-      questions: questions.slice(0, 3),
+      questions: questions.slice(0, 4),
     };
   };
 
@@ -612,7 +643,7 @@ export default function MedhaAIDashboard() {
             </div>
           </div>
 
-          {/* AI Search Bar ‚Äî prominent with strong border and background */}
+          {/* AI Search Bar â€šÃ„Ã® prominent with strong border and background */}
           <div className="space-y-4">
             <div
               className="rounded-2xl p-5 flex items-center gap-3"
@@ -660,7 +691,7 @@ export default function MedhaAIDashboard() {
               </button>
             </div>
 
-            {/* Quick Suggestion Chips ‚Äî high visibility */}
+            {/* Quick Suggestion Chips â€šÃ„Ã® high visibility */}
             <div className="flex flex-wrap gap-3">
               {quickSuggestions.map((suggestion, index) => (
                 <button
@@ -840,7 +871,7 @@ export default function MedhaAIDashboard() {
                       Profile Complete
                     </h3>
                     <p style={{ color: COLORS.onSurfaceVariant }}>
-                      Target: {profileData?.target_degree || 'N/A'}{profileData?.target_field ? ` ‚Äî ${profileData.target_field}` : ''}
+                      Target: {profileData?.target_degree || 'N/A'}{profileData?.target_field ? ` â€šÃ„Ã® ${profileData.target_field}` : ''}
                     </p>
                   </div>
                 </div>
@@ -859,7 +890,7 @@ export default function MedhaAIDashboard() {
             )}
           </div>
 
-          {/* My Shortlist Section ‚Äî from real Supabase data */}
+          {/* My Shortlist Section â€šÃ„Ã® from real Supabase data */}
           <div>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
@@ -1039,7 +1070,7 @@ export default function MedhaAIDashboard() {
             )}
           </div>
 
-          {/* Upcoming Deadlines Section ‚Äî filtered by target_degree */}
+          {/* Upcoming Deadlines Section â€šÃ„Ã® filtered by target_degree */}
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
