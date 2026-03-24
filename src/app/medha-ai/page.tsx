@@ -270,7 +270,7 @@ export default function MedhaAIDashboard() {
   const quickSuggestions = [
     'MBA colleges in Pune',
     'I want to build rockets but bad at maths',
-    'Earn â¹25 LPA after 5 years',
+    'Earn ₹25 LPA after 5 years',
     'Best engineering colleges in Delhi',
     'Entrepreneurship focused colleges',
   ];
@@ -483,7 +483,7 @@ export default function MedhaAIDashboard() {
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed.endsWith('?') && trimmed.length > 15 && trimmed.length < 150) {
-        const cleaned = trimmed.replace(/^[-*â¢]\s*/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '');
+        const cleaned = trimmed.replace(/^[-*•]\s*/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '');
         questions.push(cleaned);
       } else {
         mainLines.push(line);
@@ -591,11 +591,11 @@ export default function MedhaAIDashboard() {
   const generateOptions = (question: string): string[] => {
     const q = question.toLowerCase();
 
-    // MBA specialization â must check BEFORE generic field/branch
+    // MBA specialization — must check BEFORE generic field/branch
     if (q.includes('specializ') || q.includes('concentration') || (q.includes('mba') && (q.includes('which') || q.includes('area') || q.includes('interest')))) {
       return ['Finance', 'Marketing', 'HR', 'Operations', 'Business Analytics', 'IT & Systems', 'General Management', 'Other'];
     }
-    // Score / rank / percentile â must check BEFORE entrance exams (questions often contain both)
+    // Score / rank / percentile — must check BEFORE entrance exams (questions often contain both)
     if (q.includes('score') || q.includes('rank') || q.includes('percentile') || q.includes('marks')) {
       return ['Haven\'t taken yet', 'Below 50th percentile', '50th-70th percentile', '70th-85th percentile', '85th-95th percentile', '95th+ percentile'];
     }
@@ -609,7 +609,7 @@ export default function MedhaAIDashboard() {
     }
     // Budget / fees
     if (q.includes('budget') || q.includes('fee') || q.includes('afford') || q.includes('cost')) {
-      return ['Under â¹5 Lakh', 'â¹5-10 Lakh', 'â¹10-20 Lakh', 'â¹20 Lakh+', 'No constraint'];
+      return ['Under ₹5 Lakh', '₹5-10 Lakh', '₹10-20 Lakh', '₹20 Lakh+', 'No constraint'];
     }
     // Location / city
     if (q.includes('location') || q.includes('city') || q.includes('region') || (q.includes('where') && q.includes('prefer'))) {
@@ -621,7 +621,7 @@ export default function MedhaAIDashboard() {
     }
     // Placement / salary expectation
     if (q.includes('placement') || q.includes('salary') || q.includes('package') || q.includes('ctc') || q.includes('lpa')) {
-      return ['â¹8-12 LPA', 'â¹12-20 LPA', 'â¹20-30 LPA', 'â¹30 LPA+', 'Not the top priority'];
+      return ['₹8-12 LPA', '₹12-20 LPA', '₹20-30 LPA', '₹30 LPA+', 'Not the top priority'];
     }
     // Engineering branches (for B.Tech queries)
     if (q.includes('branch') || q.includes('engineering') || (q.includes('stream') && !q.includes('mba'))) {
@@ -635,7 +635,7 @@ export default function MedhaAIDashboard() {
     if (q.includes('priority') || q.includes('important') || q.includes('matters most') || q.includes('looking for in')) {
       return ['Placements & ROI', 'Brand name & ranking', 'Location', 'Affordable fees', 'Specialization strength'];
     }
-    // Vague "tell me more" / "looking for" â show helpful general options
+    // Vague "tell me more" / "looking for" — show helpful general options
     if (q.includes('looking for') || q.includes('tell me') || q.includes('help you') || q.includes('more about')) {
       return ['Best placements', 'Affordable fees', 'Top-ranked colleges', 'Specific specialization', 'Scholarship options'];
     }
@@ -650,7 +650,7 @@ export default function MedhaAIDashboard() {
     const nextIndex = followUpState.currentIndex + 1;
 
     if (nextIndex >= followUpState.questions.length) {
-      // All questions answered â compile and send as a single message
+      // All questions answered — compile and send as a single message
       const compiled = followUpState.questions
         .map((q, i) => `${q} ${newAnswers[i] || 'Skipped'}`)
         .join('\n');
@@ -666,7 +666,7 @@ export default function MedhaAIDashboard() {
     if (!followUpState) return;
     const nextIndex = followUpState.currentIndex + 1;
     if (nextIndex >= followUpState.questions.length) {
-      // All done â send whatever we have
+      // All done — send whatever we have
       const compiled = followUpState.questions
         .map((q, i) => `${q} ${followUpState.answers[i] || 'Skipped'}`)
         .join('\n');
@@ -752,7 +752,7 @@ export default function MedhaAIDashboard() {
             </div>
           </div>
 
-          {/* AI Search Bar âÃÃ® prominent with strong border and background */}
+          {/* AI Search Bar ‚Äî prominent with strong border and background */}
           <div className="space-y-4">
             <div
               className="rounded-2xl p-5 flex items-center gap-3"
@@ -800,7 +800,7 @@ export default function MedhaAIDashboard() {
               </button>
             </div>
 
-            {/* Quick Suggestion Chips âÃÃ® high visibility */}
+            {/* Quick Suggestion Chips ‚Äî high visibility */}
             <div className="flex flex-wrap gap-3">
               {quickSuggestions.map((suggestion, index) => (
                 <button
@@ -954,7 +954,7 @@ export default function MedhaAIDashboard() {
                           className="text-xs ml-1"
                           style={{ color: COLORS.onSurfaceVariant }}
                         >
-                          â
+                          ✕
                         </button>
                       </div>
                     </div>
@@ -997,7 +997,7 @@ export default function MedhaAIDashboard() {
                       {/* "Something else" / free-text option */}
                       <div className="flex items-center gap-2 px-3 py-2">
                         <span className="text-sm" style={{ color: COLORS.onSurfaceVariant }}>
-                          âï¸
+                          ✏️
                         </span>
                         <input
                           type="text"
@@ -1116,7 +1116,7 @@ export default function MedhaAIDashboard() {
                       Profile Complete
                     </h3>
                     <p style={{ color: COLORS.onSurfaceVariant }}>
-                      Target: {profileData?.target_degree || 'N/A'}{profileData?.target_field ? ` âÃÃ® ${profileData.target_field}` : ''}
+                      Target: {profileData?.target_degree || 'N/A'}{profileData?.target_field ? ` ‚Äî ${profileData.target_field}` : ''}
                     </p>
                   </div>
                 </div>
@@ -1135,7 +1135,7 @@ export default function MedhaAIDashboard() {
             )}
           </div>
 
-          {/* My Shortlist Section âÃÃ® from real Supabase data */}
+          {/* My Shortlist Section ‚Äî from real Supabase data */}
           <div>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
@@ -1315,7 +1315,7 @@ export default function MedhaAIDashboard() {
             )}
           </div>
 
-          {/* Upcoming Deadlines Section âÃÃ® filtered by target_degree */}
+          {/* Upcoming Deadlines Section ‚Äî filtered by target_degree */}
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
