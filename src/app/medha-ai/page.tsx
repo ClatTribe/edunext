@@ -474,8 +474,16 @@ export default function MedhaAIDashboard() {
   };
 
   // Parse college recommendation cards from AI response
-  const parseCollegeCards = (text) => {
-    const colleges = [];
+  interface CollegeCard {
+    name: string;
+    whyItFits: string;
+    fees: string;
+    avgPackage: string;
+    cutoff: string;
+  }
+
+  const parseCollegeCards = (text: string): { intro: string; colleges: CollegeCard[]; outro: string } => {
+    const colleges: CollegeCard[] = [];
     const parts = text.split(/(?=\d+\.\s+\*{0,2}[A-Z])/);
     let intro = '';
     let outro = '';
