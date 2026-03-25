@@ -473,6 +473,37 @@ export default function MedhaAIDashboard() {
     return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   };
 
+  // Parse college recommendation cards from AI response
+  const parseCollegeCards = (text) => {
+    const colleges = [];
+    const parts = text.split(/(?=\d+\.\s+\*{0,2}[A-Z])/);
+    let intro = '';
+    let outro = '';
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i].trim();
+      if (!part) continue;
+      const collegeMatch = part.match(/^\d+\.\s+\*{0,2}(.+?)\*{0,2}\s*[:\-]/);
+      if (collegeMatch) {
+        const name = collegeMatch[1].replace(/\*\*/g, '').replace(/[:*]/g, '').trim();
+        const body = part.substring(collegeMatch[0].length);
+        const whyMatch = body.match(/[Ww]hy\s+it\s+fits[:\s]*\*{0,2}([\s\S]*?)(?=\*?\s*(?:Key Stats|Fees|Average Package|Cutoff|\d+\.|Important|$))/i);
+        const whyItFits = whyMatch ? whyMatch[1].replace(/\*\*/g, '').replace(/^\s*[*\-]\s*/, '').trim() : '';
+        const feesMatch = body.match(/[Ff]ees[:\s]*\*{0,2}([\s\S]*?)(?=\*?\s*(?:Average Package|Cutoff|Placement|\d+\.|$))/i);
+        const fees = feesMatch ? feesMatch[1].replace(/\*\*/g, '').replace(/^\s*[*\-]\s*/, '').trim() : '';
+        const pkgMatch = body.match(/[Aa]verage\s+[Pp]ackage[:\s]*\*{0,2}([\s\S]*?)(?=\*?\s*(?:Cutoff|Fees|\d+\.|$))/i);
+        const avgPackage = pkgMatch ? pkgMatch[1].replace(/\*\*/g, '').replace(/^\s*[*\-]\s*/, '').trim() : '';
+        const cutoffMatch = body.match(/[Cc]ut[\s-]?off[:\s]*\*{0,2}([\s\S]*?)(?=\*?\s*(?:\d+\.|Important|Note|$))/i);
+        const cutoff = cutoffMatch ? cutoffMatch[1].replace(/\*\*/g, '').replace(/^\s*[*\-(\s]*/, '').trim() : '';
+        if (name) colleges.push({ name, whyItFits, fees, avgPackage, cutoff });
+      } else if (colleges.length === 0) {
+        intro += (intro ? ' ' : '') + part;
+      } else {
+        outro += (outro ? ' ' : '') + part;
+      }
+    }
+    return { intro: intro.trim(), colleges, outro: outro.trim() };
+  };
+
   // Extract follow-up questions from AI response text
   const extractFollowUps = (text: string): { mainText: string; questions: string[] } => {
     const questions: string[] = [];
@@ -881,17 +912,55 @@ export default function MedhaAIDashboard() {
                     }, 600);
                   }
 
+                  const { intro, colleges, outro } = parseCollegeCards(mainText);
+                  const hasCards = colleges.length >= 1;
+
                   return (
                     <div className="flex gap-3">
                       <Sparkles className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: COLORS.primary }} />
                       <div className="flex-1">
-                        <div
-                          className="prose prose-invert text-sm max-w-none"
-                          style={{ color: COLORS.onSurface }}
-                          dangerouslySetInnerHTML={{
-                            __html: formatResponse(mainText),
-                          }}
-                        />
+                        {(hasCards && intro) ? (
+                          <div className="prose prose-invert text-sm max-w-none mb-4" style={{ color: COLORS.onSurface }} dangerouslySetInnerHTML={{ __html: formatResponse(intro) }} />
+                        ) : !hasCards ? (
+                          <div className="prose prose-invert text-sm max-w-none" style={{ color: COLORS.onSurface }} dangerouslySetInnerHTML={{ __html: formatResponse(mainText) }} />
+                        ) : null}
+
+                        {hasCards && (
+                          <div className="grid gap-3">
+                            {colleges.map((college, idx) => (
+                              <div key={idx} className="rounded-xl overflow-hidden transition-all duration-200" style={{ backgroundColor: COLORS.surfaceContainerHigh, border: `1px solid ${COLORS.primary}25` }}
+                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${COLORS.primary}60`; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${COLORS.primary}25`; e.currentTarget.style.transform = 'translateY(0)'; }}
+                              >
+                                <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.primary}15` }}>
+                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ backgroundColor: `${COLORS.primary}20`, color: COLORS.primary }}>
+                                    {idx + 1}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-semibold truncate" style={{ color: COLORS.onSurface }}>{college.name}</h4>
+                                  </div>
+                                  <School className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.primary, opacity: 0.6 }} />
+                                </div>
+                                {college.whyItFits && (
+                                  <div className="px-4 py-2.5" style={{ borderBottom: `1px solid ${COLORS.primary}10` }}>
+                                    <p className="text-xs leading-relaxed" style={{ color: COLORS.onSurfaceVariant }}>{college.whyItFits}</p>
+                                  </div>
+                                )}
+                                {(college.fees || college.avgPackage || college.cutoff) && (
+                                  <div className="px-4 py-3 grid grid-cols-3 gap-3">
+                                    {college.fees && (<div><p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: COLORS.onSurfaceVariant, opacity: 0.7 }}>Fees</p><p className="text-xs font-medium" style={{ color: COLORS.primary }}>{college.fees}</p></div>)}
+                                    {college.avgPackage && (<div><p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: COLORS.onSurfaceVariant, opacity: 0.7 }}>Avg Package</p><p className="text-xs font-medium" style={{ color: '#4ade80' }}>{college.avgPackage}</p></div>)}
+                                    {college.cutoff && (<div><p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: COLORS.onSurfaceVariant, opacity: 0.7 }}>Cutoff</p><p className="text-xs font-medium" style={{ color: COLORS.tertiary }}>{college.cutoff}</p></div>)}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {hasCards && outro && (
+                          <div className="mt-3 px-3 py-2.5 rounded-lg text-xs leading-relaxed" style={{ color: COLORS.onSurfaceVariant, backgroundColor: `${COLORS.primary}08`, border: `1px solid ${COLORS.primary}12` }} dangerouslySetInnerHTML={{ __html: formatResponse(outro) }} />
+                        )}
                       </div>
                     </div>
                   );
