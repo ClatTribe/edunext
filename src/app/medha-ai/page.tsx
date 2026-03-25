@@ -266,6 +266,7 @@ export default function MedhaAIDashboard() {
   } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const followUpTriggeredRef = useRef(false);
+  const followUpRoundDoneRef = useRef(false);
 
   const quickSuggestions = [
     'MBA colleges in Pune',
@@ -582,6 +583,7 @@ export default function MedhaAIDashboard() {
     setShowResponse(false);
     setFollowUpState(null);
     followUpTriggeredRef.current = false;
+    followUpRoundDoneRef.current = false;
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -650,11 +652,12 @@ export default function MedhaAIDashboard() {
     const nextIndex = followUpState.currentIndex + 1;
 
     if (nextIndex >= followUpState.questions.length) {
-      // All questions answered — compile and send as a single message
+      // All questions answered — send with FINAL ANSWER flag (no more questions)
       const compiled = followUpState.questions
         .map((q, i) => `${q} ${newAnswers[i] || 'Skipped'}`)
-        .join('\n');
+        .join('\n') + '\n\n[FINAL ANSWER] Based on my answers above, recommend me specific colleges or courses. Do not ask more questions.';
       setFollowUpState(null);
+      followUpRoundDoneRef.current = true;
       handleSearch(compiled);
     } else {
       setFollowUpState({ ...followUpState, currentIndex: nextIndex, answers: newAnswers });
@@ -666,11 +669,12 @@ export default function MedhaAIDashboard() {
     if (!followUpState) return;
     const nextIndex = followUpState.currentIndex + 1;
     if (nextIndex >= followUpState.questions.length) {
-      // All done — send whatever we have
+      // All done — send with FINAL ANSWER flag (no more questions)
       const compiled = followUpState.questions
         .map((q, i) => `${q} ${followUpState.answers[i] || 'Skipped'}`)
-        .join('\n');
+        .join('\n') + '\n\n[FINAL ANSWER] Based on my answers above, recommend me specific colleges or courses. Do not ask more questions.';
       setFollowUpState(null);
+      followUpRoundDoneRef.current = true;
       handleSearch(compiled);
     } else {
       setFollowUpState({ ...followUpState, currentIndex: nextIndex });
@@ -866,7 +870,7 @@ export default function MedhaAIDashboard() {
                   const { mainText, questions } = extractFollowUps(lastMsg);
 
                   // Trigger follow-up card mode if questions found and not already triggered
-                  if (questions.length > 0 && !followUpState && !isLoading && !followUpTriggeredRef.current) {
+                  if (questions.length > 0 && !followUpState && !isLoading && !followUpTriggeredRef.current && !followUpRoundDoneRef.current) {
                     followUpTriggeredRef.current = true;
                     setTimeout(() => {
                       setFollowUpState({
