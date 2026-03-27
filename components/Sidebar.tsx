@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import {
-  Home,
   User,
   BookOpen,
   IndianRupee,
@@ -43,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
 
   const navItems = {
     main: [
-      { icon: Home, label: "Home", path: "/home" },
+      { icon: Sparkles, label: "Medha AI", path: "/medha-ai" },
       { icon: User, label: "Profile", path: "/profile" },
     ],
     explore: [
@@ -52,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
       { icon: Building2, label: "Battle Mode", path: "/battle-mode" },
-      { icon: Sparkles, label: "Medha AI", path: "/medha-ai" },
+
     ],
     applications: [
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
