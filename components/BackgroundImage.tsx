@@ -87,7 +87,7 @@ function BackgroundImage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
     >
-      <Link href={user ? "/home" : "/register"}>
+      <Link href={user ? "/medha-ai" : "/register"}>
         <button
           className="sm:px-8 h-[45px] whitespace-nowrap sm:py-4 p-4 font-bold rounded-lg transition-all flex items-center justify-center gap-2 group shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:scale-105"
           style={{ backgroundColor: primary, color: "black" }}
