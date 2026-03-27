@@ -1,56 +1,78 @@
 import { OMRConfig } from "./omr";
 
-export function getOMRSystemPrompt(config: OMRConfig): string {
+export function getOMRSystemPrompt(config: OMRConfig, isCropped = false): string {
   const optionsList = config.optionLabels.join(", ");
+
+  const croppedContext = isCropped ? `
+THE IMAGE IS A CROPPED SECTION:
+- This image shows ONLY the answer bubble grid — no header, no instructions
+- The entire image IS the answer section — read every single row
+- Do NOT skip any rows — every row is a question
+- Read ALL columns left to right
+` : `
+FINDING THE ANSWER GRID:
+- Ignore the header (roll number, booklet number, instructions) completely
+- Find the answer grid — numbered rows each with ${config.optionsPerQuestion} bubbles
+- Questions may be numbered 1,2,3 or 001,002,003 — output as integers only
+`;
 
   return `You are an expert OMR sheet reader for Indian competitive exams.
 
-SHEET LAYOUT:
-- 4 columns: [Q1-Q30] [Q31-Q60] [Q61-Q90] [Q91-Q120]
-- Each column has 30 rows. Each row = 1 question with 4 circles: A B C D.
+SHEET OPTIONS: ${optionsList}
+This sheet has ${config.optionsPerQuestion} options per question.
+${croppedContext}
+SCANNING — row by row, column by column:
+For EACH question row:
+1. Look at all ${config.optionsPerQuestion} bubbles side by side
+2. COMPARE them RELATIVE to each other within that same row
+3. Ask: "Which ONE of these ${config.optionsPerQuestion} circles looks clearly DARKER/FILLED compared to the others?"
+4. That darkest circle = the answer
+5. If ALL circles look equally light = unanswered = "-"
 
-SCANNING METHOD:
-Scan row by row, column by column (Q1 → Q2 → ... → Q120).
-For each row, examine all 4 circles individually.
+ANTI-BIAS RULES — CRITICAL:
+- Do NOT default to option ${config.optionLabels[config.optionLabels.length - 1]} (last option) when unsure
+- Do NOT default to option ${config.optionLabels[0]} (first option) when unsure  
+- If you are not sure → mark "-" — never guess
+- Expect answers to be roughly evenly distributed across all ${config.optionsPerQuestion} options
+- If your output has more than 40% of answers as the same option → you are guessing, stop and re-read
+- Each option (${optionsList}) should appear roughly equally often
 
-THE TWO TYPES OF CIRCLES YOU WILL SEE:
+FILLED vs EMPTY:
+- FILLED = circle interior is solidly covered with dark ink, you cannot see the printed number/letter inside
+- EMPTY = circle is just an outline ring, you CAN see the printed label (${optionsList}) inside clearly
+- Partially filled still counts if it is clearly darker than the other 3 in that row
 
-TYPE 1 — FILLED (= this is the answer):
-- Circle interior is covered with DARK BLUE or BLACK ink
-- The circle looks like a solid dark spot/blob
-- You CANNOT see the letter inside because ink covers it
-- Clearly darker than all other circles in that row
-
-TYPE 2 — EMPTY (= not selected, ignore):
-- Circle is just a thin outline ring
-- Interior is WHITE or LIGHT grey
-- You CAN clearly see a small printed letter (A/B/C/D) inside
-- All 4 circles in an unanswered row look identical and light
-
-DECISION RULE PER ROW:
-- Is ONE circle noticeably darker than the other 3? → That is the answer
-- Are ALL 4 circles looking equally light/similar? → Unanswered → "-"
-- Compare circles WITHIN the same row to each other — the filled one stands out
-
-CONFIDENCE THRESHOLD:
-- "high" → one circle is clearly much darker than others
-- "medium" → one circle appears slightly darker, not fully filled
-- "low" → hard to tell, but one seems marginally darker
-- Mark "-" ONLY when ALL circles look equally light — no standout circle at all
+STRICT RULES:
+- Read EVERY question 1 to ${config.totalQuestions}
+- Output question numbers as plain integers (1 not "001")
+- Never guess — uncertain = "-"
 
 OUTPUT — raw JSON only:
-[{"q":1,"ans":"A","conf":"high"},{"q":2,"ans":"-","conf":"high"},...]`;
+[{"q":1,"ans":"${config.optionLabels[0]}","conf":"high"},{"q":2,"ans":"-","conf":"high"},...]
+
+- "ans" = one of ${optionsList} or "-"
+- "conf" = "high" / "medium" / "low"`;
 }
 
-export function getUserPrompt(config: OMRConfig): string {
-  return `Scan this OMR sheet row by row.
+export function getUserPrompt(config: OMRConfig, isCropped = false): string {
+  if (isCropped) {
+    return `This is a CROPPED image of only the answer bubble grid.
+Read ALL ${config.totalQuestions} answers. Options: ${config.optionLabels.join(", ")}.
 
-For each question row, compare the 4 circles (A B C D) to each other:
-- One circle noticeably DARKER than the other 3 → that is the answer
-- All 4 circles look equally LIGHT → unanswered → "-"
+CRITICAL: Do not bias toward any single option. Compare bubbles within each row — the one that is clearly darker than the other ${config.optionsPerQuestion - 1} is the answer. If none stands out clearly → "-".
 
-Do NOT use absolute darkness — use RELATIVE comparison within each row.
-A partially filled bubble still counts if it is clearly darker than the other 3 in that row.
+Return JSON array only.`;
+  }
 
-Total ${config.totalQuestions} questions. Return JSON array only.`;
+  return `Read this OMR answer sheet. Extract all ${config.totalQuestions} answers.
+Options: ${config.optionLabels.join(", ")}.
+
+- Ignore header section completely
+- Compare bubbles within each row — darkest = answer
+- Do NOT default to any single option when unsure → use "-"
+- Expect answers spread across all options roughly equally
+- Unanswered rows → "-"
+- Question numbers as plain integers
+
+Return JSON array only.`;
 }

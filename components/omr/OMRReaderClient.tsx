@@ -7,6 +7,7 @@ import ImageUploader from "./ImageUploader";
 import ResultsGrid from "./ResultsGrid";
 import { cropAnswerSection, isFullSheetPhoto } from "../../lib/omr-crop";
 
+
 export default function OMRReaderClient() {
   const [config, setConfig] = useState<OMRConfig>(DEFAULT_CONFIG);
   const [images, setImages] = useState<string[]>([]);
@@ -50,7 +51,9 @@ export default function OMRReaderClient() {
           if (i === 0) setCroppedPreview(imageToSend);
         }
 
-        setProgress(`Reading OMR sheet${images.length > 1 ? ` (${i + 1}/${images.length})` : ""}...`);
+        setProgress(
+          `Reading OMR sheet${images.length > 1 ? ` (${i + 1}/${images.length})` : ""}...`,
+        );
 
         const res = await fetch("/api/parse-omr", {
           method: "POST",
@@ -59,7 +62,8 @@ export default function OMRReaderClient() {
         });
 
         const data: OMRResult = await res.json();
-        if (!data.success) throw new Error(data.error || `Failed on image ${i + 1}`);
+        if (!data.success)
+          throw new Error(data.error || `Failed on image ${i + 1}`);
 
         allAnswers.push(...data.answers);
       }
@@ -68,15 +72,20 @@ export default function OMRReaderClient() {
       const answerMap = new Map<number, (typeof allAnswers)[0]>();
       for (const ans of allAnswers) {
         const existing = answerMap.get(ans.questionNumber);
-        if (!existing || confRank[ans.confidence] > confRank[existing.confidence]) {
+        if (
+          !existing ||
+          confRank[ans.confidence] > confRank[existing.confidence]
+        ) {
           answerMap.set(ans.questionNumber, ans);
         }
       }
 
       const merged = Array.from(answerMap.values()).sort(
-        (a, b) => a.questionNumber - b.questionNumber
+        (a, b) => a.questionNumber - b.questionNumber,
       );
-      const totalAnswered = merged.filter((a) => a.selectedOption !== null).length;
+      const totalAnswered = merged.filter(
+        (a) => a.selectedOption !== null,
+      ).length;
 
       setResult({
         success: true,
@@ -91,9 +100,10 @@ export default function OMRReaderClient() {
       });
 
       setTimeout(() => {
-        document.getElementById("omr-results")?.scrollIntoView({ behavior: "smooth" });
+        document
+          .getElementById("omr-results")
+          ?.scrollIntoView({ behavior: "smooth" });
       }, 100);
-
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -138,10 +148,16 @@ export default function OMRReaderClient() {
               dismiss
             </button>
           </div>
-          <img src={croppedPreview} alt="Cropped OMR answer section" className="w-full" />
+          <img
+            src={croppedPreview}
+            alt="Cropped OMR answer section"
+            className="w-full"
+          />
           <div className="px-3 py-2 bg-slate-900">
             <p className="text-xs text-slate-500">
-              If bubbles are cut off or header is still visible, adjust <code className="text-amber-500/70">cropRatio</code> in <code className="text-amber-500/70">lib/omr-crop.ts</code>
+              If bubbles are cut off or header is still visible, adjust{" "}
+              <code className="text-amber-500/70">cropRatio</code> in{" "}
+              <code className="text-amber-500/70">lib/omr-crop.ts</code>
             </p>
           </div>
         </div>
@@ -157,16 +173,25 @@ export default function OMRReaderClient() {
       {loading && (
         <div
           className="mt-6 rounded-2xl p-6"
-          style={{ backgroundColor: "#0F172B", border: "1px solid rgba(245,158,11,0.15)" }}
+          style={{
+            backgroundColor: "#0F172B",
+            border: "1px solid rgba(245,158,11,0.15)",
+          }}
         >
           <div className="flex flex-col items-center gap-4">
             <div className="relative w-16 h-16">
               <div className="absolute inset-0 rounded-full border-4 border-slate-700" />
               <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-amber-500 animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center text-amber-500 text-xl">🔍</div>
+              <div className="absolute inset-0 flex items-center justify-center text-amber-500 text-xl">
+                🔍
+              </div>
             </div>
-            <p className="text-amber-400 font-semibold text-base">{progress || "Processing..."}</p>
-            <p className="text-slate-500 text-xs">This may take 10–15 seconds...</p>
+            <p className="text-amber-400 font-semibold text-base">
+              {progress || "Processing..."}
+            </p>
+            <p className="text-slate-500 text-xs">
+              This may take 10–15 seconds...
+            </p>
           </div>
         </div>
       )}
@@ -192,7 +217,11 @@ export default function OMRReaderClient() {
 
       {result && result.success && (
         <div id="omr-results">
-          <ResultsGrid result={result} />
+          <ResultsGrid
+            result={result}
+            originalImage={images[0]}
+            config={config}
+          />
         </div>
       )}
     </div>

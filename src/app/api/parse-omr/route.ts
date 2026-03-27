@@ -68,12 +68,11 @@ export async function POST(request: NextRequest) {
     const {
       image,
       config: userConfig,
-      columnPrompt,
+      isCropped,
     } = body as {
       image: string;
       config?: Partial<OMRConfig>;
-      columnPrompt?: string;
-      questionOffset?: number;
+      isCropped?: boolean;
     };
 
     if (!image) {
@@ -121,13 +120,13 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           system_instruction: {
-            parts: [{ text: getOMRSystemPrompt(config) }],
+            parts: [{ text: getOMRSystemPrompt(config, isCropped) }],
           },
           contents: [
             {
               parts: [
                 { inline_data: { mime_type: mimeType, data: base64Data } },
-                { text: columnPrompt || getUserPrompt(config) },
+                { text: getUserPrompt(config, isCropped) },
               ],
             },
           ],
