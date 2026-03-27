@@ -27,7 +27,7 @@ const borderColor = 'rgba(245, 158, 11, 0.15)';
   // ✅ Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/home'); // Redirect to /home
+      router.replace('/medha-ai'); // Redirect to /medha-ai
     }
   }, [user, loading, router]);
 
