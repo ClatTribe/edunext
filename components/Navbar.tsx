@@ -77,7 +77,7 @@ const Navbar: React.FC = () => {
           {user ? (
             <>
               <Link
-                href="/home"
+                href="/medha-ai"
                 className="px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer"
                 style={{ color: primary, backgroundColor: "rgba(99, 102, 241, 0.1)" }}
               >
@@ -181,7 +181,7 @@ const Navbar: React.FC = () => {
           {user ? (
             <>
               <Link
-                href="/home"
+                href="/medha-ai"
                 className="w-full py-3 text-center font-medium rounded-xl cursor-pointer"
                 style={{ color: primary, backgroundColor: "rgba(99, 102, 241, 0.1)" }}
               >
