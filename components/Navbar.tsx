@@ -24,9 +24,9 @@ interface Product {
 }
 
 const PRODUCTS: Product[] = [
-  { id: "edunext", label: "EDUNEXT", url: "https://getedunext.com" },
-  { id: "preptribe", label: "PREPTRIBE", url: "https://jeetribechallenge.getedunext.com" },
-  { id: "schooltribe", label: "SCHOOLTRIBE", url: "https://vidyaa-rho.vercel.app" },
+  { id: "edunext", label: "EduNext", url: "https://getedunext.com" },
+  { id: "preptribe", label: "PrepTribe", url: "https://jeetribechallenge.getedunext.com" },
+  { id: "schooltribe", label: "SchoolTribe", url: "https://vidyaa-rho.vercel.app" },
 ];
 
 // âââ NAV LINKS (per product) ââââââââââââââââââââââââââââââââ
