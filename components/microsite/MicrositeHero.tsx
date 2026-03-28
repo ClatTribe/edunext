@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { MapPin, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
 
 interface MicrositeHeroProps {
@@ -26,7 +26,21 @@ export default function MicrositeHero({
   video,
   podcast
 }: MicrositeHeroProps) {
-  
+
+  // ── Incognito Toggle State ──
+  const [isIncognitoOpen, setIsIncognitoOpen] = useState(false)
+  const incognitoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (incognitoRef.current && !incognitoRef.current.contains(event.target as Node)) {
+        setIsIncognitoOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   const details = [
     fees && 'Fees',
     'Admission',
@@ -66,10 +80,10 @@ export default function MicrositeHero({
   // Autoplay carousel - STOPS when video is playing
   React.useEffect(() => {
     if (mediaItems.length <= 1 || isPlaying) return
-    
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % mediaItems.length)
-    }, 5000) // Change slide every 5 seconds
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [mediaItems.length, isPlaying])
@@ -98,16 +112,16 @@ export default function MicrositeHero({
   }
 
   return (
-    <div 
+    <div
       className="relative overflow-hidden pt-6 pb-6 md:pt-12 md:pb-10 px-4 sm:px-8 md:px-12 flex items-center"
       style={{ backgroundColor: primaryBg }}
     >
       {/* Background Pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.08] pointer-events-none" 
-        style={{ 
-          backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', 
-          backgroundSize: '30px 30px' 
+      <div
+        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        style={{
+          backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
+          backgroundSize: '30px 30px'
         }}
       ></div>
 
@@ -116,10 +130,52 @@ export default function MicrositeHero({
 
       <div className="max-w-7xl mx-auto relative z-10 w-full">
         <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-center">
-          
-          {/* Text Content Area - Order 1 on mobile (shows first), Order 1 on desktop */}
+
+          {/* Text Content Area */}
           <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left order-1 md:order-1">
-            
+
+            {/* ══════ Incognito / Privacy Shield Badge ══════ */}
+            <div
+              ref={incognitoRef}
+              className="group mb-4 md:mb-5 self-center md:self-start"
+              onClick={() => setIsIncognitoOpen(!isIncognitoOpen)}
+            >
+              <div className="relative">
+                {/* Glow Background */}
+                <div className={`absolute -inset-1 bg-amber-600/20 rounded-full blur-xl transition-opacity duration-700
+                  ${isIncognitoOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                </div>
+
+                <div className={`relative flex items-center bg-zinc-900/60 border border-white/10 rounded-full shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden
+                  ${isIncognitoOpen ? 'pr-5' : 'group-hover:pr-5'}`}>
+
+                  {/* Icon Wrapper */}
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-gray-300 to-zinc-300 group-hover:from-amber-500 group-hover:to-amber-600 transition-all duration-500 rounded-full">
+                    <img
+                      src="/icognito.png"
+                      alt="Incognito"
+                      className={`w-4 h-4 sm:w-5 sm:h-5 object-contain transition-all duration-500
+                        ${isIncognitoOpen ? 'brightness-0' : 'brightness-100 group-hover:brightness-0'}`}
+                    />
+                  </div>
+
+                  {/* Text Content — expands on hover/click */}
+                  <div className={`transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap
+                    ${isIncognitoOpen ? 'max-w-xs opacity-100' : 'max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100'}`}>
+                    <div className="pl-3">
+                      <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block leading-none mb-0.5">
+                        Privacy Shield
+                      </span>
+                      <span className="text-[12px] font-bold text-slate-100">
+                        Ghost Mode Active
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ══════ Location + Admissions Badges ══════ */}
             <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4 md:mb-6">
               {location && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300 cursor-default">
@@ -127,7 +183,7 @@ export default function MicrositeHero({
                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">{location}</span>
                 </div>
               )}
-              
+
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -148,12 +204,12 @@ export default function MicrositeHero({
               </h1>
             </div>
 
-            {/* Podcast Section - Below title on mobile, inline on desktop */}
+            {/* Podcast Section */}
             {podcast && (
               <div className="w-full max-w-md mt-6">
                 <div className="relative group">
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-                  
+
                   <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
@@ -164,9 +220,9 @@ export default function MicrositeHero({
                         <p className="text-sm font-semibold text-slate-200">Listen & Learn</p>
                       </div>
                     </div>
-                    
-                    <audio 
-                      controls 
+
+                    <audio
+                      controls
                       className="w-full h-10 rounded-lg"
                       style={{
                         filter: 'invert(1) hue-rotate(180deg)',
@@ -181,19 +237,19 @@ export default function MicrositeHero({
             )}
           </div>
 
-          {/* Media Carousel Section - Order 2 on mobile (shows after name), Order 2 on desktop */}
+          {/* Media Carousel Section */}
           {mediaItems.length > 0 && (
             <div className="w-full md:w-[45%] lg:w-[42%] shrink-0 order-2 md:order-2">
               <div className="relative group">
                 {/* Glow Effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-                
+
                 <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl">
                   {/* Media Container */}
                   <div className="relative w-full aspect-[4/3] md:aspect-square lg:aspect-[4/3] bg-black/20">
                     {mediaItems[currentSlide].type === 'image' ? (
-                      <img 
-                        src={mediaItems[currentSlide].url} 
+                      <img
+                        src={mediaItems[currentSlide].url}
                         alt={`${collegeName} - Slide ${currentSlide + 1}`}
                         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -204,8 +260,7 @@ export default function MicrositeHero({
                           <>
                             {!isPlaying ? (
                               <>
-                                {/* YouTube Thumbnail */}
-                                <img 
+                                <img
                                   src={`https://img.youtube.com/vi/${getYouTubeId(mediaItems[currentSlide].url)}/maxresdefault.jpg`}
                                   alt="Video thumbnail"
                                   className="w-full h-full object-cover"
@@ -213,8 +268,7 @@ export default function MicrositeHero({
                                     (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${getYouTubeId(mediaItems[currentSlide].url)}/hqdefault.jpg`
                                   }}
                                 />
-                                {/* Play Button Overlay */}
-                                <div 
+                                <div
                                   onClick={handleVideoClick}
                                   className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer group-hover/video:bg-black/30 transition-colors"
                                 >
@@ -238,14 +292,12 @@ export default function MicrositeHero({
                           <>
                             {!isPlaying ? (
                               <>
-                                {/* Video Thumbnail/First Frame */}
-                                <video 
+                                <video
                                   className="w-full h-full object-cover"
                                   src={mediaItems[currentSlide].url}
                                   preload="metadata"
                                 />
-                                {/* Play Button Overlay */}
-                                <div 
+                                <div
                                   onClick={handleVideoClick}
                                   className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer group-hover/video:bg-black/30 transition-colors"
                                 >
@@ -255,7 +307,7 @@ export default function MicrositeHero({
                                 </div>
                               </>
                             ) : (
-                              <video 
+                              <video
                                 className="w-full h-full object-cover"
                                 controls
                                 autoPlay
@@ -281,7 +333,7 @@ export default function MicrositeHero({
                       >
                         <ChevronLeft size={20} />
                       </button>
-                      
+
                       <button
                         onClick={nextSlide}
                         className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all duration-300 z-10"
@@ -300,8 +352,8 @@ export default function MicrositeHero({
                           key={index}
                           onClick={() => setCurrentSlide(index)}
                           className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            index === currentSlide 
-                              ? 'bg-amber-500 w-8' 
+                            index === currentSlide
+                              ? 'bg-amber-500 w-8'
                               : 'bg-white/40 hover:bg-white/60'
                           }`}
                           aria-label={`Go to slide ${index + 1}`}
@@ -317,7 +369,7 @@ export default function MicrositeHero({
                     </span>
                   </div>
 
-                  {/* Carousel Status Indicator - Shows when video is playing */}
+                  {/* Carousel Status Indicator */}
                   {isPlaying && mediaItems[currentSlide].type === 'video' && (
                     <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-600/80 backdrop-blur-md border border-white/20 z-10 animate-pulse">
                       <span className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
@@ -329,7 +381,7 @@ export default function MicrositeHero({
               </div>
             </div>
           )}
-          
+
         </div>
       </div>
     </div>

@@ -16,7 +16,10 @@ import {
   SearchCheck,
   Calculator,
   ChevronDown,
-    Sparkles,
+  Sparkles,
+  Rocket,
+  School,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -45,13 +48,26 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: Sparkles, label: "Medha AI", path: "/medha-ai" },
       { icon: User, label: "Profile", path: "/profile" },
     ],
+    ecosystem: [
+      {
+        icon: Rocket,
+        label: "PrepTribe",
+        url: "https://jeetribechallenge.getedunext.com",
+        description: "JEE Challenge Arena",
+      },
+      {
+        icon: School,
+        label: "SchoolTribe",
+        url: "https://vidyaa-rho.vercel.app",
+        description: "School Discovery",
+      },
+    ],
     explore: [
       { icon: BookOpen, label: "Find Colleges", path: "/find-colleges" },
       { icon: Users, label: "Previous Year Students", path: "/previous-year-students" },
       { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
       { icon: Building2, label: "Battle Mode", path: "/battle-mode" },
-
     ],
     applications: [
       { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
@@ -101,7 +117,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     try {
       setIsLoggingOut(true);
       await onSignOut();
-      // Small delay to let React state clear before navigating
       router.push("/register");
     } catch (error) {
       console.error("Logout error:", error);
@@ -125,7 +140,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   }, []);
 
   useEffect(() => {
-    // Keep Tools dropdown open if the current path matches one of the tool options
     const isAtTool = [
       "/cat-percentile-predictor",
       "/cat-college-predictor",
@@ -150,6 +164,57 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     };
   }, [isMobileMenuOpen]);
 
+  // Reusable nav button for internal routes
+  const NavButton: React.FC<{
+    item: { icon: React.ElementType; label: string; path: string };
+  }> = ({ item }) => (
+    <button
+      onClick={() => handleNavClick(item.path)}
+      className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
+        isActive(item.path) ? "shadow-lg" : "hover:bg-white/5"
+      }`}
+      style={
+        isActive(item.path)
+          ? {
+              backgroundColor: secondaryBg,
+              borderLeft: `4px solid ${accentColor}`,
+              color: accentColor,
+            }
+          : { color: "#cbd5e1" }
+      }
+    >
+      <item.icon
+        size={18}
+        className="transition-colors"
+        style={{ color: isActive(item.path) ? accentColor : "#94a3b8" }}
+      />
+      <span
+        className={`text-sm transition-colors ${
+          isActive(item.path) ? "font-semibold" : ""
+        }`}
+        style={{ color: isActive(item.path) ? accentColor : "#cbd5e1" }}
+      >
+        {item.label}
+      </span>
+    </button>
+  );
+
+  // Section header component
+  const SectionHeader: React.FC<{ label: string }> = ({ label }) => (
+    <div className="flex items-center gap-2 mb-2 px-2">
+      <div
+        className="text-xs font-bold uppercase tracking-wider"
+        style={{ color: accentColor }}
+      >
+        {label}
+      </div>
+      <div
+        className="flex-1 h-px"
+        style={{ backgroundColor: borderColor }}
+      ></div>
+    </div>
+  );
+
   return (
     <>
       {/* Mobile Header */}
@@ -157,7 +222,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         className="md:hidden fixed top-0 left-0 right-0 border-b shadow-lg z-40"
         style={{
           background: `linear-gradient(to right, ${primaryBg}, ${secondaryBg})`,
-          borderColor: borderColor
+          borderColor: borderColor,
         }}
       >
         <div className="flex items-center justify-between p-4">
@@ -174,7 +239,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 rounded-lg transition-colors"
             style={{
-              backgroundColor: isMobileMenuOpen ? 'rgba(255, 255, 255, 0.05)' : 'transparent'
+              backgroundColor: isMobileMenuOpen
+                ? "rgba(255, 255, 255, 0.05)"
+                : "transparent",
             }}
             aria-label="Toggle menu"
           >
@@ -192,9 +259,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         <div
           className="md:hidden fixed inset-0 z-40 transition-all duration-300"
           style={{
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            backgroundColor: 'rgba(2, 6, 23, 0.8)'
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            backgroundColor: "rgba(2, 6, 23, 0.8)",
           }}
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -204,14 +271,14 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       <div
         className={`
           fixed md:sticky top-0 h-screen
-          w-64 flex flex-col shadow-2xl 
+          w-64 flex flex-col shadow-2xl
           transition-transform duration-300 ease-in-out z-50
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
         `}
         style={{
           background: `linear-gradient(to bottom, ${primaryBg}, ${secondaryBg})`,
-          borderRight: `1px solid ${borderColor}`
+          borderRight: `1px solid ${borderColor}`,
         }}
       >
         {/* Sidebar Content Container */}
@@ -250,7 +317,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
               className="rounded-lg p-3 shadow-lg border"
               style={{
                 backgroundColor: secondaryBg,
-                borderColor: borderColor
+                borderColor: borderColor,
               }}
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -265,100 +332,61 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
             </div>
           </div>
 
-          {/* Scrollable Navigation - Takes remaining space */}
+          {/* Scrollable Navigation */}
           <div className="flex-1 overflow-y-auto px-4 pb-4 scrollbar-hide">
             <nav className="space-y-2">
               {/* Main Navigation */}
               {navItems.main.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavClick(item.path)}
-                  className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${isActive(item.path)
-                      ? "shadow-lg"
-                      : "hover:bg-white/5"
-                    }`}
-                  style={
-                    isActive(item.path)
-                      ? {
-                        backgroundColor: secondaryBg,
-                        borderLeft: `4px solid ${accentColor}`,
-                        color: accentColor,
-                      }
-                      : { color: '#cbd5e1' }
-                  }
-                >
-                  <item.icon
-                    size={18}
-                    className="transition-colors"
-                    style={{
-                      color: isActive(item.path) ? accentColor : '#94a3b8',
-                    }}
-                  />
-                  <span
-                    className={`text-sm transition-colors ${isActive(item.path) ? "font-semibold" : ""
-                      }`}
-                    style={{
-                      color: isActive(item.path) ? accentColor : '#cbd5e1',
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </button>
+                <NavButton key={item.path} item={item} />
               ))}
 
-              {/* Explore Section */}
+              {/* ── Our Ecosystem ── */}
               <div className="pt-4">
-                <div className="flex items-center gap-2 mb-2 px-2">
-                  <div
-                    className="text-xs font-bold uppercase tracking-wider"
-                    style={{ color: accentColor }}
-                  >
-                    Explore
-                  </div>
-                  <div
-                    className="flex-1 h-px"
-                    style={{ backgroundColor: borderColor }}
-                  ></div>
-                </div>
-                {navItems.explore.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => handleNavClick(item.path)}
-                    className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${isActive(item.path)
-                        ? "shadow-lg"
-                        : "hover:bg-white/5"
-                      }`}
-                    style={
-                      isActive(item.path)
-                        ? {
-                          backgroundColor: secondaryBg,
-                          borderLeft: `4px solid ${accentColor}`,
-                          color: accentColor,
-                        }
-                        : { color: '#cbd5e1' }
-                    }
-                  >
-                    <item.icon
-                      size={18}
-                      className="transition-colors"
-                      style={{
-                        color: isActive(item.path) ? accentColor : '#94a3b8',
-                      }}
-                    />
-                    <span
-                      className={`text-sm transition-colors ${isActive(item.path) ? "font-semibold" : ""
-                        }`}
-                      style={{
-                        color: isActive(item.path) ? accentColor : '#cbd5e1',
-                      }}
+                <SectionHeader label="Our Ecosystem" />
+                <div className="flex flex-col gap-1">
+                  {navItems.ecosystem.map((product) => (
+                    <a
+                      key={product.label}
+                      href={product.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-2.5 w-full rounded-lg transition-all duration-200 group hover:bg-white/5"
+                      style={{ color: "#cbd5e1" }}
                     >
-                      {item.label}
-                    </span>
-                  </button>
+                      <product.icon
+                        size={18}
+                        className="transition-colors flex-shrink-0"
+                        style={{ color: "#94a3b8" }}
+                      />
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm transition-colors group-hover:text-white" style={{ color: "#cbd5e1" }}>
+                            {product.label}
+                          </span>
+                          <ExternalLink
+                            size={12}
+                            className="opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0"
+                            style={{ color: "#94a3b8" }}
+                          />
+                        </div>
+                        <span className="text-[11px] text-slate-500 truncate">
+                          {product.description}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── Explore Section ── */}
+              <div className="pt-4">
+                <SectionHeader label="Explore" />
+                {navItems.explore.map((item) => (
+                  <NavButton key={item.path} item={item} />
                 ))}
               </div>
 
-              {/* Tools Section */}
+              {/* ── Tools Section ── */}
               <div className="pt-4">
                 <button
                   onClick={() => setIsToolsOpen(!isToolsOpen)}
@@ -377,7 +405,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                   ></div>
                   <ChevronDown
                     size={16}
-                    className={`transition-transform duration-300 ease-in-out ${isToolsOpen ? "rotate-180" : "rotate-0"}`}
+                    className={`transition-transform duration-300 ease-in-out ${
+                      isToolsOpen ? "rotate-180" : "rotate-0"
+                    }`}
                     style={{ color: accentColor }}
                   />
                 </button>
@@ -385,46 +415,13 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                   className="grid transition-all duration-300 ease-in-out"
                   style={{
                     gridTemplateRows: isToolsOpen ? "1fr" : "0fr",
-                    opacity: isToolsOpen ? 1 : 0
+                    opacity: isToolsOpen ? 1 : 0,
                   }}
                 >
                   <div className="overflow-hidden">
                     <div className="flex flex-col">
                       {toolOptions.map((tool) => (
-                        <button
-                          key={tool.path}
-                          onClick={() => handleNavClick(tool.path)}
-                          className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${isActive(tool.path)
-                              ? "shadow-lg"
-                              : "hover:bg-white/5"
-                            }`}
-                          style={
-                            isActive(tool.path)
-                              ? {
-                                backgroundColor: secondaryBg,
-                                borderLeft: `4px solid ${accentColor}`,
-                                color: accentColor,
-                              }
-                              : { color: '#cbd5e1' }
-                          }
-                        >
-                          <tool.icon
-                            size={18}
-                            className="transition-colors"
-                            style={{
-                              color: isActive(tool.path) ? accentColor : '#94a3b8',
-                            }}
-                          />
-                          <span
-                            className={`text-sm transition-colors ${isActive(tool.path) ? "font-semibold" : ""
-                              }`}
-                            style={{
-                              color: isActive(tool.path) ? accentColor : '#cbd5e1',
-                            }}
-                          >
-                            {tool.label}
-                          </span>
-                        </button>
+                        <NavButton key={tool.path} item={tool} />
                       ))}
                     </div>
                   </div>
@@ -433,12 +430,12 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
             </nav>
           </div>
 
-          {/* Logout Button - Always visible at bottom */}
+          {/* Logout Button */}
           <div
-            className="p-3  pt-0 border-t"
+            className="p-3 pt-0 border-t"
             style={{
               borderColor: borderColor,
-              background: `linear-gradient(to bottom, ${primaryBg}, ${secondaryBg})`
+              background: `linear-gradient(to bottom, ${primaryBg}, ${secondaryBg})`,
             }}
           >
             <button
@@ -449,7 +446,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
               disabled={isLoggingOut}
               onMouseEnter={() => setIsLogoutHovered(true)}
               onMouseLeave={() => setIsLogoutHovered(false)}
-              className="flex  mt-3 items-center justify-between gap-3 p-3 w-full text-left rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex mt-3 items-center justify-between gap-3 p-3 w-full text-left rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor: secondaryBg,
                 borderColor: borderColor,
@@ -457,7 +454,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 color: accentColor,
               }}
             >
-              <div className="flex items-center gap-3 ">
+              <div className="flex items-center gap-3">
                 {isLoggingOut ? (
                   <div
                     className="animate-spin rounded-full h-4 w-4 border-b-2"
@@ -477,8 +474,11 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
               {!isLoggingOut && (
                 <ThumbsUp
                   size={16}
-                  className={`transition-all duration-300 ${isLogoutHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
-                    }`}
+                  className={`transition-all duration-300 ${
+                    isLogoutHovered
+                      ? "opacity-100 translate-x-0"
+                      : "opacity-0 -translate-x-2"
+                  }`}
                   style={{ color: accentColor }}
                 />
               )}
@@ -487,7 +487,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         </div>
       </div>
 
-      {/* Mobile spacer - pushes content below fixed header */}
+      {/* Mobile spacer */}
       <div className="h-16 md:hidden"></div>
 
       <style jsx global>{`
