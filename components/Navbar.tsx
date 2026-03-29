@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { LogOut, Menu, X, ChevronRight } from "lucide-react";
+import { LogOut, Menu, X, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -104,7 +104,8 @@ const NavItem: React.FC<{ link: NavLink }> = ({ link }) => {
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const { user, signOut, signInWithGoogle } = useAuth();
 
   const navLinks = NAV_LINKS[CURRENT_PRODUCT] || NAV_LINKS.edunext;
 
@@ -117,6 +118,23 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     await signOut();
     setMobileMenuOpen(false);
+  };
+
+  // Direct Google OAuth — no /register page
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsSigningIn(true);
+      setMobileMenuOpen(false);
+      const { error } = await signInWithGoogle();
+      if (error) {
+        console.error("Google sign-in error:", error);
+        setIsSigningIn(false);
+      }
+      // If no error, user gets redirected to Google — no need to reset state
+    } catch (err) {
+      console.error("Google sign-in failed:", err);
+      setIsSigningIn(false);
+    }
   };
 
   // Thin vertical divider between right-side sections
@@ -240,20 +258,30 @@ const Navbar: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Link
-                href="/register"
-                className="px-4 lg:px-5 py-1.5 lg:py-2 text-sm lg:text-[15px] font-medium rounded-full transition-colors cursor-pointer"
+              {/* Log In — direct Google OAuth */}
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={isSigningIn}
+                className="px-4 lg:px-5 py-1.5 lg:py-2 text-sm lg:text-[15px] font-medium rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ color: primary, backgroundColor: "rgba(245, 158, 11, 0.1)" }}
               >
-                Log In
-              </Link>
-              <Link
-                href="/register"
-                className="group px-4 lg:px-5 py-1.5 lg:py-2 text-sm lg:text-[15px] font-medium text-white rounded-full transition-all flex items-center gap-1 cursor-pointer"
+                {isSigningIn ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 size={14} className="animate-spin" /> Signing in...
+                  </span>
+                ) : (
+                  "Log In"
+                )}
+              </button>
+              {/* Get Started — direct Google OAuth */}
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={isSigningIn}
+                className="group px-4 lg:px-5 py-1.5 lg:py-2 text-sm lg:text-[15px] font-medium text-white rounded-full transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: primary }}
               >
                 Get Started <ChevronRight size={16} />
-              </Link>
+              </button>
             </div>
           )}
         </div>
@@ -373,22 +401,30 @@ const Navbar: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              <Link
-                href="/register"
-                className="w-full py-3 text-center font-medium rounded-xl cursor-pointer text-base"
+              {/* Mobile: Log In — direct Google OAuth */}
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={isSigningIn}
+                className="w-full py-3 text-center font-medium rounded-xl cursor-pointer text-base disabled:opacity-50"
                 style={{ color: primary, backgroundColor: "rgba(245, 158, 11, 0.1)" }}
-                onClick={() => setMobileMenuOpen(false)}
               >
-                Log In
-              </Link>
-              <Link
-                href="/register"
-                className="w-full py-3 text-center font-medium text-white rounded-xl cursor-pointer text-base"
+                {isSigningIn ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={16} className="animate-spin" /> Signing in...
+                  </span>
+                ) : (
+                  "Log In"
+                )}
+              </button>
+              {/* Mobile: Get Started — direct Google OAuth */}
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={isSigningIn}
+                className="w-full py-3 text-center font-medium text-white rounded-xl cursor-pointer text-base disabled:opacity-50"
                 style={{ backgroundColor: primary }}
-                onClick={() => setMobileMenuOpen(false)}
               >
                 Get Started
-              </Link>
+              </button>
             </div>
           )}
         </div>

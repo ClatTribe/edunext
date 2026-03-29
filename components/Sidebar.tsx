@@ -53,13 +53,13 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         icon: Rocket,
         label: "PrepTribe",
         url: "https://jeetribechallenge.getedunext.com",
-        description: "JEE Challenge Arena",
+        description: "JEE / NEET / CUET",
       },
       {
         icon: School,
         label: "SchoolTribe",
         url: "https://vidyaa-rho.vercel.app",
-        description: "School Discovery",
+        description: "Your 8th, 9th, 10th",
       },
     ],
     explore: [
