@@ -470,7 +470,38 @@ export default function MedhaAIDashboard() {
   ];
 
   const formatResponse = (text: string) => {
-    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    let formatted = text;
+
+    // Convert markdown headers: ### heading → <h4>, ## heading → <h3>
+    formatted = formatted.replace(/^### (.+)$/gm, '<h4 class="text-base font-bold mt-4 mb-2" style="color: #ffc174">$1</h4>');
+    formatted = formatted.replace(/^## (.+)$/gm, '<h3 class="text-lg font-bold mt-5 mb-2" style="color: #ffc174">$1</h3>');
+
+    // Bold text: **text** → <strong>
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #ffc174">$1</strong>');
+
+    // Italic text: *text* → <em>  (but not inside bold)
+    formatted = formatted.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+
+    // Numbered lists: lines starting with "1. ", "2. " etc.
+    formatted = formatted.replace(/^(\d+)\.\s+(.+)$/gm, (_, num, content) => {
+      return `<div class="flex gap-3 mb-2 items-start"><span class="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold" style="background: rgba(255,193,116,0.15); color: #ffc174">${num}</span><span class="flex-1">${content}</span></div>`;
+    });
+
+    // Bullet points: lines starting with "- " or "• "
+    formatted = formatted.replace(/^[\-•]\s+(.+)$/gm, (_, content) => {
+      return `<div class="flex gap-3 mb-2 items-start"><span class="flex-shrink-0 mt-2 w-1.5 h-1.5 rounded-full" style="background: #ffc174"></span><span class="flex-1">${content}</span></div>`;
+    });
+
+    // Horizontal rules: --- or ***
+    formatted = formatted.replace(/^(-{3,}|\*{3,})$/gm, '<hr class="my-4 border-white/10" />');
+
+    // Double newlines → paragraph breaks
+    formatted = formatted.replace(/\n\n/g, '<div class="mb-3"></div>');
+
+    // Single newlines → line breaks
+    formatted = formatted.replace(/\n/g, '<br />');
+
+    return formatted;
   };
 
   // Matched colleges from Supabase for tile rendering
@@ -989,12 +1020,16 @@ export default function MedhaAIDashboard() {
                               </p>
                               <div className="grid gap-3 sm:grid-cols-2">
                                 {matchedColleges.map((college, idx) => (
-                                  <div
+                                  <a
                                     key={college.id}
-                                    className="rounded-xl p-4 cursor-pointer transition-all duration-200"
+                                    href={college.slug ? `/college/${college.slug}` : '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="rounded-xl p-4 cursor-pointer transition-all duration-200 block no-underline"
                                     style={{
                                       backgroundColor: COLORS.surfaceContainerHigh,
                                       border: `1px solid ${COLORS.primary}20`,
+                                      textDecoration: 'none',
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.borderColor = `${COLORS.primary}60`;
@@ -1005,9 +1040,6 @@ export default function MedhaAIDashboard() {
                                       e.currentTarget.style.borderColor = `${COLORS.primary}20`;
                                       e.currentTarget.style.transform = 'translateY(0)';
                                       e.currentTarget.style.boxShadow = 'none';
-                                    }}
-                                    onClick={() => {
-                                      if (college.slug) router.push(`/college/${college.slug}`);
                                     }}
                                   >
                                     <div className="flex items-start justify-between mb-2">
@@ -1038,7 +1070,7 @@ export default function MedhaAIDashboard() {
                                         {college.fees}
                                       </span>
                                     )}
-                                  </div>
+                                  </a>
                                 ))}
                               </div>
                             </div>
