@@ -497,7 +497,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
     { id: "1", name: "IIM Ahmedabad", location: "Ahmedabad, Gujarat", tags: ["CAT", "Global Rank #1"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766476599/iima_ije8kq.jpg", url: "https://www.getedunext.com/college/iim-ahmedabad" },
     { id: "2", name: "IIT Delhi", location: "New Delhi, Delhi", tags: ["JEE", "Innovation"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1770034871/iit_delhi_tqucbp.jpg", url: "https://www.getedunext.com/college/iit-delhi" },
     { id: "3", name: "Chandigarh University", location: "Chandigarh, Punjab", tags: ["B.sc", "Legacy"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766558377/CU_e1aozd.jpg", url: "https://www.getedunext.com/college/chandigarh-university" },
-    { id: "4", name: "Amity Noida", location: "Noida, Uttar Pradesh", tags: ["CAT", "Best ROI"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766558375/download_1_vb2xaq.jpg", url: "https://www.getedunext.com/college/amity-business-school-noida" },
+    { id: "4", name: "UPES", location: "Uttarakhand, Dehradun", tags: ["CAT", "Best ROI"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1774691149/college_microsites/upes_2.jpg", url: "https://www.getedunext.com//college/upes" },
   ];
 
   return (
@@ -571,7 +571,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
               <Search className="h-5 w-5 text-slate-500 ml-4 hidden md:block" />
               <input
                 type="text" 
-                placeholder="Try: BCA colleges in Delhi under 5 lakh..." 
+                placeholder="Try: B.Tech colleges in Delhi under 5 lakh..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent border-none text-white placeholder:text-slate-500 focus:ring-0 px-3 md:px-4 py-3 md:py-4 text-sm md:text-lg outline-none"
@@ -587,7 +587,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} 
             className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center items-center gap-2 md:gap-4 w-full max-w-md md:max-w-3xl px-4 mb-14 md:mb-20"
           >
-            {['Marketing', 'Business Analytics', 'BCA', 'B.Com'].map((item) => (
+            {['B.Tech', 'MBBS', 'MBA', 'B.Com'].map((item) => (
               <button key={item} onClick={() => setSearchQuery(item)} className="px-3 py-2.5 rounded-xl sm:rounded-full border border-white/10 bg-white/5 text-[10px] md:text-sm font-semibold text-slate-300 hover:border-[#F59E0B]/40 hover:text-[#F59E0B] transition-all text-center">
                 {item}
               </button>
