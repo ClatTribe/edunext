@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react'
-import { MapPin, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, ChevronLeft, ChevronRight, Play, Pause, ArrowLeft } from 'lucide-react'
 
 interface MicrositeHeroProps {
   collegeName: string
@@ -174,6 +175,21 @@ export default function MicrositeHero({
                 </div>
               </div>
             </div>
+
+            {/* ══════ Back to All Colleges ══════ */}
+            <Link
+              href="/find-colleges"
+              className="inline-flex items-center gap-2 mb-4 md:mb-5 px-4 py-2 rounded-lg self-center md:self-start
+                bg-white/[0.04] border border-amber-500/20 backdrop-blur-sm
+                hover:bg-amber-500/10 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5
+                active:scale-[0.97]
+                transition-all duration-300 group"
+            >
+              <ArrowLeft size={15} className="text-amber-500 transition-transform duration-300 group-hover:-translate-x-1" />
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-amber-400 group-hover:text-amber-300 transition-colors">
+                Back to All Colleges
+              </span>
+            </Link>
 
             {/* ══════ Location + Admissions Badges ══════ */}
             <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4 md:mb-6">
