@@ -268,6 +268,16 @@ export default function MedhaAIDashboard() {
   const followUpTriggeredRef = useRef(false);
   const followUpRoundDoneRef = useRef(false);
 
+  // Matched colleges from Supabase for tile rendering (moved up for sessionStorage restore)
+  interface MatchedCollege {
+    id: number;
+    slug: string;
+    college_name: string;
+    location: string;
+    fees: string;
+  }
+  const [matchedColleges, setMatchedColleges] = useState<MatchedCollege[]>([]);
+
   const quickSuggestions = [
     'MBA colleges in Pune',
     'I want to build rockets but bad at maths',
@@ -388,6 +398,68 @@ export default function MedhaAIDashboard() {
     }
   }, [user]);
 
+  // --- SESSION STORAGE: Restore chat on mount (only if navigated back, NOT on refresh) ---
+  useEffect(() => {
+    const wasRefresh = sessionStorage.getItem('medha-is-refresh');
+    if (wasRefresh === 'true') {
+      // User refreshed intentionally → clear everything, fresh start
+      sessionStorage.removeItem('medha-chat');
+      sessionStorage.removeItem('medha-show-response');
+      sessionStorage.removeItem('medha-matched-colleges');
+      sessionStorage.removeItem('medha-is-refresh');
+    } else {
+      // User navigated back → restore chat
+      try {
+        const savedChat = sessionStorage.getItem('medha-chat');
+        const savedShow = sessionStorage.getItem('medha-show-response');
+        const savedColleges = sessionStorage.getItem('medha-matched-colleges');
+        if (savedChat) {
+          const parsed = JSON.parse(savedChat);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+            setShowResponse(savedShow === 'true');
+            if (savedColleges) {
+              try { setMatchedColleges(JSON.parse(savedColleges)); } catch { /* ignore */ }
+            }
+          }
+        }
+      } catch { /* ignore parse errors */ }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --- SESSION STORAGE: Set refresh flag on beforeunload (refresh/tab close) ---
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem('medha-is-refresh', 'true');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // --- SESSION STORAGE: Clear refresh flag on navigation (not refresh) ---
+  // When user clicks a link (Next.js client navigation), beforeunload does NOT fire,
+  // so 'medha-is-refresh' stays absent → chat will restore on return
+  useEffect(() => {
+    // On every mount, remove the flag so next navigation-back will restore
+    sessionStorage.removeItem('medha-is-refresh');
+  }, []);
+
+  // --- SESSION STORAGE: Save chat after every message update ---
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem('medha-chat', JSON.stringify(messages));
+      sessionStorage.setItem('medha-show-response', String(showResponse));
+    }
+  }, [messages, showResponse]);
+
+  // --- SESSION STORAGE: Save matched colleges ---
+  useEffect(() => {
+    if (matchedColleges.length > 0) {
+      sessionStorage.setItem('medha-matched-colleges', JSON.stringify(matchedColleges));
+    }
+  }, [matchedColleges]);
+
   useEffect(() => {
     if (user) {
       fetchProfile();
@@ -503,17 +575,6 @@ export default function MedhaAIDashboard() {
 
     return formatted;
   };
-
-  // Matched colleges from Supabase for tile rendering
-  interface MatchedCollege {
-    id: number;
-    slug: string;
-    college_name: string;
-    location: string;
-    fees: string;
-  }
-
-  const [matchedColleges, setMatchedColleges] = useState<MatchedCollege[]>([]);
 
   // Extract college names from AI response text
   const extractCollegeNames = (text: string): string[] => {
@@ -695,6 +756,10 @@ export default function MedhaAIDashboard() {
     followUpTriggeredRef.current = false;
     followUpRoundDoneRef.current = false;
     setMatchedColleges([]);
+    // Clear saved chat from sessionStorage (fresh start)
+    sessionStorage.removeItem('medha-chat');
+    sessionStorage.removeItem('medha-show-response');
+    sessionStorage.removeItem('medha-matched-colleges');
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
