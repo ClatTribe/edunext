@@ -262,7 +262,7 @@ const FilterComponent: React.FC<FilterProps> = ({
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Try: BCA colleges in Delhi under 5 lakh..."
+              placeholder="Try: B.Tech colleges in Delhi under 5 lakh..."
               className="w-full px-4 py-3 pr-10 rounded-lg focus:outline-none focus:ring-2 text-white placeholder-slate-500"
               style={{ 
                 backgroundColor: 'rgba(99, 102, 241, 0.1)', 
