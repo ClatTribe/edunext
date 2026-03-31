@@ -13,6 +13,9 @@ import {
 // ─── Tool Name (used for logging in student_engagement.tools_used) ───────────
 const TOOL_NAME = "college_match"
 
+// ─── The slug we always want included as a 3rd recommendation ────────────────
+const PROMOTED_SLUG = "upes"
+
 // ─── Stream Priority ─────────────────────────────────────────────────────────
 
 const STREAM_PRIORITY: Record<string, number> = {
@@ -766,7 +769,7 @@ export default function CollegeMatchCard({
         const result = computeMatch(p, college, micrositeData)
         setMatchResult(result)
 
-        // Always fetch recommended colleges
+        // ── Fetch 2 genuine top matches from DB ──────────────────────────────
         const targetStates = p.target_state.length > 0
           ? p.target_state
           : [college?.location?.split(',').pop()?.trim()].filter(Boolean)
@@ -775,6 +778,7 @@ export default function CollegeMatchCard({
           .from("college_microsites")
           .select("id, slug, college_name, location, microsite_data")
           .neq("id", college.id)
+          .neq("slug", PROMOTED_SLUG)   // exclude promoted so it doesn't appear twice
           .limit(12)
 
         if (targetStates.length > 0) {
@@ -789,6 +793,9 @@ export default function CollegeMatchCard({
 
         const { data: candidates } = await query
 
+        // Score and rank the 2 genuine matches
+        let topTwo: { slug: string; college_name: string; location: string; matchScore: number }[] = []
+
         if (candidates && candidates.length > 0) {
           const scored = candidates.map(c => {
             const mData = typeof c.microsite_data === 'string'
@@ -802,13 +809,42 @@ export default function CollegeMatchCard({
             }
           })
 
-          const top = scored
+          topTwo = scored
             .filter(c => c.slug !== slug)
             .sort((a, b) => b.matchScore - a.matchScore)
             .slice(0, 2)
-
-          setRecommended(top)
         }
+
+        // ── Always fetch the promoted college and compute its real score ──────
+        // This makes it indistinguishable from organic results — real name,
+        // real location, real match score computed by the same algorithm.
+        const { data: promotedData } = await supabase
+          .from("college_microsites")
+          .select("id, slug, college_name, location, microsite_data")
+          .eq("slug", PROMOTED_SLUG)
+          .single()
+
+        const finalList = [...topTwo]
+
+        if (
+          promotedData &&
+          promotedData.slug !== slug                      // don't show on its own page
+          && !finalList.some(c => c.slug === PROMOTED_SLUG) // not already in top two
+        ) {
+          const pMData = typeof promotedData.microsite_data === 'string'
+            ? JSON.parse(promotedData.microsite_data)
+            : (promotedData.microsite_data || {})
+          const pMatch = computeMatch(p, promotedData, pMData)
+
+          finalList.push({
+            slug: promotedData.slug,
+            college_name: promotedData.college_name,
+            location: promotedData.location || '',
+            matchScore: pMatch.score,
+          })
+        }
+
+        setRecommended(finalList)
       } catch (err) {
         console.error("Match computation error:", err)
       } finally {
@@ -982,7 +1018,7 @@ export default function CollegeMatchCard({
                         </div>
                       )}
 
-                      {/* Recommended Colleges */}
+                      {/* Recommended Colleges — always 2 genuine + UPES as 3rd */}
                       {recommended.length > 0 && (
                         <div>
                           <p className="text-[8px] font-bold uppercase tracking-widest text-slate-600 mb-2">
