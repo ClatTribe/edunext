@@ -920,7 +920,7 @@ export default function MedhaAIDashboard() {
 
   return (
     <DefaultLayout>
-      <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }} className="py-8">
+      <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }} className="pt-20 sm:pt-24 lg:pt-28 pb-10">
         <div className="max-w-7xl mx-auto px-4 space-y-8">
           {/* Welcome Header */}
           <div className="flex items-start justify-between flex-wrap gap-4">
@@ -1085,16 +1085,13 @@ export default function MedhaAIDashboard() {
                               </p>
                               <div className="grid gap-3 sm:grid-cols-2">
                                 {matchedColleges.map((college, idx) => (
-                                  <a
+                                  <div
                                     key={college.id}
-                                    href={college.slug ? `/college/${college.slug}` : '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="rounded-xl p-4 cursor-pointer transition-all duration-200 block no-underline"
+                                    onClick={() => college.slug && router.push(`/college/${college.slug}`)}
+                                    className="rounded-xl p-4 cursor-pointer transition-all duration-200 block"
                                     style={{
                                       backgroundColor: COLORS.surfaceContainerHigh,
                                       border: `1px solid ${COLORS.primary}20`,
-                                      textDecoration: 'none',
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.borderColor = `${COLORS.primary}60`;
@@ -1135,7 +1132,7 @@ export default function MedhaAIDashboard() {
                                         {college.fees}
                                       </span>
                                     )}
-                                  </a>
+                                  </div>
                                 ))}
                               </div>
                             </div>
