@@ -27,8 +27,7 @@ export default function MicrositeHero({
   video,
   podcast
 }: MicrositeHeroProps) {
-
-  // ── Incognito Toggle State ──
+  
   const [isIncognitoOpen, setIsIncognitoOpen] = useState(false)
   const incognitoRef = useRef<HTMLDivElement>(null)
 
@@ -51,7 +50,6 @@ export default function MicrositeHero({
     'Cutoff'
   ].filter(Boolean)
 
-  // Parse images (handle both single string and array)
   const parseMedia = (media: string | string[] | undefined): string[] => {
     if (!media) return []
     if (Array.isArray(media)) return media
@@ -69,7 +67,6 @@ export default function MicrositeHero({
   const images = parseMedia(image)
   const videos = parseMedia(video)
 
-  // Combine images and videos into media items
   const mediaItems = [
     ...images.map(url => ({ type: 'image', url })),
     ...videos.map(url => ({ type: 'video', url }))
@@ -78,35 +75,22 @@ export default function MicrositeHero({
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  // Autoplay carousel - STOPS when video is playing
   React.useEffect(() => {
     if (mediaItems.length <= 1 || isPlaying) return
-
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % mediaItems.length)
     }, 5000)
-
     return () => clearInterval(interval)
   }, [mediaItems.length, isPlaying])
 
-  // Reset video playing state when slide changes
   React.useEffect(() => {
     setIsPlaying(false)
   }, [currentSlide])
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % mediaItems.length)
-  }
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % mediaItems.length)
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + mediaItems.length) % mediaItems.length)
+  const handleVideoClick = () => setIsPlaying(true)
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + mediaItems.length) % mediaItems.length)
-  }
-
-  const handleVideoClick = () => {
-    setIsPlaying(true)
-  }
-
-  // Extract YouTube video ID
   const getYouTubeId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)
     return match ? match[1] : null
@@ -114,7 +98,7 @@ export default function MicrositeHero({
 
   return (
     <div
-      className="relative overflow-hidden pt-6 pb-6 md:pt-12 md:pb-10 px-4 sm:px-8 md:px-12 flex items-center"
+      className="relative overflow-hidden"
       style={{ backgroundColor: primaryBg }}
     >
       {/* Background Pattern */}
@@ -124,43 +108,56 @@ export default function MicrositeHero({
           backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
           backgroundSize: '30px 30px'
         }}
-      ></div>
+      />
 
       {/* Static Radial Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_70%)] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10 w-full">
+      {/* ── BACK BUTTON — very top of the section, full-width bar ── */}
+      <div className="relative z-20 px-4 sm:px-8 md:px-12 pt-5 pb-0 max-w-7xl mx-auto w-full">
+        <Link
+          href="/find-colleges"
+          className="inline-flex items-center gap-2.5 px-5 h-11 sm:h-12 rounded-full
+            bg-white/[0.04] border border-amber-500/20 backdrop-blur-sm
+            hover:bg-amber-500/10 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5
+            active:scale-[0.97] transition-all duration-300 group"
+        >
+          <ArrowLeft
+            size={18}
+            className="text-amber-500 transition-transform duration-300 group-hover:-translate-x-1"
+          />
+          <span className="text-sm font-bold uppercase tracking-widest text-amber-400 group-hover:text-amber-300 transition-colors">
+            Back
+          </span>
+        </Link>
+      </div>
+
+      {/* ── MAIN HERO CONTENT ── */}
+      <div className="relative z-10 px-4 sm:px-8 md:px-12 pt-5 pb-6 md:pt-7 md:pb-10 max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-center">
 
-          {/* Text Content Area */}
+          {/* Text Content */}
           <div className="flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left order-1 md:order-1">
 
-            {/* ══════ Incognito / Privacy Shield Badge ══════ */}
+            {/* ── Incognito Badge ── */}
             <div
               ref={incognitoRef}
-              className="group mb-4 md:mb-5 self-center md:self-start"
+              className="group mb-5 md:mb-6 self-center md:self-start cursor-pointer"
               onClick={() => setIsIncognitoOpen(!isIncognitoOpen)}
             >
               <div className="relative">
-                {/* Glow Background */}
                 <div className={`absolute -inset-1 bg-amber-600/20 rounded-full blur-xl transition-opacity duration-700
-                  ${isIncognitoOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                </div>
-
-                <div className={`relative flex items-center bg-zinc-900/60 border border-white/10 rounded-full shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden
+                  ${isIncognitoOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                <div className={`relative flex items-center bg-zinc-900/60 border border-white/10 rounded-full shadow-2xl transition-all duration-500 overflow-hidden
                   ${isIncognitoOpen ? 'pr-5' : 'group-hover:pr-5'}`}>
-
-                  {/* Icon Wrapper */}
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-gray-300 to-zinc-300 group-hover:from-amber-500 group-hover:to-amber-600 transition-all duration-500 rounded-full">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-gray-300 to-zinc-300 group-hover:from-amber-500 group-hover:to-amber-600 transition-all duration-500 rounded-full">
                     <img
                       src="/icognito.png"
                       alt="Incognito"
-                      className={`w-4 h-4 sm:w-5 sm:h-5 object-contain transition-all duration-500
+                      className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-all duration-500
                         ${isIncognitoOpen ? 'brightness-0' : 'brightness-100 group-hover:brightness-0'}`}
                     />
                   </div>
-
-                  {/* Text Content — expands on hover/click */}
                   <div className={`transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap
                     ${isIncognitoOpen ? 'max-w-xs opacity-100' : 'max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100'}`}>
                     <div className="pl-3">
@@ -176,22 +173,7 @@ export default function MicrositeHero({
               </div>
             </div>
 
-            {/* ══════ Back to All Colleges ══════ */}
-            <Link
-              href="/find-colleges"
-              className="inline-flex items-center gap-2 mb-4 md:mb-5 px-4 py-2 rounded-lg self-center md:self-start
-                bg-white/[0.04] border border-amber-500/20 backdrop-blur-sm
-                hover:bg-amber-500/10 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5
-                active:scale-[0.97]
-                transition-all duration-300 group"
-            >
-              <ArrowLeft size={15} className="text-amber-500 transition-transform duration-300 group-hover:-translate-x-1" />
-              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-amber-400 group-hover:text-amber-300 transition-colors">
-                Back to All Colleges
-              </span>
-            </Link>
-
-            {/* ══════ Location + Admissions Badges ══════ */}
+            {/* ── Location + Admissions badges ── */}
             <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4 md:mb-6">
               {location && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300 cursor-default">
@@ -199,7 +181,6 @@ export default function MicrositeHero({
                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">{location}</span>
                 </div>
               )}
-
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -209,6 +190,7 @@ export default function MicrositeHero({
               </div>
             </div>
 
+            {/* ── College Name & Details ── */}
             <div className="max-w-3xl">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
                 <span className="bg-gradient-to-t from-slate-500 via-slate-300 to-white bg-clip-text text-transparent">
@@ -220,12 +202,11 @@ export default function MicrositeHero({
               </h1>
             </div>
 
-            {/* Podcast Section */}
+            {/* ── Podcast ── */}
             {podcast && (
               <div className="w-full max-w-md mt-6">
                 <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
                   <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
@@ -236,13 +217,10 @@ export default function MicrositeHero({
                         <p className="text-sm font-semibold text-slate-200">Listen & Learn</p>
                       </div>
                     </div>
-
                     <audio
                       controls
                       className="w-full h-10 rounded-lg"
-                      style={{
-                        filter: 'invert(1) hue-rotate(180deg)',
-                      }}
+                      style={{ filter: 'invert(1) hue-rotate(180deg)' }}
                     >
                       <source src={podcast} type="audio/mpeg" />
                       Your browser does not support the audio element.
@@ -253,22 +231,19 @@ export default function MicrositeHero({
             )}
           </div>
 
-          {/* Media Carousel Section */}
+          {/* Media Carousel */}
           {mediaItems.length > 0 && (
             <div className="w-full md:w-[45%] lg:w-[42%] shrink-0 order-2 md:order-2">
               <div className="relative group">
-                {/* Glow Effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
                 <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl">
-                  {/* Media Container */}
                   <div className="relative w-full aspect-[4/3] md:aspect-square lg:aspect-[4/3] bg-black/20">
                     {mediaItems[currentSlide].type === 'image' ? (
                       <img
                         src={mediaItems[currentSlide].url}
                         alt={`${collegeName} - Slide ${currentSlide + 1}`}
                         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                       />
                     ) : (
                       <div className="relative w-full h-full group/video">
@@ -334,12 +309,9 @@ export default function MicrositeHero({
                         )}
                       </div>
                     )}
-
-                    {/* Overlay gradient */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   </div>
 
-                  {/* Navigation Arrows */}
                   {mediaItems.length > 1 && (
                     <>
                       <button
@@ -349,7 +321,6 @@ export default function MicrositeHero({
                       >
                         <ChevronLeft size={20} />
                       </button>
-
                       <button
                         onClick={nextSlide}
                         className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all duration-300 z-10"
@@ -360,7 +331,6 @@ export default function MicrositeHero({
                     </>
                   )}
 
-                  {/* Slide Indicators */}
                   {mediaItems.length > 1 && (
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                       {mediaItems.map((_, index) => (
@@ -378,14 +348,12 @@ export default function MicrositeHero({
                     </div>
                   )}
 
-                  {/* Media Type Badge */}
                   <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 z-10">
                     <span className="text-xs font-bold uppercase tracking-wider text-white">
                       {mediaItems[currentSlide].type === 'image' ? '📷 Photo' : '🎥 Video'}
                     </span>
                   </div>
 
-                  {/* Carousel Status Indicator */}
                   {isPlaying && mediaItems[currentSlide].type === 'video' && (
                     <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-600/80 backdrop-blur-md border border-white/20 z-10 animate-pulse">
                       <span className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">

@@ -558,7 +558,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 1 }}
             className="text-sm md:text-xl text-slate-400 mb-8 md:mb-12 max-w-2xl mx-auto px-4"
           >
-            Navigating through <span className="text-white font-bold">10000+ Colleges</span> to unlock your true career potential.
+            Navigating through <span className="text-white font-bold">25000+ Colleges</span> to unlock your true career potential.
           </motion.p>
 
           {/* Search Bar */}

@@ -465,39 +465,59 @@ const CollegeMicrositesPage: React.FC = () => {
             .select("id, slug, college_name, card_detail", { count: "exact" })
             .order("id", { ascending: true })
 
-          if (!searchText && allLocations.length === 0 && allCourses.length === 0 && allExams.length === 0) {
+          // ★ HARDCODED: "mba" or "btech" search → EXACT same filter as clicking the tab
+          // This ensures ranking order is identical to no-search tab click
+          const trimmedSearch = searchQuery.trim().toLowerCase()
+          const isMbaOnlySearch = trimmedSearch === 'mba' && manualFilters.courses.length === 0
+            && manualFilters.states.length === 0 && manualFilters.cities.length === 0
+            && manualFilters.exams.length === 0 && !manualFilters.city && !manualFilters.collegeName
+          const isBtechOnlySearch = (trimmedSearch === 'btech' || trimmedSearch === 'b.tech' || trimmedSearch === 'b tech')
+            && manualFilters.courses.length === 0
+            && manualFilters.states.length === 0 && manualFilters.cities.length === 0
+            && manualFilters.exams.length === 0 && !manualFilters.city && !manualFilters.collegeName
+
+          if (isMbaOnlySearch) {
+            // Exact same query as default no-search (MBA tab click)
             query = query.or(`card_detail->>ranking.ilike.%MBA%`)
-          }
+          } else if (isBtechOnlySearch) {
+            // Exact same style but for B.Tech
+            query = query.or(`card_detail->>ranking.ilike.%B.Tech%`)
+          } else if (!searchText && allLocations.length === 0 && allCourses.length === 0 && allExams.length === 0) {
+            // No search at all → default MBA ranking filter
+            query = query.or(`card_detail->>ranking.ilike.%MBA%`)
+          } else {
+            // All other searches → normal filter logic (unchanged)
 
-          if (searchText || allLocations.length > 0) {
-            const conditions = []
+            if (searchText || allLocations.length > 0) {
+              const conditions = []
 
-            if (searchText) {
-              conditions.push(`college_name.eq."${searchText}"`)
-              conditions.push(`college_name.ilike.%${searchText}%`)
+              if (searchText) {
+                conditions.push(`college_name.eq."${searchText}"`)
+                conditions.push(`college_name.ilike.%${searchText}%`)
+              }
+
+              if (allLocations.length > 0) {
+                allLocations.forEach(loc => {
+                  conditions.push(`card_detail->>location.ilike.%${loc}%`)
+                })
+              }
+
+              query = query.or(conditions.join(','))
             }
 
-            if (allLocations.length > 0) {
-              allLocations.forEach(loc => {
-                conditions.push(`card_detail->>location.ilike.%${loc}%`)
-              })
+            if (allCourses.length > 0) {
+              const courseConditions = allCourses.map(course =>
+                `card_detail->>courses.ilike.%${course.replace(/[%_]/g, '\\$&')}%`
+              )
+              query = query.or(courseConditions.join(','))
             }
 
-            query = query.or(conditions.join(','))
-          }
-
-          if (allCourses.length > 0) {
-            const courseConditions = allCourses.map(course =>
-              `card_detail->>courses.ilike.%${course.replace(/[%_]/g, '\\$&')}%`
-            )
-            query = query.or(courseConditions.join(','))
-          }
-
-          if (allExams.length > 0) {
-            const examConditions = allExams.map(exam =>
-              `card_detail->>entrance_exam.ilike.%${exam}%`
-            )
-            query = query.or(examConditions.join(','))
+            if (allExams.length > 0) {
+              const examConditions = allExams.map(exam =>
+                `card_detail->>entrance_exam.ilike.%${exam}%`
+              )
+              query = query.or(examConditions.join(','))
+            }
           }
 
           query = query.range(0, FETCH_SIZE - 1)
