@@ -7,7 +7,7 @@ import CollegeMatchCard from "../../../../components/CollegeMatchCard"
 import {
   Loader2, Eye, Target, Phone, Globe, GraduationCap,
   MapPin, ArrowUpRight, BarChart3, Wallet, Award,
-  Building2, Headset, ChevronRight
+  Building2, Headset, ChevronRight, Sparkles
 } from "lucide-react"
 
 const accentColor = '#F59E0B'
@@ -100,6 +100,66 @@ function PreviewTable({ table }: { table: any }) {
           </span>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Apply Card ───────────────────────────────────────────────────────────────
+
+function ApplyCard({ collegeName, url }: { collegeName: string; url?: string }) {
+  return (
+    <div className="group relative flex flex-col justify-between h-full rounded-[2rem] border border-white/5 bg-[#050818] overflow-hidden shadow-2xl transition-all duration-500 hover:border-amber-500/30 p-8">
+      {/* Glow blob */}
+      <div className="absolute top-0 right-0 w-56 h-56 bg-amber-500/5 blur-[80px] rounded-full -mr-16 -mt-16 group-hover:bg-amber-500/10 transition-colors pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-40 h-40 bg-amber-500/[0.03] blur-[60px] rounded-full pointer-events-none" />
+
+      <div className="relative z-10 space-y-5">
+        {/* Header */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="h-[1.5px] w-6 bg-amber-500" />
+            <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-500">Official Portal</span>
+          </div>
+          <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter leading-tight">
+            Apply at <span className="text-amber-500">{collegeName || "This College"}.</span>
+          </h3>
+        </div>
+
+        {/* Body */}
+        {/* <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-xs">
+          Connect with the official admissions desk for personalized counseling, direct application support, and real-time seat availability.
+        </p> */}
+
+        {/* Highlights */}
+        {/* <ul className="space-y-2">
+          {["Direct admission process", "Official fee structure", "Scholarship eligibility"].map((item, i) => (
+            <li key={i} className="flex items-center gap-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              {item}
+            </li>
+          ))}
+        </ul> */}
+      </div>
+
+      {/* CTA Button */}
+      <div className="relative z-10 mt-8">
+        {url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2.5 w-full py-4 px-6 bg-amber-500 text-[#050818] rounded-2xl shadow-[0_0_24px_rgba(245,158,11,0.3)] hover:shadow-[0_0_36px_rgba(245,158,11,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all font-black text-xs uppercase tracking-widest group/btn"
+          >
+            <Sparkles size={14} className="group-hover/btn:rotate-12 transition-transform" />
+            Apply Directly
+            <ArrowUpRight size={14} />
+          </a>
+        ) : (
+          <div className="flex items-center justify-center gap-2.5 w-full py-4 px-6 rounded-2xl border border-amber-500/20 text-amber-500/40 font-black text-xs uppercase tracking-widest cursor-not-allowed">
+            Website Not Available
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -222,42 +282,67 @@ export default function CollegeOverviewPage() {
   const showCutoff = !!firstCutoffTable
   const showContact = !!(college?.location || college?.url)
 
+  // Short college name for the apply card heading
+  const shortName = college.college_name
+    ?.replace(/\b(university|college|institute|of|and|the)\b/gi, '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 3)
+    .join(' ') || college.college_name
+
   return (
     <div className="space-y-16 max-w-7xl mx-auto px-4">
 
-      {/* ── ABOUT ── */}
+      {/* ── ABOUT + APPLY (parallel) ── */}
       {showAbout && (
         <section id="overview" className="scroll-mt-28 space-y-8">
-          <SectionHeader label="Institutional Profile" title="About" accent="Us." />
-          {aboutText && (
-            <p className="text-base sm:text-lg text-slate-400 leading-loose font-medium italic pl-6 sm:pl-8 border-l-[6px] border-amber-500">
-              {aboutText}
-            </p>
-          )}
-          {(vision || mission) && (
-            <div className="grid md:grid-cols-2 gap-5">
-              {vision && (
-                <div className="relative p-7 rounded-[2rem] border border-white/10 bg-[#0F172B] hover:border-amber-500/40 overflow-hidden group transition-all duration-500" style={{ borderColor }}>
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative z-10 space-y-3">
-                    <Eye className="w-6 h-6 text-amber-500 group-hover:scale-110 transition-transform duration-500" />
-                    <h4 className="text-white font-black uppercase text-xs tracking-widest">Vision</h4>
-                    <p className="text-slate-500 text-sm leading-relaxed">{vision}</p>
-                  </div>
-                </div>
+          {/* Two-column layout: About content left, Apply card right */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
+
+            {/* LEFT: About content */}
+            <div className="space-y-8">
+              <SectionHeader label="Institutional Profile" title="About" accent="Us." />
+
+              {aboutText && (
+                <p className="text-base sm:text-lg text-slate-400 leading-loose font-medium italic pl-6 sm:pl-8 border-l-[6px] border-amber-500">
+                  {aboutText}
+                </p>
               )}
-              {mission && (
-                <div className="relative p-7 rounded-[2rem] border border-white/10 bg-[#0F172B] hover:border-blue-500/40 overflow-hidden group transition-all duration-500" style={{ borderColor }}>
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative z-10 space-y-3">
-                    <Target className="text-blue-500 w-6 h-6 group-hover:scale-110 transition-transform duration-500" />
-                    <h4 className="text-white font-black uppercase text-xs tracking-widest">Mission</h4>
-                    <p className="text-slate-500 text-sm leading-relaxed">{mission}</p>
-                  </div>
+
+              {(vision || mission) && (
+                <div className="grid md:grid-cols-2 gap-5">
+                  {vision && (
+                    <div className="relative p-7 rounded-[2rem] border border-white/10 bg-[#0F172B] hover:border-amber-500/40 overflow-hidden group transition-all duration-500" style={{ borderColor }}>
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative z-10 space-y-3">
+                        <Eye className="w-6 h-6 text-amber-500 group-hover:scale-110 transition-transform duration-500" />
+                        <h4 className="text-white font-black uppercase text-xs tracking-widest">Vision</h4>
+                        <p className="text-slate-500 text-sm leading-relaxed">{vision}</p>
+                      </div>
+                    </div>
+                  )}
+                  {mission && (
+                    <div className="relative p-7 rounded-[2rem] border border-white/10 bg-[#0F172B] hover:border-blue-500/40 overflow-hidden group transition-all duration-500" style={{ borderColor }}>
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative z-10 space-y-3">
+                        <Target className="text-blue-500 w-6 h-6 group-hover:scale-110 transition-transform duration-500" />
+                        <h4 className="text-white font-black uppercase text-xs tracking-widest">Mission</h4>
+                        <p className="text-slate-500 text-sm leading-relaxed">{mission}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
+
+            {/* RIGHT: Apply Directly card — sticky on large screens */}
+            <div className="lg:sticky lg:top-28 h-full">
+              <ApplyCard
+                collegeName={shortName}
+                url={college?.url}
+              />
+            </div>
+          </div>
         </section>
       )}
 
@@ -408,24 +493,6 @@ export default function CollegeOverviewPage() {
                 </div>
               </div>
             )}
-            {/* CTA CARD */}
-            <div className="group relative p-8 rounded-[2rem] border border-white/5 bg-[#050818] overflow-hidden shadow-2xl transition-all duration-500 hover:border-amber-500/30">
-              <div className="absolute top-0 right-0 w-56 h-56 bg-amber-500/5 blur-[80px] rounded-full -mr-16 -mt-16 group-hover:bg-amber-500/10 transition-colors" />
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-amber-500/10 rounded-lg"><Headset size={16} className="text-amber-500" /></div>
-                    <h3 className="text-xl font-black text-white uppercase tracking-tighter">Admission <span className="text-amber-500">Desk.</span></h3>
-                  </div>
-                  <p className="text-xs font-medium text-slate-400 max-w-sm leading-relaxed">Connect with the official administration for personalized counseling and direct admission queries.</p>
-                </div>
-                {college?.url && (
-                  <a href={college.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 py-3.5 px-8 bg-amber-500 text-[#050818] rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all font-black text-xs uppercase tracking-widest shrink-0">
-                    Apply Directly <ArrowUpRight size={14} />
-                  </a>
-                )}
-              </div>
-            </div>
           </div>
         </section>
       )}
