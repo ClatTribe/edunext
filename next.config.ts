@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
     // Turbopack config (required for Next.js 16 when webpack config is present)
     turbopack: {},
+    serverExternalPackages: ["sharp"],
 
     // Add images configuration for Cloudinary
     images: {
