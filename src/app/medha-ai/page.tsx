@@ -398,7 +398,7 @@ export default function MedhaAIDashboard() {
     }
   }, [user]);
 
-  // --- SESSION STORAGE: Restore chat on mount (only if navigated back, NOT on refresh) ---
+  // --- SESSION STORAGE: Restore chat + scroll position on mount (only if navigated back, NOT on refresh) ---
   useEffect(() => {
     const wasRefresh = sessionStorage.getItem('medha-is-refresh');
     if (wasRefresh === 'true') {
@@ -406,6 +406,7 @@ export default function MedhaAIDashboard() {
       sessionStorage.removeItem('medha-chat');
       sessionStorage.removeItem('medha-show-response');
       sessionStorage.removeItem('medha-matched-colleges');
+      sessionStorage.removeItem('medha-scroll-pos');
       sessionStorage.removeItem('medha-is-refresh');
     } else {
       // User navigated back → restore chat
@@ -413,6 +414,7 @@ export default function MedhaAIDashboard() {
         const savedChat = sessionStorage.getItem('medha-chat');
         const savedShow = sessionStorage.getItem('medha-show-response');
         const savedColleges = sessionStorage.getItem('medha-matched-colleges');
+        const savedScroll = sessionStorage.getItem('medha-scroll-pos');
         if (savedChat) {
           const parsed = JSON.parse(savedChat);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -420,6 +422,19 @@ export default function MedhaAIDashboard() {
             setShowResponse(savedShow === 'true');
             if (savedColleges) {
               try { setMatchedColleges(JSON.parse(savedColleges)); } catch { /* ignore */ }
+            }
+            // Restore scroll position after React re-renders
+            if (savedScroll) {
+              const scrollY = parseInt(savedScroll, 10);
+              setTimeout(() => {
+                // Try scrolling the DefaultLayout scroll container first
+                const scrollContainer = document.querySelector('.flex-1.overflow-auto');
+                if (scrollContainer) {
+                  scrollContainer.scrollTop = scrollY;
+                } else {
+                  window.scrollTo(0, scrollY);
+                }
+              }, 150);
             }
           }
         }
@@ -760,6 +775,7 @@ export default function MedhaAIDashboard() {
     sessionStorage.removeItem('medha-chat');
     sessionStorage.removeItem('medha-show-response');
     sessionStorage.removeItem('medha-matched-colleges');
+    sessionStorage.removeItem('medha-scroll-pos');
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -920,7 +936,7 @@ export default function MedhaAIDashboard() {
 
   return (
     <DefaultLayout>
-      <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }} className="pt-20 sm:pt-24 lg:pt-28 pb-10">
+      <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }} className="pt-4 sm:pt-6 pb-8">
         <div className="max-w-7xl mx-auto px-4 space-y-8">
           {/* Welcome Header */}
           <div className="flex items-start justify-between flex-wrap gap-4">
@@ -1087,7 +1103,14 @@ export default function MedhaAIDashboard() {
                                 {matchedColleges.map((college, idx) => (
                                   <div
                                     key={college.id}
-                                    onClick={() => college.slug && router.push(`/college/${college.slug}`)}
+                                    onClick={() => {
+                                      if (!college.slug) return;
+                                      // Save scroll position before navigating
+                                      const scrollContainer = document.querySelector('.flex-1.overflow-auto');
+                                      const scrollPos = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
+                                      sessionStorage.setItem('medha-scroll-pos', String(scrollPos));
+                                      router.push(`/college/${college.slug}`);
+                                    }}
                                     className="rounded-xl p-4 cursor-pointer transition-all duration-200 block"
                                     style={{
                                       backgroundColor: COLORS.surfaceContainerHigh,
