@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { GitCompare, X, ArrowRight } from "lucide-react"
+import { GitCompare, ArrowRight } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 
 interface College {
@@ -47,11 +47,19 @@ interface CollegeMicrositeComparisonProps {
   colleges: College[]
 }
 
-// Changed from React.FC to a regular hook function
+// ─── Helper ───────────────────────────────────────────────────────────────────
+// Build a stub College object just from an ID so the count is always accurate
+// even when the full colleges[] array doesn't contain that college
+// (e.g. on a microsite page where colleges[] = [currentCollege] only)
+function makeStub(id: number): College {
+  return { id, "College Name": null }
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeComparisonProps) => {
   const [compareColleges, setCompareColleges] = useState<College[]>([])
 
-  // Load compare colleges on mount
+  // Load compare colleges on mount / when user or colleges change
   useEffect(() => {
     if (user) {
       fetchCompareCollegesFromDB()
@@ -60,9 +68,12 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
     }
   }, [user, colleges])
 
-  // Fetch compare colleges from database (for logged-in users)
+  // ── DB fetch (logged-in users) ────────────────────────────────────────────
+  // KEY FIX: we no longer filter against colleges[] for the count.
+  // We fetch all saved IDs from DB, match what we can from colleges[],
+  // and fill the rest with stubs so the count is always accurate.
   const fetchCompareCollegesFromDB = async () => {
-    if (!user || colleges.length === 0) return
+    if (!user) return
 
     try {
       const { data: compareData, error: compareError } = await supabase!
@@ -73,36 +84,57 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
       if (compareError) throw compareError
 
       if (compareData && compareData.length > 0) {
-        const collegeIds = compareData.map(item => item.college_id)
-        const selectedColleges = colleges.filter(c => collegeIds.includes(c.id))
-        setCompareColleges(selectedColleges)
+        const collegeIds: number[] = compareData.map(item => item.college_id)
+
+        // Match full objects from colleges[] where available
+        const matched = colleges.filter(c => collegeIds.includes(c.id))
+        const matchedIds = new Set(matched.map(c => c.id))
+
+        // For IDs not found in colleges[], create stubs (microsite page case)
+        const stubs = collegeIds
+          .filter(id => !matchedIds.has(id))
+          .map(makeStub)
+
+        setCompareColleges([...matched, ...stubs])
+      } else {
+        setCompareColleges([])
       }
     } catch (err) {
       console.error("Error fetching compare colleges:", err)
     }
   }
 
-  // Fetch compare colleges from localStorage (for non-logged-in users)
+  // ── localStorage fetch (guest users) ─────────────────────────────────────
+  // Same fix: match what we can, stub the rest for accurate count.
   const fetchCompareCollegesFromLocalStorage = () => {
-    if (colleges.length === 0) return
-
     try {
-      const storedCompareIds = JSON.parse(localStorage.getItem('compareCollegeMicrosites') || '[]')
+      const storedCompareIds: number[] = JSON.parse(
+        localStorage.getItem('compareCollegeMicrosites') || '[]'
+      )
+
       if (storedCompareIds.length > 0) {
-        const selectedColleges = colleges.filter(c => storedCompareIds.includes(c.id))
-        setCompareColleges(selectedColleges)
+        const matched = colleges.filter(c => storedCompareIds.includes(c.id))
+        const matchedIds = new Set(matched.map(c => c.id))
+
+        const stubs = storedCompareIds
+          .filter(id => !matchedIds.has(id))
+          .map(makeStub)
+
+        setCompareColleges([...matched, ...stubs])
+      } else {
+        setCompareColleges([])
       }
     } catch (err) {
       console.error("Error loading from localStorage:", err)
     }
   }
 
-  // Toggle compare (add/remove college)
+  // ── Toggle compare (add / remove) ─────────────────────────────────────────
   const toggleCompare = async (college: College) => {
     const exists = compareColleges.find(c => c.id === college.id)
 
     if (exists) {
-      // Remove from compare
+      // ── REMOVE ──
       if (user) {
         try {
           const { error } = await supabase!
@@ -112,21 +144,21 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
             .eq("college_id", college.id)
 
           if (error) throw error
-
           setCompareColleges(prev => prev.filter(c => c.id !== college.id))
         } catch (err) {
           console.error("Error removing from compare:", err)
           alert("Failed to remove from comparison. Please try again.")
         }
       } else {
-        // Remove from localStorage
-        const storedIds = JSON.parse(localStorage.getItem('compareCollegeMicrosites') || '[]')
-        const updatedIds = storedIds.filter((id: number) => id !== college.id)
+        const storedIds: number[] = JSON.parse(
+          localStorage.getItem('compareCollegeMicrosites') || '[]'
+        )
+        const updatedIds = storedIds.filter(id => id !== college.id)
         localStorage.setItem('compareCollegeMicrosites', JSON.stringify(updatedIds))
         setCompareColleges(prev => prev.filter(c => c.id !== college.id))
       }
     } else {
-      // Add to compare (max 3)
+      // ── ADD (max 3) ──
       if (compareColleges.length >= 3) {
         alert('You can compare maximum 3 colleges at a time')
         return
@@ -136,15 +168,14 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
         try {
           const { error } = await supabase!
             .from("compare_college_microsites")
-            .insert({
-              user_id: user.id,
-              college_id: college.id
-            })
+            .insert({ user_id: user.id, college_id: college.id })
 
           if (error) {
-            // Check if it's a duplicate error
             if (error.code === '23505') {
-              console.log("College already in comparison")
+              // Already exists — just make sure local state reflects it
+              setCompareColleges(prev =>
+                prev.some(c => c.id === college.id) ? prev : [...prev, college]
+              )
               return
             }
             throw error
@@ -156,19 +187,23 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
           alert("Failed to add to comparison. Please try again.")
         }
       } else {
-        // Add to localStorage
-        const storedIds = JSON.parse(localStorage.getItem('compareCollegeMicrosites') || '[]')
+        const storedIds: number[] = JSON.parse(
+          localStorage.getItem('compareCollegeMicrosites') || '[]'
+        )
         storedIds.push(college.id)
         localStorage.setItem('compareCollegeMicrosites', JSON.stringify(storedIds))
-        
-        // Also cache all colleges for comparison page
-        localStorage.setItem('allCollegeMicrosites', JSON.stringify(colleges))
-        
+
+        // Cache full colleges list for the battle-mode comparison page
+        if (colleges.length > 1) {
+          localStorage.setItem('allCollegeMicrosites', JSON.stringify(colleges))
+        }
+
         setCompareColleges(prev => [...prev, college])
       }
     }
   }
 
+  // ── Remove by ID ──────────────────────────────────────────────────────────
   const removeFromCompare = async (collegeId: number) => {
     if (user) {
       try {
@@ -179,26 +214,27 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
           .eq("college_id", collegeId)
 
         if (error) throw error
-
         setCompareColleges(prev => prev.filter(c => c.id !== collegeId))
       } catch (err) {
         console.error("Error removing from compare:", err)
       }
     } else {
-      const storedIds = JSON.parse(localStorage.getItem('compareCollegeMicrosites') || '[]')
-      const updatedIds = storedIds.filter((id: number) => id !== collegeId)
+      const storedIds: number[] = JSON.parse(
+        localStorage.getItem('compareCollegeMicrosites') || '[]'
+      )
+      const updatedIds = storedIds.filter(id => id !== collegeId)
       localStorage.setItem('compareCollegeMicrosites', JSON.stringify(updatedIds))
       setCompareColleges(prev => prev.filter(c => c.id !== collegeId))
     }
   }
 
-  const isInCompare = (collegeId: number) => {
-    return compareColleges.some(c => c.id === collegeId)
-  }
+  // ── isInCompare ───────────────────────────────────────────────────────────
+  const isInCompare = (collegeId: number) =>
+    compareColleges.some(c => c.id === collegeId)
 
+  // ── Navigate to battle-mode ───────────────────────────────────────────────
   const goToComparison = () => {
-    // For non-logged-in users, also save to localStorage before navigation
-    if (!user && colleges.length > 0) {
+    if (!user && colleges.length > 1) {
       localStorage.setItem('allCollegeMicrosites', JSON.stringify(colleges))
     }
     window.location.href = '/battle-mode'
@@ -213,10 +249,9 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
   }
 }
 
-// Compare Badge Component (for cards)
+// ─── Compare Badge (on cards) ─────────────────────────────────────────────────
 export const CompareBadge: React.FC<{ show: boolean }> = ({ show }) => {
   if (!show) return null
-
   return (
     <div className="mb-3">
       <span className="inline-flex items-center gap-1.5 bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1.5 rounded-full border border-purple-300">
@@ -227,14 +262,13 @@ export const CompareBadge: React.FC<{ show: boolean }> = ({ show }) => {
   )
 }
 
-// Floating Compare Button Component
+// ─── Floating Compare Button ──────────────────────────────────────────────────
 export const CompareFloatingButton: React.FC<{
   compareCount: number
   onCompareClick: () => void
 }> = ({ compareCount, onCompareClick }) => {
   const [isHovered, setIsHovered] = useState(false)
 
-  // Hide button if no colleges selected
   if (compareCount === 0) return null
 
   const handleClick = () => {
@@ -246,61 +280,43 @@ export const CompareFloatingButton: React.FC<{
   }
 
   return (
-    <div 
-      className="fixed right-6 z-40 transition-all duration-300"
-      style={{ 
-        bottom: '90px', // Positioned above contact button (which is at bottom-4 = 16px)
-      }}
+    <div
+      className="fixed right-6 z-50 transition-all duration-300"
+      style={{ bottom: '90px' }}
     >
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes comparePing {
-          75%, 100% {
-            transform: scale(1.3);
-            opacity: 0;
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes comparePing {
+            75%, 100% { transform: scale(1.3); opacity: 0; }
           }
-        }
-        .compare-ping-animation {
-          animation: comparePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-      `}} />
-      
+          .compare-ping-animation {
+            animation: comparePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+          }
+        `
+      }} />
+
       <button
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-2 group rounded-full
-          md:px-5 md:py-3 px-4 py-3
-          hover:scale-105 active:scale-95
-        "
+        className="relative bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-2 rounded-full px-5 py-3 hover:scale-105 active:scale-95"
       >
         <GitCompare
           size={20}
-          className={`transition-transform duration-300 ${
-            isHovered ? 'rotate-12 scale-110' : ''
-          }`}
+          className={`transition-transform duration-300 ${isHovered ? 'rotate-12 scale-110' : ''}`}
         />
-        
-        {/* Desktop Text */}
-        <span className="font-bold text-sm whitespace-nowrap hidden md:inline">
+        <span className="font-bold text-sm whitespace-nowrap">
           Compare ({compareCount})
         </span>
-        
-        {/* Mobile Text */}
-        <span className="font-bold text-sm whitespace-nowrap md:hidden">
-          Compare ({compareCount})
-        </span>
-
-        <ArrowRight 
-          size={18} 
-          className={`transition-transform duration-300 hidden md:inline ${
-            isHovered ? 'translate-x-1' : ''
-          }`}
+        <ArrowRight
+          size={18}
+          className={`transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}
         />
 
-        {/* Pulse Animation Ring */}
-        <div className="absolute inset-0 rounded-full bg-purple-600 compare-ping-animation opacity-20"></div>
+        {/* Pulse ring */}
+        <div className="absolute inset-0 rounded-full bg-purple-600 compare-ping-animation opacity-20 pointer-events-none" />
 
-        {/* Badge for count */}
+        {/* Max badge */}
         {compareCount === 3 && (
           <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
             ✓

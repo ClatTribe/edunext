@@ -110,14 +110,14 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
       {/* ── Global Navbar (fixed) ── */}
       <Navbar />
 
-      {/* ── Spacer: pushes content below the fixed navbar ──
-           h-16 = 64px (mobile), sm:h-18 = 72px (tablet), lg:h-20 = 80px (desktop)
-           Must match Navbar's h-16 sm:h-18 lg:h-20 */}
+      {/* ── Spacer: pushes content below the fixed navbar ── */}
       <div className="h-16 sm:h-[72px] lg:h-20" />
 
       {/* ── HERO SECTION ── */}
       <div className="relative">
         <MicrositeHero
+          collegeId={college.id}               
+          slug={slug}                            
           collegeName={college.college_name}
           location={college.location}
           image={college.image}
@@ -130,9 +130,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
         />
       </div>
 
-      {/* ── SUB-NAVBAR (sticky below the main navbar) ──
-           top-16 / sm:top-[72px] / lg:top-20 matches navbar height
-           so it sticks right below the navbar instead of overlapping */}
+      {/* ── SUB-NAVBAR (sticky below the main navbar) ── */}
       <nav className="sticky top-16 sm:top-[72px] lg:top-20 z-40 bg-[#020205]/90 backdrop-blur-xl border-b border-white/5 w-full">
         <div className="flex gap-1 md:gap-3 overflow-x-auto px-4 py-3 no-scrollbar items-center md:justify-center">
           {navItems.map((item) => {
