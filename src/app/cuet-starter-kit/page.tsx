@@ -1,6 +1,6 @@
 "use client";
 
-import StarterKitApp from "../../../components/cuet-starterkit/App";
+import StarterKitApp from "../../../components/cuet-starter-kit/App";
 
 export default function CuetStarterKitPage() {
   return <StarterKitApp />;
