@@ -9,18 +9,49 @@ import {
 import { getOMRSystemPrompt, getUserPrompt } from "../../../../lib/omr-prompt";
 
 // --- Preprocess image for better OMR detection ---
+// --- Preprocess image for better OMR detection ---
 async function preprocessImage(base64Data: string): Promise<string> {
   const inputBuffer = Buffer.from(base64Data, "base64");
-  const processed = await sharp(inputBuffer)
-    .greyscale()
-    .normalize()
-    .sharpen({ sigma: 1.5 })
-    .modulate({ brightness: 1.1 })
-    .jpeg({ quality: 95 })
-    .toBuffer();
+
+  // Step 1: Get image metadata to check quality
+  const metadata = await sharp(inputBuffer).metadata();
+  const isLowRes =
+    (metadata.width || 0) < 1500 || (metadata.height || 0) < 1500;
+
+  let pipeline = sharp(inputBuffer).greyscale().normalize(); // Auto contrast stretch
+
+  // Step 2: If low resolution, upscale first
+  if (isLowRes && metadata.width && metadata.height) {
+    const scale = 2;
+    pipeline = pipeline.resize(
+      metadata.width * scale,
+      metadata.height * scale,
+      { kernel: sharp.kernel.lanczos3 },
+    );
+  }
+
+  // Step 3: Aggressive sharpen to fix blur
+  pipeline = pipeline
+    .sharpen({ sigma: 2, m1: 2, m2: 1 }) // Strong sharpen
+    .linear(1.3, -(128 * 1.3 - 128)) // contrast via linear(a, b) → pixel = a * pixel + b
+    .modulate({ brightness: 1.15 });
+    
+  // Step 4: Apply CLAHE (adaptive histogram equalization)
+  // This makes filled bubbles stand out even in uneven lighting
+  pipeline = pipeline.clahe({
+    width: 10,
+    height: 10,
+    maxSlope: 5,
+  });
+
+  // Step 5: Threshold to make filled bubbles solid black, empty ones white
+  // This is the KEY step for blurry images
+  pipeline = pipeline.threshold(160);
+
+  const processed = await pipeline.jpeg({ quality: 95 }).toBuffer();
+
   return processed.toString("base64");
 }
-
 // --- Parse raw AI JSON into structured answers ---
 interface RawAnswer {
   q: number;

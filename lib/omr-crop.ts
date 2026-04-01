@@ -23,14 +23,14 @@ export async function cropAnswerSection(base64Image: string): Promise<string> {
       const cropStartY = Math.floor(height * cropRatio);
       const cropHeight = height - cropStartY;
 
-      // 2x upscale for sharper bubble edges
-      const scale = 2.0;
+      // 2.5x upscale for blurry photos
+      const scale = 2.5;
       canvas.width = Math.floor(width * scale);
       canvas.height = Math.floor(cropHeight * scale);
 
       ctx.drawImage(img, 0, cropStartY, width, cropHeight, 0, 0, canvas.width, canvas.height);
 
-      // Contrast enhancement on canvas — makes filled bubbles much darker
+      // Aggressive contrast + threshold for blurry images
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
@@ -42,14 +42,17 @@ export async function cropAnswerSection(base64Image: string): Promise<string> {
         // Greyscale
         const grey = 0.299 * r + 0.587 * g + 0.114 * b;
 
-        // 1.5x contrast boost — darks go darker, lights go lighter
-        const adjusted = Math.max(0, Math.min(255,
-          1.5 * (grey - 128) + 128
-        ));
+        // 2x contrast boost
+        let adjusted = 2.0 * (grey - 128) + 128;
+        adjusted = Math.max(0, Math.min(255, adjusted));
 
-        data[i] = adjusted;
-        data[i + 1] = adjusted;
-        data[i + 2] = adjusted;
+        // Threshold: if dark enough → make pure black, otherwise pure white
+        // This makes filled bubbles unmistakable
+        const final = adjusted < 140 ? 0 : 255;
+
+        data[i] = final;
+        data[i + 1] = final;
+        data[i + 2] = final;
       }
 
       ctx.putImageData(imageData, 0, 0);
