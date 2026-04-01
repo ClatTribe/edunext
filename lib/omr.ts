@@ -4,6 +4,7 @@ export interface OMRConfig {
   totalQuestions: number;
   optionsPerQuestion: number;
   optionLabels: string[];
+  sheetType: "auto" | "standard" | "small" | "large" | "upsc";
 }
 
 export interface OMRAnswer {
@@ -32,6 +33,7 @@ export const DEFAULT_CONFIG: OMRConfig = {
   totalQuestions: 120,
   optionsPerQuestion: 4,
   optionLabels: ["A", "B", "C", "D"],
+  sheetType: "auto",
 };
 
 export const QUESTION_PRESETS = [

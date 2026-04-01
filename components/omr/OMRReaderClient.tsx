@@ -1,12 +1,67 @@
 "use client";
 
 import { useState } from "react";
-import { OMRConfig, OMRResult, DEFAULT_CONFIG } from "../../lib/omr";
+import { OMRConfig, OMRResult, OMRAnswer, DEFAULT_CONFIG } from "../../lib/omr";
 import SheetConfig from "./SheetConfig";
 import ImageUploader from "./ImageUploader";
 import ResultsGrid from "./ResultsGrid";
 import { cropAnswerSection, isFullSheetPhoto } from "../../lib/omr-crop";
 
+async function callOMRApi(
+  image: string,
+  config: OMRConfig,
+  isCropped?: boolean,
+): Promise<OMRResult> {
+  const res = await fetch("/api/parse-omr", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image, config, isCropped }),
+  });
+  return res.json();
+}
+
+// Dual-pass: run twice and merge with agreement logic
+function mergeWithVerification(
+  pass1: OMRAnswer[],
+  pass2: OMRAnswer[],
+): OMRAnswer[] {
+  const merged: OMRAnswer[] = [];
+
+  for (let i = 0; i < pass1.length; i++) {
+    const a1 = pass1[i];
+    const a2 = pass2[i];
+
+    if (!a2) {
+      merged.push(a1);
+      continue;
+    }
+
+    if (a1.selectedOption === a2.selectedOption) {
+      // Both passes agree — high confidence
+      merged.push({
+        questionNumber: a1.questionNumber,
+        selectedOption: a1.selectedOption,
+        confidence: "high",
+      });
+    } else if (a1.selectedOption === null) {
+      merged.push(a2);
+    } else if (a2.selectedOption === null) {
+      merged.push(a1);
+    } else {
+      // Disagreement — use higher confidence one, mark medium
+      const confRank = { high: 3, medium: 2, low: 1 };
+      const winner =
+        confRank[a1.confidence] >= confRank[a2.confidence] ? a1 : a2;
+      merged.push({
+        questionNumber: winner.questionNumber,
+        selectedOption: winner.selectedOption,
+        confidence: "medium",
+      });
+    }
+  }
+
+  return merged;
+}
 
 export default function OMRReaderClient() {
   const [config, setConfig] = useState<OMRConfig>(DEFAULT_CONFIG);
@@ -38,53 +93,52 @@ export default function OMRReaderClient() {
     setCroppedPreview("");
 
     try {
-      const allAnswers: OMRResult["answers"] = [];
+      const allAnswersPass1: OMRAnswer[] = [];
+      const allAnswersPass2: OMRAnswer[] = [];
 
       for (let i = 0; i < images.length; i++) {
         setProgress(`Processing image ${i + 1} of ${images.length}...`);
 
         let imageToSend = images[i];
         const isFullSheet = await isFullSheetPhoto(images[i]);
+        let isCropped = false;
+
         if (isFullSheet) {
           setProgress(`Cropping answer section from image ${i + 1}...`);
           imageToSend = await cropAnswerSection(images[i]);
+          isCropped = true;
           if (i === 0) setCroppedPreview(imageToSend);
         }
 
+        // Pass 1
         setProgress(
-          `Reading OMR sheet${images.length > 1 ? ` (${i + 1}/${images.length})` : ""}...`,
+          `Reading OMR — Pass 1${images.length > 1 ? ` (image ${i + 1}/${images.length})` : ""}...`,
         );
+        const data1 = await callOMRApi(imageToSend, config, isCropped);
+        if (!data1.success)
+          throw new Error(data1.error || `Failed on image ${i + 1} (pass 1)`);
+        allAnswersPass1.push(...data1.answers);
 
-        const res = await fetch("/api/parse-omr", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: imageToSend, config }),
-        });
-
-        const data: OMRResult = await res.json();
-        if (!data.success)
-          throw new Error(data.error || `Failed on image ${i + 1}`);
-
-        allAnswers.push(...data.answers);
+        // Pass 2 (verification)
+        setProgress(
+          `Verifying — Pass 2${images.length > 1 ? ` (image ${i + 1}/${images.length})` : ""}...`,
+        );
+        const data2 = await callOMRApi(imageToSend, config, isCropped);
+        if (!data2.success)
+          throw new Error(data2.error || `Failed on image ${i + 1} (pass 2)`);
+        allAnswersPass2.push(...data2.answers);
       }
 
-      const confRank = { high: 3, medium: 2, low: 1 };
-      const answerMap = new Map<number, (typeof allAnswers)[0]>();
-      for (const ans of allAnswers) {
-        const existing = answerMap.get(ans.questionNumber);
-        if (
-          !existing ||
-          confRank[ans.confidence] > confRank[existing.confidence]
-        ) {
-          answerMap.set(ans.questionNumber, ans);
-        }
-      }
+      // Merge two passes
+      const merged = mergeWithVerification(allAnswersPass1, allAnswersPass2);
 
-      const merged = Array.from(answerMap.values()).sort(
-        (a, b) => a.questionNumber - b.questionNumber,
-      );
       const totalAnswered = merged.filter(
         (a) => a.selectedOption !== null,
+      ).length;
+
+      const agreements = merged.filter((a) => a.confidence === "high").length;
+      const disagreements = merged.filter(
+        (a) => a.confidence === "medium",
       ).length;
 
       setResult({
@@ -97,6 +151,7 @@ export default function OMRReaderClient() {
           .filter((a) => a.selectedOption !== null)
           .map((a) => `${a.questionNumber}: ${a.selectedOption}`)
           .join(", "),
+        rawAIResponse: `Dual-pass: ${agreements} agreed, ${disagreements} disagreed`,
       });
 
       setTimeout(() => {
@@ -131,7 +186,6 @@ export default function OMRReaderClient() {
         disabled={loading}
       />
 
-      {/* Crop Preview */}
       {croppedPreview && !loading && !result && (
         <div className="mt-4 rounded-xl overflow-hidden border border-amber-500/30">
           <div className="flex items-center justify-between px-3 py-2 bg-slate-800">
@@ -169,7 +223,6 @@ export default function OMRReaderClient() {
         </div>
       )}
 
-      {/* Loading State */}
       {loading && (
         <div
           className="mt-6 rounded-2xl p-6"
@@ -190,7 +243,7 @@ export default function OMRReaderClient() {
               {progress || "Processing..."}
             </p>
             <p className="text-slate-500 text-xs">
-              This may take 10–15 seconds...
+              Dual-pass verification — may take 20–30 seconds...
             </p>
           </div>
         </div>

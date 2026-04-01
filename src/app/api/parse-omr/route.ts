@@ -1,11 +1,5 @@
-// =============================================================
-// FILE: app/api/parse-omr/route.ts
-// REQUIRES: npm install @google/generative-ai
-// ENV VAR:  GEMINI_API_KEY in .env.local
-// =============================================================
-
 import { NextRequest, NextResponse } from "next/server";
-// import { GoogleGenerativeAI } from "@google/generative-ai";
+import sharp from "sharp";
 import {
   OMRConfig,
   OMRAnswer,
@@ -14,9 +8,20 @@ import {
 } from "../../../../lib/omr";
 import { getOMRSystemPrompt, getUserPrompt } from "../../../../lib/omr-prompt";
 
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// --- Preprocess image for better OMR detection ---
+async function preprocessImage(base64Data: string): Promise<string> {
+  const inputBuffer = Buffer.from(base64Data, "base64");
+  const processed = await sharp(inputBuffer)
+    .greyscale()
+    .normalize()
+    .sharpen({ sigma: 1.5 })
+    .modulate({ brightness: 1.1 })
+    .jpeg({ quality: 95 })
+    .toBuffer();
+  return processed.toString("base64");
+}
 
-// --- Helper: Parse raw AI JSON into structured answers ---
+// --- Parse raw AI JSON into structured answers ---
 interface RawAnswer {
   q: number;
   ans: string;
@@ -61,6 +66,47 @@ function parseAIResponse(rawText: string, config: OMRConfig): OMRAnswer[] {
   return fullAnswers;
 }
 
+// --- Call Gemini API ---
+async function callGemini(
+  base64Data: string,
+  mimeType: string,
+  config: OMRConfig,
+  isCropped: boolean,
+): Promise<string> {
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: getOMRSystemPrompt(config, isCropped) }],
+        },
+        contents: [
+          {
+            parts: [
+              { inline_data: { mime_type: mimeType, data: base64Data } },
+              { text: getUserPrompt(config, isCropped) },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          topP: 0.8,
+        },
+      }),
+    },
+  );
+
+  if (!geminiRes.ok) {
+    const errText = await geminiRes.text();
+    throw new Error(`Gemini API error ${geminiRes.status}: ${errText}`);
+  }
+
+  const geminiData = await geminiRes.json();
+  return geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+}
+
 // --- Main POST handler ---
 export async function POST(request: NextRequest) {
   try {
@@ -98,52 +144,20 @@ export async function POST(request: NextRequest) {
       optionLabels: userConfig?.optionLabels || DEFAULT_CONFIG.optionLabels,
     };
 
-    // Detect media type from data URL
-    let mimeType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" =
-      "image/jpeg";
-    if (image.startsWith("data:image/png")) mimeType = "image/png";
-    else if (image.startsWith("data:image/webp")) mimeType = "image/webp";
-    else if (image.startsWith("data:image/gif")) mimeType = "image/gif";
-
     // Strip data URL prefix → raw base64
-    const base64Data = image.includes(",") ? image.split(",")[1] : image;
+    const rawBase64 = image.includes(",") ? image.split(",")[1] : image;
 
-    // --- Gemini Vision API call ---
-    // --- Gemini Vision API call (raw fetch, no referrer) ---
+    // Preprocess: greyscale + normalize + sharpen
+    const base64Data = await preprocessImage(rawBase64);
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: getOMRSystemPrompt(config, isCropped) }],
-          },
-          contents: [
-            {
-              parts: [
-                { inline_data: { mime_type: mimeType, data: base64Data } },
-                { text: getUserPrompt(config, isCropped) },
-              ],
-            },
-          ],
-        }),
-      },
+    // Call Gemini 2.5 Pro
+    const rawResponse = await callGemini(
+      base64Data,
+      "image/jpeg",
+      config,
+      isCropped ?? false,
     );
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      throw new Error(`Gemini API error ${geminiRes.status}: ${errText}`);
-    }
-
-    const geminiData = await geminiRes.json();
-    const rawResponse: string =
-      geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-    // Parse into structured answers
     const answers = parseAIResponse(rawResponse, config);
     const totalAnswered = answers.filter(
       (a) => a.selectedOption !== null,
