@@ -331,6 +331,68 @@ const CollegeMicrositesPage: React.FC = () => {
   })
   const [hasBudgetFilter, setHasBudgetFilter] = useState(false)
 
+  // ── SESSION STORAGE: Restore on back-navigation (not on refresh) ──
+useEffect(() => {
+  const wasRefresh = sessionStorage.getItem('college-finder-is-refresh')
+  if (wasRefresh === 'true') {
+    sessionStorage.removeItem('college-finder-state')
+    sessionStorage.removeItem('college-finder-is-refresh')
+  } else {
+    try {
+      const saved = sessionStorage.getItem('college-finder-state')
+      if (saved) {
+        const s = JSON.parse(saved)
+        if (s.searchQuery !== undefined)      setSearchQuery(s.searchQuery)
+        if (s.currentPage !== undefined)      setCurrentPage(s.currentPage)
+        if (s.selectedCategory !== undefined) setSelectedCategory(s.selectedCategory)
+        if (s.dynamicCategory !== undefined)  setDynamicCategory(s.dynamicCategory)
+        if (s.viewMode !== undefined)         setViewMode(s.viewMode)
+        if (s.manualFilters !== undefined)    setManualFilters(s.manualFilters)
+      }
+    } catch { /* ignore */ }
+    
+  }
+  sessionStorage.removeItem('college-finder-is-refresh')
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [])
+
+// ── SESSION STORAGE: Set refresh flag on beforeunload ──
+useEffect(() => {
+  const handleBeforeUnload = () => {
+    sessionStorage.setItem('college-finder-is-refresh', 'true')
+  }
+  window.addEventListener('beforeunload', handleBeforeUnload)
+  return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+}, [])
+
+// ── SESSION STORAGE: Save state on every relevant change ──
+useEffect(() => {
+  if (!loading && colleges.length > 0) {
+    const savedScroll = sessionStorage.getItem('college-finder-scroll')
+    if (savedScroll) {
+      setTimeout(() => {
+        const scrollContainer = document.querySelector('.flex-1.overflow-auto')
+        if (scrollContainer) {
+          scrollContainer.scrollTop = parseInt(savedScroll, 10)
+        } else {
+          window.scrollTo(0, parseInt(savedScroll, 10))
+        }
+        sessionStorage.removeItem('college-finder-scroll')
+      }, 100)
+    }
+  }
+}, [loading, colleges])
+useEffect(() => {
+  sessionStorage.setItem('college-finder-state', JSON.stringify({
+    searchQuery,
+    currentPage,
+    selectedCategory,
+    dynamicCategory,
+    viewMode,
+    manualFilters,
+  }))
+}, [searchQuery, currentPage, selectedCategory, dynamicCategory, viewMode, manualFilters])
+
   // ★ Computed: available categories = 4 defaults + optional dynamic tab
   const availableCategories = useMemo(() => {
     const cats = new Set(DEFAULT_CATEGORIES)
@@ -724,6 +786,9 @@ const CollegeMicrositesPage: React.FC = () => {
 
   const handleViewMore = (slug?: string) => {
     if (slug) {
+      const scrollContainer = document.querySelector('.flex-1.overflow-auto')
+    const scrollPos = scrollContainer ? scrollContainer.scrollTop : window.scrollY
+    sessionStorage.setItem('college-finder-scroll', String(scrollPos))
       router.push(`/college/${slug}`)
     }
   }
