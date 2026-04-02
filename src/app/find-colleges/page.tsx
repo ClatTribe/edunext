@@ -29,6 +29,7 @@ import FilterComponent from "../../../components/CourseFinder/Filtering"
 import useSavedMicrositeCourses from "../../../components/microsite/SavedCollegeMicrosites"
 import ClgsRecommend from "../../../components/CourseFinder/ClgsRecommend"
 import useCollegeMicrositeComparison, { CompareBadge, CompareFloatingButton } from "../../../components/microsite/CollegeMicrositesComparison"
+import CollegeBellButton from "../../../components/CollegeBellButton"
 import { parseSearchQuery, applyBudgetFilter, doesCollegeMatchCourse, doesCollegeMatchLocation } from "../../../utils/data"
 import type { ManualFilters } from "../../../components/CourseFinder/Filtering"
 
@@ -1085,7 +1086,7 @@ useEffect(() => {
                           {viewMode === "recommended" && <div className="mt-2">{getMatchBadge(course)}</div>}
                         </div>
 
-                        {/* Compare Checkbox + Heart Button */}
+                        {/* Compare Checkbox + Heart Button + Bell Icon */}
                         <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           <label className="flex items-center gap-1.5 cursor-pointer group/compare hover:opacity-80 transition-opacity" title="Add to compare">
                             <input
@@ -1103,11 +1104,11 @@ useEffect(() => {
                           <button
                             onClick={() => toggleSavedMicrosite(course as any)}
                             disabled={isBlurred}
-                            className={`transition-all flex-shrink-0 transform hover:scale-110 ${isBlurred
+                            className={`transition-all flex-shrink-0 transform hover:scale-110 active:scale-95 ${isBlurred
                               ? "opacity-50 cursor-not-allowed"
                               : savedMicrositeCourses.has(course.id)
                                 ? ""
-                                : "text-slate-500"
+                                : "text-slate-500 hover:text-white"
                               }`}
                             style={savedMicrositeCourses.has(course.id) ? { color: accentColor } : {}}
                             title={
@@ -1120,6 +1121,11 @@ useEffect(() => {
                           >
                             <Heart size={18} className="sm:w-5 sm:h-5" fill={savedMicrositeCourses.has(course.id) ? "currentColor" : "none"} />
                           </button>
+                          
+                          <CollegeBellButton 
+                            collegeName={course["College Name"] || "Unknown College"} 
+                            isBlurred={isBlurred} 
+                          />
                         </div>
                       </div>
 
