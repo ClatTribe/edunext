@@ -20,6 +20,7 @@ import {
   Rocket,
   School,
   ExternalLink,
+  CalendarClock,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -69,10 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
       { icon: Building2, label: "Battle Mode", path: "/battle-mode" },
     ],
-    applications: [
-      { icon: BookOpen, label: "Application Builder", path: "/application-builder" },
-      { icon: GraduationCap, label: "Document Upload", path: "/document" },
-    ],
+    highlighted: { icon: CalendarClock, label: "Forms & Deadlines", path: "/forms-and-deadlines" },
   };
 
   const toolOptions = [
@@ -147,6 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       "/jee-tool",
       "/exams-and-deadline",
       "/study-material",
+      "/forms-and-deadlines",
     ].includes(pathname);
     if (isAtTool) {
       setIsToolsOpen(true);
@@ -384,6 +383,58 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 {navItems.explore.map((item) => (
                   <NavButton key={item.path} item={item} />
                 ))}
+
+                {/* Forms & Deadlines – shimmer highlight */}
+                <button
+                  onClick={() => handleNavClick(navItems.highlighted.path)}
+                  className={`relative flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group overflow-hidden mt-1 ${
+                    isActive(navItems.highlighted.path) ? "shadow-lg" : ""
+                  }`}
+                  style={
+                    isActive(navItems.highlighted.path)
+                      ? {
+                          backgroundColor: secondaryBg,
+                          borderLeft: `4px solid ${accentColor}`,
+                          color: accentColor,
+                        }
+                      : {
+                          color: "#fbbf24",
+                          background: "rgba(251, 191, 36, 0.06)",
+                          border: "1px solid rgba(251, 191, 36, 0.2)",
+                        }
+                  }
+                >
+                  {/* Yellow shimmer sweep */}
+                  {!isActive(navItems.highlighted.path) && (
+                    <span className="shimmer-sweep absolute inset-0 pointer-events-none" />
+                  )}
+                  <navItems.highlighted.icon
+                    size={18}
+                    className="transition-colors shrink-0"
+                    style={{
+                      color: isActive(navItems.highlighted.path)
+                        ? accentColor
+                        : "#fbbf24",
+                    }}
+                  />
+                  <span
+                    className={`text-sm transition-colors ${
+                      isActive(navItems.highlighted.path) ? "font-semibold" : "font-medium"
+                    }`}
+                    style={{
+                      color: isActive(navItems.highlighted.path)
+                        ? accentColor
+                        : "#fbbf24",
+                    }}
+                  >
+                    {navItems.highlighted.label}
+                  </span>
+                  {!isActive(navItems.highlighted.path) && (
+                    <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400">
+                      New
+                    </span>
+                  )}
+                </button>
               </div>
 
               {/* ── Tools Section ── */}
@@ -497,6 +548,29 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+        /* Yellow shimmer sweep for Forms & Deadlines */
+        .shimmer-sweep::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 60%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(251, 191, 36, 0.15),
+            rgba(251, 191, 36, 0.25),
+            rgba(251, 191, 36, 0.15),
+            transparent
+          );
+          animation: shimmer-slide 2.5s ease-in-out infinite;
+        }
+        @keyframes shimmer-slide {
+          0% { left: -100%; }
+          50% { left: 100%; }
+          100% { left: 100%; }
         }
       `}</style>
     </>

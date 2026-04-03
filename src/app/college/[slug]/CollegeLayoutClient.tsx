@@ -23,6 +23,11 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
+  // Scroll to top on mount so mobile always starts at the hero
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   useEffect(() => {
     fetchCollege()
   }, [slug])
