@@ -8,20 +8,25 @@ import { supabase } from "../lib/supabase"
 interface CollegeBellButtonProps {
   collegeName: string
   isBlurred?: boolean
+  /** "college" writes to `colleges` column, "form" writes to `forms` column. Defaults to "college". */
+  saveType?: "college" | "form"
 }
 
-export default function CollegeBellButton({ collegeName, isBlurred = false }: CollegeBellButtonProps) {
+export default function CollegeBellButton({ collegeName, isBlurred = false, saveType = "college" }: CollegeBellButtonProps) {
   const { user } = useAuth()
   const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [hasSubscribed, setHasSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
-  
+
   // Form State
   const [preference, setPreference] = useState<"email" | "whatsapp" | "both" | "dnd">("email")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [submitSuccess, setSubmitSuccess] = useState(false)
+
+  // Which DB column to read/write based on saveType
+  const dbColumn = saveType === "college" ? "colleges" : "forms"
 
   useEffect(() => {
     setMounted(true)
@@ -36,24 +41,25 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
           .select('*')
           .eq('user_id', user!.id)
           .single()
-          
+
         if (data) {
-          // Pre-fill user preferences even if they haven't subscribed to THIS college yet
+          // Pre-fill user preferences even if they haven't subscribed to THIS item yet
           setPreference(data.notification_preference)
           setEmail(data.contact_email || "")
           setPhone(data.contact_phone || "")
 
-          let parsedColleges: string[] = []
-          if (data.colleges) {
+          let parsedItems: string[] = []
+          const rawValue = data[dbColumn]
+          if (rawValue) {
             try {
-              parsedColleges = JSON.parse(data.colleges)
+              parsedItems = JSON.parse(rawValue)
             } catch {
               // Backward compatibility for old comma separated strings
-              parsedColleges = data.colleges.split(',').map((c: string) => c.trim())
+              parsedItems = rawValue.split(',').map((c: string) => c.trim())
             }
           }
 
-          if (parsedColleges.includes(collegeName)) {
+          if (parsedItems.includes(collegeName)) {
             setHasSubscribed(true)
           }
         }
@@ -65,7 +71,7 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
     if (user && collegeName) {
       checkSubscription()
     }
-  }, [user, collegeName])
+  }, [user, collegeName, dbColumn])
 
   const handleOpen = async () => {
     if (isBlurred) return;
@@ -73,7 +79,7 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
     setSubmitSuccess(false)
     if (!hasSubscribed) {
       if (user?.email && !email) setEmail(user.email)
-      
+
       // Fetch phone from admit_profiles if available and not yet set
       if (user && !phone) {
         try {
@@ -99,30 +105,31 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
         // Fetch existing record first
         const { data: existingData } = await supabase
           .from('college_enquiries')
-          .select('colleges')
+          .select('*')
           .eq('user_id', user.id)
           .single()
 
-        let collegeArray: string[] = []
-        if (existingData?.colleges) {
+        let itemArray: string[] = []
+        const rawValue = (existingData as Record<string, any>)?.[dbColumn]
+        if (rawValue) {
           try {
-            collegeArray = JSON.parse(existingData.colleges)
+            itemArray = JSON.parse(rawValue)
           } catch {
-            collegeArray = existingData.colleges.split(',').map((c: string) => c.trim())
+            itemArray = rawValue.split(',').map((c: string) => c.trim())
           }
         }
 
-        if (!collegeArray.includes(collegeName)) {
-          collegeArray.push(collegeName)
+        if (!itemArray.includes(collegeName)) {
+          itemArray.push(collegeName)
         }
-        const updatedColleges = JSON.stringify(collegeArray)
+        const updatedValue = JSON.stringify(itemArray)
 
-        const payload = {
+        const payload: Record<string, string> = {
           user_id: user.id,
           contact_email: email,
           contact_phone: phone,
           notification_preference: preference,
-          colleges: updatedColleges
+          [dbColumn]: updatedValue
         }
 
         if (existingData) {
@@ -132,15 +139,15 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
         }
       } else {
         // Fallback for non-logged-in users
-        const payload = {
+        const payload: Record<string, string> = {
           contact_email: email,
           contact_phone: phone,
           notification_preference: preference,
-          colleges: JSON.stringify([collegeName])
+          [dbColumn]: JSON.stringify([collegeName])
         }
         await supabase.from('college_enquiries').insert([payload])
       }
-      
+
       setHasSubscribed(true)
       setSubmitSuccess(true)
       setTimeout(() => setIsOpen(false), 2000)
@@ -150,6 +157,15 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
       setLoading(false)
     }
   }
+
+  // Dynamic text based on saveType
+  const modalHeading = saveType === "college"
+    ? `Get important updates and complete information of ${collegeName}`
+    : `Get deadline reminders for ${collegeName}`
+
+  const successText = saveType === "college"
+    ? `We'll keep you updated about ${collegeName}`
+    : `We'll remind you before ${collegeName} deadlines close`
 
   return (
     <>
@@ -162,23 +178,23 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
         }`}
         title={hasSubscribed ? "Subscribed to updates" : "Get important updates"}
       >
-        <Bell 
-          size={18} 
-          className={`sm:w-5 sm:h-5 ${hasSubscribed ? 'fill-current animate-pulse' : ''}`} 
+        <Bell
+          size={18}
+          className={`sm:w-5 sm:h-5 ${hasSubscribed ? 'fill-current animate-pulse' : ''}`}
         />
       </button>
 
       {isOpen && mounted && createPortal(
-        <div 
+        <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
           onClick={() => setIsOpen(false)}
         >
-          <div 
+          <div
             className="w-full max-w-md p-6 rounded-2xl shadow-2xl relative"
             style={{ backgroundColor: '#0F172B', border: '1px solid rgba(245, 158, 11, 0.2)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button 
+            <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
             >
@@ -189,12 +205,12 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <CheckCircle2 size={48} className="text-green-400 mb-4" />
                 <h3 className="text-xl font-bold text-white mb-2">Saved Successfully!</h3>
-                <p className="text-slate-400 text-sm">We&apos;ll keep you updated about {collegeName}</p>
+                <p className="text-slate-400 text-sm">{successText}</p>
               </div>
             ) : (
               <>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-4 pr-6 leading-tight">
-                  Get important updates and complete information of {collegeName}
+                  {modalHeading}
                 </h3>
 
                 <div className="space-y-5">
@@ -204,17 +220,17 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
                     </label>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       {(['email', 'whatsapp', 'both', 'dnd'] as const).map(opt => (
-                        <label 
+                        <label
                           key={opt}
                           className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                            preference === opt 
-                              ? 'border-[#F59E0B] bg-[#F59E0B]/10 text-white' 
+                            preference === opt
+                              ? 'border-[#F59E0B] bg-[#F59E0B]/10 text-white'
                               : 'border-slate-700 bg-transparent text-slate-400 hover:border-slate-500'
                           }`}
                         >
-                          <input 
-                            type="radio" 
-                            name="preference" 
+                          <input
+                            type="radio"
+                            name="preference"
                             value={opt}
                             checked={preference === opt}
                             onChange={(e) => setPreference(e.target.value as "email" | "whatsapp" | "both" | "dnd")}
@@ -240,7 +256,7 @@ export default function CollegeBellButton({ collegeName, isBlurred = false }: Co
                           />
                         </div>
                       )}
-                      
+
                       {(preference === 'whatsapp' || preference === 'both') && (
                         <div>
                           <label className="block text-xs font-medium text-slate-400 mb-1">WhatsApp Number</label>

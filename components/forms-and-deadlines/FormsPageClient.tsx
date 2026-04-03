@@ -11,6 +11,7 @@ import {
   Filter,
   Bell,
 } from "lucide-react";
+import CollegeBellButton from "../CollegeBellButton";
 import {
   FORMS_BY_TAB,
   ExamTab,
@@ -203,6 +204,7 @@ const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
             <p className="text-xs text-slate-400 mt-1">{form.courses}</p>
           )}
         </div>
+        <CollegeBellButton collegeName={form.name} saveType="form" />
         <StatusBadge status={form.status} upcoming={upcoming} />
       </div>
 
