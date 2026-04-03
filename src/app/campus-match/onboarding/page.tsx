@@ -106,13 +106,47 @@ const OnboardingPage = () => {
     return Math.round((filled / total) * 100);
   };
 
-  const handleNext = async () => {
-    // Validation for DNA quiz
-    if (currentStep === 3) {
-      if (dnaQuizAnswers.length < DNA_QUIZ_QUESTIONS.length) {
-        setSaveError('Please answer all questions to continue');
-        return;
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  const validateStep = (step: number): string[] => {
+    const errors: string[] = [];
+    if (step === 0) {
+      if (!formData.fullName.trim()) errors.push('Full Name is required');
+      if (!formData.city.trim()) errors.push('City is required');
+      if (!formData.state.trim()) errors.push('State is required');
+      if (!formData.board) errors.push('Please select your board');
+      if (!formData.classYear) errors.push('Please select your class year');
+      if (!formData.stream) errors.push('Please select your stream');
+    }
+    if (step === 1) {
+      // Board percentage is optional, but if entered must be valid
+      if (formData.boardPercentage !== null && (formData.boardPercentage < 0 || formData.boardPercentage > 100)) {
+        errors.push('Board percentage must be between 0 and 100');
       }
+    }
+    if (step === 2) {
+      if (!formData.targetDegree) errors.push('Please select a target degree');
+      if (!formData.cityPreference) errors.push('Please select a city preference');
+      if (!formData.hostelNeeded) errors.push('Please select a hostel preference');
+    }
+    if (step === 3) {
+      if (dnaQuizAnswers.length < DNA_QUIZ_QUESTIONS.length) {
+        errors.push('Please answer all DNA quiz questions to continue');
+      }
+    }
+    return errors;
+  };
+
+  const handleNext = async () => {
+    const errors = validateStep(currentStep);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    setValidationErrors([]);
+
+    // Calculate DNA type after quiz
+    if (currentStep === 3) {
       const result = computeDnaType(dnaQuizAnswers);
       setDnaType(result.type);
     }
@@ -244,60 +278,70 @@ const OnboardingPage = () => {
             {currentStep === 0 && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Full Name</label>
+                  <label htmlFor="fullName" className="block text-sm font-medium mb-2">Full Name <span className="text-red-400">*</span></label>
                   <input
+                    id="fullName"
                     type="text"
+                    required
                     value={formData.fullName}
                     onChange={e => handleInputChange('fullName', e.target.value)}
                     placeholder="Your full name"
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none transition"
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">City</label>
+                    <label htmlFor="city" className="block text-sm font-medium mb-2">City <span className="text-red-400">*</span></label>
                     <input
+                      id="city"
                       type="text"
+                      required
                       value={formData.city}
                       onChange={e => handleInputChange('city', e.target.value)}
                       placeholder="e.g., Mumbai"
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none transition"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">State</label>
+                    <label htmlFor="state" className="block text-sm font-medium mb-2">State <span className="text-red-400">*</span></label>
                     <input
+                      id="state"
                       type="text"
+                      required
                       value={formData.state}
                       onChange={e => handleInputChange('state', e.target.value)}
                       placeholder="e.g., Maharashtra"
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none transition"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Board</label>
+                  <label htmlFor="board" className="block text-sm font-medium mb-2">Board <span className="text-red-400">*</span></label>
                   <select
+                    id="board"
+                    required
                     value={formData.board}
                     onChange={e => handleInputChange('board', e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none transition"
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition"
                   >
                     <option value="">Select your board</option>
                     <option value="CBSE">CBSE</option>
                     <option value="ICSE">ICSE</option>
                     <option value="State Board">State Board</option>
-                  </select>
+                </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Class Year</label>
+                    <div>
+                    <label htmlFor="classYear" className="block text-sm font-medium mb-2">Class Year <span className="text-red-400">*</span></label>
                     <select
+                      id="classYear"
+                      required
                       value={formData.classYear}
                       onChange={e => handleInputChange('classYear', e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none transition"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition"
                     >
                       <option value="">Select</option>
                       <option value="Class 11">Class 11</option>
@@ -306,11 +350,13 @@ const OnboardingPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Stream</label>
+                    <label htmlFor="stream" className="block text-sm font-medium mb-2">Stream <span className="text-red-400">*</span></label>
                     <select
+                      id="stream"
+                      required
                       value={formData.stream}
                       onChange={e => handleInputChange('stream', e.target.value)}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none transition"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition"
                     >
                       <option value="">Select</option>
                       <option value="PCM">PCM (Science)</option>
@@ -512,25 +558,36 @@ const OnboardingPage = () => {
           </motion.div>
         </AnimatePresence>
 
+        {/* Validation Errors */}
+        {validationErrors.length > 0 && (
+          <div className="mt-6 bg-red-900/20 border border-red-700/30 rounded-lg p-4" role="alert">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                {validationErrors.map((err, idx) => (
+                  <p key={idx} className="text-sm text-red-200">{err}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Navigation buttons */}
-        <div className="flex gap-4 mt-12">
-          <button
-            onClick={handlePrevious}
-            disabled={currentStep === 0}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition ${
-              currentStep === 0
-                ? 'text-gray-600 cursor-not-allowed'
-                : 'text-white hover:bg-gray-800'
-            }`}
-          >
-            <ChevronLeft className="w-5 h-5" />
-            Back
-          </button>
+        <div className="flex gap-4 mt-6">
+          {currentStep > 0 && (
+            <button
+              onClick={handlePrevious}
+              className="flex items-center gap-2 px-6 py-3 min-h-[48px] rounded-lg font-medium text-white hover:bg-gray-800 transition focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              Back
+            </button>
+          )}
 
           {currentStep < 4 && (
             <button
               onClick={handleNext}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition"
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 min-h-[48px] rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
             >
               Next
               <ChevronRight className="w-5 h-5" />
