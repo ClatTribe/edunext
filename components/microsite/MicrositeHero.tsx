@@ -8,6 +8,7 @@ import {
 import { supabase } from "../../lib/supabase"
 import useSavedMicrositeCourses from "./SavedCollegeMicrosites"
 import useCollegeMicrositeComparison, { CompareFloatingButton } from "./CollegeMicrositesComparison"
+import CollegeBellButton from "../CollegeBellButton"
 
 interface MicrositeHeroProps {
   collegeId: number
@@ -223,88 +224,6 @@ export default function MicrositeHero({
               </div>
             </div>
 
-            {/* ══════════════════════════════════════════════════════════
-                ★ SHORTLIST + COMPARE ACTION BAR ★
-                Below location badges, above college name.
-                Pill buttons — large, glowing, animated state changes.
-            ══════════════════════════════════════════════════════════ */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-6 md:mb-7 w-full">
-
-              {/* ── Shortlist Button ── */}
-              <button
-                onClick={() => toggleSavedMicrosite(collegeObj as any)}
-                className="relative group/heart flex items-center gap-2.5 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 hover:scale-[1.04] active:scale-[0.97] overflow-hidden"
-                style={{
-                  background: isSaved
-                    ? 'linear-gradient(135deg, rgba(245,158,11,0.95) 0%, rgba(251,146,60,0.95) 100%)'
-                    : 'rgba(0,0,0,0.4)',
-                  border: isSaved
-                    ? '1px solid rgba(245,158,11,0.6)'
-                    : '1px solid rgba(255,255,255,0.15)',
-                  color: isSaved ? '#050818' : '#64748b',
-                  boxShadow: isSaved
-                    ? '0 0 28px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-                    : 'none',
-                }}
-              >
-                {/* hover glow (unsaved state only) */}
-                {!isSaved && (
-                  <span className="absolute inset-0 bg-amber-500/8 opacity-0 group-hover/heart:opacity-100 transition-opacity duration-300 rounded-2xl" />
-                )}
-                <span className="relative flex items-center gap-2.5">
-                  <Heart
-                    size={15}
-                    fill={isSaved ? 'currentColor' : 'none'}
-                    className={`transition-all duration-300 flex-shrink-0 ${
-                      isSaved
-                        ? 'scale-110'
-                        : 'group-hover/heart:text-amber-400 group-hover/heart:scale-110'
-                    }`}
-                  />
-                  <span className={`transition-colors duration-300 ${!isSaved ? 'group-hover/heart:text-amber-400' : ''}`}>
-                    {isSaved ? '✓ Shortlisted' : 'Shortlist College'}
-                  </span>
-                </span>
-              </button>
-
-              {/* ── Compare Button ── */}
-              <button
-                onClick={() => toggleCompare(collegeObj as any)}
-                className="relative group/compare flex items-center gap-2.5 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 hover:scale-[1.04] active:scale-[0.97] overflow-hidden"
-                style={{
-                  background: inCompare
-                    ? 'linear-gradient(135deg, rgba(168,85,247,0.95) 0%, rgba(139,92,246,0.95) 100%)'
-                    : 'rgba(0,0,0,0.4)',
-                  border: inCompare
-                    ? '1px solid rgba(168,85,247,0.6)'
-                    : '1px solid rgba(255,255,255,0.15)',
-                  color: inCompare ? '#ffffff' : '#64748b',
-                  boxShadow: inCompare
-                    ? '0 0 28px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-                    : 'none',
-                }}
-              >
-                {/* hover glow (not-in-compare state only) */}
-                {!inCompare && (
-                  <span className="absolute inset-0 bg-purple-500/8 opacity-0 group-hover/compare:opacity-100 transition-opacity duration-300 rounded-2xl" />
-                )}
-                <span className="relative flex items-center gap-2.5">
-                  <GitCompare
-                    size={15}
-                    className={`transition-all duration-300 flex-shrink-0 ${
-                      inCompare
-                        ? 'rotate-12 scale-110'
-                        : 'group-hover/compare:text-purple-400 group-hover/compare:rotate-12'
-                    }`}
-                  />
-                  <span className={`transition-colors duration-300 ${!inCompare ? 'group-hover/compare:text-purple-400' : ''}`}>
-                    {inCompare ? '✓ Added to Compare' : 'Add to Compare'}
-                  </span>
-                </span>
-              </button>
-
-            </div>
-            {/* ══ END ACTION BAR ══ */}
 
             {/* College Name & Details */}
             <div className="max-w-3xl">
@@ -344,10 +263,44 @@ export default function MicrositeHero({
           </div>
 
           {/* ────────────────────────────────────────
-              RIGHT: Media Carousel — clean, no button overlays
+              RIGHT: Media Carousel
           ──────────────────────────────────────── */}
           {mediaItems.length > 0 && (
             <div className="w-full md:w-[45%] lg:w-[42%] shrink-0 order-2 md:order-2">
+
+              {/* ── Action Buttons: Compare → Heart → Bell ── */}
+              <div className="flex items-center justify-end gap-4 mb-3 px-1 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm w-fit ml-auto" onClick={(e) => e.stopPropagation()}>
+                {/* Compare */}
+                <label className="flex items-center gap-2 cursor-pointer group/compare hover:opacity-80 transition-opacity pl-3" title="Add to compare">
+                  <input
+                    type="checkbox"
+                    checked={inCompare}
+                    onChange={() => toggleCompare(collegeObj as any)}
+                    className="w-5 h-5 accent-purple-600 cursor-pointer"
+                  />
+                  <span className="text-sm text-slate-400 group-hover/compare:text-slate-300 transition-colors">
+                    Compare
+                  </span>
+                </label>
+
+                {/* Shortlist Heart */}
+                <button
+                  onClick={() => toggleSavedMicrosite(collegeObj as any)}
+                  className={`transition-all flex-shrink-0 transform hover:scale-110 active:scale-95 ${
+                    isSaved ? '' : 'text-slate-500 hover:text-white'
+                  }`}
+                  style={isSaved ? { color: '#F59E0B' } : {}}
+                  title={isSaved ? 'Remove from shortlist' : 'Add to shortlist'}
+                >
+                  <Heart size={22} fill={isSaved ? 'currentColor' : 'none'} />
+                </button>
+
+                {/* Bell */}
+                <div className="pr-3">
+                  <CollegeBellButton collegeName={collegeName} />
+                </div>
+              </div>
+
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-blue-500/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
                 <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl">
