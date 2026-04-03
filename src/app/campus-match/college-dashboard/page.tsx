@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from 'react';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { supabase } from '../../../../../lib/supabase';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { supabase } from '../../../../lib/supabase';
 import { StudentProfile, CollegeSignal, Match, SignalType } from '../types';
 import { StudentCard } from '../components/college/StudentCard';
 import { computeFitScore } from '../lib/fitScore';
