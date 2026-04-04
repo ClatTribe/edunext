@@ -1,8 +1,3 @@
-// =============================================================
-// FILE: app/omr-reader/page.tsx
-// DROP INTO: your-project/app/omr-reader/page.tsx
-// ROUTE:    yoursite.com/omr-reader
-// =============================================================
 
 import DefaultLayout from "@/app/defaultLayout";    // ← your existing layout
 import OMRReaderClient from "../../../components/omr/OMRReaderClient";
