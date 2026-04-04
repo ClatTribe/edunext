@@ -173,7 +173,7 @@ const MOCK_MESSAGES: Record<string, Message[]> = {
       matchId: 'match-1',
       senderId: 'college',
       senderName: 'Delhi Institute of Technology',
-      content: 'Our average placement is â¹12 LPA with highest being â¹45 LPA. We have a 95% placement record. Feel free to ask anything else!',
+      content: 'Our average placement is ₹12 LPA with highest being ₹45 LPA. We have a 95% placement record. Feel free to ask anything else!',
       timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(),
     },
     {
@@ -303,7 +303,6 @@ export default function MatchesPage() {
 
     setIsSending(true)
 
-    // Create new message
     const message: Message = {
       id: `msg-${Date.now()}`,
       matchId: selectedMatch.id,
@@ -313,82 +312,56 @@ export default function MatchesPage() {
       timestamp: new Date().toISOString(),
     }
 
-    // Update messages
     setMessages([...messages, message])
     setNewMessage('')
-
-    // TODO: Send to Supabase
-    // const { error } = await supabase
-    //   .from('match_messages')
-    //   .insert([{
-    //     match_id: selectedMatch.id,
-    //     sender_id: 'student',
-    //     sender_name: 'You',
-    //     content: newMessage,
-    //   }])
-    // if (error) console.error('Failed to send message:', error)
-
-    // TODO: Set up Supabase Realtime subscription for messages
-    // const subscription = supabase
-    //   .channel(`match:${selectedMatch.id}`)
-    //   .on(
-    //     'postgres_changes',
-    //     { event: 'INSERT', schema: 'public', table: 'match_messages', filter: `match_id=eq.${selectedMatch.id}` },
-    //     (payload) => {
-    //       setMessages(prev => [...prev, payload.new as Message])
-    //     }
-    //   )
-    //   .subscribe()
-
     setIsSending(false)
   }
 
-  const MatchListItem = ({ match }: { match: ExtendedMatch }) => (
-    <button
-      onClick={() => setSelectedMatch(match)}
-      className={`w-full p-4 text-left transition-all border-l-4 ${
-        selectedMatch?.id === match.id
-          ? 'bg-[#1a1a1a] border-l-[#a855f7] shadow-lg shadow-[#a855f7]/20'
-          : 'bg-[#0f0f0f] border-l-transparent hover:bg-[#1a1a1a] border-l-[#2a2a2a]'
-      }`}
-    >
-      <div className="flex gap-3 items-start">
-        {/* Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] flex items-center justify-center flex-shrink-0 text-sm font-bold text-white">
-          {getCollegeAvatar(match.college?.name || '')}
-        </div>
+  const MatchListItem = ({ match }: { match: ExtendedMatch }) => {
+    // FIX: Get correctly from MOCK_MESSAGES record
+    const matchMessages = MOCK_MESSAGES[match.id] || []
+    const lastMessage = matchMessages[matchMessages.length - 1]
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-semibold text-white truncate text-sm">{match.college?.name}</h3>
-            {match.college?.unreadCount && match.college.unreadCount > 0 && (
-              <div className="w-2 h-2 rounded-full bg-[#a855f7] flex-shrink-0 mt-1.5"></div>
-            )}
+    return (
+      <button
+        onClick={() => setSelectedMatch(match)}
+        className={`w-full p-4 text-left transition-all border-l-4 ${
+          selectedMatch?.id === match.id
+            ? 'bg-[#1a1a1a] border-l-[#a855f7] shadow-lg shadow-[#a855f7]/20'
+            : 'bg-[#0f0f0f] border-l-transparent hover:bg-[#1a1a1a] border-l-[#2a2a2a]'
+        }`}
+      >
+        <div className="flex gap-3 items-start">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] flex items-center justify-center flex-shrink-0 text-sm font-bold text-white">
+            {getCollegeAvatar(match.college?.name || '')}
           </div>
 
-          {/* Badge */}
-          <div className="mb-2">
-            <span className={`text-xs font-medium px-2 py-1 rounded ${getMatchBadgeColor(match.matchType)}`}>
-              {getMatchBadgeLabel(match.matchType, match.signalType)}
-            </span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="font-semibold text-white truncate text-sm">{match.college?.name}</h3>
+              {match.college?.unreadCount && match.college.unreadCount > 0 && (
+                <div className="w-2 h-2 rounded-full bg-[#a855f7] flex-shrink-0 mt-1.5"></div>
+              )}
+            </div>
+
+            <div className="mb-2">
+              <span className={`text-xs font-medium px-2 py-1 rounded ${getMatchBadgeColor(match.matchType)}`}>
+                {getMatchBadgeLabel(match.matchType, match.signalType)}
+              </span>
+            </div>
+
+            <p className="text-xs text-gray-400 line-clamp-1 mb-1">
+              {lastMessage?.content || match.icebreakerText || 'No messages yet'}
+            </p>
+
+            <p className="text-xs text-gray-500">
+              {formatTimeAgo(match.college?.lastMessageTime || match.icebreakerSentAt || match.createdAt)}
+            </p>
           </div>
-
-          {/* Last message preview */}
-          <p className="text-xs text-gray-400 line-clamp-1 mb-1">
-            {messages.find((m) => m.matchId === match.id)?._?.content ||
-              match.icebreakerText ||
-              'No messages yet'}
-          </p>
-
-          {/* Time */}
-          <p className="text-xs text-gray-500">
-            {formatTimeAgo(match.college?.lastMessageTime || match.icebreakerSentAt || match.createdAt)}
-          </p>
         </div>
-      </div>
-    </button>
-  )
+      </button>
+    )
+  }
 
   if (!selectedMatch) {
     return (
@@ -406,16 +379,14 @@ export default function MatchesPage() {
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white">
       <div className="flex h-[calc(100vh-80px)]">
-        {/* Left Sidebar - Match List */}
+        {/* Left Sidebar */}
         {(!isMobile || !selectedMatch) && (
           <div className="w-full md:w-80 bg-[#0f0f0f] border-r border-[#2a2a2a] overflow-y-auto flex flex-col">
-            {/* Header */}
             <div className="p-4 border-b border-[#2a2a2a] sticky top-0 bg-[#0f0f0f]">
               <h2 className="text-lg font-bold">Your Matches</h2>
               <p className="text-xs text-gray-400 mt-1">{sortedMatches.length} active conversations</p>
             </div>
 
-            {/* Match List */}
             {sortedMatches.length > 0 ? (
               <div className="flex-1 overflow-y-auto">
                 {sortedMatches.map((match) => (
@@ -435,10 +406,9 @@ export default function MatchesPage() {
           </div>
         )}
 
-        {/* Right Panel - Conversation */}
+        {/* Right Panel */}
         {(!isMobile || selectedMatch) && (
           <div className="flex-1 bg-[#0f0f0f] flex flex-col relative">
-            {/* Header */}
             <div className="border-b border-[#2a2a2a] p-4 sm:p-6 bg-[#0f0f0f] flex items-center justify-between sticky top-0 z-40">
               <div className="flex items-center gap-3">
                 {isMobile && (
@@ -446,18 +416,8 @@ export default function MatchesPage() {
                     onClick={() => setSelectedMatch(null)}
                     className="p-2 hover:bg-[#1a1a1a] rounded transition-colors"
                   >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                 )}
@@ -470,15 +430,12 @@ export default function MatchesPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Fit Score */}
               <div className="text-right">
                 <p className="text-xs text-gray-400">Fit Score</p>
                 <p className="text-xl sm:text-2xl font-bold text-[#a855f7]">85%</p>
               </div>
             </div>
 
-            {/* Messages Container */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
@@ -501,7 +458,6 @@ export default function MatchesPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        {/* Timestamp separator */}
                         {showTimestamp && (
                           <div className="flex justify-center py-2">
                             <span className="text-xs text-gray-500">
@@ -515,7 +471,6 @@ export default function MatchesPage() {
                           </div>
                         )}
 
-                        {/* Message bubble */}
                         <div className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}>
                           <div
                             className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg text-sm ${
@@ -532,9 +487,7 @@ export default function MatchesPage() {
                               </div>
                             )}
                             <p className="leading-relaxed">{message.content}</p>
-                            <p className={`text-xs mt-1 ${
-                              isStudent ? 'text-white/70' : 'text-gray-400'
-                            }`}>
+                            <p className={`text-xs mt-1 ${isStudent ? 'text-white/70' : 'text-gray-400'}`}>
                               {new Date(message.timestamp).toLocaleTimeString('en-IN', {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -549,7 +502,6 @@ export default function MatchesPage() {
               )}
             </div>
 
-            {/* Message Input */}
             <div className="border-t border-[#2a2a2a] p-4 sm:p-6 bg-[#0f0f0f] sticky bottom-0">
               <form onSubmit={handleSendMessage} className="space-y-3">
                 <div className="flex gap-3">
@@ -566,19 +518,10 @@ export default function MatchesPage() {
                     disabled={!newMessage.trim() || isSending}
                     className="px-6 py-3 bg-[#a855f7] hover:bg-[#9333ea] disabled:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
                   >
-                    {isSending ? (
-                      <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m0 0h6m-6-6h6m0 0h6" />
-                      </svg>
-                    ) : (
-                      'Send'
-                    )}
+                    {isSending ? '...' : 'Send'}
                   </button>
                 </div>
-
-                {/* Character count */}
-                <div className="flex justify-between items-center text-xs text-gray-500">
-                  <span></span>
+                <div className="flex justify-end text-xs text-gray-500">
                   <span>{newMessage.length}/500</span>
                 </div>
               </form>
@@ -586,25 +529,6 @@ export default function MatchesPage() {
           </div>
         )}
       </div>
-
-      {/* Empty state when no matches */}
-      {sortedMatches.length === 0 && !selectedMatch && (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="text-center">
-            <div className="text-6xl mb-4">ð</div>
-            <h2 className="text-2xl font-bold mb-2">No matches yet</h2>
-            <p className="text-gray-400 mb-6">
-              Keep exploring colleges in your Solar System to find your perfect match!
-            </p>
-            <a
-              href="/campus-match/dashboard"
-              className="inline-block px-6 py-3 bg-[#a855f7] hover:bg-[#9333ea] text-white font-semibold rounded-lg transition-colors"
-            >
-              Explore Colleges
-            </a>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
