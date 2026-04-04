@@ -47,31 +47,26 @@ interface CollegeMicrositeComparisonProps {
   colleges: College[]
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
-// Build a stub College object just from an ID so the count is always accurate
-// even when the full colleges[] array doesn't contain that college
-// (e.g. on a microsite page where colleges[] = [currentCollege] only)
 function makeStub(id: number): College {
   return { id, "College Name": null }
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeComparisonProps) => {
   const [compareColleges, setCompareColleges] = useState<College[]>([])
 
-  // Load compare colleges on mount / when user or colleges change
+  // ── FIX: derive a stable primitive from colleges instead of using the array
+  // directly. A new [collegeObj] array is created on every render, so putting
+  // `colleges` in the dep array caused an infinite re-render loop.
+  const collegeIds = colleges.map(c => c.id).join(',')
+
   useEffect(() => {
     if (user) {
       fetchCompareCollegesFromDB()
     } else {
       fetchCompareCollegesFromLocalStorage()
     }
-  }, [user, colleges])
+  }, [user, collegeIds]) // ← stable string, not the array reference
 
-  // ── DB fetch (logged-in users) ────────────────────────────────────────────
-  // KEY FIX: we no longer filter against colleges[] for the count.
-  // We fetch all saved IDs from DB, match what we can from colleges[],
-  // and fill the rest with stubs so the count is always accurate.
   const fetchCompareCollegesFromDB = async () => {
     if (!user) return
 
@@ -84,17 +79,10 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
       if (compareError) throw compareError
 
       if (compareData && compareData.length > 0) {
-        const collegeIds: number[] = compareData.map(item => item.college_id)
-
-        // Match full objects from colleges[] where available
-        const matched = colleges.filter(c => collegeIds.includes(c.id))
+        const ids: number[] = compareData.map(item => item.college_id)
+        const matched = colleges.filter(c => ids.includes(c.id))
         const matchedIds = new Set(matched.map(c => c.id))
-
-        // For IDs not found in colleges[], create stubs (microsite page case)
-        const stubs = collegeIds
-          .filter(id => !matchedIds.has(id))
-          .map(makeStub)
-
+        const stubs = ids.filter(id => !matchedIds.has(id)).map(makeStub)
         setCompareColleges([...matched, ...stubs])
       } else {
         setCompareColleges([])
@@ -104,22 +92,16 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
     }
   }
 
-  // ── localStorage fetch (guest users) ─────────────────────────────────────
-  // Same fix: match what we can, stub the rest for accurate count.
   const fetchCompareCollegesFromLocalStorage = () => {
     try {
-      const storedCompareIds: number[] = JSON.parse(
+      const storedIds: number[] = JSON.parse(
         localStorage.getItem('compareCollegeMicrosites') || '[]'
       )
 
-      if (storedCompareIds.length > 0) {
-        const matched = colleges.filter(c => storedCompareIds.includes(c.id))
+      if (storedIds.length > 0) {
+        const matched = colleges.filter(c => storedIds.includes(c.id))
         const matchedIds = new Set(matched.map(c => c.id))
-
-        const stubs = storedCompareIds
-          .filter(id => !matchedIds.has(id))
-          .map(makeStub)
-
+        const stubs = storedIds.filter(id => !matchedIds.has(id)).map(makeStub)
         setCompareColleges([...matched, ...stubs])
       } else {
         setCompareColleges([])
@@ -129,12 +111,10 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
     }
   }
 
-  // ── Toggle compare (add / remove) ─────────────────────────────────────────
   const toggleCompare = async (college: College) => {
     const exists = compareColleges.find(c => c.id === college.id)
 
     if (exists) {
-      // ── REMOVE ──
       if (user) {
         try {
           const { error } = await supabase!
@@ -158,7 +138,6 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
         setCompareColleges(prev => prev.filter(c => c.id !== college.id))
       }
     } else {
-      // ── ADD (max 3) ──
       if (compareColleges.length >= 3) {
         alert('You can compare maximum 3 colleges at a time')
         return
@@ -172,7 +151,6 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
 
           if (error) {
             if (error.code === '23505') {
-              // Already exists — just make sure local state reflects it
               setCompareColleges(prev =>
                 prev.some(c => c.id === college.id) ? prev : [...prev, college]
               )
@@ -193,7 +171,6 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
         storedIds.push(college.id)
         localStorage.setItem('compareCollegeMicrosites', JSON.stringify(storedIds))
 
-        // Cache full colleges list for the battle-mode comparison page
         if (colleges.length > 1) {
           localStorage.setItem('allCollegeMicrosites', JSON.stringify(colleges))
         }
@@ -203,7 +180,6 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
     }
   }
 
-  // ── Remove by ID ──────────────────────────────────────────────────────────
   const removeFromCompare = async (collegeId: number) => {
     if (user) {
       try {
@@ -228,11 +204,9 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
     }
   }
 
-  // ── isInCompare ───────────────────────────────────────────────────────────
   const isInCompare = (collegeId: number) =>
     compareColleges.some(c => c.id === collegeId)
 
-  // ── Navigate to battle-mode ───────────────────────────────────────────────
   const goToComparison = () => {
     if (!user && colleges.length > 1) {
       localStorage.setItem('allCollegeMicrosites', JSON.stringify(colleges))
@@ -249,7 +223,6 @@ const useCollegeMicrositeComparison = ({ user, colleges }: CollegeMicrositeCompa
   }
 }
 
-// ─── Compare Badge (on cards) ─────────────────────────────────────────────────
 export const CompareBadge: React.FC<{ show: boolean }> = ({ show }) => {
   if (!show) return null
   return (
@@ -262,7 +235,6 @@ export const CompareBadge: React.FC<{ show: boolean }> = ({ show }) => {
   )
 }
 
-// ─── Floating Compare Button ──────────────────────────────────────────────────
 export const CompareFloatingButton: React.FC<{
   compareCount: number
   onCompareClick: () => void
@@ -313,10 +285,8 @@ export const CompareFloatingButton: React.FC<{
           className={`transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}
         />
 
-        {/* Pulse ring */}
         <div className="absolute inset-0 rounded-full bg-purple-600 compare-ping-animation opacity-20 pointer-events-none" />
 
-        {/* Max badge */}
         {compareCount === 3 && (
           <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
             ✓
