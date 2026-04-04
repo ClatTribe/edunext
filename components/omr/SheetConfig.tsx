@@ -62,13 +62,6 @@ export default function SheetConfig({ config, onChange, disabled }: SheetConfigP
           }
         )}
       </div>
-
-      <div
-        className="mt-3 rounded-lg px-4 py-2.5 text-xs text-amber-300"
-        style={{ backgroundColor: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}
-      >
-        ⚡ NEET 2024+ format · Section B = attempt any <strong>10 of 15</strong> per subject
-      </div>
     </div>
   );
 }
