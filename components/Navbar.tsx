@@ -28,8 +28,8 @@ interface Product {
 
 const PRODUCTS: Product[] = [
   { id: "edunext", label: "EduNext", url: "https://getedunext.com" },
-  { id: "preptribe", label: "PrepTribe", url: "https://jeetribechallenge.getedunext.com" },
-  { id: "schooltribe", label: "SchoolTribe", url: "https://vidyaa-rho.vercel.app" },
+  { id: "preptribe", label: "PrepTribe", url: "https://preptribe.getedunext.com" },
+  { id: "schooltribe", label: "SchoolTribe", url: "https://schooltribe.getedunext.com" },
 ];
 
 // ——— NAV LINKS (per product) ————————————————————————————————
