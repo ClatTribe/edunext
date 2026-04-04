@@ -922,7 +922,7 @@ const CollegeMicrositeComparePage: React.FC = () => {
     const placement = college.microsite_data?.placement?.[0]
     if (!placement) return null
     const headers = placement.headers || {}
-    const rows = placement.rows || []
+    const rows = Array.isArray(placement.rows) ? placement.rows : []
     if (headers["Average package"]) return headers["Average package"]
     const avgRow = rows.find((row: any[]) => row[0]?.toLowerCase().includes("average"))
     return avgRow ? avgRow[1] : null
@@ -932,7 +932,7 @@ const CollegeMicrositeComparePage: React.FC = () => {
     const placement = college.microsite_data?.placement?.[0]
     if (!placement) return null
     const headers = placement.headers || {}
-    const rows = placement.rows || []
+    const rows = Array.isArray(placement.rows) ? placement.rows : []
     if (headers["High package"] || headers["Highest package"]) {
       return headers["High package"] || headers["Highest package"]
     }
@@ -943,7 +943,7 @@ const CollegeMicrositeComparePage: React.FC = () => {
   const getFees = (college: any) => {
     const fees = college.microsite_data?.fees?.[0]
     if (!fees) return null
-    const rows = fees.rows || []
+    const rows = Array.isArray(fees.rows) ? fees.rows : []
     const totalFeeRow = rows.find((row: any[]) => row[0]?.toLowerCase().includes("total"))
     return totalFeeRow ? totalFeeRow[1] : null
   }
@@ -951,7 +951,7 @@ const CollegeMicrositeComparePage: React.FC = () => {
   const getRanking = (college: any) => {
     const ranking = college.microsite_data?.ranking?.[0]
     if (!ranking) return null
-    const rows = ranking.rows || []
+    const rows = Array.isArray(ranking.rows) ? ranking.rows : []
     return rows.length > 0 ? rows[0][1] : null
   }
 
@@ -994,6 +994,7 @@ const CollegeMicrositeComparePage: React.FC = () => {
         .in("id", collegeIds);
 
       if (collegesError) throw collegesError;
+      console.log("microsite_data sample:", JSON.stringify(collegesData?.[0]?.microsite_data, null, 2))
 
       // Map the data to match the College interface
       const mappedColleges = (collegesData || []).map((college: any) => ({
@@ -1029,7 +1030,20 @@ const CollegeMicrositeComparePage: React.FC = () => {
 
       // Get from localStorage cache
       const cachedColleges = JSON.parse(localStorage.getItem('allCollegeMicrosites') || '[]') as College[];
-      const selectedColleges = cachedColleges.filter((c: College) => compareIds.includes(c.id));
+      const selectedColleges = cachedColleges
+  .filter((c: College) => compareIds.includes(c.id))
+  .map((college: any) => ({
+    ...college,
+    "College Name": college["College Name"] || college.college_name,
+    Location: college.Location || college.location,
+    "Average Package": getAveragePackage(college),
+    "Highest Package": getHighestPackage(college),
+    "Course Fees": getFees(college),
+    Ranking: getRanking(college),
+    "User Rating": getRating(college),
+    "User Reviews": getReviewCount(college),
+  }));
+setColleges(selectedColleges);
       
       setColleges(selectedColleges);
     } catch (err) {
