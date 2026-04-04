@@ -5,15 +5,7 @@
 // export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 //   const baseUrl = 'https://www.getedunext.com';
 
-//   // 1. Static and Blog Data
-//   const blogs = await getAllBlogs();
-//   const blogUrls = blogs.map((post) => ({
-//     url: `${baseUrl}/blogs/${post.slug}`,
-//     lastModified: new Date(post.lastModified || post.date),
-//     changeFrequency: 'weekly' as const,
-//     priority: 0.8,
-//   }));
-
+//   // 1. Static Pages
 //   const staticPages: MetadataRoute.Sitemap = [
 //     { 
 //       url: baseUrl, 
@@ -22,7 +14,7 @@
 //       priority: 1.0 
 //     },
 //     { 
-//       url: `${baseUrl}/lms`, // Added LMS Page
+//       url: `${baseUrl}/lms`,
 //       lastModified: new Date(), 
 //       changeFrequency: 'weekly' as const, 
 //       priority: 0.9 
@@ -33,45 +25,44 @@
 //       changeFrequency: 'weekly' as const, 
 //       priority: 0.9 
 //     },
+//     {
+//       url: `${baseUrl}/forms-and-deadlines/jee`,
+//       lastModified: new Date(),
+//       changeFrequency: 'weekly' as const,
+//       priority: 0.9
+//     },
+//     {
+//       url: `${baseUrl}/forms-and-deadlines/cuet`,
+//       lastModified: new Date(),
+//       changeFrequency: 'weekly' as const,
+//       priority: 0.9
+//     },
+//     {
+//       url: `${baseUrl}/forms-and-deadlines/law`,
+//       lastModified: new Date(),
+//       changeFrequency: 'weekly' as const,
+//       priority: 0.9
+//     },
+//     {
+//       url: `${baseUrl}/forms-and-deadlines/ipm`,
+//       lastModified: new Date(),
+//       changeFrequency: 'weekly' as const,
+//       priority: 0.9
+//     },
 //   ];
 
-//   // 2. Fetch Colleges
-//   const { data: colleges, error } = await supabase
-//     .from('college_microsites')
-//     .select('slug, updated_at')
-//     .limit(500);
+//   // 2. Blog Pages
+//   const blogs = await getAllBlogs();
+//   const blogUrls = blogs.map((post) => ({
+//     url: `${baseUrl}/blogs/${post.slug}`,
+//     lastModified: new Date(post.lastModified || post.date),
+//     changeFrequency: 'weekly' as const,
+//     priority: 0.8,
+//   }));
 
-//   // Debug log
-//   console.log('Sitemap Fetch:', { count: colleges?.length, error });
-
-//   const collegeUrls: MetadataRoute.Sitemap = [];
-
-//   if (colleges && colleges.length > 0) {
-//     colleges.forEach((college: { slug: string; updated_at?: string }) => {
-//       const lastMod = new Date(college.updated_at || new Date());
-//       const subPaths = ['', 'admission', 'contact', 'courses', 'cutoff', 'fees', 'placement', 'ranking', 'reviews'];
-
-//       subPaths.forEach((path) => {
-//         collegeUrls.push({
-//           url: `${baseUrl}/college/${college.slug}${path ? `/${path}` : ''}`,
-//           lastModified: lastMod,
-//           changeFrequency: 'monthly' as const,
-//           priority: path === '' ? 0.9 : 0.6,
-//         });
-//       });
-//     });
-//   } else {
-//     // BACKUP LINK: Check this if Supabase connection fails
-//     collegeUrls.push({
-//       url: `${baseUrl}/college/no-data-found-check-supabase`,
-//       lastModified: new Date(),
-//     });
-//   }
-
-//   // Returns: [Home, LMS, XAT, Blogs..., Colleges...]
-//   return [...staticPages, ...blogUrls, ...collegeUrls];
+//   // NO COLLEGES HERE ANYMORE
+//   return [...staticPages, ...blogUrls];
 // }
-
 
 import { MetadataRoute } from 'next';
 import { getAllBlogs } from '@/app/lib/blogs';
@@ -79,8 +70,11 @@ import { supabase } from '../../lib/supabase';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.getedunext.com';
+  const prepBaseUrl = 'https://prep.getedunext.com';
+  // Assuming the second subdomain follows a similar pattern, e.g., 'test' or 'app' 
+  const secondSubdomainUrl = 'https://test.getedunext.com'; 
 
-  // 1. Static Pages
+  // 1. Static Pages (Main Domain) - Keeping all existing lines
   const staticPages: MetadataRoute.Sitemap = [
     { 
       url: baseUrl, 
@@ -100,9 +94,54 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const, 
       priority: 0.9 
     },
+    {
+      url: `${baseUrl}/forms-and-deadlines/jee`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9
+    },
+    {
+      url: `${baseUrl}/forms-and-deadlines/cuet`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9
+    },
+    {
+      url: `${baseUrl}/forms-and-deadlines/law`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9
+    },
+    {
+      url: `${baseUrl}/forms-and-deadlines/ipm`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9
+    },
   ];
 
-  // 2. Blog Pages
+  // 2. Subdomain 1: Prep Pages
+  const prepPages: MetadataRoute.Sitemap = [
+    {
+      url: prepBaseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 1.0,
+    }
+    // You can add specific prep paths here like `${prepBaseUrl}/practice`
+  ];
+
+  // 3. Subdomain 2: Second Subdomain Pages
+  const secondSubdomainPages: MetadataRoute.Sitemap = [
+    {
+      url: secondSubdomainUrl,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 1.0,
+    }
+  ];
+
+  // 4. Blog Pages (Existing logic)
   const blogs = await getAllBlogs();
   const blogUrls = blogs.map((post) => ({
     url: `${baseUrl}/blogs/${post.slug}`,
@@ -111,6 +150,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // NO COLLEGES HERE ANYMORE
-  return [...staticPages, ...blogUrls];
+  // Returning everything combined: Static + Prep + Second Subdomain + Blogs
+  return [
+    ...staticPages, 
+    ...prepPages, 
+    ...secondSubdomainPages, 
+    ...blogUrls
+  ];
 }
