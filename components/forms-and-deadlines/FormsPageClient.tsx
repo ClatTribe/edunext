@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Calendar,
   Clock,
-  Globe,
-  ArrowRight,
-  Sparkles,
   Search,
   Filter,
   Bell,
+  AlertCircle,
+  ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import CollegeBellButton from "../CollegeBellButton";
 import {
@@ -18,67 +19,64 @@ import {
   type ExamFormEntry,
 } from "./constants";
 
-// ─── Design tokens ──────────────────────────────────────────────────────
-const accentColor = "#F59E0B";
-const secondaryBg = "#0F172B";
-const borderColor = "rgba(245, 158, 11, 0.15)";
-const greenAccent = "#22c55e";
+/* ─── TYPES ─── */
+interface FormsPageClientProps {
+  examTab: ExamTab;
+  examLabel: string;
+}
 
-// ─── Helpers ────────────────────────────────────────────────────────────
-
+/* ─── HELPERS ─── */
 function isUpcoming(form: ExamFormEntry): boolean {
   if (form.status === "Closed") return false;
   const now = new Date();
   const parsed = new Date(form.endDate);
   if (!isNaN(parsed.getTime())) {
     const diff = parsed.getTime() - now.getTime();
-    const daysLeft = diff / (1000 * 60 * 60 * 24);
-    return daysLeft >= 0 && daysLeft <= 15;
+    return diff / (1000 * 60 * 60 * 24) <= 15;
   }
   return form.status === "Open";
 }
 
-// ─── Status badge ───────────────────────────────────────────────────────
+/* ─── COMPONENT: THE GREEN BLOOPER ─── */
+const GreenBlooper: React.FC = () => (
+  <>
+    {/* Custom style tag to sync animations globally */}
+    <style dangerouslySetInnerHTML={{ __html: `
+      @keyframes sync-ping {
+        0% { transform: scale(1); opacity: 0.8; }
+        75%, 100% { transform: scale(2); opacity: 0; }
+      }
+      .animate-sync-ping {
+        animation: sync-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+    `}} />
+    
+    {/* 1. Large Ping: Anchored at corner, synced across all cards */}
+    <span className="absolute -top-2 -right-2 h-20 w-20 animate-sync-ping rounded-full bg-green-500/20" />
+    
+    {/* 2. Fixed Dot */}
+    <div className="absolute top-6 right-6">
+      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_12px_rgba(34,197,94,1)] border border-green-300/50" />
+    </div>
+  </>
+);
 
-const StatusBadge: React.FC<{ status: string; upcoming: boolean }> = ({
-  status,
-  upcoming,
-}) => {
+/* ─── COMPONENT: STATUS BADGE ─── */
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const isOpen = status === "Open";
   const isClosed = status === "Closed";
   return (
-    <span className="relative flex items-center gap-1.5">
-      {(upcoming || isOpen) && !isClosed && (
-        <span className="relative flex h-2.5 w-2.5">
-          <span
-            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-            style={{ backgroundColor: greenAccent }}
-          />
-          <span
-            className="relative inline-flex rounded-full h-2.5 w-2.5"
-            style={{ backgroundColor: greenAccent }}
-          />
-        </span>
-      )}
-      <span
-        className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-        style={{
-          backgroundColor: isOpen
-            ? "rgba(34,197,94,0.15)"
-            : isClosed
-            ? "rgba(239,68,68,0.15)"
-            : "rgba(245,158,11,0.15)",
-          color: isOpen ? greenAccent : isClosed ? "#ef4444" : accentColor,
-        }}
-      >
-        {status}
-      </span>
+    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+      isOpen ? "bg-green-500/10 text-green-400 border-green-500/20" : 
+      isClosed ? "bg-red-500/10 text-red-400 border-red-500/20" : 
+      "bg-slate-800 text-slate-500 border-slate-700"
+    }`}>
+      {status}
     </span>
   );
 };
 
-// ─── Bell popup (notification subscription) ─────────────────────────────
-
+/* ─── COMPONENT: BELL NOTIFICATION ─── */
 const BellNotification: React.FC<{ examLabel: string }> = ({ examLabel }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -88,83 +86,40 @@ const BellNotification: React.FC<{ examLabel: string }> = ({ examLabel }) => {
     e.preventDefault();
     if (!email) return;
     setSubmitted(true);
-    setTimeout(() => {
-      setIsOpen(false);
-      setSubmitted(false);
-    }, 2000);
+    setTimeout(() => { setIsOpen(false); setSubmitted(false); }, 2000);
   };
 
   return (
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-105 active:scale-95"
-        style={{
-          background: "rgba(245,158,11,0.1)",
-          border: "1px solid rgba(245,158,11,0.25)",
-          color: accentColor,
-        }}
-        title="Get deadline reminders"
+        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:scale-105 transition-all"
       >
         <Bell size={16} />
-        <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">
-          Remind Me
-        </span>
+        <span className="text-xs font-bold uppercase tracking-wider hidden md:inline">Remind Me</span>
       </button>
 
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-          <div
-            className="absolute right-0 top-full mt-2 z-50 w-80 rounded-xl p-5 shadow-2xl"
-            style={{
-              backgroundColor: secondaryBg,
-              border: "1px solid rgba(245,158,11,0.2)",
-            }}
-          >
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 top-full mt-4 z-50 w-80 rounded-2xl p-6 shadow-2xl bg-slate-900 border border-slate-800">
             {submitted ? (
               <div className="text-center py-4">
-                <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: "rgba(34,197,94,0.15)" }}>
-                  <Sparkles size={20} style={{ color: greenAccent }} />
-                </div>
-                <p className="text-white font-semibold text-sm">You are all set!</p>
-                <p className="text-slate-400 text-xs mt-1">
-                  We will remind you before {examLabel} deadlines.
-                </p>
+                <Sparkles size={20} className="text-green-500 mx-auto mb-2" />
+                <p className="text-white font-bold text-sm">Alerts Active!</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Bell size={16} style={{ color: accentColor }} />
-                  <h4 className="text-white font-bold text-sm">
-                    Get {examLabel} Deadline Alerts
-                  </h4>
-                </div>
-                <p className="text-slate-400 text-xs mb-4">
-                  Never miss a registration deadline. We will send you a reminder before forms close.
-                </p>
+                <h4 className="text-white font-bold text-sm mb-3">Alerts for {examLabel}</h4>
                 <input
                   type="email"
-                  placeholder="Your email address"
+                  placeholder="Enter email..."
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2 rounded-xl bg-white/5 border border-slate-800 text-white text-sm mb-3 outline-none focus:border-amber-500/50"
                   required
-                  className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-slate-500 outline-none mb-3"
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                    border: `1px solid ${borderColor}`,
-                  }}
                 />
-                <button
-                  type="submit"
-                  className="w-full py-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90"
-                  style={{ backgroundColor: accentColor, color: "#000" }}
-                >
-                  Set Reminder
-                </button>
+                <button type="submit" className="w-full py-2 rounded-xl bg-amber-500 text-black font-bold text-sm">Set Reminder</button>
               </form>
             )}
           </div>
@@ -174,102 +129,79 @@ const BellNotification: React.FC<{ examLabel: string }> = ({ examLabel }) => {
   );
 };
 
-// ─── Single form card ───────────────────────────────────────────────────
-
+/* ─── COMPONENT: FORM CARD ─── */
 const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
-  const upcoming = isUpcoming(form);
   const isLinkAvailable = form.link && form.link.startsWith("http");
+  const isOpen = form.status === "Open";
 
   return (
-    <div
-      className="relative rounded-xl p-5 hover:shadow-xl transition-all duration-300 backdrop-blur-xl group"
-      style={{
-        backgroundColor: secondaryBg,
-        border: `1px solid ${upcoming ? greenAccent + "55" : borderColor}`,
-      }}
-    >
-      {upcoming && (
-        <div
-          className="absolute left-0 top-4 bottom-4 w-1 rounded-full"
-          style={{ backgroundColor: greenAccent }}
-        />
+    <div className="group relative bg-slate-900/40 border border-slate-800 rounded-[2.5rem] p-8 
+                    transition-all duration-500 hover:border-green-500/50 hover:bg-slate-900/60 
+                    hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(34,197,94,0.1)] overflow-hidden">
+      
+      {isOpen && (
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-green-500/10 rounded-full blur-3xl" />
       )}
+      {isOpen && <GreenBlooper />}
 
-      <div className="flex items-start justify-between mb-3 gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-base sm:text-lg text-white group-hover:text-amber-400 transition-colors">
+      <div className="flex flex-col h-full relative z-10">
+        <div className="mb-6 pr-12">
+          <h3 className="text-xl font-extrabold text-white group-hover:text-green-400 transition-colors leading-tight">
             {form.name}
           </h3>
           {form.courses && (
-            <p className="text-xs text-slate-400 mt-1">{form.courses}</p>
+            <p className="text-[10px] font-black text-slate-500 mt-2 tracking-widest uppercase opacity-70">
+              {form.courses}
+            </p>
           )}
         </div>
-        <CollegeBellButton collegeName={form.name} saveType="form" />
-        <StatusBadge status={form.status} upcoming={upcoming} />
-      </div>
 
-      <div
-        className="grid grid-cols-2 gap-4 pt-3"
-        style={{ borderTop: `1px solid ${borderColor}` }}
-      >
-        <div>
-          <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
-            <Clock size={12} className="shrink-0" />
-            <span>Registration Opens</span>
+        <div className="space-y-4 mb-8">
+          <div className="flex items-center justify-between text-sm group-hover:translate-x-1 transition-transform">
+            <span className="text-slate-500 flex items-center gap-2 font-medium">
+              <Clock className="w-4 h-4" /> Registration Starts
+            </span>
+            <span className="text-slate-200 font-bold">{form.startDate || "TBA"}</span>
           </div>
-          <p className="font-semibold text-white text-xs sm:text-sm">
-            {form.startDate || "TBA"}
-          </p>
-        </div>
-        <div>
-          <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
-            <Calendar size={12} className="shrink-0" />
-            <span>Deadline</span>
+          <div className="flex items-center justify-between text-sm group-hover:translate-x-1 transition-transform delay-75">
+            <span className="text-slate-500 flex items-center gap-2 font-medium">
+              <AlertCircle className="w-4 h-4" /> Last Date
+            </span>
+            <span className="text-red-400 font-bold underline decoration-red-400/20 underline-offset-8">
+              {form.endDate || "TBA"}
+            </span>
           </div>
-          <p className="font-semibold text-white text-xs sm:text-sm">
-            {form.endDate || "TBA"}
-          </p>
         </div>
-      </div>
 
-      <div className="mt-4">
-        {isLinkAvailable ? (
-          <a
-            href={form.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full text-black rounded-lg py-2.5 px-4 transition-all flex items-center justify-center gap-2 text-sm font-medium shadow-md hover:opacity-90 hover:shadow-lg"
-            style={{ background: accentColor }}
-          >
-            <Globe size={14} className="shrink-0" />
-            {form.status === "Open" ? "Apply Now" : "Visit Website"}
-            <ArrowRight size={14} />
-          </a>
-        ) : (
-          <button
-            disabled
-            className="w-full text-slate-500 rounded-lg py-2.5 px-4 flex items-center justify-center gap-2 text-sm font-medium cursor-not-allowed"
-            style={{
-              backgroundColor: "rgba(99, 102, 241, 0.08)",
-              border: `1px solid ${borderColor}`,
-            }}
-          >
-            <Sparkles size={14} className="shrink-0" />
-            Link Coming Soon
-          </button>
-        )}
+        <div className="mt-auto pt-6 border-t border-slate-800 flex items-center justify-between">
+          <StatusBadge status={form.status} />
+          
+          <div className="flex items-center gap-3">
+            <CollegeBellButton collegeName={form.name} saveType="form" />
+            
+            {isLinkAvailable ? (
+              <Link 
+                href={form.link} 
+                target="_blank" 
+                className={`text-sm font-bold flex items-center gap-1 transition-colors ${
+                  isOpen 
+                    ? "text-[#f9a01b] hover:text-white" 
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {isOpen ? "Official Website" : "Official Website"} <ExternalLink className="w-4 h-4" />
+              </Link>
+            ) : (
+              <span className="text-xs font-bold text-slate-600 italic">TBA</span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-// ─── Main client component ──────────────────────────────────────────────
-
-interface FormsPageClientProps {
-  examTab: ExamTab;
-  examLabel: string;
-}
-
+/* ─── MAIN COMPONENT ─── */
 export default function FormsPageClient({ examTab, examLabel }: FormsPageClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "Open" | "Coming Soon">("all");
@@ -279,125 +211,76 @@ export default function FormsPageClient({ examTab, examLabel }: FormsPageClientP
   const filteredForms = useMemo(() => {
     let result = forms;
     if (statusFilter !== "all") {
-      result = result.filter((f) => f.status === statusFilter);
+      result = result.filter((f: ExamFormEntry) => f.status === statusFilter);
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (f) =>
-          f.name.toLowerCase().includes(q) ||
-          (f.courses && f.courses.toLowerCase().includes(q))
+      result = result.filter((f: ExamFormEntry) => 
+        f.name.toLowerCase().includes(q) || (f.courses && f.courses.toLowerCase().includes(q))
       );
     }
     const order: Record<string, number> = { Open: 0, "Coming Soon": 1, Closed: 2 };
     return [...result].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
   }, [forms, statusFilter, searchQuery]);
 
-  const openCount = forms.filter((f) => f.status === "Open").length;
-  const comingSoonCount = forms.filter((f) => f.status === "Coming Soon").length;
+  const openCount = forms.filter((f: ExamFormEntry) => f.status === "Open").length;
 
   return (
-    <div>
-      {/* ── Stats bar + search + bell ── */}
-      <div
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 rounded-xl shadow-lg p-4 backdrop-blur-xl"
-        style={{
-          backgroundColor: secondaryBg,
-          borderLeft: `4px solid ${accentColor}`,
-        }}
-      >
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Calendar style={{ color: accentColor }} className="shrink-0" size={20} />
-            <span className="font-semibold text-base text-white">
-              {filteredForms.length} forms
-            </span>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* ── SINGLE LINE SEARCH & HEADER SECTION ── */}
+      <div className="flex flex-col lg:flex-row items-center gap-4 mb-12 p-4 lg:p-3 rounded-[2.5rem] bg-slate-900/40 border border-slate-800 backdrop-blur-xl border-l-4 border-l-amber-500">
+        
+        <div className="flex items-center gap-3 px-4 shrink-0 border-r border-slate-800/50 hidden lg:flex">
+          <Calendar className="text-amber-500" size={20} />
+          <span className="font-bold text-white text-sm whitespace-nowrap">
+            {filteredForms.length} Forms
+          </span>
           {openCount > 0 && (
-            <span
-              className="text-xs font-bold px-2.5 py-1 rounded-full"
-              style={{ backgroundColor: "rgba(34,197,94,0.15)", color: greenAccent }}
-            >
-              {openCount} Open Now
-            </span>
-          )}
-          {comingSoonCount > 0 && (
-            <span
-              className="text-xs font-bold px-2.5 py-1 rounded-full"
-              style={{ backgroundColor: "rgba(245,158,11,0.15)", color: accentColor }}
-            >
-              {comingSoonCount} Coming Soon
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 uppercase tracking-tighter">
+              {openCount} Open
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded-lg flex-1 sm:flex-initial sm:w-56"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.04)",
-              border: `1px solid ${borderColor}`,
-            }}
-          >
-            <Search size={14} className="text-slate-500 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search forms..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-white text-sm placeholder-slate-500 outline-none w-full"
-            />
-          </div>
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/5 border border-slate-800 focus-within:border-amber-500/40 transition-all flex-1 w-full">
+          <Search size={18} className="text-slate-500 shrink-0" />
+          <input
+            type="text"
+            placeholder={`Search ${examLabel} forms...`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent text-white text-sm outline-none w-full placeholder:text-slate-600"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full lg:w-auto shrink-0">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as "all" | "Open" | "Coming Soon")}
-            className="px-3 py-2 rounded-lg text-sm text-white outline-none cursor-pointer"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.04)",
-              border: `1px solid ${borderColor}`,
-            }}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="flex-1 lg:flex-initial px-4 py-2.5 rounded-2xl text-sm bg-slate-900 text-white border border-slate-800 outline-none cursor-pointer"
           >
-            <option value="all" style={{ backgroundColor: secondaryBg }}>All Status</option>
-            <option value="Open" style={{ backgroundColor: secondaryBg }}>Open</option>
-            <option value="Coming Soon" style={{ backgroundColor: secondaryBg }}>Coming Soon</option>
+            <option value="all">All Status</option>
+            <option value="Open">Open</option>
+            <option value="Coming Soon">Coming Soon</option>
           </select>
+
           <BellNotification examLabel={examLabel} />
         </div>
       </div>
 
-      {/* ── Cards grid ── */}
+      {/* ── CARDS GRID ── */}
       {filteredForms.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredForms.map((form, i) => (
-            <FormCard key={`${examTab}-${form.name}-${i}`} form={form} />
+            <FormCard key={i} form={form} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 rounded-xl" style={{ backgroundColor: secondaryBg }}>
-          <Filter size={40} className="mx-auto mb-3 text-slate-600" />
-          <p className="text-slate-400 text-sm">
-            No forms match your search. Try a different query or filter.
-          </p>
+        <div className="text-center py-24 rounded-[3rem] border border-dashed border-slate-800">
+          <Filter size={48} className="mx-auto mb-4 text-slate-700" />
+          <p className="text-slate-500 font-medium">No results found.</p>
         </div>
       )}
-
-      {/* ── Disclaimer ── */}
-      <div
-        className="mt-8 p-4 sm:p-5 rounded-xl shadow-lg backdrop-blur-xl"
-        style={{
-          backgroundColor: "rgba(99, 102, 241, 0.06)",
-          borderLeft: `4px solid ${accentColor}`,
-          border: `1px solid ${borderColor}`,
-        }}
-      >
-        <h3 className="font-bold text-sm mb-1.5 flex items-center gap-2" style={{ color: accentColor }}>
-          <Sparkles size={14} /> Important Note
-        </h3>
-        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          Dates shown are based on official announcements and past-year trends.
-          Always verify on the official exam website before applying. Some dates are tentative and subject to change.
-        </p>
-      </div>
     </div>
   );
 }
