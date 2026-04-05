@@ -39,7 +39,7 @@ export default function OMRReaderPage() {
           </div>
 
           {/* Main Component */}
-          <OMRReaderClient />
+          <OMRReaderClient/>
 
           {/* How It Works */}
           <div className="max-w-4xl mx-auto mt-16">
