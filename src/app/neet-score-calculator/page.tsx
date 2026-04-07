@@ -12,7 +12,7 @@ export default function OMRReaderPage() {
   return (
     <DefaultLayout>
       <div className="min-h-screen" style={{ backgroundColor: "#050818" }}>
-        <div className="pt-16 pb-12 px-4">
+        <div className="pt-24 pb-12 px-4">
           {/* Header */}
           <div className="text-center mb-10">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
