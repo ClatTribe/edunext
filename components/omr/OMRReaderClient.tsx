@@ -108,6 +108,9 @@ export default function OMRReaderClient() {
           if (i === 0) setCroppedPreview(imageToSend);
         }
 
+        // ✅ Compress before sending (reduces phone photo size)
+        imageToSend = await compressImage(imageToSend);
+
         // Pass 1
         setProgress(
           `Reading OMR — Pass 1${images.length > 1 ? ` (image ${i + 1}/${images.length})` : ""}...`,
@@ -188,6 +191,26 @@ export default function OMRReaderClient() {
     setError("");
     setCroppedPreview("");
   };
+  // Add this helper function
+  async function compressImage(
+    base64: string,
+    maxWidth = 1800,
+  ): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        // Compress to JPEG at 85% quality
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = base64;
+    });
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
