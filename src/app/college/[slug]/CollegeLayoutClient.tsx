@@ -60,6 +60,8 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
   }
 
   const micrositeData = college?.microsite_data || {}
+  ? college
+  : { ...college, ...(college?.microsite_data || {}) }
 
   const allNavItems = [
     { name: 'Overview', path: '', icon: Home, show: true },
