@@ -717,7 +717,7 @@ export default function CollegeMatchCard({
   const topFee = extractTopStreamFee(micrositeData)
 
   const hasData = topStreams.length > 0 || placement.highestPackage || placement.averagePackage || topFee
-  if (!hasData) return null
+  // if (!hasData) return null
 
   // Check if college is already liked (on mount)
   useEffect(() => {
@@ -874,7 +874,7 @@ export default function CollegeMatchCard({
       setLikeLoading(false)
     }
   }
-
+  if (!hasData) return null
   return (
     <section className="scroll-mt-28">
 
