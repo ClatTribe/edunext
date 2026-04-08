@@ -9,54 +9,66 @@ export async function cropAnswerSection(base64Image: string): Promise<string> {
 
       const aspectRatio = width / height;
 
-      let cropRatio: number;
+      // ── Top crop (remove date/header bar) ────────────────────────────────
+      let topCropRatio: number;
       if (aspectRatio < 0.5) {
-        cropRatio = 0.30;
+        topCropRatio = 0.22;
       } else if (aspectRatio < 0.7) {
-        cropRatio = 0.25;
+        topCropRatio = 0.18;
       } else if (aspectRatio < 0.9) {
-        cropRatio = 0.20;
+        topCropRatio = 0.14;
       } else {
-        cropRatio = 0.10;
+        topCropRatio = 0.05;
       }
 
-      const cropStartY = Math.floor(height * cropRatio);
+      const TOP_PADDING_PX = 20;
+      const cropStartY = Math.max(0, Math.floor(height * topCropRatio) - TOP_PADDING_PX);
       const cropHeight = height - cropStartY;
 
-      // 2.5x upscale for blurry photos
+      // ── Left crop (remove Roll No / Phone / Category / Signature panel) ──
+      // The left info panel is ~38% of width on portrait sheets,
+      // ~28% on near-square sheets. We crop it out entirely.
+      let leftCropRatio: number;
+      if (aspectRatio < 0.5) {
+        leftCropRatio = 0.32;   // very tall portrait — big left panel
+      } else if (aspectRatio < 0.7) {
+        leftCropRatio = 0.28;
+      } else if (aspectRatio < 0.9) {
+        leftCropRatio = 0.24;
+      } else {
+        leftCropRatio = 0.25;   // near-square / landscape
+      }
+
+      const LEFT_PADDING_PX = 8; // small buffer so Q1 column isn't clipped
+      const cropStartX = Math.max(0, Math.floor(width * leftCropRatio) - LEFT_PADDING_PX);
+      const cropWidth = width - cropStartX;
+
+      // ── Scale up for AI clarity ──────────────────────────────────────────
       const scale = 2.5;
-      canvas.width = Math.floor(width * scale);
+      canvas.width  = Math.floor(cropWidth  * scale);
       canvas.height = Math.floor(cropHeight * scale);
 
-      ctx.drawImage(img, 0, cropStartY, width, cropHeight, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(
+        img,
+        cropStartX, cropStartY,   // source x, y
+        cropWidth,  cropHeight,   // source w, h
+        0, 0,                     // dest x, y
+        canvas.width, canvas.height  // dest w, h
+      );
 
-      // Aggressive contrast + threshold for blurry images
+      // ── Contrast + threshold ─────────────────────────────────────────────
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
       for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        // Greyscale
-        const grey = 0.299 * r + 0.587 * g + 0.114 * b;
-
-        // 2x contrast boost
+        const grey = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
         let adjusted = 2.0 * (grey - 128) + 128;
         adjusted = Math.max(0, Math.min(255, adjusted));
-
-        // Threshold: if dark enough → make pure black, otherwise pure white
-        // This makes filled bubbles unmistakable
-        const final = adjusted < 140 ? 0 : 255;
-
-        data[i] = final;
-        data[i + 1] = final;
-        data[i + 2] = final;
+        const final = adjusted < 180 ? 0 : 255;
+        data[i] = data[i + 1] = data[i + 2] = final;
       }
 
       ctx.putImageData(imageData, 0, 0);
-
       resolve(canvas.toDataURL("image/jpeg", 0.95));
     };
     img.src = base64Image;

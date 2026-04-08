@@ -1,6 +1,6 @@
 "use client";
 
-import { OMRConfig } from "../../lib/omr";
+import { OMRConfig, NEET_200_CONFIG } from "../../lib/omr";
 
 interface SheetConfigProps {
   config: OMRConfig;
@@ -8,51 +8,59 @@ interface SheetConfigProps {
   disabled?: boolean;
 }
 
-const NEET_ABCD: Partial<OMRConfig> = {
-  totalQuestions: 120,
-  optionsPerQuestion: 4,
-  optionLabels: ["A", "B", "C", "D"],
+type FormatKey = "200-ABCD" | "200-1234";
+
+const PRESETS: Record<FormatKey, { label: string; sub: string; config: OMRConfig }> = {
+  "200-ABCD": {
+    label: "200 Q  —  A / B / C / D",
+    sub: "4 subjects · Sec-A 35 + Sec-B 10/15",
+    config: { ...NEET_200_CONFIG, optionLabels: ["A", "B", "C", "D"] },
+  },
+  "200-1234": {
+    label: "200 Q  —  1 / 2 / 3 / 4",
+    sub: "4 subjects · Sec-A 35 + Sec-B 10/15",
+    config: { ...NEET_200_CONFIG, optionLabels: ["1", "2", "3", "4"] },
+  },
 };
 
-const NEET_1234: Partial<OMRConfig> = {
-  totalQuestions: 120,
-  optionsPerQuestion: 4,
-  optionLabels: ["1", "2", "3", "4"],
-};
+function getActiveKey(config: OMRConfig): FormatKey {
+  const o = config.optionLabels[0] === "1" ? "1234" : "ABCD";
+  return `200-${o}` as FormatKey;
+}
 
 export default function SheetConfig({ config, onChange, disabled }: SheetConfigProps) {
-  const isABCD = config.optionLabels[0] === "A";
+  const activeKey = getActiveKey(config);
 
   return (
     <div
-      className="rounded-2xl p-5 mb-6 flex items-center justify-between gap-4"
+      className="rounded-2xl p-5 mb-6"
       style={{ backgroundColor: "#0F172B", border: "1px solid rgba(245, 158, 11, 0.15)" }}
     >
-      <div>
-        <p className="text-sm font-semibold text-white">NEET OMR — 120 Questions</p>
-        <p className="text-xs text-slate-500 mt-0.5">4 columns × 30 rows · 4 options per question</p>
-      </div>
+      <p className="text-sm font-semibold text-white mb-3">Sheet Format</p>
 
-      {/* Toggle: ABCD vs 1234 */}
-      <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-800 border border-slate-700">
-        {[NEET_ABCD, NEET_1234].map((preset) => {
-          const label = preset.optionLabels![0] === "A" ? "A / B / C / D" : "1 / 2 / 3 / 4";
-          const active = isABCD === (preset.optionLabels![0] === "A");
-          return (
-            <button
-              key={label}
-              disabled={disabled}
-              onClick={() => onChange({ ...config, ...preset } as OMRConfig)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                active
-                  ? "bg-amber-500 text-black shadow"
-                  : "text-slate-400 hover:text-white"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {label}
-            </button>
-          );
-        })}
+      <div className="grid grid-cols-2 gap-2">
+        {(Object.entries(PRESETS) as [FormatKey, typeof PRESETS[FormatKey]][]).map(
+          ([key, preset]) => {
+            const active = activeKey === key;
+            return (
+              <button
+                key={key}
+                disabled={disabled}
+                onClick={() => onChange(preset.config)}
+                className={`rounded-xl px-4 py-3 text-left transition-all border ${
+                  active
+                    ? "bg-amber-500 border-amber-400 text-black"
+                    : "bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <p className="text-sm font-semibold leading-tight">{preset.label}</p>
+                <p className={`text-xs mt-0.5 ${active ? "text-black/70" : "text-slate-500"}`}>
+                  {preset.sub}
+                </p>
+              </button>
+            );
+          }
+        )}
       </div>
     </div>
   );

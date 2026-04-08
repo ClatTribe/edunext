@@ -25,11 +25,12 @@ function mergeWithVerification(
   pass1: OMRAnswer[],
   pass2: OMRAnswer[],
 ): OMRAnswer[] {
+  // Build a map from question number for pass2
+  const pass2Map = new Map(pass2.map((a) => [a.questionNumber, a]));
   const merged: OMRAnswer[] = [];
 
-  for (let i = 0; i < pass1.length; i++) {
-    const a1 = pass1[i];
-    const a2 = pass2[i];
+  for (const a1 of pass1) {
+    const a2 = pass2Map.get(a1.questionNumber);
 
     if (!a2) {
       merged.push(a1);
@@ -37,30 +38,27 @@ function mergeWithVerification(
     }
 
     if (a1.selectedOption === a2.selectedOption) {
-      // Both passes agree — high confidence
-      merged.push({
-        questionNumber: a1.questionNumber,
-        selectedOption: a1.selectedOption,
-        confidence: "high",
-      });
+      merged.push({ ...a1, confidence: "high" });
     } else if (a1.selectedOption === null) {
       merged.push(a2);
     } else if (a2.selectedOption === null) {
       merged.push(a1);
     } else {
-      // Disagreement — use higher confidence one, mark medium
       const confRank = { high: 3, medium: 2, low: 1 };
       const winner =
         confRank[a1.confidence] >= confRank[a2.confidence] ? a1 : a2;
-      merged.push({
-        questionNumber: winner.questionNumber,
-        selectedOption: winner.selectedOption,
-        confidence: "medium",
-      });
+      merged.push({ ...winner, confidence: "medium" });
     }
   }
 
-  return merged;
+  // Add any questions only in pass2
+  for (const a2 of pass2) {
+    if (!merged.find((m) => m.questionNumber === a2.questionNumber)) {
+      merged.push(a2);
+    }
+  }
+
+  return merged.sort((a, b) => a.questionNumber - b.questionNumber);
 }
 
 export default function OMRReaderClient() {
@@ -110,6 +108,9 @@ export default function OMRReaderClient() {
           if (i === 0) setCroppedPreview(imageToSend);
         }
 
+        // ✅ Compress before sending (reduces phone photo size)
+        imageToSend = await compressImage(imageToSend);
+
         // Pass 1
         setProgress(
           `Reading OMR — Pass 1${images.length > 1 ? ` (image ${i + 1}/${images.length})` : ""}...`,
@@ -131,6 +132,22 @@ export default function OMRReaderClient() {
 
       // Merge two passes
       const merged = mergeWithVerification(allAnswersPass1, allAnswersPass2);
+
+      // Pad to full 200 questions — fill gaps with unanswered
+      const mergedMap = new Map(merged.map((a) => [a.questionNumber, a]));
+      const fullAnswers: OMRAnswer[] = Array.from(
+        { length: config.totalQuestions },
+        (_, i) => {
+          const qNum = i + 1;
+          return (
+            mergedMap.get(qNum) ?? {
+              questionNumber: qNum,
+              selectedOption: null,
+              confidence: "high",
+            }
+          );
+        },
+      );
 
       const totalAnswered = merged.filter(
         (a) => a.selectedOption !== null,
@@ -174,6 +191,26 @@ export default function OMRReaderClient() {
     setError("");
     setCroppedPreview("");
   };
+  // Add this helper function
+  async function compressImage(
+    base64: string,
+    maxWidth = 1800,
+  ): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        // Compress to JPEG at 85% quality
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = base64;
+    });
+  }
 
   return (
     <div className="max-w-4xl mx-auto">

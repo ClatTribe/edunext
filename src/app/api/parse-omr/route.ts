@@ -5,22 +5,21 @@ import {
   OMRAnswer,
   OMRResult,
   DEFAULT_CONFIG,
+  getQuestionMeta,
+  computeSubjectBreakdown,
 } from "../../../../lib/omr";
 import { getOMRSystemPrompt, getUserPrompt } from "../../../../lib/omr-prompt";
 
 // --- Preprocess image for better OMR detection ---
-// --- Preprocess image for better OMR detection ---
 async function preprocessImage(base64Data: string): Promise<string> {
   const inputBuffer = Buffer.from(base64Data, "base64");
 
-  // Step 1: Get image metadata to check quality
   const metadata = await sharp(inputBuffer).metadata();
   const isLowRes =
     (metadata.width || 0) < 1500 || (metadata.height || 0) < 1500;
 
-  let pipeline = sharp(inputBuffer).greyscale().normalize(); // Auto contrast stretch
+  let pipeline = sharp(inputBuffer).greyscale().normalize();
 
-  // Step 2: If low resolution, upscale first
   if (isLowRes && metadata.width && metadata.height) {
     const scale = 2;
     pipeline = pipeline.resize(
@@ -30,28 +29,23 @@ async function preprocessImage(base64Data: string): Promise<string> {
     );
   }
 
-  // Step 3: Aggressive sharpen to fix blur
   pipeline = pipeline
-    .sharpen({ sigma: 2, m1: 2, m2: 1 }) // Strong sharpen
-    .linear(1.3, -(128 * 1.3 - 128)) // contrast via linear(a, b) → pixel = a * pixel + b
+    .sharpen({ sigma: 2, m1: 2, m2: 1 })
+    .linear(1.3, -(128 * 1.3 - 128))
     .modulate({ brightness: 1.15 });
-    
-  // Step 4: Apply CLAHE (adaptive histogram equalization)
-  // This makes filled bubbles stand out even in uneven lighting
+
   pipeline = pipeline.clahe({
     width: 10,
     height: 10,
     maxSlope: 5,
   });
 
-  // Step 5: Threshold to make filled bubbles solid black, empty ones white
-  // This is the KEY step for blurry images
   pipeline = pipeline.threshold(160);
 
   const processed = await pipeline.jpeg({ quality: 95 }).toBuffer();
-
   return processed.toString("base64");
 }
+
 // --- Parse raw AI JSON into structured answers ---
 interface RawAnswer {
   q: number;
@@ -72,24 +66,30 @@ function parseAIResponse(rawText: string, config: OMRConfig): OMRAnswer[] {
 
   const rawAnswers: RawAnswer[] = JSON.parse(arrayMatch[0]);
 
-  const answers: OMRAnswer[] = rawAnswers.map((raw) => ({
-    questionNumber: raw.q,
-    selectedOption:
-      raw.ans === "-" || raw.ans === "?" ? null : raw.ans.toUpperCase(),
-    confidence: (["high", "medium", "low"].includes(raw.conf)
-      ? raw.conf
-      : "medium") as "high" | "medium" | "low",
-  }));
+  const answers: OMRAnswer[] = rawAnswers.map((raw) => {
+    const meta = getQuestionMeta(raw.q, config);
+    return {
+      questionNumber: raw.q,
+      selectedOption:
+        raw.ans === "-" || raw.ans === "?" ? null : raw.ans.toUpperCase(),
+      confidence: (["high", "medium", "low"].includes(raw.conf)
+        ? raw.conf
+        : "medium") as "high" | "medium" | "low",
+      ...(meta ?? {}),
+    };
+  });
 
   const answerMap = new Map(answers.map((a) => [a.questionNumber, a]));
   const fullAnswers: OMRAnswer[] = [];
 
   for (let i = 1; i <= config.totalQuestions; i++) {
+    const meta = getQuestionMeta(i, config);
     fullAnswers.push(
       answerMap.get(i) || {
         questionNumber: i,
         selectedOption: null,
         confidence: "low",
+        ...(meta ?? {}),
       },
     );
   }
@@ -122,8 +122,9 @@ async function callGemini(
           },
         ],
         generationConfig: {
-          temperature: 0.1,
+          temperature: 0,
           topP: 0.8,
+          topK: 1,
         },
       }),
     },
@@ -173,15 +174,13 @@ export async function POST(request: NextRequest) {
       ...DEFAULT_CONFIG,
       ...userConfig,
       optionLabels: userConfig?.optionLabels || DEFAULT_CONFIG.optionLabels,
+      // Preserve sections from userConfig if provided (needed for NEET 200)
+      sections: userConfig?.sections ?? DEFAULT_CONFIG.sections,
     };
 
-    // Strip data URL prefix → raw base64
     const rawBase64 = image.includes(",") ? image.split(",")[1] : image;
-
-    // Preprocess: greyscale + normalize + sharpen
     const base64Data = await preprocessImage(rawBase64);
 
-    // Call Gemini 2.5 Pro
     const rawResponse = await callGemini(
       base64Data,
       "image/jpeg",
@@ -198,6 +197,9 @@ export async function POST(request: NextRequest) {
       .map((a) => `${a.questionNumber}: ${a.selectedOption || "-"}`)
       .join(", ");
 
+    // Compute per-subject breakdown (only meaningful for NEET 200)
+    const subjectBreakdown = computeSubjectBreakdown(answers, config);
+
     const omrResult: OMRResult = {
       success: true,
       answers,
@@ -206,6 +208,7 @@ export async function POST(request: NextRequest) {
       totalUnanswered: config.totalQuestions - totalAnswered,
       summary,
       rawAIResponse: rawResponse,
+      subjectBreakdown,
     };
 
     return NextResponse.json(omrResult);
