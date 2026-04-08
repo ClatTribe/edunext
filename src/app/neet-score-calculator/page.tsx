@@ -1,8 +1,3 @@
-// =============================================================
-// FILE: app/omr-reader/page.tsx
-// DROP INTO: your-project/app/omr-reader/page.tsx
-// ROUTE:    yoursite.com/omr-reader
-// =============================================================
 
 import DefaultLayout from "@/app/defaultLayout";    // ← your existing layout
 import OMRReaderClient from "../../../components/omr/OMRReaderClient";
@@ -17,7 +12,7 @@ export default function OMRReaderPage() {
   return (
     <DefaultLayout>
       <div className="min-h-screen" style={{ backgroundColor: "#050818" }}>
-        <div className="pt-16 pb-12 px-4">
+        <div className="pt-24 pb-12 px-4">
           {/* Header */}
           <div className="text-center mb-10">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
@@ -44,7 +39,7 @@ export default function OMRReaderPage() {
           </div>
 
           {/* Main Component */}
-          <OMRReaderClient />
+          <OMRReaderClient/>
 
           {/* How It Works */}
           <div className="max-w-4xl mx-auto mt-16">
