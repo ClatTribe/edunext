@@ -224,9 +224,13 @@ export default function CollegeOverviewPage() {
   )
   if (!college) return null
 
-  const micrositeData = typeof college.microsite_data === 'string'
+const rawMicrosite = typeof college.microsite_data === 'string'
     ? JSON.parse(college.microsite_data)
     : (college.microsite_data || {})
+
+  const micrositeData = Array.isArray(rawMicrosite)
+    ? college
+    : { ...college, ...rawMicrosite }
 
   const base = `/college/${slug}`
 
