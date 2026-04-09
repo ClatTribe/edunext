@@ -296,7 +296,7 @@ const CURATED_SCHOLARSHIPS: Record<string, CuratedScholarship[]> = {
       name: "ONGC Scholarship for SC/ST Medical Students",
       provider: "ONGC Foundation",
       amount: "â¹48,000 per year",
-      eligibility: "SCST students in 1st year MBBS / medical courses; income â¤ â¹1.5 Lakh/year; merit-based.",
+      eligibility: "SC/ST students in 1st year MBBS / medical courses; income â¤ â¹1.5 Lakh/year; merit-based.",
       deadline: "December each year",
       link: "https://ongcscholarship.com",
       category: "mbbs",
@@ -309,7 +309,7 @@ const CURATED_SCHOLARSHIPS: Record<string, CuratedScholarship[]> = {
       name: "IIM Bangalore Need-Based Financial Assistance",
       provider: "Indian Institute of Management Bangalore",
       amount: "Partial to full tuition waiver",
-      eligibility: "PGP (MBA) students at IIMB with family annual income â¤ â¹8 Lak; considered automatically post-admission.",
+      eligibility: "PGP (MBA) students at IIMB with family annual income â¤ â¹8 Lakh; considered automatically post-admission.",
       deadline: "Internal process after admission",
       link: "https://www.iimb.ac.in/financial-assistance",
       category: "mba",
@@ -341,7 +341,7 @@ const CURATED_SCHOLARSHIPS: Record<string, CuratedScholarship[]> = {
       id: "ma4",
       name: "ISB Merit Scholarships (GOALisB & Others)",
       provider: "Indian School of Business (ISB)",
-      amount: "â¹5 Lakh  â Full tuition fee waiver",
+      amount: "â¹5 Lakh â Full tuition fee waiver",
       eligibility: "Students admitted to ISB PGP; evaluated on GMAT/GRE score, work experience, leadership, essays; ~40 scholarships awarded per batch.",
       deadline: "Applied during ISB admission process",
       link: "https://www.isb.edu/en/programmes/post-graduate-programme/fees-financing/scholarships.html",
@@ -361,7 +361,7 @@ const CURATED_SCHOLARSHIPS: Record<string, CuratedScholarship[]> = {
     },
     {
       id: "ma6",
-      name: "SPNIMR Scholarships",
+      name: "SPJIMR Scholarships",
       provider: "S.P. Jain Institute of Management and Research",
       amount: "Varies â partial fee waiver + stipend",
       eligibility: "Admitted PGDM students; based on CAT score, work ex, diversity, essays; women & first-gen students encouraged.",
@@ -372,7 +372,7 @@ const CURATED_SCHOLARSHIPS: Record<string, CuratedScholarship[]> = {
     },
     {
       id: "ma7",
-      name: "FMSDd DeeÎ`Merit Scholarship",
+      name: "FMS Delhi Merit Scholarship",
       provider: "Faculty of Management Studies (FMS), University of Delhi",
       amount: "â¹40,000 per year (approx.)",
       eligibility: "Top performers in the FMS MBA batch; academic merit in first year; awarded in 2nd year.",
@@ -763,7 +763,7 @@ const ScholarshipFinder: React.FC = () => {
           {/* ââ RECOMMENDED VIEW ââ */}
           <ScholarshipRecommend
             user={user}
-            viewMode={viewMode}
+            viewMode={viewMode as "all" | "recommended"}
             featuredScholarship={FEATURED_SCHOLARSHIP}
             onRecommendedScholarshipsChange={setFilteredScholarships}
             onLoadingChange={setLoading}
@@ -835,46 +835,31 @@ const ScholarshipFinder: React.FC = () => {
           {viewMode === "all" && (
             <>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-                <div className="flex items-center gap-2"><Award style={{ color: accentColor }} size={20} /><span className="font-semibold text-sm sm:text-base md:text-lg text-white">{filteredScholarships.length.toLocaleString()} scholarships</span></div>
-                <div className="flex items-center gap-2"><Heart style={{ color: accentColor }} size={16} /><span className="text-xs sm:text-sm text-slate-400">{savedScholarships.size} saved</span></div>
+            </div>
+                viewMode =>
               </div>
-
-              {loading ? (
-                <div className="flex justify-center items-center h-64"><div className="flex flex-col items-center gap-3"><div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2" style={{ borderColor: accentColor }}></div><p className="text-sm sm:text-base text-slate-400">Loading...</p></div></div>
-              ) : filteredScholarships.length === 0 ? (
-                <div className="text-center py-12 sm:py-16 rounded-lg shadow-sm px-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}><Award size={40} className="sm:w-12 sm:h-12 mx-auto text-slate-600 mb-4" /><h3 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-2">No scholarships found</h3><p className="text-xs sm:text-sm text-slate-400">Try adjusting your filters</p></div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  {filteredScholarships.map(s => {
-                    const isFeatured = s.isFeatured
-                    return (
-                      <div key={s.id} className="rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow relative backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: isFeatured ? '2px solid #f59e0b' : `1px solid ${borderColor}`, boxShadow: isFeatured ? '0 0 30px rgba(245,158,11,0.2)' : 'none' }}>
-                        {isFeatured && <div className="absolute top-0 right-0 text-xs font-bold px-3 py-1.5 rounded-bl-lg flex items-center gap-1 shadow-md" style={{ backgroundColor: '#fbbf24', color: '#1f2937' }}><Star size={14} fill="currentColor" /> FEATURED</div>}
-                        <div className="flex items-start justify-between mb-4 gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-base sm:text-lg md:text-xl text-white leading-tight mb-2 sm:mb-3">{s.scholarship_name || "Scholarship"}{isFeatured && <span className="text-xs text-amber-400 ml-2">(Top Pick)</span>}</h3>
-                            {s.organisation && <div className="flex items-center gap-2 mb-2 sm:mb-3 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg" style={{ backgroundColor: 'rgba(99,102,241,0.1)' }}><Globe size={14} style={{ color: accentColor }} /><p className="text-slate-300 font-medium text-xs sm:text-sm truncate">{s.organisation}</p></div>}
-                            {viewMode === "recommended" && <div className="mt-2">{getMatchBadge(s)}</div>}
-                          </div>
-                          <button onClick={() => toggleSaveScholarship(s.id)} disabled={isFeatured} className={`transition-colors ml-2 shrink-0 ${isFeatured ? "opacity-50 cursor-not-allowed" : savedScholarships.has(s.id) ? "" : "text-slate-500"}`} style={savedScholarships.has(s.id) && !isFeatured ? { color: accentColor } : {}}>
-                            <Heart size={20} fill={savedScholarships.has(s.id) && !isFeatured ? "currentColor" : "none"} />
-                          </button>
-                        </div>
-                        {(s.eligibility || s.detailed_eligibility) && <div className="mb-3 sm:mb-4 rounded-lg p-3 sm:p-4" style={{ backgroundColor: 'rgba(99,102,241,0.1)', border: `1px solid ${borderColor}` }}><div className="flex items-start gap-2"><GraduationCap size={16} className="shrink-0 mt-0.5" style={{ color: accentColor }} /><div><p className="text-xs font-bold mb-1 uppercase tracking-wide" style={{ color: accentColor }}>Eligibility</p><p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{s.detailed_eligibility || s.eligibility}</p></div></div></div>}
-                        {(s.benefit || s.price) && <div className="rounded-lg p-3 sm:p-4 mb-3 sm:mb-4" style={{ background: 'linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.1))', border: '2px solid rgba(251,191,36,0.3)' }}><div className="flex items-start gap-2"><IndianRupee size={16} className="shrink-0 mt-0.5" style={{ color: '#fbbf24' }} /><div><p className="text-xs font-bold mb-1 uppercase tracking-wide text-amber-400">Benefits</p><p className="text-xs sm:text-sm text-slate-200 leading-relaxed">{s.benefit || s.price}</p></div></div></div>}
-                        <div className="flex items-center gap-2 text-slate-300 mb-3 sm:mb-4 pt-3 sm:pt-4" style={{ borderTop: `1px solid ${borderColor}` }}><Calendar size={16} style={{ color: accentColor }} /><span className="text-xs sm:text-sm"><strong className="font-semibold">Deadline:</strong> <span className="text-slate-400">{formatDeadline(s.deadline)}</span></span></div>
-                        {s.link && <a href={s.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-all hover:shadow-lg" style={{ backgroundColor: accentColor }}>{isFeatured ? "Explore Scholarship" : "Apply Now"} <ExternalLink size={14} /></a>}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
             </>
-          )}
-        </div>
-      </div>
-    </DefaultLayout>
-  )
-}
-
-export default ScholarshipFinder
+                </div>
+              <div className="mt-8 rounded-lg p-4 flex items-start gap-3" style={{ backgroundColor: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+  ]Û\ÜÓ[YOH^][\ËXÙ[\Ø\L]Ø\Ý[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÚ^O^ÌHÏÜ[Û\ÜÓ[YOHÛ\Ù[ZXÛ^\ÛHÛN^X\ÙHY^[È^]Ú]HÙ[\YØÚÛ\Ú\Ë[ÝÓØØ[TÝ[Ê
+_HØÚÛ\Ú\ÏÜÜ[Ù]]Û\ÜÓ[YOH^][\ËXÙ[\Ø\LX\Ý[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÚ^O^ÌMHÏÜ[Û\ÜÓ[YOH^^ÈÛN^\ÛH^\Û]KMÜØ]YØÚÛ\Ú\ËÚ^_HØ]YÜÜ[Ù]Ù]ÛØY[ÈÈ
+]Û\ÜÓ[YOH^\ÝYKXÙ[\][\ËXÙ[\M]Û\ÜÓ[YOH^^XÛÛ][\ËXÙ[\Ø\LÈ]Û\ÜÓ[YOH[[X]K\Ü[Ý[YY[LLËLLÛNLLÛNËLLÜ\XLÝ[O^ÞÈÜ\ÛÛÜXØÙ[ÛÛÜ_OÙ]Û\ÜÓ[YOH^\ÛHÛN^X\ÙH^\Û]KMØY[ËÜÙ]Ù]
+H[\YØÚÛ\Ú\Ë[ÝOOHÈ
+]Û\ÜÓ[YOH^XÙ[\KLLÛNKLMÝ[Y[ÈÚYÝË\ÛHMXÚÙÜX\^Ý[O^ÞÈXÚÙÜÝ[ÛÛÜÙXÛÛ\PËÜ\\ÛÛY	ØÜ\ÛÛÜX_O]Ø\Ú^O^ÍHÛ\ÜÓ[YOHÛNËLLÛNLL^X]]È^\Û]KMXMÏÈÛ\ÜÓ[YOH^X\ÙHÛN^[ÈY^^Û\Ù[ZXÛ^]Ú]HXLÈØÚÛ\Ú\ÈÝ[ÚÏÛ\ÜÓ[YOH^^ÈÛN^\ÛH^\Û]KMHY\Ý[È[Ý\[\ÏÜÙ]
+H
+]Û\ÜÓ[YOHÜYÜYXÛÛËLHÎÜYXÛÛËLØ\MÛNØ\MÙ[\YØÚÛ\Ú\ËX\
+ÈOÂÛÛÝ\ÑX]\YHË\ÑX]\Y]\
+]Ù^O^ÜËYHÛ\ÜÓ[YOHÝ[Y^MÛNMÝ\ÚYÝË[È[Ú][Û\ÚYÝÈ[]]HXÚÙÜX\^Ý[O^ÞÈXÚÙÜÝ[ÛÛÜÙXÛÛ\PËÜ\\ÑX]\YÈ	ÌÛÛYÙNYLÈ\ÛÛY	ØÜ\ÛÛÜXÞÚYÝÎ\ÑX]\YÈ	ÌÌØJ
+KMNLKIÈ	ÛÛIÈ_OÚ\ÑX]\Y	]Û\ÜÓ[YOHXÛÛ]HÜLYÚL^^ÈÛXÛLÈKLKHÝ[YX[È^][\ËXÙ[\Ø\LHÚYÝË[YÝ[O^ÞÈXÚÙÜÝ[ÛÛÜ	ÈÙ	ËÛÛÜ	ÈÌYLÍÉÈ_OÝ\Ú^O^ÌMH[HÝ\[ÛÛÜÏPUTQÙ]B]Û\ÜÓ[YOH^][\Ë\Ý\\ÝYKX]ÙY[XMØ\L]Û\ÜÓ[YOH^LHZ[]ËLÈÛ\ÜÓ[YOHÛXÛ^X\ÙHÛN^[ÈY^^^]Ú]HXY[Ë]YÚXLÛNXLÈÜËØÚÛ\Ú\Û[YHØÚÛ\Ú\^Ú\ÑX]\Y	Ü[Û\ÜÓ[YOH^^È^X[X\M[LÜXÚÊOÜÜ[OÚÏÜËÜØ[\Ø][Û	]Û\ÜÓ[YOH^][\ËXÙ[\Ø\LXLÛNXLÈLÛNLÈKLKHÛNKLÝ[Y[ÈÝ[O^ÞÈXÚÙÜÝ[ÛÛÜ	ÜØJNKLKJIÈ_OÛØHÚ^O^ÌMHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÏÛ\ÜÓ[YOH^\Û]KLÌÛ[YY][H^^ÈÛN^\ÛH[Ø]HÜËÜØ[\Ø][ÛOÜÙ]BÝY]Ó[ÙHOOHXÛÛ[Y[Y	]Û\ÜÓ[YOH]LÙÙ]X]ÚYÙJÊ_OÙ]BÙ]]ÛÛÛXÚÏ^Ê
+HOÙÙÛTØ]TØÚÛ\Ú\
+ËY
+_H\ØXY^Ú\ÑX]\YHÛ\ÜÓ[YO^Ø[Ú][ÛXÛÛÜÈ[LÚ[ËL	Ú\ÑX]\YÈÜXÚ]KMLÝ\ÛÜ[ÝX[ÝÙYØ]YØÚÛ\Ú\Ë\ÊËY
+HÈ^\Û]KMLXHÝ[O^ÜØ]YØÚÛ\Ú\Ë\ÊËY
+H	Z\ÑX]\YÈÈÛÛÜXØÙ[ÛÛÜHß_OX\Ú^O^ÌH[^ÜØ]YØÚÛ\Ú\Ë\ÊËY
+H	Z\ÑX]\YÈÝ\[ÛÛÜÛHHÏØ]ÛÙ]JË[YÚX[]HË]Z[YÙ[YÚX[]JH	]Û\ÜÓ[YOHXLÈÛNXMÝ[Y[ÈLÈÛNMÝ[O^ÞÈXÚÙÜÝ[ÛÛÜ	ÜØJNKLKJIËÜ\\ÛÛY	ØÜ\ÛÛÜX_O]Û\ÜÓ[YOH^][\Ë\Ý\Ø\LÜYX][ÛØ\Ú^O^ÌMHÛ\ÜÓ[YOHÚ[ËL]LHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÏ]Û\ÜÓ[YOH^^ÈÛXÛXLH\\Ø\ÙHXÚÚ[Ë]ÚYHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_O[YÚX[]OÜÛ\ÜÓ[YOH^\Û]KLÌ^^ÈÛN^\ÛHXY[Ë\[^YÜË]Z[YÙ[YÚX[]HË[YÚX[]_OÜÙ]Ù]Ù]BÊË[Y]ËXÙJH	]Û\ÜÓ[YOHÝ[Y[ÈLÈÛNMXLÈÛNXMÝ[O^ÞÈXÚÙÜÝ[	Û[X\YÜYY[
+LÍYYËØJLKNLKÍJKØJ
+KMNLKJJIËÜ\	ÌÛÛYØJLKNLKÍÊIÈ_O]Û\ÜÓ[YOH^][\Ë\Ý\Ø\L[X[\YHÚ^O^ÌMHÛ\ÜÓ[YOHÚ[ËL]LHÝ[O^ÞÈÛÛÜ	ÈÙ	È_HÏ]Û\ÜÓ[YOH^^ÈÛXÛXLH\\Ø\ÙHXÚÚ[Ë]ÚYH^X[X\M[Y]ÏÜÛ\ÜÓ[YOH^^ÈÛN^\ÛH^\Û]KLXY[Ë\[^YÜË[Y]ËXÙ_OÜÙ]Ù]Ù]B]Û\ÜÓ[YOH^][\ËXÙ[\Ø\L^\Û]KLÌXLÈÛNXMLÈÛNMÝ[O^ÞÈÜ\Ü\ÛÛY	ØÜ\ÛÛÜX_OØ[[\Ú^O^ÌMHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÏÜ[Û\ÜÓ[YOH^^ÈÛN^\ÛHÝÛÈÛ\ÜÓ[YOHÛ\Ù[ZXÛXY[NÜÝÛÏÜ[Û\ÜÓ[YOH^\Û]KMÙÜX]XY[JËXY[J_OÜÜ[ÜÜ[Ù]ÜË[È	HY^ÜË[ßH\Ù]HØ[È[HÛÜ[\ÜY\\Û\ÜÓ[YOH^][\ËXÙ[\\ÝYKXÙ[\Ø\L^]Ú]HKLHÛNKLÈÝ[Y[È^\ÛHÛN^X\ÙHÛ\Ù[ZXÛ[Ú][ÛX[Ý\ÚYÝË[ÈÝ[O^ÞÈXÚÙÜÝ[ÛÛÜXØÙ[ÛÛÜ_OÚ\ÑX]\YÈ^ÜHØÚÛ\Ú\\HÝÈH^\[[ÈÚ^O^ÌMHÏØOBÙ]
+BJ_BÙ]
+_BÏ
+_BÙ]Ù]ÑY][^[Ý]
+BB^ÜY][ØÚÛ\Ú\[\
