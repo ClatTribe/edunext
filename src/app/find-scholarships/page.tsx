@@ -678,7 +678,7 @@ const ScholarshipFinder: React.FC = () => {
               Find Scholarships to Fuel Your Dreams
             </h1>
             <p className="text-sm sm:text-base text-slate-400">
-              Discover scholarships from government, private foundations & top institutions â curated for Indian students
+              Discover scholarships from government, private foundations & top institutions — curated for Indian students
             </p>
           </div>
 
@@ -691,7 +691,11 @@ const ScholarshipFinder: React.FC = () => {
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => { setViewMode(tab.id as typeof viewMode); if (tab.id !== "all") setLoading(false); if (tab.id === "all") { resetFilters(); fetchScholarships() } }}
+                onClick={() => {
+                  setViewMode(tab.id as typeof viewMode)
+                  if (tab.id !== "all") setLoading(false)
+                  if (tab.id === "all") { resetFilters(); fetchScholarships() }
+                }}
                 className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all"
                 style={viewMode === tab.id
                   ? { backgroundColor: accentColor, color: 'white' }
@@ -704,10 +708,9 @@ const ScholarshipFinder: React.FC = () => {
             ))}
           </div>
 
-          {/* ââ BY PROGRAM VIEW ââ */}
+          {/* ── BY PROGRAM VIEW ── */}
           {viewMode === "byprogram" && (
             <div>
-              {/* Program Selector */}
               <div className="rounded-xl p-4 sm:p-5 mb-6 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
                 <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: accentColor }}>Select Your Program</p>
                 <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -732,25 +735,22 @@ const ScholarshipFinder: React.FC = () => {
                 </div>
               </div>
 
-              {/* Program Header */}
               <div className="mb-5 flex items-center gap-3">
                 <div className="p-2.5 rounded-lg" style={{ backgroundColor: `${activeProgramTab.color}20` }}>
                   <activeProgramTab.icon size={22} style={{ color: activeProgramTab.color }} />
                 </div>
                 <div>
                   <h2 className="text-lg sm:text-xl font-bold text-white">{activeProgramTab.label} Scholarships</h2>
-                  <p className="text-xs text-slate-400">{activeProgramTab.description} Â· {curatedList.length} scholarships listed</p>
+                  <p className="text-xs text-slate-400">{activeProgramTab.description} · {curatedList.length} scholarships listed</p>
                 </div>
               </div>
 
-              {/* Curated Cards */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {curatedList.map(s => (
                   <CuratedScholarshipCard key={s.id} scholarship={s} programColor={activeProgramTab.color} />
                 ))}
               </div>
 
-              {/* Disclaimer */}
               <div className="mt-8 rounded-lg p-4 flex items-start gap-3" style={{ backgroundColor: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
                 <AlertCircle size={16} style={{ color: '#818cf8' }} className="shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-400 leading-relaxed">
@@ -760,7 +760,7 @@ const ScholarshipFinder: React.FC = () => {
             </div>
           )}
 
-          {/* ââ RECOMMENDED VIEW ââ */}
+          {/* ── RECOMMENDED VIEW ── */}
           <ScholarshipRecommend
             user={user}
             viewMode={viewMode as "all" | "recommended"}
@@ -770,7 +770,7 @@ const ScholarshipFinder: React.FC = () => {
             onErrorChange={setError}
           />
 
-          {/* ââ ALL SCHOLARSHIPS VIEW ââ */}
+          {/* ── ALL SCHOLARSHIPS VIEW ── */}
           {viewMode === "all" && (
             <>
               {/* Search + Filter */}
@@ -793,13 +793,27 @@ const ScholarshipFinder: React.FC = () => {
                     style={{ backgroundColor: accentColor }}
                   >
                     <Filter size={18} />
-                    Filters {activeFiltersCount > 0 && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#fbbf24', color: '#1f2937' }}>{activeFiltersCount}</span>}
+                    Filters {activeFiltersCount > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#fbbf24', color: '#1f2937' }}>
+                        {activeFiltersCount}
+                      </span>
+                    )}
                   </button>
                 </div>
                 {activeFiltersCount > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {searchQuery && <div className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm flex items-center gap-2" style={{ backgroundColor: 'rgba(99,102,241,0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}><span className="font-medium truncate max-w-[120px]">Search: {searchQuery}</span><button onClick={() => clearFilter("search")} className="hover:bg-white/10 rounded-full p-0.5"><X size={12} /></button></div>}
-                    {selectedOrganisation && <div className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm flex items-center gap-2" style={{ backgroundColor: 'rgba(99,102,241,0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}><span className="font-medium truncate max-w-[120px]">{selectedOrganisation}</span><button onClick={() => clearFilter("organisation")} className="hover:bg-white/10 rounded-full p-0.5"><X size={12} /></button></div>}
+                    {searchQuery && (
+                      <div className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm flex items-center gap-2" style={{ backgroundColor: 'rgba(99,102,241,0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}>
+                        <span className="font-medium truncate max-w-[120px]">Search: {searchQuery}</span>
+                        <button onClick={() => clearFilter("search")} className="hover:bg-white/10 rounded-full p-0.5"><X size={12} /></button>
+                      </div>
+                    )}
+                    {selectedOrganisation && (
+                      <div className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm flex items-center gap-2" style={{ backgroundColor: 'rgba(99,102,241,0.2)', color: '#a5b4fc', border: `1px solid ${borderColor}` }}>
+                        <span className="font-medium truncate max-w-[120px]">{selectedOrganisation}</span>
+                        <button onClick={() => clearFilter("organisation")} className="hover:bg-white/10 rounded-full p-0.5"><X size={12} /></button>
+                      </div>
+                    )}
                     <button onClick={resetFilters} className="text-xs sm:text-sm font-medium px-2" style={{ color: accentColor }}>Clear All</button>
                   </div>
                 )}
@@ -807,13 +821,24 @@ const ScholarshipFinder: React.FC = () => {
 
               {showFilters && (
                 <div className="rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-                  <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2 text-white"><Filter size={18} style={{ color: accentColor }} /> Refine Your Search</h3>
+                  <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2 text-white">
+                    <Filter size={18} style={{ color: accentColor }} /> Refine Your Search
+                  </h3>
                   <div>
-                    <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300 mb-2"><Globe size={14} style={{ color: accentColor }} /> Organisation</label>
+                    <label className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300 mb-2">
+                      <Globe size={14} style={{ color: accentColor }} /> Organisation
+                    </label>
                     <div className="relative">
-                      <select className="appearance-none w-full rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 text-white" style={{ backgroundColor: 'rgba(99,102,241,0.1)', border: `1px solid ${borderColor}` }} value={selectedOrganisation} onChange={e => setSelectedOrganisation(e.target.value)}>
+                      <select
+                        className="appearance-none w-full rounded-lg px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base focus:outline-none focus:ring-2 text-white"
+                        style={{ backgroundColor: 'rgba(99,102,241,0.1)', border: `1px solid ${borderColor}` }}
+                        value={selectedOrganisation}
+                        onChange={e => setSelectedOrganisation(e.target.value)}
+                      >
                         <option value="" style={{ backgroundColor: secondaryBg }}>All Organisations</option>
-                        {getUniqueOrganisations().map(org => <option key={org} value={org} style={{ backgroundColor: secondaryBg }}>{org}</option>)}
+                        {getUniqueOrganisations().map(org => (
+                          <option key={org} value={org} style={{ backgroundColor: secondaryBg }}>{org}</option>
+                        ))}
                       </select>
                       <ChevronDown className="absolute right-2 top-2.5 sm:top-3 h-4 w-4 pointer-events-none text-slate-400" />
                     </div>
@@ -827,39 +852,126 @@ const ScholarshipFinder: React.FC = () => {
           {error && viewMode !== "byprogram" && (
             <div className="rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3 backdrop-blur-xl" style={{ backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
               <AlertCircle className="shrink-0 mt-0.5" style={{ color: '#ef4444' }} size={18} />
-              <div><h3 className="font-semibold text-sm sm:text-base" style={{ color: '#fca5a5' }}>Notice</h3><p className="text-xs sm:text-sm" style={{ color: '#fecaca' }}>{error}</p></div>
+              <div>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: '#fca5a5' }}>Notice</h3>
+                <p className="text-xs sm:text-sm" style={{ color: '#fecaca' }}>{error}</p>
+              </div>
             </div>
           )}
 
           {/* Count Bar + Card Grid (All mode) */}
           {viewMode === "all" && (
             <>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
-            </div>
-                viewMode =>
+              <div
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 rounded-lg shadow-sm p-3 sm:p-4 backdrop-blur-xl"
+                style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+              >
+                <p className="text-sm text-slate-400">
+                  Showing <span className="font-semibold text-white">{filteredScholarships.length}</span> scholarships
+                </p>
               </div>
-            </>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="text-slate-400 text-sm animate-pulse">Loading scholarships...</div>
                 </div>
-              <div className="mt-8 rounded-lg p-4 flex items-start gap-3" style={{ backgroundColor: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
-  ]Û\ÜÓ[YOH^][\ËXÙ[\Ø\L]Ø\Ý[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÚ^O^ÌHÏÜ[Û\ÜÓ[YOHÛ\Ù[ZXÛ^\ÛHÛN^X\ÙHY^[È^]Ú]HÙ[\YØÚÛ\Ú\Ë[ÝÓØØ[TÝ[Ê
-_HØÚÛ\Ú\ÏÜÜ[Ù]]Û\ÜÓ[YOH^][\ËXÙ[\Ø\LX\Ý[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÚ^O^ÌMHÏÜ[Û\ÜÓ[YOH^^ÈÛN^\ÛH^\Û]KMÜØ]YØÚÛ\Ú\ËÚ^_HØ]YÜÜ[Ù]Ù]ÛØY[ÈÈ
-]Û\ÜÓ[YOH^\ÝYKXÙ[\][\ËXÙ[\M]Û\ÜÓ[YOH^^XÛÛ][\ËXÙ[\Ø\LÈ]Û\ÜÓ[YOH[[X]K\Ü[Ý[YY[LLËLLÛNLLÛNËLLÜ\XLÝ[O^ÞÈÜ\ÛÛÜXØÙ[ÛÛÜ_OÙ]Û\ÜÓ[YOH^\ÛHÛN^X\ÙH^\Û]KMØY[ËÜÙ]Ù]
-H[\YØÚÛ\Ú\Ë[ÝOOHÈ
-]Û\ÜÓ[YOH^XÙ[\KLLÛNKLMÝ[Y[ÈÚYÝË\ÛHMXÚÙÜX\^Ý[O^ÞÈXÚÙÜÝ[ÛÛÜÙXÛÛ\PËÜ\\ÛÛY	ØÜ\ÛÛÜX_O]Ø\Ú^O^ÍHÛ\ÜÓ[YOHÛNËLLÛNLL^X]]È^\Û]KMXMÏÈÛ\ÜÓ[YOH^X\ÙHÛN^[ÈY^^Û\Ù[ZXÛ^]Ú]HXLÈØÚÛ\Ú\ÈÝ[ÚÏÛ\ÜÓ[YOH^^ÈÛN^\ÛH^\Û]KMHY\Ý[È[Ý\[\ÏÜÙ]
-H
-]Û\ÜÓ[YOHÜYÜYXÛÛËLHÎÜYXÛÛËLØ\MÛNØ\MÙ[\YØÚÛ\Ú\ËX\
-ÈOÂÛÛÝ\ÑX]\YHË\ÑX]\Y]\
-]Ù^O^ÜËYHÛ\ÜÓ[YOHÝ[Y^MÛNMÝ\ÚYÝË[È[Ú][Û\ÚYÝÈ[]]HXÚÙÜX\^Ý[O^ÞÈXÚÙÜÝ[ÛÛÜÙXÛÛ\PËÜ\\ÑX]\YÈ	ÌÛÛYÙNYLÈ\ÛÛY	ØÜ\ÛÛÜXÞÚYÝÎ\ÑX]\YÈ	ÌÌØJ
-KMNLKIÈ	ÛÛIÈ_OÚ\ÑX]\Y	]Û\ÜÓ[YOHXÛÛ]HÜLYÚL^^ÈÛXÛLÈKLKHÝ[YX[È^][\ËXÙ[\Ø\LHÚYÝË[YÝ[O^ÞÈXÚÙÜÝ[ÛÛÜ	ÈÙ	ËÛÛÜ	ÈÌYLÍÉÈ_OÝ\Ú^O^ÌMH[HÝ\[ÛÛÜÏPUTQÙ]B]Û\ÜÓ[YOH^][\Ë\Ý\\ÝYKX]ÙY[XMØ\L]Û\ÜÓ[YOH^LHZ[]ËLÈÛ\ÜÓ[YOHÛXÛ^X\ÙHÛN^[ÈY^^^]Ú]HXY[Ë]YÚXLÛNXLÈÜËØÚÛ\Ú\Û[YHØÚÛ\Ú\^Ú\ÑX]\Y	Ü[Û\ÜÓ[YOH^^È^X[X\M[LÜXÚÊOÜÜ[OÚÏÜËÜØ[\Ø][Û	]Û\ÜÓ[YOH^][\ËXÙ[\Ø\LXLÛNXLÈLÛNLÈKLKHÛNKLÝ[Y[ÈÝ[O^ÞÈXÚÙÜÝ[ÛÛÜ	ÜØJNKLKJIÈ_OÛØHÚ^O^ÌMHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÏÛ\ÜÓ[YOH^\Û]KLÌÛ[YY][H^^ÈÛN^\ÛH[Ø]HÜËÜØ[\Ø][ÛOÜÙ]BÝY]Ó[ÙHOOHXÛÛ[Y[Y	]Û\ÜÓ[YOH]LÙÙ]X]ÚYÙJÊ_OÙ]BÙ]]ÛÛÛXÚÏ^Ê
-HOÙÙÛTØ]TØÚÛ\Ú\
-ËY
-_H\ØXY^Ú\ÑX]\YHÛ\ÜÓ[YO^Ø[Ú][ÛXÛÛÜÈ[LÚ[ËL	Ú\ÑX]\YÈÜXÚ]KMLÝ\ÛÜ[ÝX[ÝÙYØ]YØÚÛ\Ú\Ë\ÊËY
-HÈ^\Û]KMLXHÝ[O^ÜØ]YØÚÛ\Ú\Ë\ÊËY
-H	Z\ÑX]\YÈÈÛÛÜXØÙ[ÛÛÜHß_OX\Ú^O^ÌH[^ÜØ]YØÚÛ\Ú\Ë\ÊËY
-H	Z\ÑX]\YÈÝ\[ÛÛÜÛHHÏØ]ÛÙ]JË[YÚX[]HË]Z[YÙ[YÚX[]JH	]Û\ÜÓ[YOHXLÈÛNXMÝ[Y[ÈLÈÛNMÝ[O^ÞÈXÚÙÜÝ[ÛÛÜ	ÜØJNKLKJIËÜ\\ÛÛY	ØÜ\ÛÛÜX_O]Û\ÜÓ[YOH^][\Ë\Ý\Ø\LÜYX][ÛØ\Ú^O^ÌMHÛ\ÜÓ[YOHÚ[ËL]LHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÏ]Û\ÜÓ[YOH^^ÈÛXÛXLH\\Ø\ÙHXÚÚ[Ë]ÚYHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_O[YÚX[]OÜÛ\ÜÓ[YOH^\Û]KLÌ^^ÈÛN^\ÛHXY[Ë\[^YÜË]Z[YÙ[YÚX[]HË[YÚX[]_OÜÙ]Ù]Ù]BÊË[Y]ËXÙJH	]Û\ÜÓ[YOHÝ[Y[ÈLÈÛNMXLÈÛNXMÝ[O^ÞÈXÚÙÜÝ[	Û[X\YÜYY[
-LÍYYËØJLKNLKÍJKØJ
-KMNLKJJIËÜ\	ÌÛÛYØJLKNLKÍÊIÈ_O]Û\ÜÓ[YOH^][\Ë\Ý\Ø\L[X[\YHÚ^O^ÌMHÛ\ÜÓ[YOHÚ[ËL]LHÝ[O^ÞÈÛÛÜ	ÈÙ	È_HÏ]Û\ÜÓ[YOH^^ÈÛXÛXLH\\Ø\ÙHXÚÚ[Ë]ÚYH^X[X\M[Y]ÏÜÛ\ÜÓ[YOH^^ÈÛN^\ÛH^\Û]KLXY[Ë\[^YÜË[Y]ËXÙ_OÜÙ]Ù]Ù]B]Û\ÜÓ[YOH^][\ËXÙ[\Ø\L^\Û]KLÌXLÈÛNXMLÈÛNMÝ[O^ÞÈÜ\Ü\ÛÛY	ØÜ\ÛÛÜX_OØ[[\Ú^O^ÌMHÝ[O^ÞÈÛÛÜXØÙ[ÛÛÜ_HÏÜ[Û\ÜÓ[YOH^^ÈÛN^\ÛHÝÛÈÛ\ÜÓ[YOHÛ\Ù[ZXÛXY[NÜÝÛÏÜ[Û\ÜÓ[YOH^\Û]KMÙÜX]XY[JËXY[J_OÜÜ[ÜÜ[Ù]ÜË[È	HY^ÜË[ßH\Ù]HØ[È[HÛÜ[\ÜY\\Û\ÜÓ[YOH^][\ËXÙ[\\ÝYKXÙ[\Ø\L^]Ú]HKLHÛNKLÈÝ[Y[È^\ÛHÛN^X\ÙHÛ\Ù[ZXÛ[Ú][ÛX[Ý\ÚYÝË[ÈÝ[O^ÞÈXÚÙÜÝ[ÛÛÜXØÙ[ÛÛÜ_OÚ\ÑX]\YÈ^ÜHØÚÛ\Ú\\HÝÈH^\[[ÈÚ^O^ÌMHÏØOBÙ]
-BJ_BÙ]
-_BÏ
-_BÙ]Ù]ÑY][^[Ý]
-BB^ÜY][ØÚÛ\Ú\[\
+              ) : filteredScholarships.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                  <AlertCircle size={32} className="text-slate-600" />
+                  <p className="text-slate-400 text-sm">No scholarships found. Try adjusting your filters.</p>
+                  <button onClick={resetFilters} className="text-sm font-medium" style={{ color: accentColor }}>
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  {filteredScholarships.map(s => (
+                    <div
+                      key={s.id}
+                      className="rounded-xl p-4 sm:p-6 hover:shadow-xl transition-all backdrop-blur-xl flex flex-col gap-4"
+                      style={{
+                        backgroundColor: secondaryBg,
+                        border: s.isFeatured ? `2px solid ${accentColor}` : `1px solid ${borderColor}`,
+                      }}
+                    >
+                      {s.isFeatured && (
+                        <div className="flex items-center gap-2 mb-1">
+                          <Sparkles size={14} style={{ color: accentColor }} />
+                          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: accentColor }}>
+                            Featured Scholarship
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-bold text-base sm:text-lg text-white leading-tight">{s.scholarship_name}</h3>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {getMatchBadge(s)}
+                          {!s.isFeatured && (
+                            <button
+                              onClick={() => toggleSaveScholarship(s.id)}
+                              className="p-1.5 rounded-full transition-all hover:bg-white/10"
+                            >
+                              <Heart
+                                size={16}
+                                fill={savedScholarships.has(s.id) ? accentColor : "none"}
+                                style={{ color: accentColor }}
+                              />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {s.organisation && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg w-fit" style={{ backgroundColor: 'rgba(99,102,241,0.1)' }}>
+                          <Globe size={13} style={{ color: accentColor }} />
+                          <p className="text-xs text-slate-300 font-medium">{s.organisation}</p>
+                        </div>
+                      )}
+
+                      {s.benefit && (
+                        <div className="rounded-lg p-3 sm:p-4" style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(245,158,11,0.1))', border: '1.5px solid rgba(251,191,36,0.3)' }}>
+                          <div className="flex items-start gap-2">
+                            <IndianRupee size={15} className="shrink-0 mt-0.5" style={{ color: '#fbbf24' }} />
+                            <div>
+                              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-400 mb-0.5">Benefit</p>
+                              <p className="text-sm text-slate-200 font-semibold">{s.benefit}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {s.eligibility && (
+                        <div className="rounded-lg p-3 sm:p-4" style={{ backgroundColor: 'rgba(99,102,241,0.1)', border: `1px solid ${borderColor}` }}>
+                          <div className="flex items-start gap-2">
+                            <GraduationCap size={15} className="shrink-0 mt-0.5" style={{ color: accentColor }} />
+                            <div>
+                              <p className="text-[11px] font-bold uppercase tracking-wide mb-0.5" style={{ color: accentColor }}>Eligibility</p>
+                              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{s.eligibility}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {s.deadline && (
+                        <div className="flex items-center gap-2 text-slate-400 pt-1" style={{ borderTop: `1px solid ${borderColor}` }}>
+                          <Calendar size={14} style={{ color: accentColor }} className="shrink-0" />
+                          <span className="text-xs">
+                            <strong className="text-slate-300">Deadline:</strong> {formatDeadline(s.deadline)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+        </div>
+      </div>
+    </DefaultLayout>
+  )
+}
+
+export default ScholarshipFinder
