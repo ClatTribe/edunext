@@ -1,13 +1,18 @@
 {
-  
   "rewrites": [
     {
       "source": "/studio/:path*",
       "destination": "/studio"
     },
-     {
+    {
       "source": "/jeestarterkit/(.*)",
       "destination": "/jeestarterkit/$1"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/reminders/cron?secret=my-secret-abc123-xyz",
+      "schedule": "0 6 * * *"
     }
   ]
 }
