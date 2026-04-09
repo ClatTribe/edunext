@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Calendar,
@@ -11,18 +12,21 @@ import {
   AlertCircle,
   ExternalLink,
   Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import CollegeBellButton from "../CollegeBellButton";
-import {
-  FORMS_BY_TAB,
-  ExamTab,
-  type ExamFormEntry,
-} from "./constants";
+import { FORMS_BY_TAB, ExamTab, type ExamFormEntry } from "./constants";
+import { createClient } from "@supabase/supabase-js";
 
 /* ─── TYPES ─── */
 interface FormsPageClientProps {
   examTab: ExamTab;
   examLabel: string;
+}
+interface BellNotificationProps {
+  examLabel: string;
+  examTab: ExamTab;
+  forms: ExamFormEntry[];
 }
 
 /* ─── HELPERS ─── */
@@ -37,11 +41,18 @@ function isUpcoming(form: ExamFormEntry): boolean {
   return form.status === "Open";
 }
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
+
 /* ─── COMPONENT: THE GREEN BLOOPER ─── */
 const GreenBlooper: React.FC = () => (
   <>
     {/* Custom style tag to sync animations globally */}
-    <style dangerouslySetInnerHTML={{ __html: `
+    <style
+      dangerouslySetInnerHTML={{
+        __html: `
       @keyframes sync-ping {
         0% { transform: scale(1); opacity: 0.8; }
         75%, 100% { transform: scale(2); opacity: 0; }
@@ -49,11 +60,13 @@ const GreenBlooper: React.FC = () => (
       .animate-sync-ping {
         animation: sync-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
       }
-    `}} />
-    
+    `,
+      }}
+    />
+
     {/* 1. Large Ping: Anchored at corner, synced across all cards */}
     <span className="absolute -top-2 -right-2 h-20 w-20 animate-sync-ping rounded-full bg-green-500/20" />
-    
+
     {/* 2. Fixed Dot */}
     <div className="absolute top-6 right-6">
       <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_12px_rgba(34,197,94,1)] border border-green-300/50" />
@@ -66,66 +79,98 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const isOpen = status === "Open";
   const isClosed = status === "Closed";
   return (
-    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
-      isOpen ? "bg-green-500/10 text-green-400 border-green-500/20" : 
-      isClosed ? "bg-red-500/10 text-red-400 border-red-500/20" : 
-      "bg-slate-800 text-slate-500 border-slate-700"
-    }`}>
+    <span
+      className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+        isOpen
+          ? "bg-green-500/10 text-green-400 border-green-500/20"
+          : isClosed
+            ? "bg-red-500/10 text-red-400 border-red-500/20"
+            : "bg-slate-800 text-slate-500 border-slate-700"
+      }`}
+    >
       {status}
     </span>
   );
 };
 
 /* ─── COMPONENT: BELL NOTIFICATION ─── */
-const BellNotification: React.FC<{ examLabel: string }> = ({ examLabel }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
-    setTimeout(() => { setIsOpen(false); setSubmitted(false); }, 2000);
+const BellNotification: React.FC<BellNotificationProps> = ({
+  examLabel,
+  examTab,
+  forms,
+}) => {
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">(
+    "idle",
+  );
+
+  const handleClick = async () => {
+    if (state === "loading" || state === "done") return;
+    setState("loading");
+
+    try {
+      // Refresh session first to ensure Google OAuth token is loaded
+      await supabase.auth.refreshSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      console.log("[bell] session:", session?.user?.email); // debug — remove later
+
+      const res = await fetch("/api/reminders/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: session?.user?.id ?? null,
+          examLabel,
+          examTab,
+          forms: forms.map((f) => ({ name: f.name, endDate: f.endDate })),
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed");
+      setState("done");
+    } catch {
+      setState("error");
+      setTimeout(() => setState("idle"), 2000);
+    }
   };
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:scale-105 transition-all"
-      >
-        <Bell size={16} />
-        <span className="text-xs font-bold uppercase tracking-wider hidden md:inline">Remind Me</span>
-      </button>
-
-      {isOpen && (
+    <button
+      onClick={handleClick}
+      disabled={state === "loading" || state === "done"}
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border font-bold text-xs uppercase tracking-wider transition-all hover:scale-105 disabled:hover:scale-100
+        ${
+          state === "done"
+            ? "bg-green-500/10 border-green-500/20 text-green-400"
+            : state === "error"
+              ? "bg-red-500/10 border-red-500/20 text-red-400"
+              : "bg-amber-500/10 border-amber-500/20 text-amber-500"
+        }`}
+    >
+      {state === "done" ? (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-full mt-4 z-50 w-80 rounded-2xl p-6 shadow-2xl bg-slate-900 border border-slate-800">
-            {submitted ? (
-              <div className="text-center py-4">
-                <Sparkles size={20} className="text-green-500 mx-auto mb-2" />
-                <p className="text-white font-bold text-sm">Alerts Active!</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <h4 className="text-white font-bold text-sm mb-3">Alerts for {examLabel}</h4>
-                <input
-                  type="email"
-                  placeholder="Enter email..."
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl bg-white/5 border border-slate-800 text-white text-sm mb-3 outline-none focus:border-amber-500/50"
-                  required
-                />
-                <button type="submit" className="w-full py-2 rounded-xl bg-amber-500 text-black font-bold text-sm">Set Reminder</button>
-              </form>
-            )}
-          </div>
+          <CheckCircle2 size={16} />
+          <span className="hidden md:inline">Reminder Set</span>
+        </>
+      ) : state === "loading" ? (
+        <>
+          <Bell size={16} className="animate-pulse" />
+          <span className="hidden md:inline">Saving...</span>
+        </>
+      ) : state === "error" ? (
+        <>
+          <Bell size={16} />
+          <span className="hidden md:inline">Try Again</span>
+        </>
+      ) : (
+        <>
+          <Bell size={16} />
+          <span className="hidden md:inline">Remind Me</span>
         </>
       )}
-    </div>
+    </button>
   );
 };
 
@@ -135,10 +180,11 @@ const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
   const isOpen = form.status === "Open";
 
   return (
-    <div className="group relative bg-slate-900/40 border border-slate-800 rounded-[2.5rem] p-8 
+    <div
+      className="group relative bg-slate-900/40 border border-slate-800 rounded-[2.5rem] p-8 
                     transition-all duration-500 hover:border-green-500/50 hover:bg-slate-900/60 
-                    hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(34,197,94,0.1)] overflow-hidden">
-      
+                    hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(34,197,94,0.1)] overflow-hidden"
+    >
       {isOpen && (
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-green-500/10 rounded-full blur-3xl" />
       )}
@@ -161,7 +207,9 @@ const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
             <span className="text-slate-500 flex items-center gap-2 font-medium">
               <Clock className="w-4 h-4" /> Registration Starts
             </span>
-            <span className="text-slate-200 font-bold">{form.startDate || "TBA"}</span>
+            <span className="text-slate-200 font-bold">
+              {form.startDate || "TBA"}
+            </span>
           </div>
           <div className="flex items-center justify-between text-sm group-hover:translate-x-1 transition-transform delay-75">
             <span className="text-slate-500 flex items-center gap-2 font-medium">
@@ -175,24 +223,27 @@ const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
 
         <div className="mt-auto pt-6 border-t border-slate-800 flex items-center justify-between">
           <StatusBadge status={form.status} />
-          
+
           <div className="flex items-center gap-3">
             <CollegeBellButton collegeName={form.name} saveType="form" />
-            
+
             {isLinkAvailable ? (
-              <Link 
-                href={form.link} 
-                target="_blank" 
+              <Link
+                href={form.link}
+                target="_blank"
                 className={`text-sm font-bold flex items-center gap-1 transition-colors ${
-                  isOpen 
-                    ? "text-[#f9a01b] hover:text-white" 
+                  isOpen
+                    ? "text-[#f9a01b] hover:text-white"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                {isOpen ? "Official Website" : "Official Website"} <ExternalLink className="w-4 h-4" />
+                {isOpen ? "Official Website" : "Official Website"}{" "}
+                <ExternalLink className="w-4 h-4" />
               </Link>
             ) : (
-              <span className="text-xs font-bold text-slate-600 italic">TBA</span>
+              <span className="text-xs font-bold text-slate-600 italic">
+                TBA
+              </span>
             )}
           </div>
         </div>
@@ -202,9 +253,14 @@ const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
 };
 
 /* ─── MAIN COMPONENT ─── */
-export default function FormsPageClient({ examTab, examLabel }: FormsPageClientProps) {
+export default function FormsPageClient({
+  examTab,
+  examLabel,
+}: FormsPageClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "Open" | "Coming Soon">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "Open" | "Coming Soon"
+  >("all");
 
   const forms = FORMS_BY_TAB[examTab] || [];
 
@@ -215,21 +271,30 @@ export default function FormsPageClient({ examTab, examLabel }: FormsPageClientP
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      result = result.filter((f: ExamFormEntry) => 
-        f.name.toLowerCase().includes(q) || (f.courses && f.courses.toLowerCase().includes(q))
+      result = result.filter(
+        (f: ExamFormEntry) =>
+          f.name.toLowerCase().includes(q) ||
+          (f.courses && f.courses.toLowerCase().includes(q)),
       );
     }
-    const order: Record<string, number> = { Open: 0, "Coming Soon": 1, Closed: 2 };
-    return [...result].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+    const order: Record<string, number> = {
+      Open: 0,
+      "Coming Soon": 1,
+      Closed: 2,
+    };
+    return [...result].sort(
+      (a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9),
+    );
   }, [forms, statusFilter, searchQuery]);
 
-  const openCount = forms.filter((f: ExamFormEntry) => f.status === "Open").length;
+  const openCount = forms.filter(
+    (f: ExamFormEntry) => f.status === "Open",
+  ).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* ── SINGLE LINE SEARCH & HEADER SECTION ── */}
       <div className="flex flex-col lg:flex-row items-center gap-4 mb-12 p-4 lg:p-3 rounded-[2.5rem] bg-slate-900/40 border border-slate-800 backdrop-blur-xl border-l-4 border-l-amber-500">
-        
         <div className="flex items-center gap-3 px-4 shrink-0 border-r border-slate-800/50 hidden lg:flex">
           <Calendar className="text-amber-500" size={20} />
           <span className="font-bold text-white text-sm whitespace-nowrap">
@@ -263,8 +328,11 @@ export default function FormsPageClient({ examTab, examLabel }: FormsPageClientP
             <option value="Open">Open</option>
             <option value="Coming Soon">Coming Soon</option>
           </select>
-
-          <BellNotification examLabel={examLabel} />
+          <BellNotification
+            examLabel={examLabel}
+            examTab={examTab}
+            forms={forms}
+          />{" "}
         </div>
       </div>
 

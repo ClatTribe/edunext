@@ -39,10 +39,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   const pathname = usePathname();
 
   // Color scheme matching the TrustSection component
-  const accentColor = '#F59E0B';
-  const primaryBg = '#050818'; // Very dark navy blue
-  const secondaryBg = '#0F172B'; // Slightly lighter navy
-  const borderColor = 'rgba(245, 158, 11, 0.15)';
+  const accentColor = "#F59E0B";
+  const primaryBg = "#050818"; // Very dark navy blue
+  const secondaryBg = "#0F172B"; // Slightly lighter navy
+  const borderColor = "rgba(245, 158, 11, 0.15)";
 
   const navItems = {
     main: [
@@ -65,12 +65,24 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     ],
     explore: [
       { icon: BookOpen, label: "Find Colleges", path: "/find-colleges" },
-      { icon: Users, label: "Previous Year Students", path: "/previous-year-students" },
-      { icon: IndianRupee, label: "Find Scholarships", path: "/find-scholarships" },
+      {
+        icon: Users,
+        label: "Previous Year Students",
+        path: "/previous-year-students",
+      },
+      {
+        icon: IndianRupee,
+        label: "Find Scholarships",
+        path: "/find-scholarships",
+      },
       { icon: Building2, label: "Your Shortlist", path: "/your-shortlist" },
       { icon: Building2, label: "Battle Mode", path: "/battle-mode" },
     ],
-    highlighted: { icon: CalendarClock, label: "Forms & Deadlines", path: "/forms-and-deadlines" },
+    highlighted: {
+      icon: CalendarClock,
+      label: "Forms & Deadlines",
+      path: "/forms-and-deadlines",
+    },
   };
 
   const toolOptions = [
@@ -92,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     {
       icon: Calculator,
       label: "JEE Score Calculator",
-      path: "/jee-tool",
+      path: "/jee-marks-calculator",
     },
     {
       icon: FileCheck,
@@ -376,7 +388,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                 />
                 <span
                   className={`text-sm transition-colors ${
-                    isActive(navItems.highlighted.path) ? "font-semibold" : "font-medium"
+                    isActive(navItems.highlighted.path)
+                      ? "font-semibold"
+                      : "font-medium"
                   }`}
                   style={{
                     color: isActive(navItems.highlighted.path)
@@ -413,7 +427,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                       />
                       <div className="flex flex-col min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm transition-colors group-hover:text-white" style={{ color: "#cbd5e1" }}>
+                          <span
+                            className="text-sm transition-colors group-hover:text-white"
+                            style={{ color: "#cbd5e1" }}
+                          >
                             {product.label}
                           </span>
                           <ExternalLink
@@ -438,7 +455,47 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
                   <NavButton key={item.path} item={item} />
                 ))}
               </div>
-
+              {/* starter-kit */}
+              {/* <div className="pt-4">
+                <button
+                  onClick={() => setIsToolsOpen(!isToolsOpen)}
+                  className="w-full flex items-center gap-2 mb-2 px-2 group cursor-pointer transition-all focus:outline-none"
+                  aria-expanded={isToolsOpen}
+                >
+                  <div
+                    className="text-xs font-bold uppercase tracking-wider group-hover:opacity-80 transition-opacity"
+                    style={{ color: accentColor }}
+                  >
+                    Starter Kit
+                  </div>
+                  <div
+                    className="flex-1 h-px"
+                    style={{ backgroundColor: borderColor }}
+                  ></div>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-300 ease-in-out ${
+                      isToolsOpen ? "rotate-180" : "rotate-0"
+                    }`}
+                    style={{ color: accentColor }}
+                  />
+                </button>
+                <div
+                  className="grid transition-all duration-300 ease-in-out"
+                  style={{
+                    gridTemplateRows: isToolsOpen ? "1fr" : "0fr",
+                    opacity: isToolsOpen ? 1 : 0,
+                  }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="flex flex-col">
+                      {toolOptions.map((tool) => (
+                        <NavButton key={tool.path} item={tool} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div> */}
               {/* ── Tools Section ── */}
               <div className="pt-4">
                 <button
@@ -553,7 +610,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
         }
         /* Yellow shimmer sweep for Forms & Deadlines */
         .shimmer-sweep::before {
-          content: '';
+          content: "";
           position: absolute;
           top: 0;
           left: -100%;
@@ -582,9 +639,15 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           animation: shimmer-slide 3s ease-in-out infinite;
         }
         @keyframes shimmer-slide {
-          0% { left: -100%; }
-          50% { left: 100%; }
-          100% { left: 100%; }
+          0% {
+            left: -100%;
+          }
+          50% {
+            left: 100%;
+          }
+          100% {
+            left: 100%;
+          }
         }
       `}</style>
     </>
