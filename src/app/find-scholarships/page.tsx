@@ -965,7 +965,7 @@ const ScholarshipFinder: React.FC = () => {
                   ))}
                 </div>
               )}
-            </>
+            </> 
           )}
 
         </div>
