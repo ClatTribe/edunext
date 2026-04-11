@@ -15,6 +15,11 @@ tags: ["CUET UG 2026", "CUET 2026 exam date", "CUET 2026 syllabus", "CUET 2026 D
 
 - CUET UG 2026 is scheduled between **May 11–31, 2026** in CBT (computer-based test) mode. Registration closed March 11, 2026.
 - Over **280 universities** now accept CUET scores for UG admissions — including all central universities (DU, JNU, BHU, Jamia, AMU), many state universities, and select private institutions.
+
+> 📌 **Get access To:** [CUET Mini Mock Test](https://preptribe.getedunext.com/) 
+
+[![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1775729722/Screenshot_2026-04-09_153611_zkmzvv.png)](https://preptribe.getedunext.com/)
+
 - The exam has 3 sections: Language (Section 1A/1B), Domain Subjects (Section 2 — choose up to 6), and General Test (Section 3).
 - **Scoring:** +5 for correct, −1 for wrong, 0 for unattempted. Maximum = 200 per subject. 
 - 6 domain subjects have been discontinued for 2026: Entrepreneurship, Teaching Aptitude, Fashion Studies, Tourism, Legal Studies, and Engineering Graphics.
@@ -28,10 +33,6 @@ If you are a Class 12 student planning to apply to any central university in Ind
 That is a big shift. And if you have been spending the last year preparing for boards without understanding how CUET works, this guide is your starting point.
 
 We cover everything here — dates, registration, eligibility, exam pattern, section-wise syllabus, which universities accept CUET, how scores are used for admission, and how to prepare. No padded-out content, no outdated "44 central universities" myth. Just current, verified information.
-
-> 📌 **Get access To:** [CUET Mini Mock Test](https://preptribe.getedunext.com/) 
-
-[![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1775729722/Screenshot_2026-04-09_153611_zkmzvv.png)](https://preptribe.getedunext.com/)
 
 ---
 
