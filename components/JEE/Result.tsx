@@ -6,7 +6,6 @@ import DefaultLayout from "@/app/defaultLayout";
 import Leaderboard from "./Leaderboard";
 import ScoreGraph from "./ScoreGraph";
 import { supabase } from "../../lib/supabase";
-import WhatsAppGate from "./WhatsAppGate";
 
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
@@ -152,17 +151,7 @@ function ResultContent() {
     return "Below 40";
   };
 
-  if (!unlocked) {
-    return (
-      <WhatsAppGate
-        name={userName}
-        mobile={userMobile}
-        // city={userCity}
-        // total={total}
-        onUnlock={() => setUnlocked(true)}
-      />
-    );
-  }
+
 
   return (
     <DefaultLayout>

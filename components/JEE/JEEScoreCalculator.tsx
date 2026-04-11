@@ -8,7 +8,6 @@ import JEEScoreGraph from "./JEEScoreGraph";
 import PercentileCalculator from "./PercentileCalculator";
 import HowToUseGuide from "./Howtouseguide";
 import PercentilePredictorInfo from "./Percentilepredictorinfo";
-import WhatsAppGate from "./WhatsAppGate";
 
 // --- CONFIGURATION ---
 const accentColor = "#F59E0B";
@@ -409,14 +408,6 @@ export default function PasteJEEResponse() {
               />
             </div>
           </div>
-        ) : !unlocked ? (
-          <WhatsAppGate
-            name="JEE Taker"
-            mobile={mobileNumber}
-            // city="Not Specified"
-            // total={results.totalScore}
-            onUnlock={() => setUnlocked(true)}
-          />
         ) : (
           // AFTER RESULTS - Show results section
           <div className="max-w-7xl mx-auto px-6 pt-12 pb-12">
