@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ResourceTabs } from "./components/ResourceTabs";
 import { ResourceContent } from "./components/ResourceContent";
 import { ResourceTab } from "./types";
+import { TopNav } from "./components/TopNav";
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ResourceTab>(ResourceTab.PYQ);
@@ -19,7 +20,7 @@ const App: React.FC = () => {
         <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-500/10 blur-[120px] rounded-full -z-10"></div>
         <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-500/5 blur-[100px] rounded-full -z-10"></div>
 
-        {/* <TopNav /> */}
+        <TopNav />
 
         <main className="flex-1 overflow-y-auto px-6 py-8 md:px-12 lg:px-16 scroll-smooth">
           <div className="max-w-6xl mx-auto">

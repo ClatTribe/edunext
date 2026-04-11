@@ -187,7 +187,7 @@ export default function PercentileCalculator({
             </p>
           </div>
           <button
-            onClick={() => (window.location.href = "/jeestarterkit")}
+            onClick={() => (window.location.href = "/jee-starter-kit")}
             className="px-4 py-2 rounded-lg font-bold text-sm transition-all hover:scale-105 whitespace-nowrap flex-shrink-0"
             style={{
               backgroundColor: accentColor,
