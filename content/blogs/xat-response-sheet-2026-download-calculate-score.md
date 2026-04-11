@@ -5,7 +5,7 @@ lastModified: "2025-12-30"
 author: "EduNext"
 excerpt: "Download XAT 2026 response sheet from xatonline.in. Check your marked answers, calculate expected score with answer key, and estimate percentile for XLRI admissions."
 coverImage: "https://res.cloudinary.com/daetdadtt/image/upload/v1767157437/WhatsApp_Image_2025-12-30_at_13.40.47_hz3r5b.jpg"
-tags: ["XAT", "MBA", "exam", "response sheet"] 
+tags: ["XAT", "MBA", "exam", "response sheet"]  
 keywords: "XAT response sheet 2026, XAT answer key 2026, XAT score calculator, download XAT response sheet, XAT 2026 cutoff, XLRI admissions"
 ---
 
