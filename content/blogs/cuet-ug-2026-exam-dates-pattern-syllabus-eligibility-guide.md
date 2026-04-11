@@ -5,6 +5,7 @@ lastModified: "2026-04-10"
 author: "Edu Next"
 excerpt: "Complete guide to CUET UG 2026 — exam dates (May 11–31), pattern, syllabus, eligibility, registration, 280+ accepting universities, and section-wise prep strategy."
 coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1775837744/Untitled_design_41_usqnpi.png"
+audioUrl: "https://res.cloudinary.com/dg3kbsrqb/video/upload/v1775890973/%E0%A4%85%E0%A4%AC_%E0%A4%95%E0%A5%89%E0%A4%B2%E0%A5%87%E0%A4%9C_%E0%A4%8F%E0%A4%A1%E0%A4%AE%E0%A4%BF%E0%A4%B6%E0%A4%A8_%E0%A4%B8%E0%A4%BF%E0%A4%B0%E0%A5%8D%E0%A4%AB_CUET_%E0%A4%B8%E0%A5%87_lzh0py.mp4"
 tags: ["CUET UG 2026", "CUET 2026 exam date", "CUET 2026 syllabus", "CUET 2026 DU admission", "CUET 2026 exam pattern"]
 ---
 
@@ -28,11 +29,9 @@ That is a big shift. And if you have been spending the last year preparing for b
 
 We cover everything here — dates, registration, eligibility, exam pattern, section-wise syllabus, which universities accept CUET, how scores are used for admission, and how to prepare. No padded-out content, no outdated "44 central universities" myth. Just current, verified information.
 
-> 📌 **Get access To:** [CUET Mini Mock Test](https://www.getedunext.com/cuet-college-predictor) 
+> 📌 **Get access To:** [CUET Mini Mock Test](https://preptribe.getedunext.com/) 
 
-![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1775729722/Screenshot_2026-04-09_153611_zkmzvv.png)
-
-**[Start Daily Mock >](https://preptribe.getedunext.com/)**
+[![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1775729722/Screenshot_2026-04-09_153611_zkmzvv.png)](https://preptribe.getedunext.com/)
 
 ---
 
