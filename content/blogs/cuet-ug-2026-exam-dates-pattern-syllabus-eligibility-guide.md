@@ -8,7 +8,7 @@ coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1775837744/Untit
 tags: ["CUET UG 2026", "CUET 2026 exam date", "CUET 2026 syllabus", "CUET 2026 DU admission", "CUET 2026 exam pattern"]
 ---
 
-# CUET UG 2026: exam dates, pattern, syllabus, eligibility, and everything else you need to know
+# CUET UG 2026: exam dates, pattern, syllabus, eligibility, and everything else you need to know 
 
 ## Quick summary
 
