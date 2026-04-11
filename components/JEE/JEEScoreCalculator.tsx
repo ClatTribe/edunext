@@ -8,6 +8,7 @@ import JEEScoreGraph from "./JEEScoreGraph";
 import PercentileCalculator from "./PercentileCalculator";
 import HowToUseGuide from "./Howtouseguide";
 import PercentilePredictorInfo from "./Percentilepredictorinfo";
+import WhatsAppGate from "./WhatsAppGate";
 
 // --- CONFIGURATION ---
 const accentColor = "#F59E0B";
@@ -29,6 +30,9 @@ interface SectionData {
 
 interface ParseResult {
   candidateName: string;
+  applicationNo: string;
+  rollNo: string;
+  testDate: string;
   sections: SectionData[];
   totalCorrect: number;
   totalWrong: number;
@@ -51,9 +55,12 @@ interface ValidationErrors {
 // Main Component
 export default function PasteJEEResponse() {
   const [html, setHtml] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
   const [mobileNumber, setMobileNumber] = useState("");
   const [error, setError] = useState("");
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {},
+  );
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ParseResult | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
@@ -143,6 +150,9 @@ export default function PasteJEEResponse() {
 
       const parsed: ParseResult = {
         candidateName: data.candidateName || "Student",
+        applicationNo: data.applicationNo || "",
+        rollNo: data.rollNo || "",
+        testDate: data.testDate || "",
         totalScore: data.total_score,
         totalCorrect: data.total_correct,
         totalWrong: data.total_wrong,
@@ -236,9 +246,16 @@ export default function PasteJEEResponse() {
             animation: shake 0.3s ease-out;
           }
           @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            0%,
+            100% {
+              transform: translateX(0);
+            }
+            25% {
+              transform: translateX(-5px);
+            }
+            75% {
+              transform: translateX(5px);
+            }
           }
         `}</style>
 
@@ -312,7 +329,9 @@ export default function PasteJEEResponse() {
                     type="tel"
                     value={mobileNumber}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10);
                       setMobileNumber(value);
                       setValidationErrors({ ...validationErrors, mobile: "" });
                     }}
@@ -331,16 +350,20 @@ export default function PasteJEEResponse() {
                     placeholder="10-digit mobile number"
                   />
                   <div className="flex items-center justify-between mt-2">
-                    {mobileNumber && !/^\d{10}$/.test(mobileNumber) && !validationErrors.mobile && (
-                      <p className="text-yellow-400 text-xs">
-                        ℹ️ Enter {10 - mobileNumber.length} more digit(s)
-                      </p>
-                    )}
-                    {mobileNumber && /^\d{10}$/.test(mobileNumber) && !validationErrors.mobile && (
-                      <p className="text-green-400 text-xs">
-                        ✓ Mobile number valid
-                      </p>
-                    )}
+                    {mobileNumber &&
+                      !/^\d{10}$/.test(mobileNumber) &&
+                      !validationErrors.mobile && (
+                        <p className="text-yellow-400 text-xs">
+                          ℹ️ Enter {10 - mobileNumber.length} more digit(s)
+                        </p>
+                      )}
+                    {mobileNumber &&
+                      /^\d{10}$/.test(mobileNumber) &&
+                      !validationErrors.mobile && (
+                        <p className="text-green-400 text-xs">
+                          ✓ Mobile number valid
+                        </p>
+                      )}
                   </div>
                   {validationErrors.mobile && (
                     <p className="text-red-400 text-xs mt-2 slide-up">
@@ -377,10 +400,87 @@ export default function PasteJEEResponse() {
                 </div>
               </div>
             </div>
+            <div className="max-w-7xl mx-auto px-6 pt-12 pb-12">
+              <HowToUseGuide accentColor={accentColor} />
+              <PercentilePredictorInfo
+                accentColor={accentColor}
+                secondaryBg={secondaryBg}
+                borderColor={borderColor}
+              />
+            </div>
           </div>
+        ) : !unlocked ? (
+          <WhatsAppGate
+            name="JEE Taker"
+            mobile={mobileNumber}
+            // city="Not Specified"
+            // total={results.totalScore}
+            onUnlock={() => setUnlocked(true)}
+          />
         ) : (
           // AFTER RESULTS - Show results section
           <div className="max-w-7xl mx-auto px-6 pt-12 pb-12">
+            {results && (
+              <div
+                className="rounded-2xl p-6 mb-6"
+                style={{
+                  backgroundColor: secondaryBg,
+                  border: `2px solid ${accentColor}`,
+                }}
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="text-4xl">🎓</div>
+                  <div>
+                    <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">
+                      Welcome back,
+                    </p>
+                    <h2 className="text-2xl font-bold text-white">
+                      {results.candidateName}
+                    </h2>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div
+                    className="rounded-xl p-3"
+                    style={{
+                      backgroundColor: primaryBg,
+                      border: `1px solid ${borderColor}`,
+                    }}
+                  >
+                    <p className="text-slate-500 text-xs mb-1">
+                      Application No.
+                    </p>
+                    <p className="text-white font-semibold text-sm">
+                      {results.applicationNo || "—"}
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-xl p-3"
+                    style={{
+                      backgroundColor: primaryBg,
+                      border: `1px solid ${borderColor}`,
+                    }}
+                  >
+                    <p className="text-slate-500 text-xs mb-1">Roll Number</p>
+                    <p className="text-white font-semibold text-sm">
+                      {results.rollNo || "—"}
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-xl p-3"
+                    style={{
+                      backgroundColor: primaryBg,
+                      border: `1px solid ${borderColor}`,
+                    }}
+                  >
+                    <p className="text-slate-500 text-xs mb-1">Test Date</p>
+                    <p className="text-white font-semibold text-sm">
+                      {results.testDate || "—"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Results */}
               <div className="lg:col-span-2">
@@ -493,13 +593,6 @@ export default function PasteJEEResponse() {
             <div className="mt-8">
               <JEEScoreGraph />
             </div>
-
-            <HowToUseGuide accentColor={accentColor} />
-            <PercentilePredictorInfo
-              accentColor={accentColor}
-              secondaryBg={secondaryBg}
-              borderColor={borderColor}
-            />
           </div>
         )}
       </div>

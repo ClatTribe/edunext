@@ -2,10 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import DefaultLayout from '@/app/defaultLayout';
+import DefaultLayout from "@/app/defaultLayout";
 import Leaderboard from "./Leaderboard";
 import ScoreGraph from "./ScoreGraph";
 import { supabase } from "../../lib/supabase";
+import WhatsAppGate from "./WhatsAppGate";
 
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
@@ -13,7 +14,7 @@ const secondaryBg = "#0F172B";
 const borderColor = "rgba(245, 158, 11, 0.15)";
 
 // JEE Main scoring: +4 for correct, -1 for wrong
-const score = (c: number, w: number) => (c * 4) - (w * 1);
+const score = (c: number, w: number) => c * 4 - w * 1;
 
 function ResultContent() {
   const p = useSearchParams();
@@ -44,6 +45,7 @@ function ResultContent() {
   // State for leaderboard
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+  const [unlocked, setUnlocked] = useState(false);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -53,7 +55,7 @@ function ResultContent() {
         const { data, error } = await supabase
           .from("jee_results")
           .select(
-            "name, physics_correct, physics_wrong, chemistry_correct, chemistry_wrong, mathematics_correct, mathematics_wrong"
+            "name, physics_correct, physics_wrong, chemistry_correct, chemistry_wrong, mathematics_correct, mathematics_wrong",
           )
           .eq("show_in_leaderboard", true)
           .order("created_at", { ascending: false })
@@ -71,15 +73,15 @@ function ResultContent() {
         const scoresWithRank = data.map((student: any) => {
           const physicsScore = score(
             student.physics_correct || 0,
-            student.physics_wrong || 0
+            student.physics_wrong || 0,
           );
           const chemistryScore = score(
             student.chemistry_correct || 0,
-            student.chemistry_wrong || 0
+            student.chemistry_wrong || 0,
           );
           const mathematicsScore = score(
             student.mathematics_correct || 0,
-            student.mathematics_wrong || 0
+            student.mathematics_wrong || 0,
           );
           const totalScore = physicsScore + chemistryScore + mathematicsScore;
 
@@ -150,18 +152,37 @@ function ResultContent() {
     return "Below 40";
   };
 
+  if (!unlocked) {
+    return (
+      <WhatsAppGate
+        name={userName}
+        mobile={userMobile}
+        // city={userCity}
+        // total={total}
+        onUnlock={() => setUnlocked(true)}
+      />
+    );
+  }
+
   return (
     <DefaultLayout>
       <div className="min-h-screen" style={{ backgroundColor: primaryBg }}>
         <div className="max-w-7xl mx-auto px-6 pt-24 md:pt-8 pb-12">
           {/* Header Banner */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold uppercase tracking-widest mb-3" style={{color: accentColor}}>
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: accentColor}}></span>
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-semibold uppercase tracking-widest mb-3"
+              style={{ color: accentColor }}
+            >
+              <span
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ backgroundColor: accentColor }}
+              ></span>
               JEE Main 2026 Results
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
-              Your <span style={{color: accentColor}}>JEE Main</span> Performance
+              Your <span style={{ color: accentColor }}>JEE Main</span>{" "}
+              Performance
             </h1>
           </div>
 
@@ -244,8 +265,13 @@ function ResultContent() {
 
                   <div className="mt-4 pt-4 border-t border-slate-700">
                     <div className="text-center">
-                      <p className="text-slate-400 text-xs mb-1">Estimated Percentile</p>
-                      <p className="text-2xl font-bold" style={{color: accentColor}}>
+                      <p className="text-slate-400 text-xs mb-1">
+                        Estimated Percentile
+                      </p>
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: accentColor }}
+                      >
                         {getPercentile(total)}
                       </p>
                     </div>
@@ -270,16 +296,20 @@ function ResultContent() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr style={{ backgroundColor: "#047857" }}>
-                          {["Section", "Overall", "Physics", "Chemistry", "Math"].map(
-                            (h) => (
-                              <th
-                                key={h}
-                                className="px-3 py-3 text-left text-white font-semibold text-xs whitespace-nowrap"
-                              >
-                                {h}
-                              </th>
-                            )
-                          )}
+                          {[
+                            "Section",
+                            "Overall",
+                            "Physics",
+                            "Chemistry",
+                            "Math",
+                          ].map((h) => (
+                            <th
+                              key={h}
+                              className="px-3 py-3 text-left text-white font-semibold text-xs whitespace-nowrap"
+                            >
+                              {h}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
@@ -320,9 +350,15 @@ function ResultContent() {
                           <td className="px-3 py-3 text-white text-xs">
                             {totalAttempted}
                           </td>
-                          <td className="px-3 py-3 text-white text-xs">{pc + pw}</td>
-                          <td className="px-3 py-3 text-white text-xs">{cc + cw}</td>
-                          <td className="px-3 py-3 text-white text-xs">{mc + mw}</td>
+                          <td className="px-3 py-3 text-white text-xs">
+                            {pc + pw}
+                          </td>
+                          <td className="px-3 py-3 text-white text-xs">
+                            {cc + cw}
+                          </td>
+                          <td className="px-3 py-3 text-white text-xs">
+                            {mc + mw}
+                          </td>
                         </tr>
 
                         <tr>
@@ -359,7 +395,10 @@ function ResultContent() {
                 >
                   <p className="text-slate-400 text-xs mb-1">Accuracy</p>
                   <p className="text-2xl font-bold text-white">
-                    {totalAttempted > 0 ? ((totalCorrect / totalAttempted) * 100).toFixed(1) : 0}%
+                    {totalAttempted > 0
+                      ? ((totalCorrect / totalAttempted) * 100).toFixed(1)
+                      : 0}
+                    %
                   </p>
                 </div>
 
@@ -413,7 +452,9 @@ function ResultContent() {
                   border: `1px solid ${borderColor}`,
                 }}
               >
-                <h3 className="text-lg font-bold text-white mb-4">ℹ️ Scoring Pattern</h3>
+                <h3 className="text-lg font-bold text-white mb-4">
+                  ℹ️ Scoring Pattern
+                </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">Correct Answer:</span>
@@ -429,7 +470,9 @@ function ResultContent() {
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-slate-700">
                     <span className="text-slate-400">Maximum Score:</span>
-                    <span className="text-white font-bold">{maxPossible} marks</span>
+                    <span className="text-white font-bold">
+                      {maxPossible} marks
+                    </span>
                   </div>
                 </div>
               </div>
@@ -447,7 +490,7 @@ function ResultContent() {
                   <p className="text-slate-400">Loading leaderboard...</p>
                 </div>
               ) : (
-                <Leaderboard/>
+                <Leaderboard />
               )}
             </div>
           </div>
@@ -460,11 +503,16 @@ function ResultContent() {
 // Main component with Suspense wrapper
 export default function JEEResultPage() {
   return (
-    <Suspense fallback={
-      <div style={{ backgroundColor: primaryBg }} className="min-h-screen flex items-center justify-center">
-        <p className="text-white">Loading results...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div
+          style={{ backgroundColor: primaryBg }}
+          className="min-h-screen flex items-center justify-center"
+        >
+          <p className="text-white">Loading results...</p>
+        </div>
+      }
+    >
       <ResultContent />
     </Suspense>
   );

@@ -104,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     {
       icon: Calculator,
       label: "JEE Score Calculator",
-      path: "/jee-marks-calculator",
+      path: "/jee-score-calculator",
     },
     {
       icon: FileCheck,
