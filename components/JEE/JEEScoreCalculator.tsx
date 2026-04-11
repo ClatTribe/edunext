@@ -168,7 +168,7 @@ export default function PasteJEEResponse() {
 
       await supabase.from("jee_results").insert([
         {
-          name: "JEE Taker",
+          name: parsed.candidateName,
           mobile: mobileNumber,
           email: "no-email@jee.local",
           category: "General",
