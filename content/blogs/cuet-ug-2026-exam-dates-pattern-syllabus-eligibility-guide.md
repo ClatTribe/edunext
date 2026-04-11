@@ -15,7 +15,7 @@ tags: ["CUET UG 2026", "CUET 2026 exam date", "CUET 2026 syllabus", "CUET 2026 D
 - CUET UG 2026 is scheduled between **May 11–31, 2026** in CBT (computer-based test) mode. Registration closed March 11, 2026.
 - Over **280 universities** now accept CUET scores for UG admissions — including all central universities (DU, JNU, BHU, Jamia, AMU), many state universities, and select private institutions.
 - The exam has 3 sections: Language (Section 1A/1B), Domain Subjects (Section 2 — choose up to 6), and General Test (Section 3).
-- **Scoring:** +5 for correct, −1 for wrong, 0 for unattempted. Maximum = 200 per subject.
+- **Scoring:** +5 for correct, −1 for wrong, 0 for unattempted. Maximum = 200 per subject. 
 - 6 domain subjects have been discontinued for 2026: Entrepreneurship, Teaching Aptitude, Fashion Studies, Tourism, Legal Studies, and Engineering Graphics.
 
 ---
