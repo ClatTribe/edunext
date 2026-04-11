@@ -10,7 +10,7 @@ tags: ["CUET UG 2026", "CUET 2026 exam date", "CUET 2026 syllabus", "CUET 2026 D
 
 # CUET UG 2026: exam dates, pattern, syllabus, eligibility, and everything else you need to know
 
-## Quick summary 
+## Quick summary
 
 - CUET UG 2026 is scheduled between **May 11–31, 2026** in CBT (computer-based test) mode. Registration closed March 11, 2026.
 - Over **280 universities** now accept CUET scores for UG admissions — including all central universities (DU, JNU, BHU, Jamia, AMU), many state universities, and select private institutions.
