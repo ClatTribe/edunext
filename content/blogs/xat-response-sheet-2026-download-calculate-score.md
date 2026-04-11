@@ -15,7 +15,7 @@ XAT response sheet 2026 will be released by XLRI Jamshedpur. The XAT response sh
 
 The XAT Exam Response Sheet is the most crucial response sheet for those who have appeared in the XAT 2026 exam, because it contains marked answers of each and every candidate during the test. However, the examination authority also provides the XAT Answer Key for all questions where the correct official answer is also provided. Students may download the XAT Answer Key from the official site of XAT to cross-check with correct solutions and calculate scores. Again, this will help estimate probable scores while getting clarity regarding the possibility of clearing the respective cut-offs to the desired institutes for management study.
 
-## XAT Response Sheet Tool Link
+## XAT Response Sheet Tool Link 
 
 [Link to be added]
 
