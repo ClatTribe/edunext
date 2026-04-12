@@ -425,7 +425,16 @@ export default function PasteJEEResponse() {
           </div>
         ) : (
           // AFTER RESULTS - Show results section
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 md:pt-24 lg:pt-12 pb-8 sm:pb-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 sm:pt-20 md:pt-20 lg:pt-16 pb-8 sm:pb-12">
+            {/* Page Heading */}
+<div className="text-center mt-4 sm:mt-2 md:mt-0 mb-6 sm:mb-8 md:mb-10">
+    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-2 sm:mb-3 px-2 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] via-orange-500 to-[#B45309]">
+      JEE Main Score Calculator
+    </h1>
+    <p className="text-xs sm:text-sm md:text-base text-slate-400 px-4 max-w-2xl mx-auto">
+      Your detailed performance analysis based on NTA Answer Key
+    </p>
+  </div>
             {results && (
               <div
                 className="relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 shadow-2xl mt-2 sm:mt-4"
