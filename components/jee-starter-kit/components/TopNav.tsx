@@ -34,7 +34,7 @@ export const TopNav: React.FC = () => {
           {/* <a href="#" className="hover:text-white transition-colors">
             Capsules
           </a> */}
-          <a href="/jee-marks-calculator" className="hover:text-white transition-colors">
+          <a href="/jee-score-calculator" className="hover:text-white transition-colors">
             Score Calculator
           </a>
           <a href="/blogs" className="hover:text-white transition-colors">
