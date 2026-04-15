@@ -1,15 +1,15 @@
 // import Navbar from "../../../../components/first-bridge/Navbar"
-import FacultyResidencies from "../../../../components/first-bridge/Facultyresidencies"
-import HeroSection from "../../../../components/first-bridge/HeroSection"
-import InternationalEcosystem from "../../../../components/first-bridge/Internationalecosystem"
-import SemesterAbroad from "../../../../components/first-bridge/Semesterabroad"
+import FacultyResidencies from "../../../components/first-bridge/Facultyresidencies";
+import HeroSection from "../../../components/first-bridge/HeroSection";
+import InternationalEcosystem from "../../../components/first-bridge/Internationalecosystem";
+import SemesterAbroad from "../../../components/first-bridge/Semesterabroad";
 
 export default function InternationalPage() {
   return (
     <div className="min-h-screen bg-[#F5F7FA] font-sans">
       {/* <Navbar /> */}
       <HeroSection />
-      <InternationalEcosystem/>
+      <InternationalEcosystem />
       <FacultyResidencies />
       <SemesterAbroad />
       {/* ── Add more sections below ──────────────────────────────────────────
@@ -23,5 +23,5 @@ export default function InternationalPage() {
           <FooterSection />
       ─────────────────────────────────────────────────────────────────────── */}
     </div>
-  )
+  );
 }
