@@ -1,6 +1,8 @@
 "use client"
 import React, { useState } from "react"
 import { Calendar, Phone, Mail, ArrowRight, ChevronDown } from "lucide-react"
+import { supabase } from "../../lib/supabase";
+
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
 
@@ -36,31 +38,46 @@ function Logo() {
 
 // ─── Lead Form ────────────────────────────────────────────────────────────────
 
+
 function LeadForm() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", program: "" })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const programs = [
-    "MBA – Full Time",
-    "PGDM – Business Analytics",
-    "Executive MBA",
+    "PGP",
+    "PGP - X",
     "Online Certificate",
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    const { error } = await supabase
+      .from("first_bridge")
+      .insert({
+        name:    form.name,
+        email:   form.email,
+        phone:   form.phone,
+        program: form.program,
+      })
+
+    setLoading(false)
+
+    if (error) {
+      setError("Something went wrong. Please try again.")
+      return
+    }
+
     setSubmitted(true)
   }
 
   return (
-    <div
-      id="apply"
-      className="bg-white rounded-3xl shadow-2xl shadow-blue-100 border border-gray-100 p-8 w-full max-w-md"
-    >
-      {/* Logo inside form */}
-      <div className="mb-5">
-        <Logo />
-      </div>
+    <div id="apply" className="bg-white rounded-3xl shadow-2xl shadow-blue-100 border border-gray-100 p-8 w-full max-w-md">
+      <div className="mb-5"><Logo /></div>
 
       <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full mb-5">
         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -116,17 +133,19 @@ function LeadForm() {
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
-            <ChevronDown
-              size={16}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
+            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
+
+          {error && (
+            <p className="text-red-500 text-xs text-center">{error}</p>
+          )}
 
           <button
             type="submit"
-            className="w-full bg-[#F97316] hover:bg-[#EA6C0A] text-white font-bold py-4 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-orange-200 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            disabled={loading}
+            className="w-full bg-[#F97316] hover:bg-[#EA6C0A] text-white font-bold py-4 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-orange-200 hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Request Information <ArrowRight size={16} />
+            {loading ? "Submitting..." : "Request Information"} {!loading && <ArrowRight size={16} />}
           </button>
 
           <p className="text-center text-[11px] text-gray-400">
