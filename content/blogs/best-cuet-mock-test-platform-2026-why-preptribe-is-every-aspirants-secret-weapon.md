@@ -15,7 +15,7 @@ You've downloaded five PDFs. Saved seventeen YouTube playlists. Bookmarked three
 
 Sound familiar? That's because most CUET preparation tools are built around content dumping, not real learning. They hand you a PDF and call it preparation. A mock test with no analysis. A video series with no structure and no way of knowing if you're actually improving.
 
-> 📌 **Get access To:** [CUET Mini Mock Test](https://www.getedunext.com/cuet-college-predictor)
+> 📌 **Get access To:** [CUET Mini Mock Test]
 
 [![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1775729722/Screenshot_2026-04-09_153611_zkmzvv.png)](https://preptribe.getedunext.com/)
 
