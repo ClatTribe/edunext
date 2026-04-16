@@ -38,7 +38,7 @@ tags: ["JEE mini mock test", "JEE daily mock test", "JEE Advanced mini test", "J
 
 ---
 ![Jee Mock](https://res.cloudinary.com/db14ukba7/image/upload/v1774341776/Untitled_design_59_jdiw2m.png)
-> **[Start Your Daily Challenge at jeetribechallenge.getedunext.com](https://preptribe.getedunext.com/)**
+> **[Start Your Daily Challenge at preptribe.getedunext.com](https://preptribe.getedunext.com/)**
 ## Introduction: Why Are Full-Length Mocks Not Enough?
 
 Here's a reality most JEE coaching centres won't tell you: taking one full-length mock test every Sunday is not enough. Not even close.
@@ -111,7 +111,7 @@ The **JEE Tribe DSB (Daily Score Booster) Challenge** is EduNext's free daily mi
 
 | Detail | Info |
 |---|---|
-| **Platform** | [jeetribechallenge.getedunext.com](https://preptribe.getedunext.com/) |
+| **Platform** | [preptribe.getedunext.com](https://preptribe.getedunext.com/) |
 | **Cost** | Free |
 | **Exam focus** | JEE Main & JEE Advanced 2026 |
 | **Frequency** | Daily |
@@ -231,7 +231,7 @@ Every single percentile point matters when lakhs of students are competing for t
 
 ### Is the JEE Tribe DSB Challenge free?
 
->Yes, completely free. You sign up with Google or email on [jeetribechallenge.getedunext.com](https://preptribe.getedunext.com/). No payment, no hidden charges, no phone number collection, no spam calls.
+>Yes, completely free. You sign up with Google or email on [preptribe.getedunext.com](https://preptribe.getedunext.com/). No payment, no hidden charges, no phone number collection, no spam calls.
 
 ### How many questions are in each daily mini mock test?
 
@@ -264,7 +264,7 @@ EduNext's JEE Tribe DSB Challenge makes this easy: free, no spam, real analytics
 > Join 10,000+ aspirants on EduNext's JEE Tribe DSB Challenge.
 > **Free. No spam calls. Just daily practice that works.**
 >
-> **[Start Your Daily Challenge at jeetribechallenge.getedunext.com](https://preptribe.getedunext.com/)**
+> **[Start Your Daily Challenge at preptribe.getedunext.com](https://preptribe.getedunext.com/)**
 
 ---
 
