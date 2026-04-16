@@ -14,7 +14,7 @@ Every year, millions of engineering entrance aspirants take the Joint Entrance E
 
 > 📌 **Get access To:** [CUET Mini Mock Test](https://preptribe.getedunext.com/) 
 
-[![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1775729722/Screenshot_2026-04-09_153611_zkmzvv.png)](https://preptribe.getedunext.com/)
+[![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1774862852/Screenshot_2026-03-30_143217_nom6xy.png)](https://preptribe.getedunext.com//)
 
 The competition is extremely high because the examination is a ticket to top engineering colleges such as the Indian Institutes of Technology (IITs), National Institutes of Technology (NITs), and Indian Institutes of Information Technology (IIITs).
 
