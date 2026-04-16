@@ -63,53 +63,53 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
   ? college
   : { ...college, ...(college?.microsite_data || {}) }
 
-  const allNavItems = [
-    { name: 'Overview', path: '', icon: Home, show: true },
-    {
-      name: 'Courses & Fees',
-      path: '/course-&-fees',
-      icon: BookOpen,
-      show: !!(micrositeData.fees?.length || micrositeData.courses?.length)
-    },
-    {
-      name: 'Admission',
-      path: '/admission',
-      icon: Building2,
-      show: !!micrositeData.admission
-    },
-    {
-      name: 'Placement',
-      path: '/placement',
-      icon: TrendingUp,
-      show: !!micrositeData.placement?.length
-    },
-    {
-      name: 'Cutoff',
-      path: '/cutoff',
-      icon: BarChart3,
-      show: !!micrositeData.cutoff?.length
-    },
-    {
-      name: 'Ranking',
-      path: '/ranking',
-      icon: Trophy,
-      show: !!micrositeData.ranking?.length
-    },
-    {
-      name: 'Reviews',
-      path: '/reviews',
-      icon: Star,
-      show: !!micrositeData.reviews?.length
-    },
-    {
-      name: 'Contact',
-      path: '/contact',
-      icon: Phone,
-      show: true
-    },
-  ]
+  // const allNavItems = [
+  //   { name: 'Overview', path: '', icon: Home, show: true },
+  //   {
+  //     name: 'Courses & Fees',
+  //     path: '/course-&-fees',
+  //     icon: BookOpen,
+  //     show: !!(micrositeData.fees?.length || micrositeData.courses?.length)
+  //   },
+  //   {
+  //     name: 'Admission',
+  //     path: '/admission',
+  //     icon: Building2,
+  //     show: !!micrositeData.admission
+  //   },
+  //   {
+  //     name: 'Placement',
+  //     path: '/placement',
+  //     icon: TrendingUp,
+  //     show: !!micrositeData.placement?.length
+  //   },
+  //   {
+  //     name: 'Cutoff',
+  //     path: '/cutoff',
+  //     icon: BarChart3,
+  //     show: !!micrositeData.cutoff?.length
+  //   },
+  //   {
+  //     name: 'Ranking',
+  //     path: '/ranking',
+  //     icon: Trophy,
+  //     show: !!micrositeData.ranking?.length
+  //   },
+  //   {
+  //     name: 'Reviews',
+  //     path: '/reviews',
+  //     icon: Star,
+  //     show: !!micrositeData.reviews?.length
+  //   },
+  //   {
+  //     name: 'Contact',
+  //     path: '/contact',
+  //     icon: Phone,
+  //     show: true
+  //   },
+  // ]
 
-  const navItems = allNavItems.filter(item => item.show)
+  // const navItems = allNavItems.filter(item => item.show)
 
   return (
     <div className="min-h-screen text-slate-300" style={{ backgroundColor: primaryBg }}>
@@ -139,7 +139,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
 
       {/* ── SUB-NAVBAR (sticky below the main navbar) ── */}
       <nav className="sticky top-16 sm:top-[72px] lg:top-20 z-40 bg-[#020205]/90 backdrop-blur-xl border-b border-white/5 w-full">
-        <div className="flex gap-1 md:gap-3 overflow-x-auto px-4 py-3 no-scrollbar items-center md:justify-center">
+        {/* <div className="flex gap-1 md:gap-3 overflow-x-auto px-4 py-3 no-scrollbar items-center md:justify-center">
           {navItems.map((item) => {
             const fullPath = `/college/${slug}${item.path}`
             const isActive = pathname === fullPath
@@ -161,7 +161,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
               </Link>
             )
           })}
-        </div>
+        </div> */}
       </nav>
 
       {/* ── MAIN CONTENT AREA ── */}
