@@ -494,10 +494,10 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   };
 
   const featuredColleges = [
-    { id: "1", name: "IIM Ahmedabad", location: "Ahmedabad, Gujarat", tags: ["CAT", "Global Rank #1"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766476599/iima_ije8kq.jpg", url: "https://www.getedunext.com/college/iim-ahmedabad" },
-    { id: "2", name: "IIT Delhi", location: "New Delhi, Delhi", tags: ["JEE", "Innovation"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1770034871/iit_delhi_tqucbp.jpg", url: "https://www.getedunext.com/college/iit-delhi" },
-    { id: "3", name: "Chandigarh University", location: "Chandigarh, Punjab", tags: ["B.sc", "Legacy"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1766558377/CU_e1aozd.jpg", url: "https://www.getedunext.com/college/chandigarh-university" },
-    { id: "4", name: "UPES", location: "Uttarakhand, Dehradun", tags: ["CAT", "Best ROI"], imageUrl: "https://res.cloudinary.com/daetdadtt/image/upload/v1774691149/college_microsites/upes_2.jpg", url: "https://www.getedunext.com//college/upes" },
+    { id: "1", name: "IIM Ahmedabad", location: "Ahmedabad, Gujarat", tags: ["CAT", "Global Rank #1"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/iim%20a.avif", url: "https://www.getedunext.com/college/iim-ahmedabad" },
+    { id: "2", name: "IIT Delhi", location: "New Delhi, Delhi", tags: ["JEE", "Innovation"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/iit%20d.jpeg", url: "https://www.getedunext.com/college/iit-delhi" },
+    { id: "3", name: "Chandigarh University", location: "Chandigarh, Punjab", tags: ["B.sc", "Legacy"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/Ccu.jpg", url: "https://www.getedunext.com/college/chandigarh-university" },
+    { id: "4", name: "UPES", location: "Uttarakhand, Dehradun", tags: ["CAT", "Best ROI"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/upes1.jpg", url: "https://www.getedunext.com//college/upes" },
   ];
 
   return (

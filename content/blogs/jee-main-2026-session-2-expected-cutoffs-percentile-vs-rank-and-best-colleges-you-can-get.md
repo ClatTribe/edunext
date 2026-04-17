@@ -12,6 +12,10 @@ tags: ["JEE Main 2026 Session 2 cutoff", "JEE Main 2026 Session 2", "JEE Main pe
 # JEE Main 2026 Session 2: Expected Cutoffs, Percentile vs Rank and Best Colleges You Can Get
 Every year, millions of engineering entrance aspirants take the Joint Entrance Examination (JEE) Main to gain admission into some of India’s top engineering colleges. For many students, Session 2 of JEE Main 2026 is an opportunity to take a final shot to improve their marks, increase their percentile, and achieve a better rank.
 
+> 📌 **Get access To:** [CUET Mini Mock Test](https://preptribe.getedunext.com/) 
+
+[![Daily DSB Challenge](https://res.cloudinary.com/db14ukba7/image/upload/v1774862852/Screenshot_2026-03-30_143217_nom6xy.png)](https://preptribe.getedunext.com//)
+
 The competition is extremely high because the examination is a ticket to top engineering colleges such as the Indian Institutes of Technology (IITs), National Institutes of Technology (NITs), and Indian Institutes of Information Technology (IIITs).
 
 After taking the examination, students are often confused about how to calculate percentile versus rank, what cutoffs to expect, and which colleges they can join. Therefore, it is essential to understand these aspects to make an informed decision during counseling.
