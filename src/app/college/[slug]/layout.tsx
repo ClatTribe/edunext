@@ -18,6 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${name}: Fees, Admission 2026, Courses, Cutoff, Ranking, Placement`,
     description: `${name} is an institute in ${location}. Read for details on ${name} Fees, Admission 2026, Courses, Cutoff, Ranking and Placement.`,
+    alternates: {
+      canonical: `https://www.getedunext.com/college/${slug}`
+    },
     openGraph: {
       title: `${name}: Fees, Admission 2026, Courses, Cutoff, Ranking, Placement`,
       description: `${name} is an institute in ${location}.`,

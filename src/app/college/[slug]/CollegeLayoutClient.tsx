@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect, useRef } from "react"
 import Link from 'next/link'
-import { usePathname, useParams } from 'next/navigation'
+import { usePathname, useParams, useRouter } from 'next/navigation'
 import { supabase } from "../../../../lib/supabase"
 import {
   BookOpen, Building2, Phone, Home,
@@ -19,6 +19,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname()
   const params = useParams()
   const slug = params?.slug as string
+  const router = useRouter()
 
   const [college, setCollege] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -59,57 +60,72 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
     )
   }
 
-  const micrositeData = college?.microsite_data || {}
-  ? college
-  : { ...college, ...(college?.microsite_data || {}) }
+  const micrositeData = typeof college?.microsite_data === 'string'
+    ? JSON.parse(college.microsite_data)
+    : (college?.microsite_data || {})
 
-  // const allNavItems = [
-  //   { name: 'Overview', path: '', icon: Home, show: true },
-  //   {
-  //     name: 'Courses & Fees',
-  //     path: '/course-&-fees',
-  //     icon: BookOpen,
-  //     show: !!(micrositeData.fees?.length || micrositeData.courses?.length)
-  //   },
-  //   {
-  //     name: 'Admission',
-  //     path: '/admission',
-  //     icon: Building2,
-  //     show: !!micrositeData.admission
-  //   },
-  //   {
-  //     name: 'Placement',
-  //     path: '/placement',
-  //     icon: TrendingUp,
-  //     show: !!micrositeData.placement?.length
-  //   },
-  //   {
-  //     name: 'Cutoff',
-  //     path: '/cutoff',
-  //     icon: BarChart3,
-  //     show: !!micrositeData.cutoff?.length
-  //   },
-  //   {
-  //     name: 'Ranking',
-  //     path: '/ranking',
-  //     icon: Trophy,
-  //     show: !!micrositeData.ranking?.length
-  //   },
-  //   {
-  //     name: 'Reviews',
-  //     path: '/reviews',
-  //     icon: Star,
-  //     show: !!micrositeData.reviews?.length
-  //   },
-  //   {
-  //     name: 'Contact',
-  //     path: '/contact',
-  //     icon: Phone,
-  //     show: true
-  //   },
-  // ]
+  const getSubData = (key: string) => {
+    return micrositeData?.[key] || college?.[key] || []
+  }
 
-  // const navItems = allNavItems.filter(item => item.show)
+  const allNavItems = [
+    { name: 'Overview', path: '', icon: Home, show: true },
+    {
+      name: 'Courses & Fees',
+      path: '/course-&-fees',
+      icon: BookOpen,
+      show: getSubData('fees').length > 0 || getSubData('courses').length > 0
+    },
+    {
+      name: 'Admission',
+      path: '/admission',
+      icon: Building2,
+      show: getSubData('admission').length > 0
+    },
+    {
+      name: 'Placement',
+      path: '/placement',
+      icon: TrendingUp,
+      show: getSubData('placement').length > 0
+    },
+    {
+      name: 'Cutoff',
+      path: '/cutoff',
+      icon: BarChart3,
+      show: getSubData('cutoff').length > 0
+    },
+    {
+      name: 'Ranking',
+      path: '/ranking',
+      icon: Trophy,
+      show: getSubData('ranking').length > 0
+    },
+    {
+      name: 'Reviews',
+      path: '/reviews',
+      icon: Star,
+      show: getSubData('reviews').length > 0
+    },
+    {
+      name: 'Contact',
+      path: '/contact',
+      icon: Phone,
+      show: true
+    },
+  ]
+
+  const navItems = allNavItems.filter(item => item.show)
+
+  // Redirect handling: If user manually navigates to a missing subpage
+  const activeTab = allNavItems.find(item => item.path !== '' && pathname.endsWith(item.path))
+  if (activeTab && !activeTab.show) {
+    router.replace(`/college/${slug}`)
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: primaryBg }}>
+        <Loader2 className="animate-spin h-10 w-10 text-amber-500" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen text-slate-300" style={{ backgroundColor: primaryBg }}>
@@ -130,19 +146,19 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
           image={college.image}
           video={college.video}
           podcast={college.podcast}
-          fees={micrositeData?.fees?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("total"))?.[1]}
-          avgPackage={micrositeData?.placement?.[0]?.headers?.["Average package"] || micrositeData?.placement?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("average"))?.[1]}
-          highestPackage={micrositeData?.placement?.[0]?.headers?.["Highest package"] || micrositeData?.placement?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("high"))?.[1]}
-          ranking={micrositeData?.ranking?.[0]?.rows?.[0]?.[1]}
+          fees={getSubData('fees')?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("total"))?.[1]}
+          avgPackage={getSubData('placement')?.[0]?.headers?.["Average package"] || getSubData('placement')?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("average"))?.[1]}
+          highestPackage={getSubData('placement')?.[0]?.headers?.["Highest package"] || getSubData('placement')?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("high"))?.[1]}
+          ranking={getSubData('ranking')?.[0]?.rows?.[0]?.[1]}
         />
       </div>
 
       {/* ── SUB-NAVBAR (sticky below the main navbar) ── */}
       <nav className="sticky top-16 sm:top-[72px] lg:top-20 z-40 bg-[#020205]/90 backdrop-blur-xl border-b border-white/5 w-full">
-        {/* <div className="flex gap-1 md:gap-3 overflow-x-auto px-4 py-3 no-scrollbar items-center md:justify-center">
+        <div className="flex gap-1 md:gap-3 overflow-x-auto px-4 py-3 no-scrollbar items-center md:justify-center">
           {navItems.map((item) => {
             const fullPath = `/college/${slug}${item.path}`
-            const isActive = pathname === fullPath
+            const isActive = item.path === '' ? pathname === `/college/${slug}` : pathname.endsWith(item.path)
             const Icon = item.icon
 
             return (
@@ -161,7 +177,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
               </Link>
             )
           })}
-        </div> */}
+        </div>
       </nav>
 
       {/* ── MAIN CONTENT AREA ── */}
