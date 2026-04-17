@@ -169,12 +169,12 @@ export default function HeroSection() {
     },
     {
       icon: <Phone size={18} className="text-[#F97316]" />,
-      label: "+91 9311380375, +91 9311380376",
+      label: "+91 8299470392",
       sub: "Mon–Sat, 9AM–6PM",
     },
     {
       icon: <Mail size={18} className="text-[#F97316]" />,
-      label: "admission@firstbridge.ac",
+      label: "edunextweb@gmail.com",
       sub: "24-hour response time",
     },
   ]
