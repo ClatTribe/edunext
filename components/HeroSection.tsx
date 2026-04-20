@@ -522,7 +522,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-[#F59E0B] text-[10px] md:text-xs font-bold tracking-widest uppercase mb-6 md:mb-10 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse"></span>
-            #1 Education Platform • ADMIT FINDER 2.0
+            Your #1 No-BS Education Platform
           </motion.div>
 
           {/* Tagline Split Logic */}
