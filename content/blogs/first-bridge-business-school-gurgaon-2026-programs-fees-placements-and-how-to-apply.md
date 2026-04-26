@@ -1,7 +1,7 @@
 ---
 title: "First Bridge Business School, Gurgaon 2026: programs, fees, placements, and how to apply"
-date: "2026-04-25"
-lastModified: "2026-04-25"
+date: "2026-04-26"
+lastModified: "2026-04-26"
 author: "Edu Next"
 excerpt: "Complete guide to First Bridge Business School Gurgaon — PGP and PGP-X programs, ₹16 lakh fees, 150+ hours AI curriculum, 80+ industry partners, and admission process for 2026."
 coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1777105556/Untitled_design_60_wqzncl.png"
