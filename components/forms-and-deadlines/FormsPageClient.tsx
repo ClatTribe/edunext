@@ -221,32 +221,48 @@ const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
           </div>
         </div>
 
-        <div className="mt-auto pt-6 border-t border-slate-800 flex items-center justify-between">
-          <StatusBadge status={form.status} />
-
-          <div className="flex items-center gap-3">
+        {/* ========== UPDATED SECTION: Added support for subLinks ========== */}
+        <div className="mt-auto pt-6 border-t border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <StatusBadge status={form.status} />
             <CollegeBellButton collegeName={form.name} saveType="form" />
-
-            {isLinkAvailable ? (
-              <Link
-                href={form.link}
-                target="_blank"
-                className={`text-sm font-bold flex items-center gap-1 transition-colors ${
-                  isOpen
-                    ? "text-[#f9a01b] hover:text-white"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                {isOpen ? "Official Website" : "Official Website"}{" "}
-                <ExternalLink className="w-4 h-4" />
-              </Link>
-            ) : (
-              <span className="text-xs font-bold text-slate-600 italic">
-                TBA
-              </span>
-            )}
           </div>
+
+          {/* Check if form has subLinks (multiple course links) */}
+          {form.subLinks && form.subLinks.length > 0 ? (
+            <div className="flex flex-col gap-2 w-full">
+              {form.subLinks.map((subLink, index) => (
+                <Link
+                  key={index}
+                  href={subLink.url}
+                  target="_blank"
+                  className="text-xs font-bold flex items-center justify-between px-3 py-2 rounded-xl border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:border-amber-500 transition-all"
+                >
+                  <span>{subLink.name}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              ))}
+            </div>
+          ) : isLinkAvailable ? (
+            <Link
+              href={form.link}
+              target="_blank"
+              className={`text-sm font-bold flex items-center gap-1 transition-colors ${
+                isOpen
+                  ? "text-[#f9a01b] hover:text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {isOpen ? "Official Website" : "Official Website"}{" "}
+              <ExternalLink className="w-4 h-4" />
+            </Link>
+          ) : (
+            <span className="text-xs font-bold text-slate-600 italic">
+              TBA
+            </span>
+          )}
         </div>
+        {/* ========== END OF UPDATED SECTION ========== */}
       </div>
     </div>
   );

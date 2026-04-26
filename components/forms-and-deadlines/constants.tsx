@@ -22,6 +22,7 @@ export interface ExamFormEntry {
   status: FormStatus;
   /** Optional – shown as a subtitle under the form name */
   courses?: string;
+  subLinks?: Array<{ name: string; url: string }>;
 }
 
 // ─── Tabs ───────────────────────────────────────────────────────────────
@@ -96,6 +97,20 @@ export const TAB_SEO: Record<ExamTab, TabSEO> = {
 export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
   // ━━━━━━━━━━ JEE / ENGINEERING ━━━━━━━━━━
   [ExamTab.JEE]: [
+
+    {
+  name: "Masters' Union",
+  startDate: "Currently Open",
+  endDate: "Jun 10, 2026",
+  link: "https://mastersunion.org/",
+  status: "Open",
+  subLinks: [
+    { name: "Tech & Management", url: "https://mastersunion.org/ug-technology-and-business-management?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" },
+    { name: "Psychology & Marketing", url: "https://mastersunion.org/ug-psychology-and-marketing?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" },
+    { name: "Finance & Economics", url: "https://mastersunion.org/ug-finance-and-economics?utm_source=SIM&utm_medium=UG&utm_campaign=FnE" },
+    { name: "Data Science & AI", url: "https://mastersunion.org/ug-data-science-and-artificial-intelligence?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" }
+  ],
+},
     {
       name: "JEE Main 2026 (Session 1)",
       startDate: "Oct 31, 2025",
