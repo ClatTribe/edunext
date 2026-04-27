@@ -908,8 +908,9 @@ export default function MedhaAIDashboard() {
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.onstart = () => setIsListening(true);
-    recognition.onresult = (e) => {
-      const transcript = Array.from(e.results).map((r) => r[0].transcript).join('');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (e: any) => {
+      const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join('');
       setSearchQuery(transcript);
       if (e.results[e.results.length - 1].isFinal) {
         recognition.stop();
@@ -928,7 +929,7 @@ export default function MedhaAIDashboard() {
   }, []);
 
   // ── Voice: TTS ──
-  const speakResponse = useCallback((text) => {
+  const speakResponse = useCallback((text: string) => {
     window.speechSynthesis.cancel();
     const clean = text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/[*_#`]/g,'').replace(/<[^>]+>/g,'').replace(/\[FINAL ANSWER\]/gi,'').trim().slice(0,900);
     const utterance = new SpeechSynthesisUtterance(clean);
