@@ -276,8 +276,9 @@ export default function MedhaAIDashboard() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const recognitionRef = useRef(null);
-  const utteranceRef = useRef(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Matched colleges from Supabase for tile rendering (moved up for sessionStorage restore)
   interface MatchedCollege {
