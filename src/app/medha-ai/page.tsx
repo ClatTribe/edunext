@@ -18,6 +18,10 @@ import {
   Calendar,
   Heart,
   BookOpen,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface Message {
@@ -267,6 +271,13 @@ export default function MedhaAIDashboard() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const followUpTriggeredRef = useRef(false);
   const followUpRoundDoneRef = useRef(false);
+
+  // ── Voice state ──
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const recognitionRef = useRef(null);
+  const utteranceRef = useRef(null);
 
   // Matched colleges from Supabase for tile rendering (moved up for sessionStorage restore)
   interface MatchedCollege {
@@ -746,6 +757,7 @@ export default function MedhaAIDashboard() {
         ...newMessages,
         { role: 'assistant', content: data.response },
       ]);
+      if (voiceEnabled) speakResponse(data.response);
     } catch (error) {
       console.error('API Error:', error);
       setMessages([
@@ -878,6 +890,66 @@ export default function MedhaAIDashboard() {
     setFollowUpState(null);
   };
 
+  // ── Voice: cleanup on unmount ──
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  // ── Voice: STT ──
+  const startListening = useCallback(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('Voice input not supported in this browser.'); return; }
+    const recognition = new SR();
+    recognition.lang = 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results).map((r) => r[0].transcript).join('');
+      setSearchQuery(transcript);
+      if (e.results[e.results.length - 1].isFinal) {
+        recognition.stop();
+        handleSearch(transcript);
+      }
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [handleSearch]);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
+
+  // ── Voice: TTS ──
+  const speakResponse = useCallback((text) => {
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/[*_#`]/g,'').replace(/<[^>]+>/g,'').replace(/\[FINAL ANSWER\]/gi,'').trim().slice(0,900);
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = 'en-IN'; utterance.rate = 0.92; utterance.pitch = 1.05;
+    const loadVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.lang==='en-IN' && v.name.toLowerCase().includes('female')) || voices.find(v => v.lang==='en-IN') || voices.find(v => v.lang.startsWith('en'));
+      if (preferred) utterance.voice = preferred;
+    };
+    window.speechSynthesis.getVoices().length > 0 ? loadVoice() : (window.speechSynthesis.onvoiceschanged = loadVoice);
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    utteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  const stopSpeaking = useCallback(() => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  }, []);
+
   if (loading) {
     return (
       <DefaultLayout>
@@ -957,55 +1029,30 @@ export default function MedhaAIDashboard() {
             </div>
           </div>
 
-          {/* AI Search Bar ‚Äî prominent with strong border and background */}
+          {/* AI Search Bar — prominent with strong border and background */}
           <div className="space-y-4">
-            <div
-              className="rounded-2xl p-5 flex items-center gap-3"
-              style={{
-                background: 'rgba(27, 31, 48, 0.85)',
-                backdropFilter: 'blur(12px)',
-                border: `2px solid ${COLORS.primary}60`,
-                boxShadow: `0 0 20px ${COLORS.primary}15`,
-              }}
-            >
-              <Search className="w-6 h-6 flex-shrink-0" style={{ color: COLORS.primary }} />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch(searchQuery);
-                  }
-                }}
-                placeholder="Ask me anything about your career, colleges, courses..."
-                className="flex-1 bg-transparent outline-none text-lg"
-                style={{
-                  color: '#ffffff',
-                  caretColor: COLORS.primary,
-                }}
-              />
-              <button
-                onClick={() => handleSearch(searchQuery)}
-                disabled={isLoading}
-                className="p-3 rounded-xl transition-all duration-200 disabled:opacity-50"
-                style={{
-                  backgroundColor: COLORS.primary,
-                  color: COLORS.onPrimary,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = COLORS.primaryContainer;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = COLORS.primary;
-                }}
-              >
-                <Send className="w-5 h-5" />
-              </button>
+            {/* Speaking indicator badge */}
+            {isSpeaking && (
+              <div className="flex items-center justify-between px-4 py-2 rounded-xl text-sm font-medium" style={{ backgroundColor: 'rgba(255, 193, 116, 0.12)', border: `1px solid ${COLORS.primary}60`, color: COLORS.primary }}>
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: COLORS.primary }} />
+                    <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: COLORS.primary }} />
+                  </span>
+                  Medha is speaking…
+                </div>
+                <button onClick={stopSpeaking} className="p-1 rounded-lg hover:opacity-70 transition-opacity"><VolumeX className="w-4 h-4" /></button>
+              </div>
+            )}
+            <div className="rounded-2xl p-5 flex items-center gap-3 transition-all duration-300" style={{ background: 'rgba(27, 31, 48, 0.85)', backdropFilter: 'blur(12px)', border: isListening ? `2px solid ${COLORS.primary}` : `2px solid ${COLORS.primary}60`, boxShadow: isListening ? `0 0 30px ${COLORS.primary}40` : `0 0 20px ${COLORS.primary}15` }}>
+              {isListening ? (<span className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center"><span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40" style={{ backgroundColor: COLORS.primary }} /><Mic className="w-5 h-5 relative" style={{ color: COLORS.primary }} /></span>) : (<Search className="w-6 h-6 flex-shrink-0" style={{ color: COLORS.primary }} />)}
+              <input ref={searchInputRef} type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(searchQuery); }} placeholder={isListening ? 'Listening… speak now' : 'Ask me anything about your career, colleges, courses…'} className="flex-1 bg-transparent outline-none text-lg" style={{ color: '#ffffff', caretColor: COLORS.primary }} />
+              <button onClick={() => { if (voiceEnabled) stopSpeaking(); setVoiceEnabled(v => !v); }} className="p-2 rounded-xl transition-all duration-200" title={voiceEnabled ? 'Voice ON — click to mute' : 'Voice OFF — click to enable'} style={{ backgroundColor: voiceEnabled ? `${COLORS.primary}25` : 'transparent', color: voiceEnabled ? COLORS.primary : COLORS.onSurfaceVariant, border: `1px solid ${voiceEnabled ? COLORS.primary + '60' : 'transparent'}` }}>{voiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}</button>
+              <button onClick={isListening ? stopListening : startListening} disabled={isLoading} className="p-3 rounded-xl transition-all duration-200 disabled:opacity-50" title={isListening ? 'Stop listening' : 'Speak your question'} style={{ backgroundColor: isListening ? COLORS.primary : `${COLORS.primary}18`, color: isListening ? COLORS.onPrimary : COLORS.primary, border: `1px solid ${COLORS.primary}50` }}>{isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}</button>
+              <button onClick={() => handleSearch(searchQuery)} disabled={isLoading} className="p-3 rounded-xl transition-all duration-200 disabled:opacity-50" style={{ backgroundColor: COLORS.primary, color: COLORS.onPrimary }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primaryContainer; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.primary; }}><Send className="w-5 h-5" /></button>
             </div>
 
-            {/* Quick Suggestion Chips ‚Äî high visibility */}
+{/* Quick Suggestion Chips ‚Äî high visibility */}
             <div className="flex flex-wrap gap-3">
               {quickSuggestions.map((suggestion, index) => (
                 <button
