@@ -901,7 +901,7 @@ export default function MedhaAIDashboard() {
 
   // ── Voice: STT ──
   const startListening = useCallback(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert('Voice input not supported in this browser.'); return; }
     const recognition = new SR();
     recognition.lang = 'en-IN';
