@@ -30,15 +30,39 @@ interface BellNotificationProps {
 }
 
 /* ─── HELPERS ─── */
-function isUpcoming(form: ExamFormEntry): boolean {
-  if (form.status === "Closed") return false;
+function getActualStatus(form: ExamFormEntry): ExamFormEntry["status"] {
+  if (form.status !== "Open") return form.status;
+
+  if (!form.endDate) return form.status;
+
   const now = new Date();
-  const parsed = new Date(form.endDate);
-  if (!isNaN(parsed.getTime())) {
-    const diff = parsed.getTime() - now.getTime();
-    return diff / (1000 * 60 * 60 * 24) <= 15;
+  
+  // Try exact date match first (e.g. "Apr 10, 2026")
+  const exactDateMatch = form.endDate.match(/[a-zA-Z]{3,}\s+\d{1,2},?\s+\d{4}/);
+  if (exactDateMatch) {
+    const endDate = new Date(exactDateMatch[0]);
+    endDate.setHours(23, 59, 59, 999); // End of the day
+    if (endDate.getTime() < now.getTime()) {
+      return "Closed";
+    }
+    return "Open";
   }
-  return form.status === "Open";
+
+  // Try month/year match (e.g. "Mar 2026")
+  const monthMatch = form.endDate.match(/[a-zA-Z]{3,}\s+\d{4}/);
+  if (monthMatch) {
+    const endDate = new Date(monthMatch[0]);
+    // Set to the end of the month
+    endDate.setMonth(endDate.getMonth() + 1);
+    endDate.setDate(0); 
+    endDate.setHours(23, 59, 59, 999);
+    if (endDate.getTime() < now.getTime()) {
+      return "Closed";
+    }
+    return "Open";
+  }
+
+  return "Open";
 }
 
 const supabase = createClient(
@@ -178,6 +202,7 @@ const BellNotification: React.FC<BellNotificationProps> = ({
 const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
   const isLinkAvailable = form.link && form.link.startsWith("http");
   const isOpen = form.status === "Open";
+  const isActive = isOpen || form.status === "Coming Soon";
 
   return (
     <div
@@ -185,10 +210,10 @@ const FormCard: React.FC<{ form: ExamFormEntry }> = ({ form }) => {
                     transition-all duration-500 hover:border-green-500/50 hover:bg-slate-900/60 
                     hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(34,197,94,0.1)] overflow-hidden"
     >
-      {isOpen && (
+      {isActive && (
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-green-500/10 rounded-full blur-3xl" />
       )}
-      {isOpen && <GreenBlooper />}
+      {isActive && <GreenBlooper />}
 
       <div className="flex flex-col h-full relative z-10">
         <div className="mb-6 pr-12">
@@ -278,7 +303,13 @@ export default function FormsPageClient({
     "all" | "Open" | "Coming Soon"
   >("all");
 
-  const forms = FORMS_BY_TAB[examTab] || [];
+  const rawForms = FORMS_BY_TAB[examTab] || [];
+  const forms = useMemo(() => {
+    return rawForms.map((form) => ({
+      ...form,
+      status: getActualStatus(form),
+    }));
+  }, [rawForms]);
 
   const filteredForms = useMemo(() => {
     let result = forms;
@@ -354,10 +385,54 @@ export default function FormsPageClient({
 
       {/* ── CARDS GRID ── */}
       {filteredForms.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredForms.map((form, i) => (
-            <FormCard key={i} form={form} />
-          ))}
+        <div className="space-y-16">
+          {filteredForms.filter(f => f.status === "Open").length > 0 && (
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-black text-white tracking-tight">🔥 Currently Open</h2>
+                <span className="text-xs font-bold text-green-400 bg-green-500/10 px-2.5 py-1 rounded-lg border border-green-500/20">
+                  {filteredForms.filter(f => f.status === "Open").length} Forms
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredForms.filter(f => f.status === "Open").map((form, i) => (
+                  <FormCard key={i} form={form} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filteredForms.filter(f => f.status === "Coming Soon").length > 0 && (
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-black text-white tracking-tight">⏳ Coming Soon</h2>
+                <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                  {filteredForms.filter(f => f.status === "Coming Soon").length} Forms
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredForms.filter(f => f.status === "Coming Soon").map((form, i) => (
+                  <FormCard key={i} form={form} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filteredForms.filter(f => f.status === "Closed").length > 0 && (
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-black text-slate-400 tracking-tight">🔒 Past Deadlines</h2>
+                <span className="text-xs font-bold text-slate-500 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">
+                  {filteredForms.filter(f => f.status === "Closed").length} Forms
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-70 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0">
+                {filteredForms.filter(f => f.status === "Closed").map((form, i) => (
+                  <FormCard key={i} form={form} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-24 rounded-[3rem] border border-dashed border-slate-800">
