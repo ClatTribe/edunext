@@ -28,7 +28,7 @@ export interface ExamFormEntry {
 // ─── Tabs ───────────────────────────────────────────────────────────────
 
 export enum ExamTab {
-  JEE = "JEE",
+  JEE = "B.Tech",
   CUET = "CUET",
   // NEET = "NEET",
   IPM = "IPM",
@@ -45,7 +45,7 @@ export interface TabMeta {
 }
 
 export const EXAM_TABS: TabMeta[] = [
-  { id: ExamTab.JEE,  label: "JEE",  slug: "jee",  iconKey: "Cpu" },
+  { id: ExamTab.JEE,  label: "B.Tech",  slug: "jee",  iconKey: "Cpu" },
   { id: ExamTab.CUET, label: "CUET", slug: "cuet", iconKey: "BookOpen" },
   // { id: ExamTab.NEET, label: "NEET / Medical", slug: "neet", iconKey: "HeartPulse" },
   { id: ExamTab.IPM,  label: "IPM",      slug: "ipm",  iconKey: "Briefcase" },
@@ -63,7 +63,7 @@ export interface TabSEO {
 
 export const TAB_SEO: Record<ExamTab, TabSEO> = {
   [ExamTab.JEE]: {
-    title: "JEE Forms & Deadlines 2026 | JEE Main, Advanced, BITSAT Registration Dates – EduNext",
+    title: "B.Tech Forms & Deadlines 2026 | JEE Main, Advanced, BITSAT Registration Dates – EduNext",
     description:
       "Track all JEE 2026 registration dates, form deadlines, and exam schedules in one place. Covers JEE Main Session 1 & 2, JEE Advanced, BITSAT, VITEEE, SRMJEEE, MHT CET, KCET, COMEDK and 20+ engineering entrance exams.",
     keywords:
@@ -111,6 +111,256 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
     { name: "Data Science & AI", url: "https://mastersunion.org/ug-data-science-and-artificial-intelligence?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" }
   ],
 },
+
+    {
+    name: "KL College of Engineering",
+    startDate: "Currently Open",
+    endDate: "To be Announced",
+    link: "https://admissions.kluniversity.in/",
+    status: "Open",
+  },
+  {
+    name: "UPES",
+    startDate: "Sep 12, 2025",
+    endDate: "Apr 29, 2026",
+    link: "https://admission.upes.ac.in/Login?BCode=ysApp0gAXIDFHAhVkG75bw%3D%3D",
+    status: "Closed",
+  },
+  {
+    name: "Amity University Noida",
+    startDate: "Currently Open",
+    endDate: "To be Announced",
+    link: "https://noida.amity.edu/admissions-2026/",
+    status: "Open",
+  },
+  {
+    name: "Manipal Institute of Technology",
+    startDate: "Oct 1, 2025",
+    endDate: "Apr 30, 2026",
+    link: "https://admissions.manipal.edu/",
+    status: "Closed",
+  },
+  {
+    name: "Shiv Nadar University (Round 2)",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://www.snuadmissions.com/2026/",
+    status: "Closed",
+  },
+  {
+    name: "Amrita School of Engineering",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://aeee.amrita.edu/",
+    status: "Closed",
+  },
+  {
+    name: "IACS Kolkata",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://www.collegepravesh.com/admissions/iacs-admissions/",
+    status: "Closed",
+  },
+  {
+    name: "GGSIPU Delhi (B.Tech)",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://www.collegepravesh.com/admissions/ipu-admissions/",
+    status: "Closed",
+  },
+  {
+    name: "Jaypee Institute of Information Technology, Noida (JEE Mode) (Round 1)",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://www.collegepravesh.com/admissions/jiit-noida-admissions/",
+    status: "Closed",
+  },
+  {
+    name: "MRIIRS Faridabad",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://apply.manavrachna.edu.in/mriirs",
+    status: "Closed",
+  },
+  {
+    name: "Chandigarh University",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://cucet.cuchd.in/index.aspx",
+    status: "Closed",
+  },
+  {
+    name: "Thapar Institute of Engineering & Technology, Patiala",
+    startDate: "Currently Open",
+    endDate: "May 8, 2026",
+    link: "https://admission.thapar.edu/",
+    status: "Open",
+  },
+  {
+    name: "Jamia Millia Islamia, Delhi",
+    startDate: "Currently Open",
+    endDate: "To be Announced",
+    link: "https://www.collegepravesh.com/admissions/jmi-delhi-admissions/",
+    status: "Open",
+  },
+  {
+    name: "Army Institute of Technology (with late fees)",
+    startDate: "Currently Open",
+    endDate: "May 11, 2026",
+    link: "https://www.collegepravesh.com/admissions/ait-pune-admissions/",
+    status: "Open",
+  },
+  {
+    name: "LNM Institute of Information Technology, Jaipur",
+    startDate: "Currently Open",
+    endDate: "May 15, 2026",
+    link: "https://www.collegepravesh.com/admissions/lnmiit-jaipur-admissions/",
+    status: "Open",
+  },
+  {
+    name: "Amrita Vishwa Vidyapeetham (JEE Mode)",
+    startDate: "Currently Open",
+    endDate: "May 15, 2026",
+    link: "https://aeee.amrita.edu/",
+    status: "Open",
+  },
+  {
+    name: "Lovely Professional University",
+    startDate: "Currently Open",
+    endDate: "May 15, 2026",
+    link: "https://admission.lpu.in/",
+    status: "Open",
+  },
+  {
+    name: "Institute of Technology, Nirma University",
+    startDate: "Currently Open",
+    endDate: "May 16, 2026",
+    link: "https://www.collegepravesh.com/admissions/itnu-ahmedabad-admissions-all-india-seats/",
+    status: "Open",
+  },
+  {
+    name: "IIIT Hyderabad (JEE mode)",
+    startDate: "Currently Open",
+    endDate: "May 19, 2026",
+    link: "https://www.collegepravesh.com/admissions/iiit-hyderabad-admissions-jee-main-mode/",
+    status: "Open",
+  },
+  {
+    name: "Anna University Other State Admissions",
+    startDate: "Currently Open",
+    endDate: "May 22, 2026",
+    link: "https://www.collegepravesh.com/admissions/anna-university-other-state-admissions/",
+    status: "Open",
+  },
+  {
+    name: "Jaypee Institute of Information Technology, Noida (12th Mode) (Round 1)",
+    startDate: "Currently Open",
+    endDate: "May 25, 2026",
+    link: "https://www.collegepravesh.com/admissions/jiit-noida-admissions/",
+    status: "Open",
+  },
+  {
+    name: "ISI (BSDS Course)",
+    startDate: "May 20, 2026",
+    endDate: "Ongoing Process",
+    link: "https://www.collegepravesh.com/admissions/isi-bsds-admissions/",
+    status: "Coming Soon",
+  },
+  {
+    name: "ACPC Counselling Gujarat",
+    startDate: "Currently Open",
+    endDate: "May 31, 2026",
+    link: "https://www.collegepravesh.com/admissions/acpc-counselling/",
+    status: "Open",
+  },
+  {
+    name: "Dhirubhai Ambani University (DAU) (formerly DA-IICT)",
+    startDate: "Currently Open",
+    endDate: "Jun 1, 2026",
+    link: "https://www.collegepravesh.com/admissions/daiict-gandhinagar-admissions/",
+    status: "Open",
+  },
+  {
+    name: "International Institute of Information Technology, Bangalore (IIIT-B)",
+    startDate: "Currently Open",
+    endDate: "Jun 8, 2026",
+    link: "https://www.collegepravesh.com/admissions/iiit-bangalore-admissions/",
+    status: "Open",
+  },
+ 
+  // === ENTRANCE EXAMS ===
+  
+  {
+    name: "KLEEE 2026",
+    startDate: "Currently Open",
+    endDate: "To be Announced",
+    link: "https://admissions.kluniversity.in/",
+    status: "Open",
+  },
+  {
+    name: "TG-EAPCET 2026 (formerly TS-EAMCET) (with late fees)",
+    startDate: "Mar 2026",
+    endDate: "Apr 24, 2026",
+    link: "https://www.collegepravesh.com/entrance-exams/tg-eapcet/",
+    status: "Closed",
+  },
+  {
+    name: "UPESEAT 2026",
+    startDate: "Sep 12, 2025",
+    endDate: "Apr 29, 2026",
+    link: "https://admission.upes.ac.in/Login?BCode=ysApp0gAXIDFHAhVkG75bw%3D%3D",
+    status: "Closed",
+  },
+  {
+    name: "MET 2026 (Phase 2)",
+    startDate: "Oct 1, 2025",
+    endDate: "Apr 30, 2026",
+    link: "https://admissions.manipal.edu/",
+    status: "Closed",
+  },
+  {
+    name: "SNUSAT 2026 (Round 2)",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://www.snuadmissions.com/2026",
+    status: "Closed",
+  },
+  {
+    name: "MRNAT 2026",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://apply.manavrachna.edu.in/mriirs",
+    status: "Closed",
+  },
+  {
+    name: "CUCET 2026 (Phase 1)",
+    startDate: "Currently Open",
+    endDate: "Apr 30, 2026",
+    link: "https://cucet.cuchd.in/index.aspx",
+    status: "Closed",
+  },
+  {
+    name: "LPU NEST 2026",
+    startDate: "Currently Open",
+    endDate: "May 15, 2026",
+    link: "https://admission.lpu.in/",
+    status: "Open",
+  },
+  {
+    name: "SRMJEEE 2026 (Phase 2)",
+    startDate: "Currently Open",
+    endDate: "Jun 4, 2026",
+    link: "https://www.collegepravesh.com/entrance-exams/srmjeee/",
+    status: "Open",
+  },
+  {
+    name: "NATA 2026 (Conducted every Fri and Sat)",
+    startDate: "Feb 2026 (Expected)",
+    endDate: "Jun 8, 2026",
+    link: "https://www.collegepravesh.com/entrance-exams/nata/",
+    status: "Open",
+  },
+   //old forms
     {
       name: "JEE Main 2026 (Session 1)",
       startDate: "Oct 31, 2025",

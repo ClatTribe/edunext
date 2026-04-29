@@ -496,7 +496,7 @@ const HeroSection: React.FC<{ courses?: any[] }> = ({ courses = [] }) => {
   const featuredColleges = [
     { id: "1", name: "IIM Ahmedabad", location: "Ahmedabad, Gujarat", tags: ["CAT", "Global Rank #1"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/iim%20a.avif", url: "https://www.getedunext.com/college/iim-ahmedabad" },
     { id: "2", name: "IIT Delhi", location: "New Delhi, Delhi", tags: ["JEE", "Innovation"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/iit%20d.jpeg", url: "https://www.getedunext.com/college/iit-delhi" },
-    { id: "3", name: "Chandigarh University", location: "Chandigarh, Punjab", tags: ["B.sc", "Legacy"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/Ccu.jpg", url: "https://www.getedunext.com/college/chandigarh-university" },
+    { id: "3", name: "Masters' Union", location: "Gurgaon, Haryana", tags: ["PGP", "Legacy"], imageUrl:"https://ik.imagekit.io/getEdunext/GetEdunext/mu%202.jpeg", url: "https://www.getedunext.com/college/masters-union" },
     { id: "4", name: "UPES", location: "Uttarakhand, Dehradun", tags: ["CAT", "Best ROI"], imageUrl: "https://ik.imagekit.io/getEdunext/GetEdunext/upes1.jpg", url: "https://www.getedunext.com//college/upes" },
   ];
 
