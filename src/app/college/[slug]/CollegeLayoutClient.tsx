@@ -11,6 +11,7 @@ import {
 import RelatedColleges from "../../../../components/microsite/RelatedColleges"
 import MicrositeHero from "../../../../components/microsite/MicrositeHero"
 import Navbar from "../../../../components/Navbar"
+// import ReactMarkdown from 'react-markdown'
 
 // Total Black Aesthetic
 const primaryBg = '#020205'
@@ -185,8 +186,45 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 min-w-0">
             <main className="w-full">
-              {children}
-            </main>
+  {children}
+  
+{college.description && (
+  <div className="mt-8 p-6 rounded-xl border border-white/10 bg-white/5">
+    <h2 className="text-amber-500 font-bold text-xl mb-4">About</h2>
+    <div className="space-y-2">
+      {college.description.split('\n').map((line: string, i: number) => {
+        if (!line.trim()) return null
+        if (line.startsWith('- ')) {
+          const content = line.slice(2).replace(/\*\*(.*?)\*\*/g, '|||$1|||')
+          return (
+            <div key={i} className="flex items-start gap-2 text-slate-300">
+              <span className="text-amber-500 mt-1">•</span>
+              <span>{content.split('|||').map((part, j) =>
+                j % 2 === 1
+                  ? <strong key={j} className="text-amber-400">{part}</strong>
+                  : part
+              )}</span>
+            </div>
+          )
+        }
+        if (line.startsWith('**') && line.endsWith('**')) {
+          return <p key={i} className="text-amber-400 font-bold">{line.replace(/\*\*/g, '')}</p>
+        }
+        const content = line.replace(/\*\*(.*?)\*\*/g, '|||$1|||')
+        return (
+          <p key={i} className="text-slate-300">
+            {content.split('|||').map((part, j) =>
+              j % 2 === 1
+                ? <strong key={j} className="text-amber-400">{part}</strong>
+                : part
+            )}
+          </p>
+        )
+      })}
+    </div>
+  </div>
+)}
+</main>
           </div>
 
           <aside className="w-full lg:w-[350px] shrink-0">
