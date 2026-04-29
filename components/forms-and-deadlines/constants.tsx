@@ -113,6 +113,20 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
 },
 
     {
+    name: "Alliance University",
+    startDate: "Currently Open",
+    endDate: "May 12, 2026",
+    link: "https://apply.alliance.edu.in/undergraduate-application-form-2026?utm_source=IPMcareer&utm_medium=Kanpur&utm_campaign=BBA2026",
+    status: "Open",
+  },
+    {
+    name: "Doon Business School",
+    startDate: "Currently Open",
+    endDate: "May 28, 2026",
+    link: "https://admissions.dgu.ac/?utm_source=ipmcareeronline&utm_medium=ipmcareeronline&utm_campaign=ipmcareeronline",
+    status: "Open",
+  },
+    {
     name: "KL College of Engineering",
     startDate: "Currently Open",
     endDate: "To be Announced",
