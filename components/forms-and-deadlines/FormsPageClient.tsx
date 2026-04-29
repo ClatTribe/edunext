@@ -440,6 +440,122 @@ export default function FormsPageClient({
           <p className="text-slate-500 font-medium">No results found.</p>
         </div>
       )}
+
+      {/* ── SEO / BLOG CONTENT SECTION ── */}
+      {examTab === ExamTab.JEE && (
+        <div className="mt-24 bg-slate-900/40 border border-slate-800 rounded-[2.5rem] p-8 lg:p-12 overflow-hidden relative">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-500/5 rounded-full blur-3xl" />
+
+          <div className="relative z-10 max-w-4xl mx-auto space-y-12 text-slate-300 leading-relaxed">
+            
+            {/* Header section */}
+            <div className="text-center space-y-6">
+              <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight">
+                B.Tech Forms and Deadlines 2026 – <span className="text-amber-500">Everything You Need to Know</span>
+              </h2>
+              <p className="text-lg text-slate-400">
+                Getting into a B.Tech program in India starts with one critical step: submitting the right application form before the deadline. With multiple entrance exams running on different schedules, staying on top of B.Tech forms and deadlines 2026 can make the difference between securing your seat and missing out entirely. Here's a quick guide to help you stay ahead.
+              </p>
+            </div>
+
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent my-8" />
+
+            {/* Section 1 */}
+            <div className="space-y-4">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                <AlertCircle className="text-amber-500 w-6 h-6" /> 
+                Why B.Tech Application Deadlines Matter
+              </h3>
+              <p>
+                Every year, thousands of students lose their chance at top engineering colleges — not because of poor scores, but because they missed a registration window. Unlike college admissions in some countries, Indian engineering entrance exams have strict, non-extendable deadlines. Once a form closes, there is no second chance.
+              </p>
+            </div>
+
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent my-8" />
+
+            {/* Section 2 */}
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Calendar className="text-green-400 w-6 h-6" />
+                Key B.Tech Entrance Exams and Their 2026 Registration Timelines
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition-colors">
+                  <h4 className="text-lg font-bold text-white mb-2">JEE Main 2026</h4>
+                  <p className="text-sm">JEE Main is the gateway to NITs, IIITs, and Government Funded Technical Institutes (GFTIs). Conducted by the National Testing Agency (NTA), it is held in two sessions — typically January and April. Session 1 registration usually opens in November, while Session 2 registration opens around February. Students must keep an eye on the official NTA portal for exact dates.</p>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition-colors">
+                  <h4 className="text-lg font-bold text-white mb-2">JEE Advanced 2026</h4>
+                  <p className="text-sm">Only the top 2.5 lakh JEE Main qualifiers are eligible to register for JEE Advanced — the exam for IIT admissions. Registration opens for a very short window (usually 1–2 weeks) after JEE Main results are declared. Missing this window means waiting another full year, so this is arguably the most time-sensitive deadline on this list.</p>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition-colors">
+                  <h4 className="text-lg font-bold text-white mb-2">BITSAT 2026</h4>
+                  <p className="text-sm">BITSAT is conducted by BITS Pilani for admissions to its Pilani, Goa, and Hyderabad campuses. Registration typically opens in January and closes around April. Slots for the test fill up fast, so early registration is strongly advisable.</p>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition-colors">
+                  <h4 className="text-lg font-bold text-white mb-2">State-Level Exams</h4>
+                  <p className="text-sm">Students targeting state government engineering colleges must also track state-level entrance exam deadlines (MHT CET, KCET, WBJEE, etc.), which vary by state. These often run parallel to JEE Main, so managing multiple registrations at the same time is common.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent my-8" />
+
+            {/* Section 3 */}
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                <CheckCircle2 className="text-amber-500 w-6 h-6" />
+                General Tips to Never Miss a Deadline
+              </h3>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                  <p><strong className="text-white">Bookmark official portals</strong> – Always rely on official NTA, JoSAA, and exam board websites for dates.</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                  <p><strong className="text-white">Set multiple reminders</strong> – Add key dates to your phone calendar at least 2 weeks in advance.</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                  <p><strong className="text-white">Keep documents ready</strong> – Class 10 & 12 marksheets, passport photo, signature, and Aadhaar card should be scanned and saved beforehand.</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                  <p><strong className="text-white">Pay fees early</strong> – Online payment failures near deadlines are common. Don't wait for the last day.</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                  <p><strong className="text-white">Check eligibility before applying</strong> – Age limit, qualifying marks, and subject combinations differ across exams.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent my-8" />
+
+            {/* Footer section */}
+            <div className="bg-gradient-to-r from-amber-500/10 to-green-500/10 p-8 rounded-3xl border border-slate-700/50 text-center space-y-4">
+              <h3 className="text-2xl font-bold text-white flex items-center justify-center gap-3">
+                <Sparkles className="text-amber-400 w-6 h-6" />
+                Stay Updated with EduNext
+              </h3>
+              <p>
+                Keeping track of every exam's open/close dates, correction windows, admit card releases, and result dates is overwhelming when you're also preparing. That's exactly why we've built the B.Tech Forms and Deadlines 2026 tracker on this page — so you get all critical dates for JEE Main, JEE Advanced, BITSAT, and more in one place, updated in real time.
+              </p>
+              <p className="font-bold text-white mt-4">
+                Bookmark this page and check back regularly so you never miss a single deadline on your road to a B.Tech seat in 2026.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
