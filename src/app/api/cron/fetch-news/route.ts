@@ -4,6 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET || 'edunext-news-cron-2026';
 
+// Try models in order until one works
+const GEMINI_MODELS = [
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-latest',
+  'gemini-2.0-flash',
+];
+
 const RSS_FEEDS = [
   { url: 'https://www.thehindu.com/education/feed/?format=feed&type=rss', category: 'Boards / CBSE', name: 'The Hindu Education' },
   { url: 'https://indianexpress.com/section/education/feed/', category: 'JEE / Engineering', name: 'Indian Express Education' },
@@ -56,7 +64,7 @@ function parseRSSFeed(xml: string): RSSItem[] {
       items.push({ title, link, description, pubDate, source });
     }
   }
-  return items.slice(0, 2);
+  return items.slice(0, 3);
 }
 
 function slugify(text: string): string {
@@ -78,63 +86,92 @@ async function summarizeWithGemini(
 Summarize this news for Indian students preparing for entrance exams.
 
 Title: ${item.title}
-Description: ${item.description.slice(0, 300)}
+Description: ${item.description.slice(0, 400)}
 Category: ${category}
+Source: ${item.source}
 
 Return ONLY valid JSON (no markdown, no code block):
 {
   "title": "Clear headline max 80 chars",
-  "summary": "2-3 sentences for Indian students max 200 chars",
-  "content": "3-4 paragraphs relevant to students preparing for this category",
+  "summary": "2-3 sentences for Indian students, max 250 chars",
+  "content": "<p>Opening paragraph with key facts.</p><p>Second paragraph with context and what this means for students.</p><p>Third paragraph with actionable advice or next steps for students preparing for ${category}.</p><p>Fourth paragraph with relevant dates, cutoffs, or important numbers if available.</p>",
   "tags": ["tag1", "tag2", "tag3"],
-  "slug": "url-friendly-slug-from-title"
+  "slug": "url-friendly-slug-from-title-max-60-chars"
 }`;
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
-        }),
+  for (const model of GEMINI_MODELS) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.text();
+        diagnostics.push(`${model} HTTP ${response.status}: ${err.slice(0, 120)}`);
+        continue; // try next model
       }
-    );
-    if (!response.ok) {
-      const err = await response.text();
-      const msg = `Gemini HTTP ${response.status}: ${err.slice(0, 150)}`;
-      console.error(msg);
-      diagnostics.push(msg);
-      return null;
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!text) {
+        diagnostics.push(`${model} empty response`);
+        continue;
+      }
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        diagnostics.push(`${model} no JSON in response`);
+        continue;
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      diagnostics.push(`${model} SUCCESS`);
+      return parsed;
+    } catch (e) {
+      diagnostics.push(`${model} exception: ${String(e).slice(0, 80)}`);
     }
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!text) {
-      const msg = `Gemini empty response, finish: ${data.candidates?.[0]?.finishReason || 'unknown'}`;
-      diagnostics.push(msg);
-      return null;
-    }
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      diagnostics.push(`Gemini no JSON: ${text.slice(0, 80)}`);
-      return null;
-    }
-    return JSON.parse(jsonMatch[0]);
-  } catch (e) {
-    const msg = `Gemini exception: ${String(e).slice(0, 100)}`;
-    console.error(msg);
-    diagnostics.push(msg);
-    return null;
   }
+
+  return null;
 }
 
-function buildFallback(item: RSSItem, category: string): { title: string; summary: string; content: string; tags: string[]; slug: string } {
+const CATEGORY_CONTEXT: Record<string, string> = {
+  'JEE / Engineering': 'JEE Main and Advanced aspirants should stay updated as exam patterns, cutoffs, and counselling schedules can change. Regular updates help in planning preparation strategy.',
+  'NEET / Medical': 'NEET aspirants must track all official announcements from NMC and NTA regarding exam dates, result declarations, and counselling rounds.',
+  'MBA / CAT': 'CAT and MBA aspirants should monitor IIM admission criteria, percentile cutoffs, and application deadlines across top B-schools.',
+  'Boards / CBSE': 'Class 10 and 12 students should follow CBSE and state board updates for exam schedules, result dates, and marking scheme changes.',
+  'CLAT / Law': 'CLAT and AILET aspirants should track NLU admission updates, legal reasoning changes, and counselling processes.',
+  'Study Abroad': 'Students planning to study abroad should follow visa updates, scholarship deadlines, and university application windows.',
+  'Govt Exams': 'UPSC and SSC aspirants should track notification releases, exam dates, and syllabus updates from official sources.',
+  'Scholarships': 'Students should apply early and track scholarship deadlines to maximise financial aid opportunities.',
+};
+
+function buildRichFallback(item: RSSItem, category: string): { title: string; summary: string; content: string; tags: string[]; slug: string } {
   const slug = slugify(item.title);
-  const summary = item.description.slice(0, 200) || item.title;
-  const content = `<p>${item.title}</p><p>${item.description || 'Read the full article at the source link.'}</p><p>Stay updated with the latest news on ${category} at EduNext.</p>`;
-  const tags = category.split(' / ').map((t) => t.trim().toLowerCase());
+  const summary = item.description.slice(0, 250) || item.title;
+  const categoryAdvice = CATEGORY_CONTEXT[category] || 'Stay updated with the latest developments in Indian education.';
+
+  const content = [
+    `<p>${item.title}. ${item.description ? item.description.slice(0, 300) : 'This is an important development for students in India.'}</p>`,
+    `<p>This update is significant for students preparing for ${category} exams. ${categoryAdvice}</p>`,
+    `<p>For the most accurate and detailed information, students are advised to check the official website and the original source at ${item.source}. Keeping track of such updates ensures you never miss a critical deadline or change in exam pattern.</p>`,
+    `<p>EduNext recommends that students bookmark reliable sources and set up alerts for exam-related news. Early preparation and staying informed give you a competitive edge in ${category.split(' / ')[0]} preparation.</p>`,
+  ].join('');
+
+  const tags = [
+    ...category.split(' / ').map((t) => t.trim().toLowerCase()),
+    'india',
+    'education',
+  ];
+
   return { title: item.title.slice(0, 80), summary, content, tags, slug };
 }
 
@@ -174,20 +211,21 @@ export async function GET(request: NextRequest) {
 
       const xml = await rssResponse.text();
       const items = parseRSSFeed(xml);
-      const msg = `${feed.name}: ${items.length} items parsed`;
-      console.log(msg);
-      diagnostics.push(msg);
+      diagnostics.push(`${feed.name}: ${items.length} items parsed`);
 
       for (const item of items) {
         const baseSlug = slugify(item.title);
-        if (slugSet.has(baseSlug)) { console.log('Skipping duplicate:', baseSlug); continue; }
+        if (slugSet.has(baseSlug)) {
+          console.log('Skipping duplicate:', baseSlug);
+          continue;
+        }
 
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
         let processed = await summarizeWithGemini(item, feed.category, diagnostics);
         if (!processed) {
-          diagnostics.push(`Gemini failed for "${item.title.slice(0, 40)}" — using fallback`);
-          processed = buildFallback(item, feed.category);
+          diagnostics.push(`Gemini unavailable for "${item.title.slice(0, 40)}" — using rich fallback`);
+          processed = buildRichFallback(item, feed.category);
         }
 
         const finalSlug = processed.slug || baseSlug;
@@ -212,25 +250,20 @@ export async function GET(request: NextRequest) {
           savedArticles.push(processed.title);
           console.log('Saved:', processed.title.slice(0, 60));
         } else {
-          const errMsg = `Supabase insert error: ${error.message}`;
-          console.error(errMsg);
-          diagnostics.push(errMsg);
+          diagnostics.push(`Supabase insert error: ${error.message}`);
         }
       }
     } catch (err) {
-      const msg = `Feed ${feed.name} exception: ${String(err).slice(0, 100)}`;
-      console.error(msg);
-      diagnostics.push(msg);
+      diagnostics.push(`Feed ${feed.name} exception: ${String(err).slice(0, 100)}`);
     }
   }
 
-  const geminiKeyAvailable = !!GEMINI_API_KEY;
   return NextResponse.json({
     success: true,
     articlesProcessed: totalSaved,
     articles: savedArticles,
     diagnostics,
-    geminiKeyAvailable,
+    geminiKeyAvailable: !!GEMINI_API_KEY,
     timestamp: new Date().toISOString(),
   });
 }
