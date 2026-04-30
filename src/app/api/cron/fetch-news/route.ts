@@ -4,17 +4,16 @@ import { createClient } from '@supabase/supabase-js';
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET || 'edunext-news-cron-2026';
 
-// Mix of Google News RSS + direct education site RSS feeds
 const RSS_FEEDS = [
   { url: 'https://www.thehindu.com/education/feed/?format=feed&type=rss', category: 'Boards / CBSE', name: 'The Hindu Education' },
-  { url: 'https://feeds.feedburner.com/ndtvnews-education', category: 'Govt Exams', name: 'NDTV Education' },
   { url: 'https://indianexpress.com/section/education/feed/', category: 'JEE / Engineering', name: 'Indian Express Education' },
-  { url: 'https://www.hindustantimes.com/feeds/rss/education/rssfeed.xml', category: 'NEET / Medical', name: 'HT Education' },
   { url: 'https://timesofindia.indiatimes.com/rssfeeds/913168846.cms', category: 'MBA / CAT', name: 'TOI Education' },
-  { url: 'https://news.google.com/rss/search?q=JEE+2025+2026+exam+results+cutoff&hl=en-IN&gl=IN&ceid=IN:en', category: 'JEE / Engineering', name: 'Google News JEE' },
-  { url: 'https://news.google.com/rss/search?q=NEET+2025+2026+results+counselling&hl=en-IN&gl=IN&ceid=IN:en', category: 'NEET / Medical', name: 'Google News NEET' },
-  { url: 'https://news.google.com/rss/search?q=CLAT+2025+law+NLU+admissions&hl=en-IN&gl=IN&ceid=IN:en', category: 'CLAT / Law', name: 'Google News CLAT' },
+  { url: 'https://news.google.com/rss/search?q=JEE+2025+2026+exam+results+cutoff+India&hl=en-IN&gl=IN&ceid=IN:en', category: 'JEE / Engineering', name: 'Google News JEE' },
+  { url: 'https://news.google.com/rss/search?q=NEET+2025+2026+results+counselling+India&hl=en-IN&gl=IN&ceid=IN:en', category: 'NEET / Medical', name: 'Google News NEET' },
+  { url: 'https://news.google.com/rss/search?q=CLAT+2025+law+NLU+admissions+India&hl=en-IN&gl=IN&ceid=IN:en', category: 'CLAT / Law', name: 'Google News CLAT' },
+  { url: 'https://news.google.com/rss/search?q=CAT+MBA+IIM+admissions+India+2025&hl=en-IN&gl=IN&ceid=IN:en', category: 'MBA / CAT', name: 'Google News CAT' },
   { url: 'https://news.google.com/rss/search?q=study+abroad+scholarship+Indian+students+2025&hl=en-IN&gl=IN&ceid=IN:en', category: 'Study Abroad', name: 'Google News Study Abroad' },
+  { url: 'https://news.google.com/rss/search?q=UPSC+SSC+government+exam+India+2025&hl=en-IN&gl=IN&ceid=IN:en', category: 'Govt Exams', name: 'Google News Govt Exams' },
 ];
 
 interface RSSItem {
@@ -27,30 +26,34 @@ interface RSSItem {
 
 function parseRSSFeed(xml: string): RSSItem[] {
   const items: RSSItem[] = [];
-  const itemMatches = xml.matchAll(/<item[^>]*>([sS]*?)</item>/g);
+  const itemPattern = new RegExp('<item[^>]*>([\\s\\S]*?)<\\/item>', 'g');
+  const itemMatches = xml.matchAll(itemPattern);
 
   for (const match of itemMatches) {
     const itemXml = match[1];
-    const title =
-      itemXml.match(/<title><![CDATA[(.*?)]]></title>/s)?.[1] ||
-      itemXml.match(/<title[^>]*>(.*?)</title>/s)?.[1] || '';
-    const link =
-      itemXml.match(/<link>(https?://[^<s]+)/)?.[1] ||
-      itemXml.match(/<guid[^>]*>(https?://[^<]+)</guid>/)?.[1] ||
-      itemXml.match(/<link[^>]*href="([^"]+)"/)?.[1] || '';
-    const description =
-      itemXml.match(/<description><![CDATA[([sS]*?)]]></description>/)?.[1] ||
-      itemXml.match(/<description[^>]*>([sS]*?)</description>/)?.[1] || '';
-    const pubDate = itemXml.match(/<pubDate>(.*?)</pubDate>/)?.[1] || new Date().toUTCString();
-    const sourceMatch = itemXml.match(/<source[^>]*>(.*?)</source>/)?.[1];
+
+    const titleCdata = itemXml.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/);
+    const titlePlain = itemXml.match(/<title[^>]*>([\s\S]*?)<\/title>/);
+    const title = (titleCdata?.[1] || titlePlain?.[1] || '').replace(/<[^>]+>/g, '').trim();
+
+    const linkMatch = itemXml.match(/<link[^>]*>(https?:\/\/[^<\s]+)/);
+    const guidMatch = itemXml.match(/<guid[^>]*>(https?:\/\/[^<]+)<\/guid>/);
+    const link = (linkMatch?.[1] || guidMatch?.[1] || '').trim();
+
+    const descCdata = itemXml.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
+    const descPlain = itemXml.match(/<description[^>]*>([\s\S]*?)<\/description>/);
+    const description = (descCdata?.[1] || descPlain?.[1] || '').replace(/<[^>]+>/g, '').trim().slice(0, 500);
+
+    const pubDate = itemXml.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || new Date().toUTCString();
+
+    const sourceMatch = itemXml.match(/<source[^>]*>(.*?)<\/source>/)?.[1];
     let source = sourceMatch || '';
     if (!source && link) {
       try { source = new URL(link).hostname.replace('www.', ''); } catch { source = 'News'; }
     }
 
-    const cleanTitle = title.trim().replace(/<[^>]+>/g, '');
-    if (cleanTitle && link) {
-      items.push({ title: cleanTitle, link: link.trim(), description: description.trim().replace(/<[^>]+>/g, '').slice(0, 500), pubDate, source });
+    if (title && link) {
+      items.push({ title, link, description, pubDate, source });
     }
   }
   return items.slice(0, 2);
@@ -60,7 +63,10 @@ function slugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 80);
 }
 
-async function summarizeWithGemini(item: RSSItem, category: string): Promise<{ title: string; summary: string; content: string; tags: string[]; slug: string } | null> {
+async function summarizeWithGemini(
+  item: RSSItem,
+  category: string
+): Promise<{ title: string; summary: string; content: string; tags: string[]; slug: string } | null> {
   if (!GEMINI_API_KEY) {
     console.log('No Gemini API key found');
     return null;
@@ -74,13 +80,13 @@ Title: ${item.title}
 Description: ${item.description.slice(0, 300)}
 Category: ${category}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON (no markdown, no code block):
 {
   "title": "Clear headline max 80 chars",
   "summary": "2-3 sentences for Indian students max 200 chars",
-  "content": "3-4 paragraphs relevant to ${category} students",
+  "content": "3-4 paragraphs relevant to students preparing for this category",
   "tags": ["tag1", "tag2", "tag3"],
-  "slug": "url-friendly-slug"
+  "slug": "url-friendly-slug-from-title"
 }`;
 
   try {
@@ -89,7 +95,10 @@ Return ONLY valid JSON:
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, maxOutputTokens: 1024 } }),
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
+        }),
       }
     );
     if (!response.ok) {
@@ -114,7 +123,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   const { data: existingSlugs, error: slugErr } = await supabase.from('edu_news').select('slug');
   if (slugErr) console.error('Supabase slug fetch error:', slugErr.message);
@@ -130,7 +142,6 @@ export async function GET(request: NextRequest) {
       console.log('Fetching RSS:', feed.name);
       const rssResponse = await fetch(feed.url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (compatible; EduNextBot/1.0; +https://getedunext.com)' },
-        signal: AbortSignal.timeout(8000),
       });
 
       if (!rssResponse.ok) {
@@ -142,8 +153,9 @@ export async function GET(request: NextRequest) {
 
       const xml = await rssResponse.text();
       const items = parseRSSFeed(xml);
-      console.log(`RSS ${feed.name}: ${items.length} items parsed`);
-      diagnostics.push(`${feed.name}: ${items.length} items`);
+      const msg = `${feed.name}: ${items.length} items parsed`;
+      console.log(msg);
+      diagnostics.push(msg);
 
       for (const item of items) {
         const baseSlug = slugify(item.title);
@@ -159,14 +171,25 @@ export async function GET(request: NextRequest) {
         slugSet.add(finalSlug);
 
         const { error } = await supabase.from('edu_news').insert({
-          title: processed.title, slug: finalSlug, summary: processed.summary,
-          content: processed.content, category: feed.category, tags: processed.tags,
-          source_name: item.source, source_url: item.link, image_url: null,
+          title: processed.title,
+          slug: finalSlug,
+          summary: processed.summary,
+          content: processed.content,
+          category: feed.category,
+          tags: processed.tags,
+          source_name: item.source,
+          source_url: item.link,
+          image_url: null,
           published_at: new Date(item.pubDate).toISOString(),
         });
 
-        if (!error) { totalSaved++; savedArticles.push(processed.title); console.log('Saved:', processed.title.slice(0, 60)); }
-        else { console.error('Supabase insert error:', error.message); }
+        if (!error) {
+          totalSaved++;
+          savedArticles.push(processed.title);
+          console.log('Saved:', processed.title.slice(0, 60));
+        } else {
+          console.error('Supabase insert error:', error.message);
+        }
       }
     } catch (err) {
       const msg = `Feed ${feed.name} exception: ${String(err).slice(0, 100)}`;
@@ -175,5 +198,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ success: true, articlesProcessed: totalSaved, articles: savedArticles, diagnostics, timestamp: new Date().toISOString() });
+  return NextResponse.json({
+    success: true,
+    articlesProcessed: totalSaved,
+    articles: savedArticles,
+    diagnostics,
+    timestamp: new Date().toISOString(),
+  });
 }
