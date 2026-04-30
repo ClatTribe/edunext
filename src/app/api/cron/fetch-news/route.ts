@@ -289,7 +289,8 @@ function buildRichFallback(item: RSSItem, category: string): { title: string; su
 async function processFeed(
   feed: { url: string; category: string; name: string },
   slugSet: Set<string>,
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   diagnostics: string[]
 ): Promise<string[]> {
   const saved: string[] = [];
@@ -311,6 +312,8 @@ async function processFeed(
         diagnostics.push(`Skip duplicate: ${baseSlug.slice(0, 50)}`);
         continue;
       }
+      // Reserve slug immediately before any await (prevents parallel feed race condition)
+      slugSet.add(baseSlug);
 
       let processed = await summarizeWithGemini(item, feed.category, diagnostics);
       if (!processed) {
