@@ -119,6 +119,13 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
     link: "https://apply.alliance.edu.in/undergraduate-application-form-2026?utm_source=IPMcareer&utm_medium=Kanpur&utm_campaign=BBA2026",
     status: "Open",
   },
+  {
+  name: "Pimpri Chinchwad University (PCU)",
+  startDate: "Currently Open",
+  endDate: "Not Specified",
+  link: "https://apply.pcu.edu.in/?utm_source=PV_Vivek+Sukla&utm_medium=Guru+Mantra_Outreach",
+  status: "Open",
+},
     {
     name: "Doon Business School",
     startDate: "Currently Open",
