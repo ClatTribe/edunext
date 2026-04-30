@@ -11,6 +11,7 @@ import {
 import RelatedColleges from "../../../../components/microsite/RelatedColleges"
 import MicrositeHero from "../../../../components/microsite/MicrositeHero"
 import Navbar from "../../../../components/Navbar"
+import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
 // import ReactMarkdown from 'react-markdown'
 
 // Total Black Aesthetic
@@ -189,38 +190,60 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
   {children}
   
 {college.description && (
-  <div className="mt-8 p-6 rounded-xl border border-white/10 bg-white/5">
-    <h2 className="text-amber-500 font-bold text-xl mb-4">About</h2>
-    <div className="space-y-2">
-      {college.description.split('\n').map((line: string, i: number) => {
-        if (!line.trim()) return null
-        if (line.startsWith('- ')) {
-          const content = line.slice(2).replace(/\*\*(.*?)\*\*/g, '|||$1|||')
+  <div className="mt-12">
+    <div className="p-8 rounded-xl border border-amber-500/10 bg-[#0a0a0f] shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_60px_rgba(59,130,246,0.1)]">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6 pb-4 border-b border-amber-500/10">
+        <div className="h-0.5 w-8 bg-amber-500/50" />
+        <h2 className="text-xl md:text-2xl font-bold text-amber-400">
+          About {college.college_name}
+        </h2>
+      </div>
+
+      {/* Content */}
+      <div className="space-y-3 text-slate-300">
+        {college.description.split('\n').map((line: string, i: number) => {
+          if (!line.trim()) return null
+          
+          // Bullet points
+          if (line.startsWith('- ')) {
+            const content = line.slice(2).replace(/\*\*(.*?)\*\*/g, '|||$1|||')
+            return (
+              <div key={i} className="flex items-start gap-2.5 pl-2">
+                <span className="text-amber-500 text-sm mt-1.5">▸</span>
+                <span className="text-slate-300 text-sm leading-relaxed">
+                  {content.split('|||').map((part, j) =>
+                    j % 2 === 1
+                      ? <strong key={j} className="text-amber-400">{part}</strong>
+                      : part
+                  )}
+                </span>
+              </div>
+            )
+          }
+          
+          // Section headers
+          if (line.startsWith('**') && line.endsWith('**')) {
+            return (
+              <h3 key={i} className="text-lg font-semibold text-amber-400 mt-5 mb-2">
+                {line.replace(/\*\*/g, '')}
+              </h3>
+            )
+          }
+          
+          // Regular paragraphs
+          const content = line.replace(/\*\*(.*?)\*\*/g, '|||$1|||')
           return (
-            <div key={i} className="flex items-start gap-2 text-slate-300">
-              <span className="text-amber-500 mt-1">•</span>
-              <span>{content.split('|||').map((part, j) =>
+            <p key={i} className="text-slate-300 text-sm leading-relaxed">
+              {content.split('|||').map((part, j) =>
                 j % 2 === 1
                   ? <strong key={j} className="text-amber-400">{part}</strong>
                   : part
-              )}</span>
-            </div>
+              )}
+            </p>
           )
-        }
-        if (line.startsWith('**') && line.endsWith('**')) {
-          return <p key={i} className="text-amber-400 font-bold">{line.replace(/\*\*/g, '')}</p>
-        }
-        const content = line.replace(/\*\*(.*?)\*\*/g, '|||$1|||')
-        return (
-          <p key={i} className="text-slate-300">
-            {content.split('|||').map((part, j) =>
-              j % 2 === 1
-                ? <strong key={j} className="text-amber-400">{part}</strong>
-                : part
-            )}
-          </p>
-        )
-      })}
+        })}
+      </div>
     </div>
   </div>
 )}
@@ -230,6 +253,10 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
           <aside className="w-full lg:w-[350px] shrink-0">
             {/* top offset = navbar height + sub-navbar height (~48px) + gap */}
             <div className="lg:sticky lg:top-[136px]">
+              <CollegeEnquiryForm 
+                collegeName={college.college_name} 
+                pageSource={`/college/${slug}`} 
+              />
               <RelatedColleges
                 currentCollegeId={college.id}
                 currentLocation={college.location}
