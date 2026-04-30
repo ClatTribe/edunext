@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const model = "gemini-3.1-flash-lite-preview";
+    const model = "gemini-3.1-flash-live";
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
