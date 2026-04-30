@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { NewsArticle, CATEGORY_COLORS, CATEGORY_EMOJIS, timeAgo } from '../lib/news';
 
@@ -7,40 +8,56 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ article, featured = false }: NewsCardProps) {
-  const color = CATEGORY_COLORS[article.category] || '#6B7280';
-  const emoji = CATEGORY_EMOJIS[article.category] || '\uD83D\uDCF0';
+  const color = CATEGORY_COLORS[article.category] || '#F59E0B';
+  const emoji = CATEGORY_EMOJIS[article.category] || '📰';
 
   return (
-    <Link href={`/news/${article.slug}`} className="block group">
-      <div className={`bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 h-full ${featured ? 'flex flex-col' : ''}`}>
-        {/* Color strip */}
-        <div className="h-1.5 w-full" style={{ backgroundColor: color }} />
+    <Link href={`/news/${article.slug}`} className="block h-full">
+      <div
+        className="rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col"
+        style={{
+          backgroundColor: '#0F172B',
+          border: '1px solid rgba(245, 158, 11, 0.15)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.15)';
+        }}
+      >
+        <div className="h-1 w-full" style={{ backgroundColor: color }} />
 
-        <div className="p-4 flex flex-col flex-1">
-          {/* Category badge */}
-          <div className="flex items-center justify-between mb-2">
+        <div className="p-4 sm:p-5 flex flex-col flex-1">
+          <div className="flex items-center justify-between mb-3">
             <span
-              className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: `${color}18`, color }}
+              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: `${color}20`, color }}
             >
               <span>{emoji}</span>
               <span>{article.category}</span>
             </span>
-            <span className="text-xs text-gray-400">{timeAgo(article.published_at)}</span>
+            <span className="text-xs text-slate-500">{timeAgo(article.published_at)}</span>
           </div>
 
-          {/* Title */}
-          <h3 className={`font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2 ${featured ? 'text-lg line-clamp-2' : 'text-sm line-clamp-2'}`}>
+          <h2
+            className={`font-bold mb-2 text-white hover:text-[#F59E0B] transition-colors line-clamp-2 ${
+              featured ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg'
+            }`}
+          >
             {article.title}
-          </h3>
+          </h2>
 
-          {/* Summary */}
-          <p className="text-gray-500 text-sm line-clamp-3 flex-1">{article.summary}</p>
+          <p className="text-slate-400 text-sm line-clamp-3 flex-1">{article.summary}</p>
 
-          {/* Footer */}
-          <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
-            <span className="text-xs text-gray-400 truncate max-w-[160px]">{article.source_name}</span>
-            <span className="text-xs font-medium text-blue-500 group-hover:underline">Read \u2192</span>
+          <div
+            className="mt-4 pt-3 flex items-center justify-between"
+            style={{ borderTop: '1px solid rgba(245,158,11,0.1)' }}
+          >
+            <span className="text-xs text-slate-500 truncate max-w-[160px]">{article.source_name}</span>
+            <span className="text-xs font-medium text-amber-400">Read →</span>
           </div>
         </div>
       </div>
