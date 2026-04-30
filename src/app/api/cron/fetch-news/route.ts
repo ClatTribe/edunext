@@ -74,7 +74,7 @@ async function summarizeWithGemini(
 
   const prompt = `You are an education news editor for EduNext (getedunext.com), India's college discovery platform.
 
-Summarize this news for Indian students preparing for entrance exams.
+Summarize this news for Indian students preparing for dntrance exams.
 
 Title: ${item.title}
 Description: ${item.description.slice(0, 300)}
@@ -91,7 +91,7 @@ Return ONLY valid JSON (no markdown, no code block):
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -198,11 +198,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const geminiKeyAvailable = !!GEMINI_API_KEY;
   return NextResponse.json({
     success: true,
     articlesProcessed: totalSaved,
     articles: savedArticles,
     diagnostics,
+    geminiKeyAvailable,
     timestamp: new Date().toISOString(),
   });
 }
