@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getAllNews, NEWS_CATEGORIES, CATEGORY_COLORS } from '../lib/news';
 import NewsCard from './NewsCard';
 import Link from 'next/link';
