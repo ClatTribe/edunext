@@ -65,16 +65,17 @@ function slugify(text: string): string {
 
 async function summarizeWithGemini(
   item: RSSItem,
-  category: string
+  category: string,
+  diagnostics: string[]
 ): Promise<{ title: string; summary: string; content: string; tags: string[]; slug: string } | null> {
   if (!GEMINI_API_KEY) {
-    console.log('No Gemini API key found');
+    diagnostics.push('Gemini: no API key');
     return null;
   }
 
   const prompt = `You are an education news editor for EduNext (getedunext.com), India's college discovery platform.
 
-Summarize this news for Indian students preparing for dntrance exams.
+Summarize this news for Indian students preparing for entrance exams.
 
 Title: ${item.title}
 Description: ${item.description.slice(0, 300)}
@@ -103,18 +104,38 @@ Return ONLY valid JSON (no markdown, no code block):
     );
     if (!response.ok) {
       const err = await response.text();
-      console.error('Gemini API error:', response.status, err.slice(0, 200));
+      const msg = `Gemini HTTP ${response.status}: ${err.slice(0, 150)}`;
+      console.error(msg);
+      diagnostics.push(msg);
       return null;
     }
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!text) {
+      const msg = `Gemini empty response, finish: ${data.candidates?.[0]?.finishReason || 'unknown'}`;
+      diagnostics.push(msg);
+      return null;
+    }
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) { console.error('No JSON in Gemini response:', text.slice(0, 100)); return null; }
+    if (!jsonMatch) {
+      diagnostics.push(`Gemini no JSON: ${text.slice(0, 80)}`);
+      return null;
+    }
     return JSON.parse(jsonMatch[0]);
   } catch (e) {
-    console.error('Gemini exception:', String(e));
+    const msg = `Gemini exception: ${String(e).slice(0, 100)}`;
+    console.error(msg);
+    diagnostics.push(msg);
     return null;
   }
+}
+
+function buildFallback(item: RSSItem, category: string): { title: string; summary: string; content: string; tags: string[]; slug: string } {
+  const slug = slugify(item.title);
+  const summary = item.description.slice(0, 200) || item.title;
+  const content = `<p>${item.title}</p><p>${item.description || 'Read the full article at the source link.'}</p><p>Stay updated with the latest news on ${category} at EduNext.</p>`;
+  const tags = category.split(' / ').map((t) => t.trim().toLowerCase());
+  return { title: item.title.slice(0, 80), summary, content, tags, slug };
 }
 
 export async function GET(request: NextRequest) {
@@ -163,8 +184,11 @@ export async function GET(request: NextRequest) {
 
         await new Promise((resolve) => setTimeout(resolve, 800));
 
-        const processed = await summarizeWithGemini(item, feed.category);
-        if (!processed) { console.log('Gemini returned null for:', item.title.slice(0, 50)); continue; }
+        let processed = await summarizeWithGemini(item, feed.category, diagnostics);
+        if (!processed) {
+          diagnostics.push(`Gemini failed for "${item.title.slice(0, 40)}" — using fallback`);
+          processed = buildFallback(item, feed.category);
+        }
 
         const finalSlug = processed.slug || baseSlug;
         if (slugSet.has(finalSlug)) continue;
@@ -188,7 +212,9 @@ export async function GET(request: NextRequest) {
           savedArticles.push(processed.title);
           console.log('Saved:', processed.title.slice(0, 60));
         } else {
-          console.error('Supabase insert error:', error.message);
+          const errMsg = `Supabase insert error: ${error.message}`;
+          console.error(errMsg);
+          diagnostics.push(errMsg);
         }
       }
     } catch (err) {
