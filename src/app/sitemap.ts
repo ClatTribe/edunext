@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getAllBlogs } from '@/app/lib/blogs';
+import { getAllNews } from '@/app/lib/news';
 import { supabase } from '../../lib/supabase';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -47,11 +48,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  // 5. News Pages
+  const news = await getAllNews(undefined, 1000);
+  const newsUrls = news.map((article) => ({
+    url: `${baseUrl}/news/${article.slug}`,
+    lastModified: new Date(article.published_at || article.created_at || new Date()),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
   return [
     ...staticPages, 
     ...prepPages, 
     ...secondSubdomainPages, 
-    ...blogUrls
+    ...blogUrls,
+    ...newsUrls
   ];
 }
 
