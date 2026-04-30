@@ -106,7 +106,7 @@ export default function CollegeEnquiryForm({ collegeName, pageSource }: CollegeE
                 Submitting...
               </>
             ) : (
-              'Get Free Counseling'
+              'Enquire Now'
             )}
           </button>
 
