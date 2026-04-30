@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, unstable_after as after } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Extend Vercel function timeout to 60s (prevents timeout with 9 feeds)
@@ -13,12 +13,10 @@ const CRON_SECRET = process.env.CRON_SECRET || 'edunext-news-cron-2026';
 const GEMINI_MODELS = [
   'gemini-2.5-flash-lite',
   'gemini-2.5-flash',
-  'gemini-1.5-flash',
-  'gemini-2.0-flash',
 ];
 
 const RSS_FEEDS = [
-  { url: 'https://www.thehindu.com/education/feed/?format=feed&type=rss', category: 'Boards / CBSE', name: 'The Hindu Education' },
+  { url: 'https://news.google.com/rss/search?q=CBSE+Class+10+12+board+exam+result+2026&hl=en-IN&gl=IN&ceid=IN:en', category: 'Boards / CBSE', name: 'Google News CBSE' },
   { url: 'https://indianexpress.com/section/education/feed/', category: 'JEE / Engineering', name: 'Indian Express Education' },
   { url: 'https://timesofindia.indiatimes.com/rssfeeds/913168846.cms', category: 'MBA / CAT', name: 'TOI Education' },
   { url: 'https://news.google.com/rss/search?q=JEE+2025+2026+exam+results+cutoff+India&hl=en-IN&gl=IN&ceid=IN:en', category: 'JEE / Engineering', name: 'Google News JEE' },
@@ -361,39 +359,46 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  // Fire-and-forget: return immediately so callers don't time out (~30-60s).
+  // Vercel keeps the function alive (up to maxDuration=60) to finish the work.
+  after(async () => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-  const { data: existingSlugs, error: slugErr } = await supabase.from('edu_news').select('slug');
-  if (slugErr) console.error('Supabase slug fetch error:', slugErr.message);
-  const slugSet = new Set((existingSlugs || []).map((r: { slug: string }) => r.slug));
+      const { data: existingSlugs, error: slugErr } = await supabase.from('edu_news').select('slug');
+    if (slugErr) console.error('Supabase slug fetch error:', slugErr.message);
+    const slugSet = new Set((existingSlugs || []).map((r: { slug: string }) => r.slug));
 
-  const diagnostics: string[] = [
-    `Existing articles in DB: ${slugSet.size}`,
-    `Gemini key available: ${!!GEMINI_API_KEY}`,
-  ];
+    const diagnostics: string[] = [
+      `Existing articles in DB: ${slugSet.size}`,
+      `Gemini key available: ${!!GEMINI_API_KEY}`,
+    ];
 
-  // Process all feeds in PARALLEL — eliminates sequential timeout issues
-  const feedResults = await Promise.allSettled(
-    RSS_FEEDS.map((feed) => processFeed(feed, slugSet, supabase, diagnostics))
-  );
+    // Process all feeds in PARALLEL
+    const feedResults = await Promise.allSettled(
+      RSS_FEEDS.map((feed) => processFeed(feed, slugSet, supabase, diagnostics))
+    );
 
-  const savedArticles: string[] = [];
-  feedResults.forEach((result, i) => {
-    if (result.status === 'fulfilled') {
-      savedArticles.push(...result.value);
-    } else {
-      diagnostics.push(`Feed ${RSS_FEEDS[i].name} rejected: ${String(result.reason).slice(0, 80)}`);
-    }
+    const savedArticles: string[] = [];
+    feedResults.forEach((result, i) => {
+      if (result.status === 'fulfilled') {
+        savedArticles.push(...result.value);
+      } else {
+        diagnostics.push(`Feed ${RSS_FEEDS[i].name} rejected: ${String(result.reason).slice(0, 80)}`);
+      }
+    });
+
+    console.log(
+      `[fetch-news] Completed: ${savedArticles.length} articles saved`,
+      JSON.stringify({ articles: savedArticles, diagnostics })
+    );
   });
 
   return NextResponse.json({
     success: true,
-    articlesProcessed: savedArticles.length,
-    articles: savedArticles,
-    diagnostics,
+    message: 'News fetch started. Check Vercel logs for results.',
     geminiKeyAvailable: !!GEMINI_API_KEY,
     timestamp: new Date().toISOString(),
   });
