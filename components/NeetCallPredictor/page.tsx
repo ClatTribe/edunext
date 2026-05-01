@@ -613,7 +613,7 @@ export default function NeetCallPredictor() {
                   }}
                 >
                   <p className="text-slate-500 text-xs">
-                    ⚠️ Predictions are based on approximate 2024 cutoff data and
+                    ⚠️ Predictions are based on approximate 2026 cutoff data and
                     are indicative only. Actual cutoffs may vary. Always verify
                     with official NTA / college websites.
                   </p>
@@ -817,7 +817,7 @@ export default function NeetCallPredictor() {
           </div>
 
           <p className="text-center text-slate-600 text-xs mt-6 max-w-lg mx-auto px-4">
-            Predictions are based on 2024 NEET cutoff trends and are indicative
+            Predictions are based on 2026 NEET cutoff trends and are indicative
             only. Actual results depend on seat availability, state quotas, and
             official NTA cutoffs.
           </p>
