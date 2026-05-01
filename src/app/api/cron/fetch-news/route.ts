@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, unstable_after as after } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Extend Vercel function timeout to 60s (prevents timeout with 9 feeds)
