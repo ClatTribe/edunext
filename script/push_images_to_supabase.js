@@ -4,8 +4,8 @@ const path = require('path');
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 
 // ==================== CONFIGURATION ====================
-const CSV_FILE = path.join(__dirname, 'images_with_cloudinary.csv');
-const BATCH_SIZE = 50; // update 50 rows at a time
+const CSV_FILE = path.join(__dirname, 'images_with_imagekit.csv'); // updated filename
+const BATCH_SIZE = 50;
 
 // ==================== CSV PARSER ====================
 function parseCsvLine(line) {
@@ -47,10 +47,9 @@ async function pushImages() {
   try {
     console.log('Starting image push to Supabase...\n');
 
-    // 1. Read CSV
     if (!fs.existsSync(CSV_FILE)) {
       console.error(`CSV not found: ${CSV_FILE}`);
-      console.error('Run the image uploader script first to generate this file.');
+      console.error('Run college_image_uploader.js first to generate this file.');
       process.exit(1);
     }
 
@@ -58,7 +57,6 @@ async function pushImages() {
     const rows = parseCsv(csvContent);
     console.log(`Total rows in CSV: ${rows.length}`);
 
-    // 2. Filter rows that have images
     const rowsWithImages = rows.filter(row => {
       return row.image && row.image !== '' && row.image !== 'null';
     });
@@ -70,7 +68,7 @@ async function pushImages() {
       process.exit(0);
     }
 
-    // 3. Test connection
+    // Test connection
     const { error: connectionError } = await supabase
       .from('college_microsites')
       .select('id')
@@ -81,7 +79,6 @@ async function pushImages() {
     }
     console.log('Database connection successful\n');
 
-    // 4. Push in batches
     let updated = 0;
     let failed = 0;
     const errors = [];
@@ -90,10 +87,9 @@ async function pushImages() {
       const row = rowsWithImages[i];
       const id = parseInt(row.id);
       const title = row.title;
-      const imageJson = row.image; // already a JSON string like ["url1","url2"]
+      const imageJson = row.image;
 
       try {
-        // Parse the image JSON to validate it
         const imageArray = JSON.parse(imageJson);
 
         if (!Array.isArray(imageArray) || imageArray.length === 0) {
@@ -104,17 +100,14 @@ async function pushImages() {
         const { error: updateError } = await supabase
           .from('college_microsites')
           .update({
-            image: imageArray,
-            updated_at: new Date().toISOString()
+            image:      imageArray,
+            updated_at: new Date().toISOString(),
           })
           .eq('id', id);
 
-        if (updateError) {
-          throw updateError;
-        }
+        if (updateError) throw updateError;
 
         updated++;
-
         if (updated % 50 === 0) {
           console.log(`Progress: ${updated} updated...`);
         }
@@ -129,7 +122,6 @@ async function pushImages() {
       }
     }
 
-    // 5. Summary
     console.log('\n' + '='.repeat(60));
     console.log('PUSH SUMMARY');
     console.log('='.repeat(60));

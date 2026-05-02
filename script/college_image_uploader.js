@@ -1,10 +1,9 @@
 /**
  * ============================================================
- *  College Image Finder & Cloudinary Uploader (Node.js)
+ *  College Image Finder & ImageKit Uploader (Node.js)
  *  ZERO DEPENDENCIES — uses only built-in Node.js modules
  *
- *  v3: Fixed Google/Bing extraction — multiple regex strategies
- *      + debug dump on first college to diagnose issues
+ *  v1 (ImageKit): Replaced Cloudinary with ImageKit upload API
  * ============================================================
  *
  *  SETUP:
@@ -12,7 +11,7 @@
  *    2. Run directly:  node script/college_image_uploader.js
  *
  *  OPTIONS:
- *    node script/college_image_uploader.js                        → first 50
+ *    node script/college_image_uploader.js                        → first 3500
  *    node script/college_image_uploader.js --start 0 --end 100   → rows 0-100
  *    node script/college_image_uploader.js --resume               → continue from last stop
  *    node script/college_image_uploader.js --debug                → save raw HTML responses
@@ -27,43 +26,39 @@ const crypto = require("crypto");
 // ─── CONFIGURATION ──────────────────────────────────────────────────────────
 
 const CONFIG = {
-  cloudinary: {
-    cloud_name: "daetdadtt",
-    api_key: "613169283965661",
-    api_secret: "Fq-LMwECPuXmy1F2sHLyzW-K0hA",
-    folder: "college_microsites",
+  imagekit: {
+    publicKey:   "public_pSqQv0E8g287joaDr+K4isPQZro=",
+    privateKey:  "private_EraIbedFa4rUMf2CtyKyBblquVI=",
+    urlEndpoint: "https://ik.imagekit.io/getEdunext",
+    folder:      "/college_microsites",
   },
 
-  inputCsv: path.join(__dirname, "images.csv"),
-  outputCsv: path.join(__dirname, "images_with_cloudinary.csv"),
+  inputCsv:     path.join(__dirname, "images.csv"),
+  outputCsv:    path.join(__dirname, "images_with_imagekit.csv"),
   progressFile: path.join(__dirname, "upload_progress.json"),
 
   minImages: 1,
   maxImages: 2,
 
   delayBetweenColleges: 2000,
-  requestTimeout: 15000,
-  defaultBatchSize: 3500,
+  requestTimeout:       15000,
+  defaultBatchSize:     3500,
 };
 
 let DEBUG_MODE = false;
-let firstCollege = true; // always dump first college for diagnosis
+let firstCollege = true;
 
 const HEADERS_GOOGLE = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-  Accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+  "User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  Accept:            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
   "Accept-Language": "en-US,en;q=0.9",
   "Accept-Encoding": "identity",
-  "Cache-Control": "no-cache",
+  "Cache-Control":   "no-cache",
 };
 
 const HEADERS_BING = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-  Accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  Accept:            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
   "Accept-Language": "en-US,en;q=0.9",
   "Accept-Encoding": "identity",
 };
@@ -79,16 +74,18 @@ function log(msg, type = "info") {
 }
 
 function sanitize(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 60);
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 60);
 }
 
-// Relaxed validation — for search engine results we trust the source
 function isGoodImageUrl(url) {
   if (!url || url.length < 20) return false;
   if (!url.startsWith("http")) return false;
   const lower = url.toLowerCase();
 
-  // Must NOT be from these domains (search engine assets, not real images)
   const skipDomains = [
     "google.com", "gstatic.com", "googleapis.com", "bing.com", "bing.net",
     "microsoft.com", "msn.com", "facebook.com", "twitter.com", "instagram.com",
@@ -102,7 +99,6 @@ function isGoodImageUrl(url) {
     return false;
   }
 
-  // Skip obvious non-image patterns
   const skipPatterns = [
     "favicon", "sprite", "pixel", "1x1", "spacer",
     "tracking", "analytics", "ads/", "advertisement",
@@ -127,10 +123,7 @@ function httpGet(url, options = {}) {
 
       const req = lib.get(
         reqUrl,
-        {
-          headers: options.headers || HEADERS_GOOGLE,
-          timeout,
-        },
+        { headers: options.headers || HEADERS_GOOGLE, timeout },
         (res) => {
           if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
             if (redirectsLeft <= 0) return reject(new Error("Too many redirects"));
@@ -145,14 +138,7 @@ function httpGet(url, options = {}) {
 
           const chunks = [];
           res.on("data", (chunk) => chunks.push(chunk));
-          res.on("end", () => {
-            const buffer = Buffer.concat(chunks);
-            resolve({
-              status: res.statusCode,
-              headers: res.headers,
-              data: buffer.toString("utf8"),
-            });
-          });
+          res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, data: Buffer.concat(chunks).toString("utf8") }));
           res.on("error", reject);
         }
       );
@@ -179,31 +165,20 @@ function debugDump(filename, content) {
 // ─── IMAGE SEARCH: GOOGLE ──────────────────────────────────────────────────
 
 async function searchGoogleImages(query) {
-  // Strategy 1: Google Image Search
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch`;
-
   try {
     const resp = await httpGet(searchUrl, { headers: HEADERS_GOOGLE });
     const html = resp.data;
-
     if (firstCollege) {
       debugDump("google_images_response.html", html);
       log(`  [DEBUG] Google response length: ${html.length} chars`);
     }
-
     const imageUrls = extractUrlsFromGoogleHtml(html);
-
     if (imageUrls.length > 0) return imageUrls;
 
-    // Strategy 2: Regular Google search (sometimes returns image thumbnails)
     await sleep(1000);
-    const webSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-    const resp2 = await httpGet(webSearchUrl, { headers: HEADERS_GOOGLE });
-
-    if (firstCollege) {
-      debugDump("google_web_response.html", resp2.data);
-    }
-
+    const resp2 = await httpGet(`https://www.google.com/search?q=${encodeURIComponent(query)}`, { headers: HEADERS_GOOGLE });
+    if (firstCollege) debugDump("google_web_response.html", resp2.data);
     return extractUrlsFromGoogleHtml(resp2.data);
   } catch (err) {
     log(`  Google search failed: ${err.message}`, "warn");
@@ -213,57 +188,34 @@ async function searchGoogleImages(query) {
 
 function extractUrlsFromGoogleHtml(html) {
   const imageUrls = [];
-
-  // Unescape unicode sequences that Google uses
   const unescaped = html
-    .replace(/\\u003d/gi, "=")
-    .replace(/\\u0026/gi, "&")
-    .replace(/\\u002F/gi, "/")
-    .replace(/\\x3d/gi, "=")
-    .replace(/\\x26/gi, "&")
-    .replace(/\\x2F/gi, "/")
+    .replace(/\\u003d/gi, "=").replace(/\\u0026/gi, "&").replace(/\\u002F/gi, "/")
+    .replace(/\\x3d/gi, "=").replace(/\\x26/gi, "&").replace(/\\x2F/gi, "/")
     .replace(/\\\//g, "/");
 
-  // Pattern 1: ["url",width,height] arrays in Google's embedded JS data
-  const arrayPattern = /\["(https?:\/\/[^"]{30,})",\s*\d+,\s*\d+\]/g;
-  let match;
-  while ((match = arrayPattern.exec(unescaped)) !== null) {
-    const url = match[1];
-    if (isGoodImageUrl(url)) imageUrls.push(url);
+  const patterns = [
+    /\["(https?:\/\/[^"]{30,})",\s*\d+,\s*\d+\]/g,
+    /"ou"\s*:\s*"(https?:\/\/[^"]+)"/g,
+    /imgurl=(https?:\/\/[^&"]+)/g,
+    /"(https?:\/\/[^"]{20,}\.(?:jpg|jpeg|png|webp)(?:\?[^"]*)?)"/gi,
+    /\[[\d,]*"(https?:\/\/[^"]{30,})"[\d,]*\]/g,
+  ];
+
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(unescaped)) !== null) {
+      const url = pattern.source.includes("imgurl") ? decodeURIComponent(match[1]) : match[1];
+      if (isGoodImageUrl(url)) imageUrls.push(url);
+    }
   }
 
-  // Pattern 2: "ou":"url" (original URL in Google's JSON)
-  const ouPattern = /"ou"\s*:\s*"(https?:\/\/[^"]+)"/g;
-  while ((match = ouPattern.exec(unescaped)) !== null) {
-    if (isGoodImageUrl(match[1])) imageUrls.push(match[1]);
-  }
-
-  // Pattern 3: imgurl= in href links
-  const imgurlPattern = /imgurl=(https?:\/\/[^&"]+)/g;
-  while ((match = imgurlPattern.exec(unescaped)) !== null) {
-    const url = decodeURIComponent(match[1]);
-    if (isGoodImageUrl(url)) imageUrls.push(url);
-  }
-
-  // Pattern 4: Plain URLs ending in image extensions
-  const plainImgPattern = /"(https?:\/\/[^"]{20,}\.(?:jpg|jpeg|png|webp)(?:\?[^"]*)?)"/gi;
-  while ((match = plainImgPattern.exec(unescaped)) !== null) {
-    if (isGoodImageUrl(match[1])) imageUrls.push(match[1]);
-  }
-
-  // Pattern 5: data-src or src in img tags
+  // img tags
   const imgTagPattern = /<img[^>]+(?:src|data-src)\s*=\s*["'](https?:\/\/[^"']+)["'][^>]*>/gi;
+  let match;
   while ((match = imgTagPattern.exec(html)) !== null) {
     if (isGoodImageUrl(match[1])) imageUrls.push(match[1]);
   }
 
-  // Pattern 6: URLs in the format commonly found in Google's AF_initDataCallback
-  const afPattern = /\[[\d,]*"(https?:\/\/[^"]{30,})"[\d,]*\]/g;
-  while ((match = afPattern.exec(unescaped)) !== null) {
-    if (isGoodImageUrl(match[1])) imageUrls.push(match[1]);
-  }
-
-  // Deduplicate
   return [...new Set(imageUrls)].slice(0, 15);
 }
 
@@ -271,43 +223,29 @@ function extractUrlsFromGoogleHtml(html) {
 
 async function searchBingImages(query) {
   const searchUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&form=HDRSC2&first=1`;
-
   try {
     const resp = await httpGet(searchUrl, { headers: HEADERS_BING });
     const html = resp.data;
-
     if (firstCollege) {
       debugDump("bing_response.html", html);
       log(`  [DEBUG] Bing response length: ${html.length} chars`);
     }
 
     const imageUrls = [];
+    const patterns = [
+      /"murl"\s*:\s*"(https?:\/\/[^"]+)"/gi,
+      /mediaurl=(https?[^&"]+)/gi,
+      /<img[^>]+src="(https?:\/\/[^"]+)"[^>]*>/gi,
+      /data-src="(https?:\/\/[^"]+)"/gi,
+    ];
 
-    // Pattern 1: "murl":"url" (media URL — Bing's primary image data)
-    const murlRegex = /"murl"\s*:\s*"(https?:\/\/[^"]+)"/gi;
-    let match;
-    while ((match = murlRegex.exec(html)) !== null) {
-      const url = match[1].replace(/\\u002f/gi, "/").replace(/\\\//g, "/");
-      if (isGoodImageUrl(url)) imageUrls.push(url);
-    }
-
-    // Pattern 2: mediaurl= in query strings
-    const mediaurlRegex = /mediaurl=(https?[^&"]+)/gi;
-    while ((match = mediaurlRegex.exec(html)) !== null) {
-      const url = decodeURIComponent(match[1]);
-      if (isGoodImageUrl(url)) imageUrls.push(url);
-    }
-
-    // Pattern 3: src in img tags
-    const imgSrcRegex = /<img[^>]+src="(https?:\/\/[^"]+)"[^>]*>/gi;
-    while ((match = imgSrcRegex.exec(html)) !== null) {
-      if (isGoodImageUrl(match[1])) imageUrls.push(match[1]);
-    }
-
-    // Pattern 4: data-src in img tags
-    const dataSrcRegex = /data-src="(https?:\/\/[^"]+)"/gi;
-    while ((match = dataSrcRegex.exec(html)) !== null) {
-      if (isGoodImageUrl(match[1])) imageUrls.push(match[1]);
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(html)) !== null) {
+        const url = match[1].replace(/\\u002f/gi, "/").replace(/\\\//g, "/");
+        const decoded = pattern.source.includes("mediaurl") ? decodeURIComponent(url) : url;
+        if (isGoodImageUrl(decoded)) imageUrls.push(decoded);
+      }
     }
 
     return [...new Set(imageUrls)].slice(0, 15);
@@ -317,28 +255,21 @@ async function searchBingImages(query) {
   }
 }
 
-// ─── IMAGE SEARCH: DUCKDUCKGO (SECOND FALLBACK) ────────────────────────────
+// ─── IMAGE SEARCH: DUCKDUCKGO ──────────────────────────────────────────────
 
 async function searchDuckDuckGoImages(query) {
-  // DDG uses a token-based system, try their lite/html version
   const searchUrl = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`;
-
   try {
     const resp = await httpGet(searchUrl, { headers: HEADERS_GOOGLE });
     const html = resp.data;
-
-    if (firstCollege) {
-      debugDump("ddg_response.html", html);
-    }
+    if (firstCollege) debugDump("ddg_response.html", html);
 
     const imageUrls = [];
-    // Extract any image URLs from DDG results
     const urlRegex = /"(https?:\/\/[^"]{20,}\.(?:jpg|jpeg|png|webp)[^"]*)"/gi;
     let match;
     while ((match = urlRegex.exec(html)) !== null) {
       if (isGoodImageUrl(match[1])) imageUrls.push(match[1]);
     }
-
     return [...new Set(imageUrls)].slice(0, 10);
   } catch (err) {
     log(`  DuckDuckGo search failed: ${err.message}`, "warn");
@@ -346,34 +277,26 @@ async function searchDuckDuckGoImages(query) {
   }
 }
 
-// ─── CLOUDINARY UPLOAD ──────────────────────────────────────────────────────
+// ─── IMAGEKIT UPLOAD ────────────────────────────────────────────────────────
 
-async function cloudinaryUpload(imageUrl, collegeName, index) {
-  const publicId = `${CONFIG.cloudinary.folder}/${sanitize(collegeName)}_${index}`;
-  const timestamp = Math.floor(Date.now() / 1000);
+async function imagekitUpload(imageUrl, collegeName, index) {
+  // ImageKit upload API endpoint
+  const uploadEndpoint = "https://upload.imagekit.io/api/v1/files/upload";
 
-  const signedParams = {
-    format: "jpg",
-    overwrite: "true",
-    public_id: publicId,
-    timestamp: String(timestamp),
-    transformation: "w_800,h_600,c_limit,q_auto:good",
-  };
+  // fileName for ImageKit
+  const fileName = `${sanitize(collegeName)}_${index}.jpg`;
+  const filePath = `${CONFIG.imagekit.folder}/${sanitize(collegeName)}_${index}`;
 
-  const signStr = Object.keys(signedParams)
-    .sort()
-    .map((k) => `${k}=${signedParams[k]}`)
-    .join("&") + CONFIG.cloudinary.api_secret;
+  // Build multipart form body
+  const boundary = "----ImageKitBoundary" + Date.now();
 
-  const signature = crypto.createHash("sha1").update(signStr).digest("hex");
-
-  const boundary = "----CloudinaryBoundary" + Date.now();
   const fields = {
-    file: imageUrl,
-    api_key: CONFIG.cloudinary.api_key,
-    signature,
-    resource_type: "image",
-    ...signedParams,
+    file:              imageUrl,         // ImageKit accepts a URL directly
+    fileName:          fileName,
+    folder:            CONFIG.imagekit.folder,
+    useUniqueFileName: "true",           // avoid collisions
+    isPrivateFile:     "false",
+    overwriteFile:     "true",
   };
 
   let body = "";
@@ -384,18 +307,20 @@ async function cloudinaryUpload(imageUrl, collegeName, index) {
   }
   body += `--${boundary}--\r\n`;
 
-  const uploadUrl = `https://api.cloudinary.com/v1_1/${CONFIG.cloudinary.cloud_name}/image/upload`;
+  // ImageKit uses HTTP Basic Auth: privateKey as username, empty password
+  const auth = Buffer.from(`${CONFIG.imagekit.privateKey}:`).toString("base64");
 
   return new Promise((resolve, reject) => {
-    const parsed = new URL(uploadUrl);
+    const parsed = new URL(uploadEndpoint);
     const req = https.request(
       {
         hostname: parsed.hostname,
-        path: parsed.pathname,
-        method: "POST",
-        headers: {
-          "Content-Type": `multipart/form-data; boundary=${boundary}`,
+        path:     parsed.pathname,
+        method:   "POST",
+        headers:  {
+          "Content-Type":   `multipart/form-data; boundary=${boundary}`,
           "Content-Length": Buffer.byteLength(body),
+          Authorization:    `Basic ${auth}`,
         },
         timeout: 30000,
       },
@@ -406,13 +331,14 @@ async function cloudinaryUpload(imageUrl, collegeName, index) {
           const raw = Buffer.concat(chunks).toString("utf8");
           try {
             const json = JSON.parse(raw);
-            if (json.secure_url) {
-              resolve(json.secure_url);
+            // ImageKit returns { url, fileId, name, ... } on success
+            if (json.url) {
+              resolve(json.url);
             } else {
-              reject(new Error(json.error?.message || "No URL in response"));
+              reject(new Error(json.message || JSON.stringify(json)));
             }
           } catch {
-            reject(new Error("Invalid JSON from Cloudinary"));
+            reject(new Error("Invalid JSON from ImageKit"));
           }
         });
         res.on("error", reject);
@@ -425,34 +351,37 @@ async function cloudinaryUpload(imageUrl, collegeName, index) {
   });
 }
 
-async function uploadToCloudinary(imageUrl, collegeName, index) {
+async function uploadToImageKit(imageUrl, collegeName, index) {
   try {
-    return await cloudinaryUpload(imageUrl, collegeName, index);
+    return await imagekitUpload(imageUrl, collegeName, index);
   } catch (err) {
     log(`  Upload failed: ${err.message}`, "warn");
     return null;
   }
 }
 
-// ─── CLOUDINARY PING ────────────────────────────────────────────────────────
+// ─── IMAGEKIT PING ──────────────────────────────────────────────────────────
 
-function cloudinaryPing() {
-  const auth = Buffer.from(`${CONFIG.cloudinary.api_key}:${CONFIG.cloudinary.api_secret}`).toString("base64");
+function imagekitPing() {
+  const auth = Buffer.from(`${CONFIG.imagekit.privateKey}:`).toString("base64");
   return new Promise((resolve, reject) => {
     const req = https.request(
       {
-        hostname: "api.cloudinary.com",
-        path: `/v1_1/${CONFIG.cloudinary.cloud_name}/ping`,
-        method: "GET",
-        headers: { Authorization: `Basic ${auth}` },
-        timeout: 10000,
+        hostname: "api.imagekit.io",
+        path:     "/v1/files?limit=1",
+        method:   "GET",
+        headers:  { Authorization: `Basic ${auth}` },
+        timeout:  10000,
       },
       (res) => {
         const chunks = [];
         res.on("data", (c) => chunks.push(c));
         res.on("end", () => {
           if (res.statusCode === 200) resolve(true);
-          else reject(new Error(`Ping returned ${res.statusCode}`));
+          else {
+            const body = Buffer.concat(chunks).toString("utf8");
+            reject(new Error(`Ping returned ${res.statusCode}: ${body}`));
+          }
         });
         res.on("error", reject);
       }
@@ -480,20 +409,6 @@ function saveProgress(progress) {
 
 // ─── CSV PARSER ─────────────────────────────────────────────────────────────
 
-function parseCsv(content) {
-  const lines = content.split("\n").filter((l) => l.trim());
-  if (lines.length === 0) return [];
-  const headers = parseCsvLine(lines[0]);
-  const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseCsvLine(lines[i]);
-    const row = {};
-    headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
-    rows.push(row);
-  }
-  return rows;
-}
-
 function parseCsvLine(line) {
   const result = [];
   let current = "";
@@ -512,6 +427,20 @@ function parseCsvLine(line) {
   }
   result.push(current.trim());
   return result;
+}
+
+function parseCsv(content) {
+  const lines = content.split("\n").filter((l) => l.trim());
+  if (lines.length === 0) return [];
+  const headers = parseCsvLine(lines[0]);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCsvLine(lines[i]);
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
+    rows.push(row);
+  }
+  return rows;
 }
 
 function stringifyCsv(rows) {
@@ -539,14 +468,14 @@ async function processCollege(collegeName, collegeId) {
 
   let allCandidates = [];
 
-  // Step 1: Google Image Search
+  // Step 1: Google
   const googleQuery = `${collegeName} campus India`;
   log(`  -> Google: "${googleQuery}"`);
   const googleImages = await searchGoogleImages(googleQuery);
   allCandidates.push(...googleImages);
   log(`  -> Found ${googleImages.length} via Google`);
 
-  // Step 2: Bing if Google gave < 2
+  // Step 2: Bing fallback
   if (allCandidates.length < 2) {
     await sleep(1500);
     const bingQuery = `${collegeName} college campus`;
@@ -556,7 +485,7 @@ async function processCollege(collegeName, collegeId) {
     log(`  -> Found ${bingImages.length} via Bing`);
   }
 
-  // Step 3: DuckDuckGo if still nothing
+  // Step 3: DuckDuckGo fallback
   if (allCandidates.length === 0) {
     await sleep(1000);
     const ddgQuery = `${collegeName} college photo`;
@@ -577,37 +506,33 @@ async function processCollege(collegeName, collegeId) {
 
   if (uniqueCandidates.length === 0) {
     log(`  X No images found for ${collegeName}`, "warn");
-    if (firstCollege) {
-      log(`  [DEBUG] Check debug/ folder for raw HTML responses`, "warn");
-    }
+    if (firstCollege) log(`  [DEBUG] Check debug/ folder for raw HTML responses`, "warn");
     return [];
   }
 
   log(`  Found ${uniqueCandidates.length} candidates, uploading top ${targetCount}...`);
   if (firstCollege) {
-    log(`  [DEBUG] First 3 candidate URLs:`, "info");
-    uniqueCandidates.slice(0, 3).forEach((u, i) => log(`    ${i + 1}: ${u.slice(0, 120)}`, "info"));
+    log(`  [DEBUG] First 3 candidate URLs:`);
+    uniqueCandidates.slice(0, 3).forEach((u, i) => log(`    ${i + 1}: ${u.slice(0, 120)}`));
   }
 
-  const cloudinaryUrls = [];
-  for (let i = 0; i < uniqueCandidates.length && cloudinaryUrls.length < targetCount; i++) {
-    const cdnUrl = await uploadToCloudinary(uniqueCandidates[i], collegeName, cloudinaryUrls.length + 1);
-    if (cdnUrl) {
-      cloudinaryUrls.push(cdnUrl);
-      log(`  OK Uploaded ${cloudinaryUrls.length}/${targetCount}`, "success");
+  const imagekitUrls = [];
+  for (let i = 0; i < uniqueCandidates.length && imagekitUrls.length < targetCount; i++) {
+    const ikUrl = await uploadToImageKit(uniqueCandidates[i], collegeName, imagekitUrls.length + 1);
+    if (ikUrl) {
+      imagekitUrls.push(ikUrl);
+      log(`  OK Uploaded ${imagekitUrls.length}/${targetCount}`, "success");
     }
   }
 
-  if (cloudinaryUrls.length > 0) {
-    log(`  Done: ${cloudinaryUrls.length} images for ${collegeName}`, "success");
+  if (imagekitUrls.length > 0) {
+    log(`  Done: ${imagekitUrls.length} images for ${collegeName}`, "success");
   } else {
     log(`  X Could not upload any images for ${collegeName}`, "error");
   }
 
-  // After first college, turn off first-college debug
   firstCollege = false;
-
-  return cloudinaryUrls;
+  return imagekitUrls;
 }
 
 // ─── MAIN ───────────────────────────────────────────────────────────────────
@@ -620,9 +545,9 @@ async function main() {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--start") startRow = parseInt(args[i + 1]) || 0;
-    if (args[i] === "--end") endRow = parseInt(args[i + 1]) || CONFIG.defaultBatchSize;
-    if (args[i] === "--resume") resume = true;
-    if (args[i] === "--debug") DEBUG_MODE = true;
+    if (args[i] === "--end")   endRow   = parseInt(args[i + 1]) || CONFIG.defaultBatchSize;
+    if (args[i] === "--resume") resume  = true;
+    if (args[i] === "--debug")  DEBUG_MODE = true;
   }
 
   const progress = loadProgress();
@@ -632,12 +557,12 @@ async function main() {
     log(`Resuming from row ${startRow}`);
   }
 
-  log("Testing Cloudinary connection...");
+  log("Testing ImageKit connection...");
   try {
-    await cloudinaryPing();
-    log("Cloudinary connected!", "success");
+    await imagekitPing();
+    log("ImageKit connected!", "success");
   } catch (err) {
-    log(`Cloudinary connection failed: ${err.message}`, "error");
+    log(`ImageKit connection failed: ${err.message}`, "error");
     process.exit(1);
   }
 
@@ -673,10 +598,10 @@ async function main() {
     if (!title || !title.trim()) continue;
 
     try {
-      const cloudinaryUrls = await processCollege(title.trim(), id);
+      const imagekitUrls = await processCollege(title.trim(), id);
 
-      if (cloudinaryUrls.length > 0) {
-        row.image = JSON.stringify(cloudinaryUrls);
+      if (imagekitUrls.length > 0) {
+        row.image = JSON.stringify(imagekitUrls);
         uploaded++;
       } else {
         failed++;

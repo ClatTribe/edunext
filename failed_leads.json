@@ -1,0 +1,263 @@
+[
+  {
+    "lead": {
+      "FirstName": "manya",
+      "LastName": "vyas",
+      "Email": "competitiveexam322@gmail.com",
+      "MobilePhone": "8848851568"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Divyansh",
+      "LastName": "pharkya",
+      "Email": "vishesh.biaora@gmail.com",
+      "MobilePhone": "9425037505"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Vishesh",
+      "LastName": "Goyal",
+      "Email": "shouryakherodiya@gmail.com",
+      "MobilePhone": "9664250585"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Naimish",
+      "LastName": "Rathi",
+      "Email": "reachaayushharsha@gmail.com",
+      "MobilePhone": "9986905660"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Anonymus",
+      "LastName": "Anonymus",
+      "Email": "aryanshsaini11@gmail.com",
+      "MobilePhone": "9617655655"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Prakhar",
+      "LastName": "Jaiswal",
+      "Email": "diljannatkaur@gmail.com",
+      "MobilePhone": "9877063402"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Diljannat",
+      "LastName": "Kaur",
+      "Email": "siddh.07sharma@gmail.com",
+      "MobilePhone": "7976593817"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Anubhav",
+      "LastName": "Shukla",
+      "Email": "sohampati997@gmail.com",
+      "MobilePhone": "9999999999"
+    },
+    "error": "Error Upsert failed. First exception on row 0 with id 00QPn00000WVCQhMAP; first error: STRING_TOO_LONG, Secondary Emails: data value too large: paobhaaji@gmail.com,test@example.com,Wfw88@proton.me,sipovaj628@deenur.com,aditikc143@gmail.com,camixay869@bamsrad.com,rohanspike4@gmail.com,srih3092@gmail.com,bisew59213@noidem.com,singhmuk@gmail.com,dadosi1128@myweblaw.com,kofole5392@provko.com,sohampati997@gmail.com (max length=255): [Secondary_Emails__c]"
+  },
+  {
+    "lead": {
+      "FirstName": "Khush",
+      "LastName": "tolani",
+      "Email": "subhalaxmisahoo177@gmail.com",
+      "MobilePhone": "9040777326"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Aksh",
+      "LastName": "Aksh",
+      "Email": "somanianirudh123@gmail.com",
+      "MobilePhone": "9152009742"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "PALAK",
+      "LastName": "SINDHWANI",
+      "Email": "vihaan10singhal@gmail.com",
+      "MobilePhone": "8446986278"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Aadesh",
+      "LastName": "Sachin Patil",
+      "Email": "dev.bajaria8@gmail.com",
+      "MobilePhone": "9819572720"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Dev",
+      "LastName": "Dev",
+      "Email": "atharva11sharma@gmail.com",
+      "MobilePhone": "8767300510"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Ronak",
+      "LastName": "Jain",
+      "Email": "aniket.rupen@gmail.com",
+      "MobilePhone": "7015212200"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Purvi",
+      "LastName": "Purvi",
+      "Email": "vishesh.biaora@gmail.com",
+      "MobilePhone": "6266255586"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Abhimanya",
+      "LastName": "Raghav",
+      "Email": "harsh125chauhan@gmail.com",
+      "MobilePhone": "8619254076"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Apoorva",
+      "LastName": "jaiswal",
+      "Email": "discordisban@gmail.com",
+      "MobilePhone": "8700187009"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Prakash",
+      "LastName": "Kumar",
+      "Email": "vedikapatwari2@gmail.com",
+      "MobilePhone": "8964945609"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Siddharth",
+      "LastName": "chopra",
+      "Email": "siddhisingh9897@gmail.com",
+      "MobilePhone": "9319260167"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Abc",
+      "LastName": "Abc",
+      "Email": "karansewani630@gmail.com",
+      "MobilePhone": "8971543465"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Pavan",
+      "LastName": "krishna palivela",
+      "Email": "pablodealer77@gmail.com",
+      "MobilePhone": "7016539032"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Tafikul",
+      "LastName": "Hussain",
+      "Email": "powarojas@gmail.com",
+      "MobilePhone": "8355909349"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Ananyaa",
+      "LastName": "goyal",
+      "Email": "dhanvimanugunta@gmail.com",
+      "MobilePhone": "9494848989"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "amit",
+      "LastName": "amit",
+      "Email": "ashvikagupta2007@gmail.com",
+      "MobilePhone": "7082465704"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Shaurya",
+      "LastName": "Singhi",
+      "Email": "tanishqjain18203@gmail.com",
+      "MobilePhone": "7489842114"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Kushagra",
+      "LastName": "Kushagra",
+      "Email": "ryannnpvt@gmail.com",
+      "MobilePhone": "6307813253"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Vandana",
+      "LastName": "Biyani",
+      "Email": "nomithvardhan@gmail.com",
+      "MobilePhone": "9502383323"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Manish",
+      "LastName": "sarpla",
+      "Email": "parvbhatewara1234@gmail.com",
+      "MobilePhone": "9893381570"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  },
+  {
+    "lead": {
+      "FirstName": "Akshat",
+      "LastName": "Bhatia",
+      "Email": "powarojas@gmail.com",
+      "MobilePhone": "0355909349"
+    },
+    "error": "A contact with this email ID or mobile number is already registered. To register for a new program, please use the previously shared credentials and login link, and proceed with a new application."
+  }
+]
