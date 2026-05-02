@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, unstable_after as after } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Extend Vercel function timeout to 60s (prevents timeout with 9 feeds)
@@ -66,6 +66,52 @@ function parseRSSFeed(xml: string): RSSItem[] {
 function slugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 80);
 }
+// Per-article category router. Runs on title + description, ignores feed.category
+// unless nothing matches. Order matters: more specific buckets first; Boards
+// before Govt Exams (so "AP SSC results" routes to Boards, not Govt SSC CGL).
+function classifyCategory(title: string, description: string, fallback: string): string {
+  const text = `${title} ${description}`.toLowerCase();
+
+  // 1. NEET / Medical
+  if (/\b(neet|mbbs|aiims|nmc|jipmer|mds|bds|medical (college|entrance|admission))\b/.test(text)) return 'NEET / Medical';
+
+  // 2. CLAT / Law
+  if (/\b(clat|ailet|nlu|nlsiu|nalsar|national law univers|law (admission|entrance)|llb admission)\b/.test(text)) return 'CLAT / Law';
+
+  // 3. MBA / CAT
+  if (/\b(iim|xat|cmat|nmat|gmat|mba admission|business school|b-school)\b/.test(text)) return 'MBA / CAT';
+  if (/\bcat (exam|20\d{2}|result|cutoff|registration|aspir)/.test(text)) return 'MBA / CAT';
+
+  // 4. Boards / CBSE — must precede Govt Exams (state SSC = Boards, not Govt)
+  if (/\b(cbse|icse|hsc|cisce|aissce|matric|board exam|board result|marksheet|digilocker|msbshse)\b/.test(text)) return 'Boards / CBSE';
+  if (/\bclass (10|11|12)(th)?\b/.test(text)) return 'Boards / CBSE';
+  if (/\b(10th|11th|12th) (result|board|exam|marks)/.test(text)) return 'Boards / CBSE';
+  if (/\b(ap|maharashtra|odisha|telangana|bihar|gujarat|kerala|tamil nadu|tn) (ssc|hsc|board)\b/.test(text)) return 'Boards / CBSE';
+  if (/\bssc (result|board|exam|10th|12th|marks|supplementary)/.test(text)) return 'Boards / CBSE';
+  if (/\b(bse odisha|jac board|wbbse|cgbse|pseb|ahsec)\b/.test(text)) return 'Boards / CBSE';
+
+  // 5. Govt Exams
+  if (/\b(upsc|civil service|nda exam|cds exam|capf|epfo|state psc|sbi (po|clerk))\b/.test(text)) return 'Govt Exams';
+  if (/\bssc (cgl|gd|mts|chsl|je|stenographer|selection commission)\b/.test(text)) return 'Govt Exams';
+  if (/\b(rrb|ntpc|ibps)\b/.test(text)) return 'Govt Exams';
+
+  // 6. Scholarships
+  if (/\b(scholarship|fellowship|inspire scholarship|kvpy|nsp portal)\b/.test(text)) return 'Scholarships';
+
+  // 7. Study Abroad
+  if (/\b(ielts|toefl|study abroad|f-?1 visa|student visa|us universit|uk universit|canada visa|gre exam|sat exam|mbbs abroad|overseas educ)\b/.test(text)) return 'Study Abroad';
+
+  // 8. AI & EdTech
+  if (/\b(chatgpt|generative ai|gen ai|edtech|ed-tech|ai tutor)\b/.test(text)) return 'AI & EdTech';
+  if (/\bai (in|for) educat/.test(text)) return 'AI & EdTech';
+
+  // 9. JEE / Engineering — last specific check (broad terms appear elsewhere)
+  if (/\b(jee|josaa|csab|iit|nit|iiit|btech|b\.tech)\b/.test(text)) return 'JEE / Engineering';
+  if (/\bengineering (admission|counsell|entrance|college|aspir)/.test(text)) return 'JEE / Engineering';
+
+  return fallback;
+}
+
 
 async function summarizeWithGemini(
   item: RSSItem,
@@ -313,10 +359,16 @@ async function processFeed(
       // Reserve slug immediately before any await (prevents parallel feed race condition)
       slugSet.add(baseSlug);
 
-      let processed = await summarizeWithGemini(item, feed.category, diagnostics);
+      // Per-article classification overrides feed.category when text signals a different bucket
+      const articleCategory = classifyCategory(item.title, item.description, feed.category);
+      if (articleCategory !== feed.category) {
+        diagnostics.push(`Reclassified "${item.title.slice(0, 40)}" → ${articleCategory} (feed default: ${feed.category})`);
+      }
+
+      let processed = await summarizeWithGemini(item, articleCategory, diagnostics);
       if (!processed) {
         diagnostics.push(`Gemini failed for "${item.title.slice(0, 40)}" — using rich fallback`);
-        processed = buildRichFallback(item, feed.category);
+        processed = buildRichFallback(item, articleCategory);
       }
 
       const finalSlug = processed.slug || baseSlug;
@@ -332,7 +384,7 @@ async function processFeed(
         slug: finalSlug,
         summary: processed.summary,
         content: processed.content,
-        category: feed.category,
+        category: articleCategory,
         tags: processed.tags,
         source_name: item.source,
         source_url: item.link,
