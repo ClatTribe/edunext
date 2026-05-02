@@ -160,8 +160,6 @@ export default function NeetCallPredictor() {
           email: form.email,
           category,
           score: marks,
-          // store domicile state in `gender` column as fallback if schema not migrated;
-          // recommend adding a `domicile_state` column to the table.
           domicile_state: form.state,
         });
       } catch {
@@ -417,8 +415,86 @@ function FormView({
           Predictions use NEET 2025 closing AIRs from MCC, NTA & state authorities.
           Indicative only — actual cutoffs vary by counselling round, state quotas, and seat availability.
         </p>
+
+        <SeoContent />
       </div>
     </div>
+  );
+}
+
+// ─── SEO CONTENT (rendered below form for search indexing) ───────────────────
+function SeoContent() {
+  return (
+    <article
+      className="max-w-3xl mx-auto mt-12 sm:mt-16 px-5 sm:px-8 py-8 sm:py-10 rounded-2xl"
+      style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+    >
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-4 leading-tight">
+        What is the{" "}
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] to-orange-500">
+          NEET Call Predictor?
+        </span>
+      </h2>
+      <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed">
+        <p>
+          The EduNext <strong>NEET Call Predictor</strong> is a free, data-driven
+          tool that maps your expected <strong>NEET 2025 marks</strong> to a
+          personalised list of MBBS colleges you can realistically expect an
+          admission call from. We score your profile against closing All India
+          Ranks for <strong>{COLLEGE_COUNT}+ medical colleges</strong> — every
+          AIIMS, JIPMER Puducherry & Karaikal, top central institutes (MAMC, VMMC
+          Safdarjung, IMS BHU, KGMU), 240+ government medical colleges, GMERS in
+          Gujarat, ESIC colleges, 85+ private colleges and 50+ deemed
+          universities counselled via MCC.
+        </p>
+        <p>
+          Unlike basic score-to-college lookups, our predictor evaluates the two
+          NEET counselling pools <em>separately</em> — the{" "}
+          <strong>15% All India Quota (AIQ)</strong> open to every domicile, and
+          the <strong>85% state quota</strong> restricted to your home state — so
+          your matches reflect real seat availability under MCC and state
+          counselling rules. Each result is bucketed as a{" "}
+          <strong style={{ color: "#22c55e" }}>Safe Bet</strong>,{" "}
+          <strong style={{ color: "#fbbf24" }}>Moderate Call</strong>, or{" "}
+          <strong style={{ color: "#f97316" }}>Reach</strong> based on your AIR
+          versus last year's closing AIR. Category-aware multipliers for OBC,
+          EWS, SC and ST mean predictions reflect actual reservation-pool
+          dynamics rather than blanket cutoffs.
+        </p>
+        <p>
+          Predictions are indicative — final admission depends on counselling
+          round, seat availability and verified state quotas. Always cross-check
+          with{" "}
+          <a
+            href="https://mcc.nic.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: accentColor }}
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            mcc.nic.in
+          </a>{" "}
+          and your state authority before locking your choice. Explore more on
+          our{" "}
+          <a
+            href="/find-colleges"
+            style={{ color: accentColor }}
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            college finder
+          </a>{" "}
+          and{" "}
+          <a
+            href="/neet-starter-kit"
+            style={{ color: accentColor }}
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            NEET starter kit
+          </a>
+          .
+        </p>
+      </div>
+    </article>
   );
 }
 
