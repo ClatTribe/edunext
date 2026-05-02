@@ -105,11 +105,28 @@ export default async function ArticlePage({
 
           {/* Article content */}
           <div
-            className="mb-8 rounded-xl p-6"
+            className="mb-8 rounded-xl p-6 sm:p-8"
             style={{ backgroundColor: '#0F172B', border: '1px solid rgba(245,158,11,0.15)' }}
           >
             <div
-              className="text-slate-300 leading-relaxed space-y-4 text-base"
+              className={`
+                text-slate-300 leading-7 text-base
+                [&>h2]:text-xl [&>h2]:sm:text-2xl [&>h2]:font-bold [&>h2]:text-white
+                [&>h2]:mt-8 [&>h2]:mb-3 [&>h2]:tracking-tight
+                [&>h2:first-child]:mt-0
+                [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:text-white
+                [&>h3]:mt-6 [&>h3]:mb-2
+                [&>p]:mb-4 [&>p]:leading-7 [&>p]:text-slate-300
+                [&>p:last-child]:mb-0
+                [&>ul]:my-4 [&>ul]:pl-6 [&>ul]:list-disc [&>ul]:space-y-2 [&>ul]:marker:text-amber-400
+                [&>ol]:my-4 [&>ol]:pl-6 [&>ol]:list-decimal [&>ol]:space-y-2 [&>ol]:marker:text-amber-400
+                [&_li]:text-slate-300 [&_li]:leading-7 [&_li]:pl-1
+                [&_strong]:text-white [&_strong]:font-semibold
+                [&_em]:text-slate-400
+                [&_a]:text-amber-400 [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-amber-300
+                [&>blockquote]:border-l-4 [&>blockquote]:border-amber-400/50
+                [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-slate-400 [&>blockquote]:my-4
+              `}
               dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
           </div>
