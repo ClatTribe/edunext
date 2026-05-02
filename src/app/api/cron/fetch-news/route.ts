@@ -140,7 +140,7 @@ IMPORTANT RULES:
 
 Return ONLY valid JSON (no markdown, no code block):
 {
-  "title": "SEO-optimised headline max 80 chars",
+  "title": "SEO-optimised headline max 120 chars",
   "summary": "2-3 sentences overview for Indian students, max 250 chars",
   "content": "<h2>Overview</h2><p>...</p><h2>Why This Matters for Students</h2><p>...</p><h2>Key Details and Dates</h2><p>...</p><h2>How to Prepare</h2><ul><li>...</li></ul><h2>What Should Students Do Next?</h2><ul><li>...</li></ul><h2>How EduNext Can Help</h2><p>...</p><p><em><strong>Disclaimer:</strong> The information in this article is compiled from various news reports. Students are strongly advised to verify all dates, cutoffs, eligibility criteria, and official procedures directly from the respective official website before taking any action.</em></p>",
   "tags": ["tag1", "tag2", "tag3"],
@@ -327,7 +327,7 @@ function buildRichFallback(item: RSSItem, category: string): { title: string; su
   ].join('');
 
   const tags = [...category.split(' / ').map((t) => t.trim().toLowerCase()), 'india', 'education', '2026'];
-  return { title: item.title.slice(0, 80), summary, content, tags, slug };
+  return { title: item.title.slice(0, 120), summary, content, tags, slug };
 }
 
 async function processFeed(
