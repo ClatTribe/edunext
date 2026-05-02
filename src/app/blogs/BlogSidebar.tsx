@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import CollegeEnquiryForm from '../../../components/microsite/CollegeEnquiryForm';
 
 interface BlogPost {
   slug: string;
@@ -77,6 +78,11 @@ export default function BlogSidebar({ latestBlogs, currentSlug, currentTitle }: 
 
   return (
     <aside className="w-full">
+      <CollegeEnquiryForm
+        pageSource={`/blogs/${currentSlug}`}
+        title={<span className="text-amber-400 text-xl font-bold">Blog</span>}
+      />
+
       {/* Combined Box - Latest Blogs and Share Section */}
       <div
         className="rounded-xl p-5 shadow-lg"

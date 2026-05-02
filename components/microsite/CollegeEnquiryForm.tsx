@@ -5,11 +5,12 @@ import { supabase } from '../../lib/supabase'
 import { Loader2 } from 'lucide-react'
 
 interface CollegeEnquiryFormProps {
-  collegeName: string
+  collegeName?: string
   pageSource: string
+  title?: React.ReactNode
 }
 
-export default function CollegeEnquiryForm({ collegeName, pageSource }: CollegeEnquiryFormProps) {
+export default function CollegeEnquiryForm({ collegeName = 'BLOG', pageSource, title }: CollegeEnquiryFormProps) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -60,7 +61,7 @@ export default function CollegeEnquiryForm({ collegeName, pageSource }: CollegeE
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500/50 via-amber-400 to-amber-500/50" />
 
       <h3 className="text-lg font-bold text-slate-200 mb-2 break-words leading-tight">
-        Interested in <span className="text-amber-400">{collegeName}</span>?
+        {title ? title : <>Interested in <span className="text-amber-400">{collegeName}</span>?</>}
       </h3>
       <p className="text-xs text-slate-400 mb-5">
         Leave your details and our counselors will reach out to you shortly.

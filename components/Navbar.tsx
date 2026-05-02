@@ -44,6 +44,7 @@ const NAV_LINKS: Record<string, NavLink[]> = {
     { label: "Home", href: "/" },
     { label: "Blogs", href: "/blogs" },
     { label: "Contact Us", href: "/contact-us" },
+    { label: "News", href: "/news" },
   ],
   preptribe: [
     { label: "Home", href: "/" },
