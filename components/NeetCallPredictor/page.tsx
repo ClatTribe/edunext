@@ -1,834 +1,796 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import {
+  MapPin,
+  Trophy,
+  Target,
+  Flame,
+  Sparkles,
+  ChevronRight,
+  IndianRupee,
+  GraduationCap,
+} from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import DefaultLayout from "@/app/defaultLayout";
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
+import type { Category } from "./data/colleges";
+import { COLLEGE_COUNT } from "./data/colleges";
+import { STATES } from "./data/states";
+import { marksToAir, formatAir } from "./data/marks-to-air";
+import { predict, type Match, type Bucket } from "./lib/predictor";
+import { resolveMicrositeSlugs } from "./lib/microsite";
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
 const accentColor = "#F59E0B";
 const primaryBg = "#050818";
 const secondaryBg = "#0F172B";
 const borderColor = "rgba(245, 158, 11, 0.15)";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
-interface CollegeResult {
-  name: string;
-  location: string;
-  type: "government" | "private";
-  picture: string;
-}
-
 interface ValidationErrors {
   name?: string;
   phone?: string;
   email?: string;
   category?: string;
-  gender?: string;
+  state?: string;
   score?: string;
 }
 
-// ─── COLLEGES DATA ────────────────────────────────────────────────────────────
-const collegesData: Record<string, Omit<CollegeResult, "name">> = {
-  "AIIMS Delhi": {
-    location: "New Delhi",
-    type: "government",
-    picture: "/colleges/aiims-delhi.png",
-  },
-  "AIIMS Nagpur": {
-    location: "Nagpur, Maharashtra",
-    type: "government",
-    picture: "/colleges/aiims-nagpur.png",
-  },
-  "AIIMS Bhopal": {
-    location: "Bhopal, Madhya Pradesh",
-    type: "government",
-    picture: "/colleges/aiims-bhopal.png",
-  },
-  "AIIMS Jodhpur": {
-    location: "Jodhpur, Rajasthan",
-    type: "government",
-    picture: "/colleges/aiims-jodhpur.png",
-  },
-  "AIIMS Rishikesh": {
-    location: "Rishikesh, Uttarakhand",
-    type: "government",
-    picture: "/colleges/aiims-rishikesh.png",
-  },
-  "Maulana Azad Medical College": {
-    location: "New Delhi",
-    type: "government",
-    picture: "/colleges/mamc.png",
-  },
-  "Lady Hardinge Medical College": {
-    location: "New Delhi",
-    type: "government",
-    picture: "/colleges/lady-hardinge.png",
-  },
-  "King George's Medical University": {
-    location: "Lucknow, Uttar Pradesh",
-    type: "government",
-    picture: "/colleges/kgmu.png",
-  },
-  "Grant Medical College": {
-    location: "Mumbai, Maharashtra",
-    type: "government",
-    picture: "/colleges/grant-medical.png",
-  },
-  "Kasturba Medical College Manipal": {
-    location: "Manipal, Karnataka",
-    type: "private",
-    picture: "/colleges/kmc-manipal.png",
-  },
-  "Christian Medical College Vellore": {
-    location: "Vellore, Tamil Nadu",
-    type: "private",
-    picture: "/colleges/cmc-vellore.png",
-  },
-  "St. John's Medical College": {
-    location: "Bangalore, Karnataka",
-    type: "private",
-    picture: "/colleges/stjohns.png",
-  },
-  "Amrita Institute of Medical Sciences": {
-    location: "Kochi, Kerala",
-    type: "private",
-    picture: "/colleges/amrita.png",
-  },
-  "JSS Medical College": {
-    location: "Mysuru, Karnataka",
-    type: "private",
-    picture: "/colleges/jss-medical.png",
-  },
-  "MS Ramaiah Medical College": {
-    location: "Bangalore, Karnataka",
-    type: "private",
-    picture: "/colleges/ramaiah.png",
-  },
-};
-
-// ─── CUTOFFS ─────────────────────────────────────────────────────────────────
-const cutoffs: Record<string, Record<string, number>> = {
-  "AIIMS Delhi": { gen: 700, ews: 685, obc: 680, sc: 650, st: 630, pwd: 650 },
-  "AIIMS Nagpur": { gen: 660, ews: 640, obc: 630, sc: 600, st: 570, pwd: 600 },
-  "AIIMS Bhopal": { gen: 650, ews: 630, obc: 620, sc: 590, st: 560, pwd: 590 },
-  "AIIMS Jodhpur": { gen: 645, ews: 625, obc: 615, sc: 585, st: 555, pwd: 585 },
-  "AIIMS Rishikesh": {
-    gen: 640,
-    ews: 620,
-    obc: 610,
-    sc: 580,
-    st: 550,
-    pwd: 580,
-  },
-  "Maulana Azad Medical College": {
-    gen: 630,
-    ews: 610,
-    obc: 590,
-    sc: 540,
-    st: 510,
-    pwd: 540,
-  },
-  "Lady Hardinge Medical College": {
-    gen: 620,
-    ews: 600,
-    obc: 580,
-    sc: 530,
-    st: 500,
-    pwd: 530,
-  },
-  "King George's Medical University": {
-    gen: 600,
-    ews: 580,
-    obc: 560,
-    sc: 510,
-    st: 480,
-    pwd: 510,
-  },
-  "Grant Medical College": {
-    gen: 580,
-    ews: 560,
-    obc: 540,
-    sc: 490,
-    st: 460,
-    pwd: 490,
-  },
-  "Kasturba Medical College Manipal": {
-    gen: 560,
-    ews: 540,
-    obc: 520,
-    sc: 470,
-    st: 440,
-    pwd: 470,
-  },
-  "Christian Medical College Vellore": {
-    gen: 570,
-    ews: 550,
-    obc: 530,
-    sc: 480,
-    st: 450,
-    pwd: 480,
-  },
-  "St. John's Medical College": {
-    gen: 550,
-    ews: 530,
-    obc: 510,
-    sc: 460,
-    st: 430,
-    pwd: 460,
-  },
-  "Amrita Institute of Medical Sciences": {
-    gen: 540,
-    ews: 520,
-    obc: 500,
-    sc: 450,
-    st: 420,
-    pwd: 450,
-  },
-  "JSS Medical College": {
-    gen: 520,
-    ews: 500,
-    obc: 480,
-    sc: 430,
-    st: 400,
-    pwd: 430,
-  },
-  "MS Ramaiah Medical College": {
-    gen: 510,
-    ews: 490,
-    obc: 470,
-    sc: 420,
-    st: 390,
-    pwd: 420,
-  },
-};
-
-function predictColleges(score: number, category: string): string[] {
-  const cat = category.toLowerCase();
-  return Object.entries(cutoffs)
-    .filter(([, c]) => score >= (c[cat] ?? c["gen"]))
-    .map(([name]) => name);
+interface FormState {
+  name: string;
+  phone: string;
+  email: string;
+  score: string;
+  category: Category | "";
+  state: string;
 }
 
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
+interface ResultsState {
+  matches: Match[];
+  userAir: number;
+  marks: number;
+  category: Category;
+  state: string;
+  name: string;
+  micrositeSlugs: Map<string, string>;
+}
+
+const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
+  { value: "ur", label: "GEN — General / UR" },
+  { value: "ews", label: "EWS — Economically Weaker Section" },
+  { value: "obc", label: "OBC — Other Backward Class" },
+  { value: "sc", label: "SC — Scheduled Caste" },
+  { value: "st", label: "ST — Scheduled Tribe" },
+];
+
+const BUCKET_META: Record<
+  Bucket,
+  { label: string; tone: string; bg: string; border: string; emoji: string; sub: string }
+> = {
+  safe: {
+    label: "Safe Bets",
+    tone: "#22c55e",
+    bg: "rgba(34, 197, 94, 0.12)",
+    border: "rgba(34, 197, 94, 0.35)",
+    emoji: "🟢",
+    sub: "Strong confidence — closing AIRs comfortably above your rank",
+  },
+  moderate: {
+    label: "Moderate Calls",
+    tone: "#fbbf24",
+    bg: "rgba(245, 158, 11, 0.12)",
+    border: "rgba(245, 158, 11, 0.35)",
+    emoji: "🟡",
+    sub: "Likely calls — your AIR is close to last year's closing",
+  },
+  reach: {
+    label: "Reach / Stretch",
+    tone: "#f97316",
+    bg: "rgba(249, 115, 22, 0.12)",
+    border: "rgba(249, 115, 22, 0.35)",
+    emoji: "🟠",
+    sub: "Possible in stray rounds — slightly above last year's cutoff",
+  },
+};
+
+// ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function NeetCallPredictor() {
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState<FormState>({
     name: "",
     phone: "",
     email: "",
-    category: "",
-    gender: "",
     score: "",
+    category: "",
+    state: "",
   });
-  const [results, setResults] = useState<string[] | null>(null);
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
-    {},
-  );
-  const [error, setError] = useState("");
-  const [count, setCount] = useState<number>(0);
-
-  const categories = [
-    { value: "gen", label: "GEN — General" },
-    { value: "ews", label: "EWS — Economically Weaker Section" },
-    { value: "obc", label: "OBC — Other Backward Class" },
-    { value: "sc", label: "SC — Scheduled Caste" },
-    { value: "st", label: "ST — Scheduled Tribe" },
-    { value: "pwd", label: "PWD — Person with Disability" },
-  ];
-
-  const genders = [
-    { value: "male", label: "Male" },
-    { value: "female", label: "Female" },
-    { value: "other", label: "Prefer not to say" },
-  ];
+  const [submitErr, setSubmitErr] = useState("");
+  const [results, setResults] = useState<ResultsState | null>(null);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    getCount();
+    (async () => {
+      const { count: c } = await supabase
+        .from("neet_call_predictor")
+        .select("id", { count: "exact", head: true });
+      if (c && c > 0) setCount(200 + c);
+    })();
   }, []);
 
-  async function getCount() {
-    const { count: c } = await supabase
-      .from("neet_call_predictor")
-      .select("id", { count: "exact", head: true });
-    if (c) setCount(200 + c);
-  }
+  const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setErrors((prev) => ({ ...prev, [key]: "" }));
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   function validate(): boolean {
-    const errors: ValidationErrors = {};
-    if (!formData.name.trim() || formData.name.trim().length < 2)
-      errors.name = "Enter your full name (at least 2 characters)";
-    if (!/^[6-9]\d{9}$/.test(formData.phone))
-      errors.phone = "Enter a valid 10-digit mobile number";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      errors.email = "Enter a valid email address";
-    if (!formData.category) errors.category = "Please select your category";
-    if (!formData.gender) errors.gender = "Please select your gender";
-    const sc = parseFloat(formData.score);
-    if (isNaN(sc) || sc < 0 || sc > 720)
-      errors.score = "Enter a valid NEET score between 0 and 720";
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    const e: ValidationErrors = {};
+    if (!form.name.trim() || form.name.trim().length < 2)
+      e.name = "Enter your full name (at least 2 characters)";
+    if (!/^[6-9]\d{9}$/.test(form.phone))
+      e.phone = "Enter a valid 10-digit mobile number";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = "Enter a valid email address";
+    if (!form.category) e.category = "Please select your category";
+    if (!form.state) e.state = "Please select your domicile state";
+    const sc = parseFloat(form.score);
+    if (Number.isNaN(sc) || sc < 0 || sc > 720)
+      e.score = "Enter a valid NEET score between 0 and 720";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   }
 
   async function handleSubmit() {
-    setError("");
+    setSubmitErr("");
     if (!validate()) return;
     setLoading(true);
-    const score = parseFloat(formData.score);
-    await supabase.from("neet_call_predictor").insert({
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email,
-      category: formData.category,
-      gender: formData.gender,
-      score,
-    });
-    setResults(predictColleges(score, formData.category));
-    setLoading(false);
-    setTimeout(
-      () =>
-        document
-          .getElementById("neet-results")
-          ?.scrollIntoView({ behavior: "smooth" }),
-      300,
-    );
+
+    try {
+      const marks = parseFloat(form.score);
+      const userAir = marksToAir(marks);
+      const category = form.category as Category;
+
+      // Lead capture (soft-fail; doesn't block prediction)
+      try {
+        await supabase.from("neet_call_predictor").insert({
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          category,
+          score: marks,
+          // store domicile state in `gender` column as fallback if schema not migrated;
+          // recommend adding a `domicile_state` column to the table.
+          domicile_state: form.state,
+        });
+      } catch {
+        /* swallow — we still want to show predictions */
+      }
+
+      const matches = predict({ userAir, category, domicileState: form.state });
+
+      // Resolve microsite slugs in parallel with rendering
+      const names = matches.map((m) => m.college.name);
+      const micrositeSlugs = await resolveMicrositeSlugs(names);
+
+      setResults({
+        matches,
+        userAir,
+        marks,
+        category,
+        state: form.state,
+        name: form.name,
+        micrositeSlugs,
+      });
+
+      setTimeout(() => {
+        document.getElementById("neet-results")?.scrollIntoView({ behavior: "smooth" });
+      }, 250);
+    } catch (err) {
+      console.error(err);
+      setSubmitErr("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const updateField = (key: keyof typeof formData, value: string) => {
-    setValidationErrors((prev) => ({ ...prev, [key]: "" }));
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
+  function resetAll() {
+    setResults(null);
+    setForm({
+      name: "",
+      phone: "",
+      email: "",
+      score: "",
+      category: "",
+      state: "",
+    });
+    setErrors({});
+  }
 
-  // ── RESULTS VIEW ────────────────────────────────────────────────────────────
-  if (results !== null) {
-    const govtColleges = results.filter(
-      (n) => collegesData[n]?.type === "government",
-    );
-    const privateColleges = results.filter(
-      (n) => collegesData[n]?.type === "private",
-    );
-
+  if (results) {
     return (
       <DefaultLayout>
-        <div
-          className="min-h-screen overflow-x-hidden"
-          style={{ backgroundColor: primaryBg }}
-        >
-          <style jsx>{`
-            @keyframes slideIn {
-              from {
-                opacity: 0;
-                transform: translateY(12px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-            @keyframes shimmer {
-              0% {
-                transform: translateX(-100%);
-              }
-              100% {
-                transform: translateX(200%);
-              }
-            }
-            .card-in {
-              animation: slideIn 0.4s ease forwards;
-              opacity: 0;
-            }
-            .animate-shimmer {
-              animation: shimmer 2.5s infinite linear;
-            }
-            .animate-shimmer-delay {
-              animation: shimmer 2.5s infinite linear;
-              animation-delay: 1.25s;
-            }
-          `}</style>
-
-          <div
-            className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-12"
-            id="neet-results"
-          >
-            {/* ── Page Heading ── */}
-            <div className="text-center mt-4 sm:mt-2 mb-8 md:mb-10">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] via-orange-500 to-[#B45309]">
-                NEET Call Predictor
-              </h1>
-              <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-                Based on your score of{" "}
-                <span className="font-bold" style={{ color: accentColor }}>
-                  {formData.score}
-                </span>{" "}
-                ({formData.category.toUpperCase()})
-              </p>
-            </div>
-
-            {/* ── Hero Score Card ── */}
-            <div
-              className="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-8 shadow-2xl"
-              style={{
-                background: "linear-gradient(135deg, #0F172B 0%, #080C17 100%)",
-                border: "1px solid rgba(245,158,11,0.3)",
-                boxShadow: "0 0 30px rgba(245,158,11,0.08)",
-              }}
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#F59E0B] to-transparent opacity-80" />
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#F59E0B] rounded-full mix-blend-multiply filter blur-[100px] opacity-20 pointer-events-none" />
-
-              <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-lg border-2 border-[#050818] shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg, #F59E0B, #B45309)",
-                  }}
-                >
-                  🩺
-                </div>
-                <div className="text-center sm:text-left flex-1">
-                  <p
-                    className="text-xs font-semibold uppercase tracking-widest mb-1"
-                    style={{ color: accentColor }}
-                  >
-                    Your Prediction
-                  </p>
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
-                    {formData.name}
-                  </h2>
-                  <p className="text-slate-400 text-sm mt-1">
-                    NEET Score:{" "}
-                    <span
-                      className="font-bold text-lg"
-                      style={{ color: accentColor }}
-                    >
-                      {formData.score} / 720
-                    </span>
-                    {" · "}
-                    {formData.category.toUpperCase()} · {formData.gender}
-                  </p>
-                </div>
-                <div className="text-center shrink-0">
-                  <div
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-1"
-                    style={{
-                      backgroundColor: "rgba(245,158,11,0.1)",
-                      border: "1px solid rgba(245,158,11,0.2)",
-                    }}
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full animate-pulse"
-                      style={{ backgroundColor: accentColor }}
-                    />
-                    <span
-                      className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: accentColor }}
-                    >
-                      Likely Calls
-                    </span>
-                  </div>
-                  <p className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#F59E0B] to-orange-400">
-                    {results.length}
-                  </p>
-                  <p className="text-slate-500 text-xs">colleges matched</p>
-                </div>
-              </div>
-            </div>
-
-            {results.length === 0 ? (
-              <div
-                className="rounded-2xl p-10 text-center"
-                style={{
-                  backgroundColor: secondaryBg,
-                  border: `1px solid ${borderColor}`,
-                }}
-              >
-                <div className="text-6xl mb-4">😔</div>
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  No colleges matched
-                </h2>
-                <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
-                  Based on your score, we couldn't find matching colleges. Don't
-                  give up — consider reappearing or exploring other medical
-                  streams.
-                </p>
-                <button
-                  onClick={() => setResults(null)}
-                  className="px-6 py-2.5 rounded-xl font-bold text-sm text-black transition-all hover:scale-105"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  ← Try Again
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* ── Government Colleges ── */}
-                {govtColleges.length > 0 && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="text-xl">🏛️</span>
-                      <h3 className="text-lg sm:text-xl font-extrabold text-white">
-                        Government Colleges
-                      </h3>
-                      <span
-                        className="px-2.5 py-0.5 rounded-full text-xs font-bold"
-                        style={{
-                          backgroundColor: "rgba(245,158,11,0.15)",
-                          color: accentColor,
-                          border: "1px solid rgba(245,158,11,0.3)",
-                        }}
-                      >
-                        {govtColleges.length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {govtColleges.map((name, idx) => (
-                        <CollegeCard
-                          key={name}
-                          name={name}
-                          idx={idx}
-                          accentColor={accentColor}
-                          secondaryBg={secondaryBg}
-                          borderColor={borderColor}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Private Colleges ── */}
-                {privateColleges.length > 0 && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="text-xl">🏥</span>
-                      <h3 className="text-lg sm:text-xl font-extrabold text-white">
-                        Private Colleges
-                      </h3>
-                      <span
-                        className="px-2.5 py-0.5 rounded-full text-xs font-bold"
-                        style={{
-                          backgroundColor: "rgba(245,158,11,0.12)",
-                          color: "#FBBF24",
-                          border: "1px solid rgba(245,158,11,0.3)",
-                        }}
-                      >
-                        {privateColleges.length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {privateColleges.map((name, idx) => (
-                        <CollegeCard
-                          key={name}
-                          name={name}
-                          idx={idx}
-                          accentColor="#FBBF24"
-                          secondaryBg={secondaryBg}
-                          borderColor="rgba(251,191,36,0.2)"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── CTA Cards ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
-                  <a
-                    href="https://wa.me/YOUR_NUMBER"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="relative overflow-hidden p-6 sm:p-8 rounded-2xl flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-all duration-300 group border"
-                    style={{
-                      background: "linear-gradient(135deg, #451a03, #1c0a00)",
-                      borderColor: "rgba(245,158,11,0.3)",
-                      boxShadow: "0 0 30px rgba(245,158,11,0.08)",
-                    }}
-                  >
-                    <div className="absolute inset-0 w-full h-full animate-shimmer pointer-events-none opacity-40">
-                      <div className="w-1/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-                    </div>
-                    <span className="text-4xl mb-3 relative z-10 group-hover:scale-110 transition-transform">
-                      💬
-                    </span>
-                    <h3 className="text-xl font-black text-white mb-1.5 relative z-10">
-                      Talk to a Counsellor
-                    </h3>
-                    <p className="text-orange-200/80 text-xs relative z-10">
-                      Get personalised NEET guidance on WhatsApp
-                    </p>
-                    <div
-                      className="mt-3 relative z-10 flex items-center gap-1.5 text-sm font-bold group-hover:text-white transition-colors"
-                      style={{ color: accentColor }}
-                    >
-                      Message Now{" "}
-                      <span className="group-hover:translate-x-1 transition-transform">
-                        →
-                      </span>
-                    </div>
-                  </a>
-
-                  <div
-                    className="relative overflow-hidden p-6 sm:p-8 rounded-2xl flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-all duration-300 group border"
-                    style={{
-                      background: "linear-gradient(135deg, #1e1b4b, #0f172a)",
-                      borderColor: "rgba(245,158,11,0.2)",
-                    }}
-                  >
-                    <div className="absolute inset-0 w-full h-full animate-shimmer-delay pointer-events-none opacity-40">
-                      <div className="w-1/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-                    </div>
-                    <span className="text-4xl mb-3 relative z-10 group-hover:scale-110 transition-transform">
-                      🔁
-                    </span>
-                    <h3 className="text-xl font-black text-white mb-1.5 relative z-10">
-                      Predict Again
-                    </h3>
-                    <p className="text-slate-400 text-xs mb-4 relative z-10">
-                      Try with a different score or category
-                    </p>
-                    <button
-                      onClick={() => {
-                        setResults(null);
-                        setFormData({
-                          name: "",
-                          phone: "",
-                          email: "",
-                          category: "",
-                          gender: "",
-                          score: "",
-                        });
-                      }}
-                      className="px-5 py-2 rounded-xl font-bold text-sm text-black transition-all hover:scale-105 relative z-10"
-                      style={{ backgroundColor: accentColor }}
-                    >
-                      ← Start Over
-                    </button>
-                  </div>
-                </div>
-
-                {/* ── Disclaimer ── */}
-                <div
-                  className="rounded-xl p-4 text-center"
-                  style={{
-                    backgroundColor: secondaryBg,
-                    border: `1px solid ${borderColor}`,
-                  }}
-                >
-                  <p className="text-slate-500 text-xs">
-                    ⚠️ Predictions are based on approximate 2026 cutoff data and
-                    are indicative only. Actual cutoffs may vary. Always verify
-                    with official NTA / college websites.
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <ResultsView results={results} onReset={resetAll} />
       </DefaultLayout>
     );
   }
 
-  // ── FORM VIEW ──────────────────────────────────────────────────────────────
   return (
     <DefaultLayout>
-      <div
-        className="min-h-screen overflow-x-hidden"
-        style={{ backgroundColor: primaryBg }}
-      >
-        <style jsx>{`
-          @keyframes slide-up {
-            from {
-              transform: translateY(10px);
-              opacity: 0;
-            }
-            to {
-              transform: translateY(0);
-              opacity: 1;
-            }
-          }
-          .slide-up {
-            animation: slide-up 0.2s ease-out;
-          }
-        `}</style>
-
-        <div className="pt-12 sm:pt-16 md:pt-20 pb-12 px-4">
-          {/* ── Hero Text ── */}
-          <div className="text-center mb-8 sm:mb-10 md:mb-12">
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-xs font-semibold uppercase tracking-widest"
-              style={{
-                backgroundColor: "rgba(245,158,11,0.1)",
-                color: accentColor,
-                border: "1px solid rgba(245,158,11,0.2)",
-              }}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{ backgroundColor: accentColor }}
-              />
-              Free Tool · {count > 0 ? `${count}+ students` : "AI Powered"}
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white text-center mb-4 leading-tight px-2">
-              NEET{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] via-orange-500 to-[#B45309]">
-                Call Predictor
-              </span>
-            </h1>
-            <p className="text-slate-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
-              Enter your NEET score and profile to instantly find out which
-              government and private medical colleges are likely to shortlist
-              you.
-            </p>
-          </div>
-
-          {/* ── Form Card ── */}
-          <div className="flex justify-center px-4">
-            <div
-              className="rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg w-full max-w-2xl"
-              style={{
-                backgroundColor: secondaryBg,
-                border: `1px solid ${borderColor}`,
-              }}
-            >
-              <FormField label="Full Name" error={validationErrors.name}>
-                <input
-                  type="text"
-                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    border: `1px solid ${validationErrors.name ? "rgba(239,68,68,0.5)" : borderColor}`,
-                  }}
-                  placeholder="Write your full name"
-                  value={formData.name}
-                  onChange={(e) => updateField("name", e.target.value)}
-                />
-              </FormField>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-                <FormField label="Mobile Number" error={validationErrors.phone}>
-                  <input
-                    type="tel"
-                    maxLength={10}
-                    className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
-                    style={{
-                      border: `1px solid ${validationErrors.phone ? "rgba(239,68,68,0.5)" : borderColor}`,
-                    }}
-                    placeholder="10-digit number"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      updateField(
-                        "phone",
-                        e.target.value.replace(/\D/g, "").slice(0, 10),
-                      )
-                    }
-                  />
-                </FormField>
-                <FormField label="Email Address" error={validationErrors.email}>
-                  <input
-                    type="email"
-                    className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
-                    style={{
-                      border: `1px solid ${validationErrors.email ? "rgba(239,68,68,0.5)" : borderColor}`,
-                    }}
-                    placeholder="you@email.com"
-                    value={formData.email}
-                    onChange={(e) => updateField("email", e.target.value)}
-                  />
-                </FormField>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-                <FormField label="Category" error={validationErrors.category}>
-                  <select
-                    className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all appearance-none"
-                    style={{
-                      border: `1px solid ${validationErrors.category ? "rgba(239,68,68,0.5)" : borderColor}`,
-                    }}
-                    value={formData.category}
-                    onChange={(e) => updateField("category", e.target.value)}
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-                <FormField label="Gender" error={validationErrors.gender}>
-                  <select
-                    className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all appearance-none"
-                    style={{
-                      border: `1px solid ${validationErrors.gender ? "rgba(239,68,68,0.5)" : borderColor}`,
-                    }}
-                    value={formData.gender}
-                    onChange={(e) => updateField("gender", e.target.value)}
-                  >
-                    <option value="">Select Gender</option>
-                    {genders.map((g) => (
-                      <option key={g.value} value={g.value}>
-                        {g.label}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-              </div>
-
-              <FormField
-                label="Your NEET Score (out of 720)"
-                error={validationErrors.score}
-              >
-                <input
-                  type="number"
-                  min={0}
-                  max={720}
-                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    border: `1px solid ${validationErrors.score ? "rgba(239,68,68,0.5)" : borderColor}`,
-                  }}
-                  placeholder="e.g. 620"
-                  value={formData.score}
-                  onChange={(e) => updateField("score", e.target.value)}
-                />
-                {formData.score && !validationErrors.score && (
-                  <p
-                    className="text-xs mt-1.5 slide-up"
-                    style={{ color: accentColor }}
-                  >
-                    ✓ Score entered: {formData.score} / 720
-                  </p>
-                )}
-              </FormField>
-
-              {error && (
-                <div className="p-3 rounded-lg mb-4 border bg-red-900/20 border-red-500/30 text-red-400 text-xs sm:text-sm text-center slide-up">
-                  ⚠️ {error}
-                </div>
-              )}
-
-              <div className="flex justify-center mt-2">
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-black text-base transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  {loading ? "Predicting..." : "🩺 Predict My Calls"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-center text-slate-600 text-xs mt-6 max-w-lg mx-auto px-4">
-            Predictions are based on 2026 NEET cutoff trends and are indicative
-            only. Actual results depend on seat availability, state quotas, and
-            official NTA cutoffs.
-          </p>
-        </div>
-      </div>
+      <FormView
+        form={form}
+        errors={errors}
+        loading={loading}
+        submitErr={submitErr}
+        count={count}
+        updateField={updateField}
+        onSubmit={handleSubmit}
+      />
     </DefaultLayout>
   );
 }
 
-// ─── HELPER COMPONENTS ────────────────────────────────────────────────────────
+// ─── FORM VIEW ────────────────────────────────────────────────────────────────
+function FormView({
+  form,
+  errors,
+  loading,
+  submitErr,
+  count,
+  updateField,
+  onSubmit,
+}: {
+  form: FormState;
+  errors: ValidationErrors;
+  loading: boolean;
+  submitErr: string;
+  count: number;
+  updateField: <K extends keyof FormState>(key: K, value: FormState[K]) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: primaryBg }}>
+      <style jsx>{`
+        @keyframes slide-up {
+          from { transform: translateY(10px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .slide-up { animation: slide-up 0.2s ease-out; }
+      `}</style>
 
+      <div className="pt-12 sm:pt-16 md:pt-20 pb-12 px-4">
+        {/* Hero */}
+        <div className="text-center mb-8 sm:mb-10 md:mb-12">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-xs font-semibold uppercase tracking-widest"
+            style={{
+              backgroundColor: "rgba(245,158,11,0.1)",
+              color: accentColor,
+              border: "1px solid rgba(245,158,11,0.2)",
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
+            Free Tool · {count > 0 ? `${count}+ students` : `${COLLEGE_COUNT}+ MBBS colleges`}
+          </div>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white text-center mb-4 leading-tight px-2">
+            NEET{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] via-orange-500 to-[#B45309]">
+              Call Predictor
+            </span>
+          </h1>
+          <p className="text-slate-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
+            Enter your NEET marks, category and domicile state — we'll match you against
+            <span className="font-bold text-white"> {COLLEGE_COUNT}+ MBBS colleges</span> across AIIMS, AIQ, state quota, private and deemed pools.
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <div className="flex justify-center px-4">
+          <div
+            className="rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg w-full max-w-2xl"
+            style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+          >
+            <FormField label="Full Name" error={errors.name}>
+              <input
+                type="text"
+                className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
+                style={{
+                  border: `1px solid ${errors.name ? "rgba(239,68,68,0.5)" : borderColor}`,
+                }}
+                placeholder="Write your full name"
+                value={form.name}
+                onChange={(e) => updateField("name", e.target.value)}
+              />
+            </FormField>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+              <FormField label="Mobile Number" error={errors.phone}>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
+                  style={{
+                    border: `1px solid ${errors.phone ? "rgba(239,68,68,0.5)" : borderColor}`,
+                  }}
+                  placeholder="10-digit number"
+                  value={form.phone}
+                  onChange={(e) =>
+                    updateField("phone", e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                />
+              </FormField>
+              <FormField label="Email Address" error={errors.email}>
+                <input
+                  type="email"
+                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
+                  style={{
+                    border: `1px solid ${errors.email ? "rgba(239,68,68,0.5)" : borderColor}`,
+                  }}
+                  placeholder="you@email.com"
+                  value={form.email}
+                  onChange={(e) => updateField("email", e.target.value)}
+                />
+              </FormField>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+              <FormField label="Category" error={errors.category}>
+                <select
+                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all appearance-none"
+                  style={{
+                    border: `1px solid ${errors.category ? "rgba(239,68,68,0.5)" : borderColor}`,
+                  }}
+                  value={form.category}
+                  onChange={(e) => updateField("category", e.target.value as Category | "")}
+                >
+                  <option value="">Select Category</option>
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <FormField label="Domicile State" error={errors.state}>
+                <select
+                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all appearance-none"
+                  style={{
+                    border: `1px solid ${errors.state ? "rgba(239,68,68,0.5)" : borderColor}`,
+                  }}
+                  value={form.state}
+                  onChange={(e) => updateField("state", e.target.value)}
+                >
+                  <option value="">Select Domicile State</option>
+                  {STATES.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
+
+            <FormField
+              label="Your Expected NEET Marks (out of 720)"
+              error={errors.score}
+            >
+              <input
+                type="number"
+                min={0}
+                max={720}
+                className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
+                style={{
+                  border: `1px solid ${errors.score ? "rgba(239,68,68,0.5)" : borderColor}`,
+                }}
+                placeholder="e.g. 620"
+                value={form.score}
+                onChange={(e) => updateField("score", e.target.value)}
+              />
+              {form.score && !errors.score && (
+                <p className="text-xs mt-1.5 slide-up" style={{ color: accentColor }}>
+                  ✓ {form.score} marks → expected AIR ~{formatAir(marksToAir(parseFloat(form.score) || 0))}
+                </p>
+              )}
+            </FormField>
+
+            {submitErr && (
+              <div className="p-3 rounded-lg mb-4 border bg-red-900/20 border-red-500/30 text-red-400 text-xs sm:text-sm text-center slide-up">
+                ⚠️ {submitErr}
+              </div>
+            )}
+
+            <div className="flex justify-center mt-2">
+              <button
+                onClick={onSubmit}
+                disabled={loading}
+                className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-black text-base transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: accentColor }}
+              >
+                {loading ? "Predicting..." : "🩺 Predict My Calls"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-center text-slate-600 text-xs mt-6 max-w-lg mx-auto px-4">
+          Predictions use NEET 2025 closing AIRs from MCC, NTA & state authorities.
+          Indicative only — actual cutoffs vary by counselling round, state quotas, and seat availability.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── RESULTS VIEW ─────────────────────────────────────────────────────────────
+function ResultsView({
+  results,
+  onReset,
+}: {
+  results: ResultsState;
+  onReset: () => void;
+}) {
+  const { matches, userAir, marks, category, state, name, micrositeSlugs } = results;
+
+  const grouped = useMemo(() => {
+    const g: Record<Bucket, Match[]> = { safe: [], moderate: [], reach: [] };
+    for (const m of matches) g[m.bucket].push(m);
+    return g;
+  }, [matches]);
+
+  return (
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: primaryBg }}>
+      <style jsx>{`
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        .card-in { animation: slideIn 0.4s ease forwards; opacity: 0; }
+        .animate-shimmer { animation: shimmer 2.5s infinite linear; }
+      `}</style>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-12" id="neet-results">
+        {/* Heading */}
+        <div className="text-center mt-4 sm:mt-2 mb-8 md:mb-10">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] via-orange-500 to-[#B45309]">
+            NEET Call Predictor
+          </h1>
+          <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+            Based on{" "}
+            <span className="font-bold" style={{ color: accentColor }}>{marks}</span> marks
+            {" · "}{category.toUpperCase()}
+            {" · "}{state}
+          </p>
+        </div>
+
+        {/* Hero Score Card */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-8 shadow-2xl"
+          style={{
+            background: "linear-gradient(135deg, #0F172B 0%, #080C17 100%)",
+            border: "1px solid rgba(245,158,11,0.3)",
+            boxShadow: "0 0 30px rgba(245,158,11,0.08)",
+          }}
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#F59E0B] to-transparent opacity-80" />
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#F59E0B] rounded-full mix-blend-multiply filter blur-[100px] opacity-20 pointer-events-none" />
+
+          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-4 gap-6 items-center">
+            <div className="sm:col-span-2 flex items-center gap-4">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg border-2 border-[#050818] shrink-0"
+                style={{ background: "linear-gradient(135deg, #F59E0B, #B45309)" }}
+              >
+                🩺
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: accentColor }}>
+                  Your Prediction
+                </p>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">{name}</h2>
+                <p className="text-slate-400 text-xs mt-1">
+                  {marks}/720 · Expected AIR ~{formatAir(userAir)}
+                </p>
+              </div>
+            </div>
+            <ScoreStat label="Safe Bets" value={grouped.safe.length} tone="#22c55e" />
+            <ScoreStat label="Moderate Calls" value={grouped.moderate.length} tone="#fbbf24" />
+          </div>
+          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/5">
+            <ScoreStat label="Reach Calls" value={grouped.reach.length} tone="#f97316" />
+            <ScoreStat label="Total Matches" value={matches.length} tone={accentColor} />
+            <div className="sm:col-span-2 text-xs text-slate-500 sm:text-right">
+              From {COLLEGE_COUNT}+ colleges across AIIMS, AIQ, state quota, private & deemed.
+            </div>
+          </div>
+        </div>
+
+        {/* No matches */}
+        {matches.length === 0 ? (
+          <div
+            className="rounded-2xl p-10 text-center"
+            style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+          >
+            <div className="text-6xl mb-4">😔</div>
+            <h2 className="text-2xl font-bold text-white mb-2">No colleges matched</h2>
+            <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
+              At {marks} marks ({category.toUpperCase()}, {state} domicile), we couldn't find an AIQ or
+              state-quota match. Consider re-attempting NEET, exploring BDS / BAMS / BHMS, or speaking
+              to a counsellor about NRI / private options.
+            </p>
+            <button
+              onClick={onReset}
+              className="px-6 py-2.5 rounded-xl font-bold text-sm text-black transition-all hover:scale-105"
+              style={{ backgroundColor: accentColor }}
+            >
+              ← Try Different Marks
+            </button>
+          </div>
+        ) : (
+          <>
+            {(["safe", "moderate", "reach"] as Bucket[]).map((bucket) => (
+              <BucketSection
+                key={bucket}
+                bucket={bucket}
+                matches={grouped[bucket]}
+                micrositeSlugs={micrositeSlugs}
+              />
+            ))}
+
+            {/* CTA cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-8 mb-8">
+              <a
+                href="https://wa.me/918299470392"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative overflow-hidden p-6 sm:p-8 rounded-2xl flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-all duration-300 group border"
+                style={{
+                  background: "linear-gradient(135deg, #451a03, #1c0a00)",
+                  borderColor: "rgba(245,158,11,0.3)",
+                  boxShadow: "0 0 30px rgba(245,158,11,0.08)",
+                }}
+              >
+                <div className="absolute inset-0 w-full h-full animate-shimmer pointer-events-none opacity-40">
+                  <div className="w-1/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
+                </div>
+                <span className="text-4xl mb-3 relative z-10 group-hover:scale-110 transition-transform">💬</span>
+                <h3 className="text-xl font-black text-white mb-1.5 relative z-10">Talk to a Counsellor</h3>
+                <p className="text-orange-200/80 text-xs relative z-10">
+                  Get personalised NEET guidance on WhatsApp
+                </p>
+                <div className="mt-3 relative z-10 flex items-center gap-1.5 text-sm font-bold group-hover:text-white transition-colors" style={{ color: accentColor }}>
+                  Message Now <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </a>
+
+              <div
+                className="relative overflow-hidden p-6 sm:p-8 rounded-2xl flex flex-col items-center justify-center text-center border"
+                style={{
+                  background: "linear-gradient(135deg, #1e1b4b, #0f172a)",
+                  borderColor: "rgba(245,158,11,0.2)",
+                }}
+              >
+                <span className="text-4xl mb-3">🔁</span>
+                <h3 className="text-xl font-black text-white mb-1.5">Predict Again</h3>
+                <p className="text-slate-400 text-xs mb-4">Try with different marks, category or state</p>
+                <button
+                  onClick={onReset}
+                  className="px-5 py-2 rounded-xl font-bold text-sm text-black transition-all hover:scale-105"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  ← Start Over
+                </button>
+              </div>
+            </div>
+
+            {/* Disclaimer */}
+            <div
+              className="rounded-xl p-4 text-center"
+              style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+            >
+              <p className="text-slate-500 text-xs">
+                ⚠️ Predictions use NEET 2025 closing AIRs from MCC, NTA & state counselling authorities,
+                with category-multiplier extrapolation where granular data is unavailable. Actual cutoffs
+                vary by round and seat availability — always verify with mcc.nic.in and your state authority.
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── BUCKET SECTION ───────────────────────────────────────────────────────────
+function BucketSection({
+  bucket,
+  matches,
+  micrositeSlugs,
+}: {
+  bucket: Bucket;
+  matches: Match[];
+  micrositeSlugs: Map<string, string>;
+}) {
+  if (matches.length === 0) return null;
+  const meta = BUCKET_META[bucket];
+
+  return (
+    <div className="mb-10">
+      <div className="flex items-start gap-3 mb-4">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0"
+          style={{ backgroundColor: meta.bg, border: `1px solid ${meta.border}` }}
+        >
+          {meta.emoji}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h3 className="text-lg sm:text-xl font-extrabold text-white">{meta.label}</h3>
+            <span
+              className="px-2.5 py-0.5 rounded-full text-xs font-bold"
+              style={{
+                backgroundColor: meta.bg,
+                color: meta.tone,
+                border: `1px solid ${meta.border}`,
+              }}
+            >
+              {matches.length}
+            </span>
+          </div>
+          <p className="text-slate-500 text-xs mt-0.5">{meta.sub}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {matches.map((m, idx) => (
+          <CollegeTile
+            key={`${m.college.name}-${idx}`}
+            match={m}
+            idx={idx}
+            slug={micrositeSlugs.get(m.college.name)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── COLLEGE TILE ─────────────────────────────────────────────────────────────
+function CollegeTile({
+  match,
+  idx,
+  slug,
+}: {
+  match: Match;
+  idx: number;
+  slug: string | undefined;
+}) {
+  const router = useRouter();
+  const { college, cutoffAir, pool, bucket } = match;
+  const meta = BUCKET_META[bucket];
+  const clickable = Boolean(slug);
+
+  const onClick = clickable
+    ? () => router.push(`/college/${slug}`)
+    : undefined;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`card-in relative overflow-hidden rounded-2xl flex flex-col transition-all duration-300 ${
+        clickable ? "cursor-pointer hover:-translate-y-1 hover:shadow-2xl group" : "opacity-95"
+      }`}
+      style={{
+        backgroundColor: secondaryBg,
+        border: `1.5px solid ${clickable ? meta.border : borderColor}`,
+        animationDelay: `${Math.min(idx, 12) * 50}ms`,
+      }}
+    >
+      {/* Top accent bar */}
+      <div
+        className="absolute top-0 left-0 w-full h-1"
+        style={{ background: `linear-gradient(90deg, transparent, ${meta.tone}, transparent)`, opacity: 0.7 }}
+      />
+
+      <div className="p-4 sm:p-5 flex-1 flex flex-col gap-2.5">
+        {/* badges row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+            style={{
+              backgroundColor: meta.bg,
+              color: meta.tone,
+              border: `1px solid ${meta.border}`,
+            }}
+          >
+            {pool === "AIQ" ? "AIQ 15%" : "State Quota"}
+          </span>
+          <span
+            className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.05)",
+              color: "#cbd5e1",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            {college.type}
+          </span>
+          {clickable && (
+            <span
+              className="ml-auto text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 px-2 py-0.5 rounded-full"
+              style={{
+                backgroundColor: "rgba(245,158,11,0.12)",
+                color: accentColor,
+                border: "1px solid rgba(245,158,11,0.3)",
+              }}
+            >
+              <Sparkles size={10} /> Microsite
+            </span>
+          )}
+        </div>
+
+        {/* College name */}
+        <h4 className="text-white font-extrabold text-sm sm:text-base leading-tight group-hover:text-amber-300 transition-colors">
+          {college.name}
+        </h4>
+
+        {/* Location */}
+        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+          <MapPin size={12} className="flex-shrink-0" style={{ color: accentColor }} />
+          <span className="truncate">
+            {college.city ? `${college.city}, ${college.state}` : college.state}
+          </span>
+        </div>
+
+        {/* Closing AIR */}
+        <div className="flex items-center gap-1.5 text-xs text-slate-300">
+          <Target size={12} className="flex-shrink-0" style={{ color: meta.tone }} />
+          <span>
+            Closing AIR ~<span className="font-bold text-white">{formatAir(cutoffAir)}</span>
+          </span>
+        </div>
+
+        {/* Fees */}
+        {college.fees && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <IndianRupee size={12} className="flex-shrink-0" style={{ color: accentColor }} />
+            <span className="truncate">{college.fees}</span>
+          </div>
+        )}
+
+        {/* CTA strip */}
+        <div className="mt-auto pt-3 flex items-center justify-between">
+          <span
+            className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full"
+            style={{
+              backgroundColor: meta.bg,
+              color: meta.tone,
+              border: `1px solid ${meta.border}`,
+            }}
+          >
+            <Trophy size={11} /> {meta.label.split(" ")[0]} Call
+          </span>
+          {clickable ? (
+            <span
+              className="text-xs font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
+              style={{ color: accentColor }}
+            >
+              View <ChevronRight size={12} />
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-600">Microsite coming soon</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function FormField({
   label,
   error,
@@ -840,77 +802,28 @@ function FormField({
 }) {
   return (
     <div className="mb-5">
-      <label className="block text-slate-300 font-semibold mb-2 text-sm">
-        {label}
-      </label>
+      <label className="block text-slate-300 font-semibold mb-2 text-sm">{label}</label>
       {children}
       {error && <p className="text-red-400 text-xs mt-1.5">⚠️ {error}</p>}
     </div>
   );
 }
 
-function CollegeCard({
-  name,
-  idx,
-  accentColor,
-  secondaryBg,
-  borderColor,
+function ScoreStat({
+  label,
+  value,
+  tone,
 }: {
-  name: string;
-  idx: number;
-  accentColor: string;
-  secondaryBg: string;
-  borderColor: string;
+  label: string;
+  value: number;
+  tone: string;
 }) {
-  const c = collegesData[name];
-  if (!c) return null;
   return (
-    <div
-      className="card-in relative overflow-hidden rounded-2xl flex flex-col hover:-translate-y-1 transition-all duration-300 group"
-      style={{
-        backgroundColor: secondaryBg,
-        border: `1.5px solid ${borderColor}`,
-        animationDelay: `${idx * 70}ms`,
-      }}
-    >
-      <div className="relative h-36 overflow-hidden rounded-t-2xl">
-        <img
-          src={c.picture}
-          alt={name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              `https://via.placeholder.com/400x150/0F172B/F59E0B?text=${encodeURIComponent(name.slice(0, 10))}`;
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050818]/80 to-transparent" />
-        <span
-          className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full"
-          style={{
-            backgroundColor: "rgba(245,158,11,0.2)",
-            color: "#F59E0B",
-            border: "1px solid rgba(245,158,11,0.4)",
-          }}
-        >
-          {c.type === "government" ? "Govt" : "Private"}
-        </span>
-      </div>
-      <div className="p-4 flex-1 flex flex-col gap-1">
-        <p className="text-white font-bold text-sm leading-tight">{name}</p>
-        <p className="text-slate-500 text-xs">📍 {c.location}</p>
-        <div className="mt-auto pt-3">
-          <span
-            className="inline-block text-[11px] font-bold px-3 py-1 rounded-full"
-            style={{
-              backgroundColor: `${accentColor}20`,
-              color: accentColor,
-              border: `1px solid ${accentColor}40`,
-            }}
-          >
-            Likely Call ✓
-          </span>
-        </div>
-      </div>
+    <div className="text-center sm:text-left">
+      <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-0.5">
+        {label}
+      </p>
+      <p className="text-3xl font-black" style={{ color: tone }}>{value}</p>
     </div>
   );
 }
