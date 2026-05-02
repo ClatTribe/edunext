@@ -332,7 +332,8 @@ function buildRichFallback(item: RSSItem, category: string): { title: string; su
 
 async function processFeed(
   feed: { url: string; category: string; name: string },
-  slugSet: Set<string>,
+  slugToId: Map<string, string>,
+  slugsThisRun: Set<string>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   diagnostics: string[]
@@ -352,12 +353,14 @@ async function processFeed(
 
     for (const item of items) {
       const baseSlug = slugify(item.title);
-      if (slugSet.has(baseSlug)) {
-        diagnostics.push(`Skip duplicate: ${baseSlug.slice(0, 50)}`);
+
+      // In-run dedup only: don't process the same baseSlug twice in this cron tick.
+      // (DB-level "duplicates" become UPDATEs below, not skips — latest fetch wins.)
+      if (slugsThisRun.has(baseSlug)) {
+        diagnostics.push(`Skip in-run duplicate: ${baseSlug.slice(0, 50)}`);
         continue;
       }
-      // Reserve slug immediately before any await (prevents parallel feed race condition)
-      slugSet.add(baseSlug);
+      slugsThisRun.add(baseSlug);
 
       // Per-article classification overrides feed.category when text signals a different bucket
       const articleCategory = classifyCategory(item.title, item.description, feed.category);
@@ -372,14 +375,14 @@ async function processFeed(
       }
 
       const finalSlug = processed.slug || baseSlug;
-      if (slugSet.has(finalSlug)) {
+      // Gemini can return a different slug — guard against in-run collisions
+      if (finalSlug !== baseSlug && slugsThisRun.has(finalSlug)) {
         diagnostics.push(`Skip slug collision: ${finalSlug.slice(0, 50)}`);
         continue;
       }
-      slugSet.add(finalSlug);
-      slugSet.add(baseSlug);
+      slugsThisRun.add(finalSlug);
 
-      const { error } = await supabase.from('edu_news').insert({
+      const articleData = {
         title: processed.title,
         slug: finalSlug,
         summary: processed.summary,
@@ -390,13 +393,36 @@ async function processFeed(
         source_url: item.link,
         image_url: null,
         published_at: new Date(item.pubDate).toISOString(),
-      });
+      };
 
-      if (!error) {
-        saved.push(processed.title);
-        diagnostics.push(`Saved: ${processed.title.slice(0, 60)}`);
+      // UPSERT semantics: if a row with this slug already exists in DB, UPDATE it
+      // (latest fetch wins). Otherwise INSERT a new row.
+      const existingId = slugToId.get(finalSlug) || slugToId.get(baseSlug);
+      if (existingId) {
+        const { error } = await supabase
+          .from('edu_news')
+          .update(articleData)
+          .eq('id', existingId);
+        if (!error) {
+          saved.push(`[updated] ${processed.title}`);
+          diagnostics.push(`Updated: ${processed.title.slice(0, 60)}`);
+        } else {
+          diagnostics.push(`Supabase update error: ${error.message}`);
+        }
       } else {
-        diagnostics.push(`Supabase insert error: ${error.message}`);
+        const { data: inserted, error } = await supabase
+          .from('edu_news')
+          .insert(articleData)
+          .select('id')
+          .single();
+        if (!error) {
+          saved.push(processed.title);
+          diagnostics.push(`Inserted: ${processed.title.slice(0, 60)}`);
+          // Track for any later parallel feed that hits the same slug — they'll UPDATE not INSERT
+          if (inserted?.id) slugToId.set(finalSlug, inserted.id);
+        } else {
+          diagnostics.push(`Supabase insert error: ${error.message}`);
+        }
       }
     }
   } catch (err) {
@@ -419,18 +445,26 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-      const { data: existingSlugs, error: slugErr } = await supabase.from('edu_news').select('slug');
-    if (slugErr) console.error('Supabase slug fetch error:', slugErr.message);
-    const slugSet = new Set((existingSlugs || []).map((r: { slug: string }) => r.slug));
+      const { data: existingRows, error: slugErr } = await supabase
+      .from('edu_news')
+      .select('id, slug');
+    if (slugErr) console.error('Supabase existing-rows fetch error:', slugErr.message);
+    // slugToId: slug → DB row id (used to UPDATE existing rows instead of skipping)
+    const slugToId = new Map<string, string>();
+    (existingRows || []).forEach((r: { id: string; slug: string }) => {
+      if (r.slug) slugToId.set(r.slug, r.id);
+    });
+    // slugsThisRun: tracks slugs already processed in THIS run, prevents parallel feeds from racing on the same item
+    const slugsThisRun = new Set<string>();
 
     const diagnostics: string[] = [
-      `Existing articles in DB: ${slugSet.size}`,
+      `Existing articles in DB: ${slugToId.size}`,
       `Gemini key available: ${!!GEMINI_API_KEY}`,
     ];
 
     // Process all feeds in PARALLEL
     const feedResults = await Promise.allSettled(
-      RSS_FEEDS.map((feed) => processFeed(feed, slugSet, supabase, diagnostics))
+      RSS_FEEDS.map((feed) => processFeed(feed, slugToId, slugsThisRun, supabase, diagnostics))
     );
 
     const savedArticles: string[] = [];
