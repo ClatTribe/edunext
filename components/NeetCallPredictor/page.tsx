@@ -396,6 +396,8 @@ function FormView({
         </p>
 
         <SeoContent />
+        <FaqSection />
+        <SchemaJsonLd />
       </div>
     </div>
   );
@@ -416,22 +418,33 @@ function SeoContent() {
       </h2>
       <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed">
         <p>
-          The EduNext <strong>NEET Call Predictor</strong> is a free, data-driven
-          tool that maps your expected <strong>NEET 2025 marks</strong> to a
-          personalised list of MBBS colleges you can realistically expect an
-          admission call from. We score your profile against closing All India
-          Ranks for <strong>{COLLEGE_COUNT}+ medical colleges</strong> — every
-          AIIMS, JIPMER Puducherry & Karaikal, top central institutes (MAMC, VMMC
+          The EduNext <strong>NEET Call Predictor</strong> is a free,
+          data-driven tool that doubles as a{" "}
+          <strong>NEET Rank Predictor</strong> and a{" "}
+          <strong>NEET College Predictor</strong>. Enter your expected{" "}
+          <strong>NEET 2025 marks</strong> and we first convert them to your
+          expected <strong>All India Rank (AIR)</strong> using NTA's official
+          marks-to-rank curve, then map that rank to a personalised list of MBBS
+          colleges you can realistically expect an admission call from.
+        </p>
+        <p>
+          We score your profile against closing All India Ranks for{" "}
+          <strong>{COLLEGE_COUNT}+ medical colleges</strong> — every AIIMS,
+          JIPMER Puducherry & Karaikal, top central institutes (MAMC, VMMC
           Safdarjung, IMS BHU, KGMU), 240+ government medical colleges, GMERS in
           Gujarat, ESIC colleges, 85+ private colleges and 50+ deemed
           universities counselled via MCC.
         </p>
+        <h3 className="text-lg sm:text-xl font-bold text-white pt-2">
+          Use it as a NEET Rank Predictor or NEET College Predictor
+        </h3>
         <p>
-          Unlike basic score-to-college lookups, our predictor evaluates the two
-          NEET counselling pools <em>separately</em> — the{" "}
+          Unlike basic score-to-college lookups, our{" "}
+          <strong>NEET college predictor</strong> evaluates the two NEET
+          counselling pools <em>separately</em> — the{" "}
           <strong>15% All India Quota (AIQ)</strong> open to every domicile, and
-          the <strong>85% state quota</strong> restricted to your home state — so
-          your matches reflect real seat availability under MCC and state
+          the <strong>85% state quota</strong> restricted to your home state —
+          so your matches reflect real seat availability under MCC and state
           counselling rules. Each result is bucketed as a{" "}
           <strong style={{ color: "#22c55e" }}>Safe Bet</strong>,{" "}
           <strong style={{ color: "#fbbf24" }}>Moderate Call</strong>, or{" "}
@@ -474,6 +487,118 @@ function SeoContent() {
         </p>
       </div>
     </article>
+  );
+}
+
+// ─── FAQ SECTION (rendered below SEO content; FAQPage schema also injected) ─
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: "Is this a NEET Rank Predictor?",
+    a: "Yes. The EduNext NEET Predictor first converts your expected NEET 2025 marks to your All India Rank (AIR) using NTA's official marks-to-rank curve, then matches that AIR to college closing ranks. So it works as both a NEET Rank Predictor and a NEET College Predictor in a single tool — no need to use two separate calculators.",
+  },
+  {
+    q: "How do you predict colleges from NEET marks?",
+    a: "We use a two-stage lookup. (1) Marks → AIR: your NEET marks are mapped to the expected All India Rank using 30 official NEET 2025 anchor points from NTA. (2) AIR + category + domicile state → matched colleges: your AIR is checked against closing ranks for 437+ MBBS colleges across AIIMS, AIQ govt, state-quota govt, GMERS, ESIC, private and deemed institutions, separated into Safe / Moderate / Reach buckets.",
+  },
+  {
+    q: "What is the difference between AIQ and state quota in NEET counselling?",
+    a: "All India Quota (AIQ) is 15% of seats in government medical colleges, open to candidates from any state and counselled centrally by MCC at mcc.nic.in. The remaining 85% state quota is reserved for domicile candidates of that specific state and counselled by the state authority. Our predictor evaluates both pools and tags each tile as AIQ 15% or State Quota so you know exactly which counselling round you're being matched for.",
+  },
+  {
+    q: "Does the predictor work for OBC, SC, ST and EWS categories?",
+    a: "Yes. We apply category-specific multipliers based on real NEET 2025 closing rank data — typically OBC closing AIRs are around 1.5× UR, EWS around 1.3× UR, SC around 8× UR, and ST around 15× UR. Pick your category in the form for accurate predictions tailored to your reservation pool.",
+  },
+  {
+    q: "Is the EduNext NEET College Predictor free?",
+    a: "Yes, completely free. No login, no payment, no credit card required. We capture only your name, mobile number, NEET marks, category and domicile state — used solely to send a personalised counselling follow-up if you want one.",
+  },
+  {
+    q: "How accurate is the prediction?",
+    a: "Predictions are based on NEET 2025 official closing ranks from MCC, NTA, BCECEB Bihar, KEA Karnataka, KEAM Kerala, KNRUHS Telangana, NTRUHS Andhra Pradesh, DMER Maharashtra, ACPUGMEC Gujarat, and DGME Uttar Pradesh. They are indicative — actual cutoffs vary by counselling round, seat availability and last-minute policy changes. Always cross-check with mcc.nic.in and your state authority before locking your choice.",
+  },
+];
+
+function FaqSection() {
+  return (
+    <section
+      className="max-w-3xl mx-auto mt-6 sm:mt-8 px-5 sm:px-8 py-8 sm:py-10 rounded-2xl"
+      style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}
+    >
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-6 leading-tight">
+        NEET Predictor FAQs
+      </h2>
+      <div className="space-y-3">
+        {FAQS.map((f, i) => (
+          <details
+            key={i}
+            className="group rounded-xl p-4 sm:p-5 cursor-pointer transition-all"
+            style={{
+              backgroundColor: "#050818",
+              border: `1px solid ${borderColor}`,
+            }}
+          >
+            <summary
+              className="flex items-start justify-between gap-3 list-none font-semibold text-white text-sm sm:text-base"
+              style={{ color: "#fff" }}
+            >
+              <span>{f.q}</span>
+              <span
+                className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-transform group-open:rotate-45"
+                style={{ backgroundColor: "rgba(245,158,11,0.15)", color: accentColor }}
+              >
+                +
+              </span>
+            </summary>
+            <p className="mt-3 text-slate-300 text-sm sm:text-[15px] leading-relaxed">
+              {f.a}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ─── JSON-LD SCHEMA (WebApplication + FAQPage) ───────────────────────────────
+function SchemaJsonLd() {
+  const PAGE_URL = "https://www.getedunext.com/neet-call-predictor";
+  const webApp = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "NEET Call Predictor",
+    alternateName: ["NEET Rank Predictor", "NEET College Predictor"],
+    url: PAGE_URL,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Any",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+    description:
+      "Free NEET 2025 rank and college predictor — matches your expected NEET marks against 437+ MBBS colleges across AIIMS, AIQ government, state quota, private and deemed institutions.",
+    creator: {
+      "@type": "Organization",
+      name: "EduNext",
+      url: "https://www.getedunext.com",
+    },
+  };
+  const faq = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webApp) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }}
+      />
+    </>
   );
 }
 
