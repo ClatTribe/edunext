@@ -32,7 +32,6 @@ const borderColor = "rgba(245, 158, 11, 0.15)";
 interface ValidationErrors {
   name?: string;
   phone?: string;
-  email?: string;
   category?: string;
   state?: string;
   score?: string;
@@ -41,7 +40,6 @@ interface ValidationErrors {
 interface FormState {
   name: string;
   phone: string;
-  email: string;
   score: string;
   category: Category | "";
   state: string;
@@ -100,7 +98,6 @@ export default function NeetCallPredictor() {
   const [form, setForm] = useState<FormState>({
     name: "",
     phone: "",
-    email: "",
     score: "",
     category: "",
     state: "",
@@ -131,8 +128,6 @@ export default function NeetCallPredictor() {
       e.name = "Enter your full name (at least 2 characters)";
     if (!/^[6-9]\d{9}$/.test(form.phone))
       e.phone = "Enter a valid 10-digit mobile number";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Enter a valid email address";
     if (!form.category) e.category = "Please select your category";
     if (!form.state) e.state = "Please select your domicile state";
     const sc = parseFloat(form.score);
@@ -157,7 +152,6 @@ export default function NeetCallPredictor() {
         await supabase.from("neet_call_predictor").insert({
           name: form.name,
           phone: form.phone,
-          email: form.email,
           category,
           score: marks,
           domicile_state: form.state,
@@ -198,7 +192,6 @@ export default function NeetCallPredictor() {
     setForm({
       name: "",
       phone: "",
-      email: "",
       score: "",
       category: "",
       state: "",
@@ -302,35 +295,21 @@ function FormView({
               />
             </FormField>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-              <FormField label="Mobile Number" error={errors.phone}>
-                <input
-                  type="tel"
-                  maxLength={10}
-                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    border: `1px solid ${errors.phone ? "rgba(239,68,68,0.5)" : borderColor}`,
-                  }}
-                  placeholder="10-digit number"
-                  value={form.phone}
-                  onChange={(e) =>
-                    updateField("phone", e.target.value.replace(/\D/g, "").slice(0, 10))
-                  }
-                />
-              </FormField>
-              <FormField label="Email Address" error={errors.email}>
-                <input
-                  type="email"
-                  className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    border: `1px solid ${errors.email ? "rgba(239,68,68,0.5)" : borderColor}`,
-                  }}
-                  placeholder="you@email.com"
-                  value={form.email}
-                  onChange={(e) => updateField("email", e.target.value)}
-                />
-              </FormField>
-            </div>
+            <FormField label="Mobile Number" error={errors.phone}>
+              <input
+                type="tel"
+                maxLength={10}
+                className="w-full rounded-xl p-3 sm:p-4 text-sm text-white bg-[#050818] focus:outline-none focus:ring-2 transition-all"
+                style={{
+                  border: `1px solid ${errors.phone ? "rgba(239,68,68,0.5)" : borderColor}`,
+                }}
+                placeholder="10-digit number"
+                value={form.phone}
+                onChange={(e) =>
+                  updateField("phone", e.target.value.replace(/\D/g, "").slice(0, 10))
+                }
+              />
+            </FormField>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
               <FormField label="Category" error={errors.category}>
