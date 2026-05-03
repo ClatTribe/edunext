@@ -1015,10 +1015,10 @@ function ScoreStat({
   );
 }
 
-// ─── ACTION BAR (Download PDF + Share) ────────────────────────────────────────
+// ─── ACTION BAR (Download PDF + WhatsApp + Copy Link) ────────────────────────
 function ActionBar({ results }: { results: ResultsState }) {
   const [pdfState, setPdfState] = useState<"idle" | "loading" | "done">("idle");
-  const [shareState, setShareState] = useState<"idle" | "copied">("idle");
+  const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
 
   async function handleDownload() {
     setPdfState("loading");
@@ -1033,13 +1033,38 @@ function ActionBar({ results }: { results: ResultsState }) {
     }
   }
 
-  async function handleShare() {
-    const copied = await shareResults(results);
-    if (copied) {
-      setShareState("copied");
-      setTimeout(() => setShareState("idle"), 2500);
+  function handleWhatsApp() {
+    const { text, url } = buildShareMessage(results);
+    const payload = encodeURIComponent(`${text}\n${url}`);
+    // wa.me works on both mobile (opens WhatsApp app) and desktop (opens WhatsApp Web)
+    if (typeof window !== "undefined") {
+      window.open(`https://wa.me/?text=${payload}`, "_blank", "noopener,noreferrer");
     }
   }
+
+  async function handleCopy() {
+    const { text, url } = buildShareMessage(results);
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setCopyState("copied");
+      setTimeout(() => setCopyState("idle"), 2500);
+    } catch {
+      // Fallback if clipboard API blocked
+      handleWhatsApp();
+    }
+  }
+
+  // Reusable button styles
+  const amberBtn = {
+    backgroundColor: "rgba(245,158,11,0.12)",
+    color: accentColor,
+    border: "1px solid rgba(245,158,11,0.35)",
+  };
+  const whatsappBtn = {
+    backgroundColor: "rgba(37, 211, 102, 0.12)",
+    color: "#25D366",
+    border: "1px solid rgba(37, 211, 102, 0.35)",
+  };
 
   return (
     <div className="flex flex-wrap gap-3 justify-center sm:justify-end mb-8">
@@ -1047,11 +1072,7 @@ function ActionBar({ results }: { results: ResultsState }) {
         onClick={handleDownload}
         disabled={pdfState === "loading"}
         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
-        style={{
-          backgroundColor: "rgba(245,158,11,0.12)",
-          color: accentColor,
-          border: "1px solid rgba(245,158,11,0.35)",
-        }}
+        style={amberBtn}
       >
         {pdfState === "done" ? (
           <>
@@ -1069,26 +1090,76 @@ function ActionBar({ results }: { results: ResultsState }) {
       </button>
 
       <button
-        onClick={handleShare}
+        onClick={handleWhatsApp}
         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
-        style={{
-          backgroundColor: "rgba(245,158,11,0.12)",
-          color: accentColor,
-          border: "1px solid rgba(245,158,11,0.35)",
-        }}
+        style={whatsappBtn}
+        aria-label="Share on WhatsApp"
       >
-        {shareState === "copied" ? (
+        <WhatsAppIcon size={16} /> WhatsApp
+      </button>
+
+      <button
+        onClick={handleCopy}
+        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+        style={amberBtn}
+      >
+        {copyState === "copied" ? (
           <>
-            <Check size={16} /> Copied to clipboard
+            <Check size={16} /> Copied!
           </>
         ) : (
           <>
-            <Share2 size={16} /> Share Colleges
+            <Share2 size={16} /> Copy Link
           </>
         )}
       </button>
     </div>
   );
+}
+
+// Inline WhatsApp brand icon (avoids adding a new lucide import)
+function WhatsAppIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+    </svg>
+  );
+}
+
+// Build the share message used by WhatsApp + Copy Link
+function buildShareMessage(results: ResultsState): { text: string; url: string } {
+  const counts = {
+    safe: results.matches.filter((m) => m.bucket === "safe").length,
+    moderate: results.matches.filter((m) => m.bucket === "moderate").length,
+    reach: results.matches.filter((m) => m.bucket === "reach").length,
+  };
+  const top = results.matches
+    .slice(0, 3)
+    .map(
+      (m) =>
+        `• ${m.college.name} (${m.pool === "AIQ" ? "AIQ" : "State"}, ~AIR ${formatAir(m.cutoffAir)})`,
+    )
+    .join("\n");
+
+  const text = `🩺 My NEET 2026 College Predictions
+
+${results.name} • ${results.marks}/720 (${results.category.toUpperCase()}, ${results.state})
+Expected AIR: ~${formatAir(results.userAir)}
+
+📊 Safe: ${counts.safe} | Moderate: ${counts.moderate} | Reach: ${counts.reach}
+
+Top picks:
+${top}
+
+Try the free predictor:`;
+  const url = "https://www.getedunext.com/neet-call-predictor";
+  return { text, url };
 }
 
 // ─── PDF GENERATION ──────────────────────────────────────────────────────────
@@ -1224,64 +1295,3 @@ async function downloadPdf(results: ResultsState) {
   doc.save(`neet-predictor-${safeName || "results"}.pdf`);
 }
 
-// ─── SHARE ────────────────────────────────────────────────────────────────────
-/** Returns true if the share fell back to clipboard (so we can show "copied" UI). */
-async function shareResults(results: ResultsState): Promise<boolean> {
-  const counts = {
-    safe: results.matches.filter((m) => m.bucket === "safe").length,
-    moderate: results.matches.filter((m) => m.bucket === "moderate").length,
-    reach: results.matches.filter((m) => m.bucket === "reach").length,
-  };
-  const top = results.matches
-    .slice(0, 3)
-    .map(
-      (m) =>
-        `• ${m.college.name} (${m.pool === "AIQ" ? "AIQ" : "State"}, ~AIR ${formatAir(m.cutoffAir)})`,
-    )
-    .join("\n");
-
-  const text = `🩺 My NEET 2026 College Predictions
-
-${results.name} • ${results.marks}/720 (${results.category.toUpperCase()}, ${results.state})
-Expected AIR: ~${formatAir(results.userAir)}
-
-📊 Safe: ${counts.safe} | Moderate: ${counts.moderate} | Reach: ${counts.reach}
-
-Top picks:
-${top}
-
-Try the free predictor:`;
-  const url = "https://www.getedunext.com/neet-call-predictor";
-
-  // 1. Try native share (mobile)
-  if (typeof navigator !== "undefined" && "share" in navigator) {
-    try {
-      await navigator.share({
-        title: "My NEET College Predictions",
-        text,
-        url,
-      });
-      return false;
-    } catch (err) {
-      const name = (err as { name?: string })?.name;
-      if (name === "AbortError") return false; // user cancelled
-      // fall through to clipboard
-    }
-  }
-
-  // 2. Clipboard fallback (desktop)
-  try {
-    await navigator.clipboard.writeText(`${text}\n${url}`);
-    return true;
-  } catch {
-    // 3. Last resort: WhatsApp share link
-    if (typeof window !== "undefined") {
-      window.open(
-        `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`,
-        "_blank",
-        "noopener,noreferrer",
-      );
-    }
-    return false;
-  }
-}
