@@ -422,10 +422,11 @@ function SeoContent() {
           data-driven tool that doubles as a{" "}
           <strong>NEET Rank Predictor</strong> and a{" "}
           <strong>NEET College Predictor</strong>. Enter your expected{" "}
-          <strong>NEET 2025 marks</strong> and we first convert them to your
+          <strong>NEET 2026 marks</strong> and we first convert them to your
           expected <strong>All India Rank (AIR)</strong> using NTA's official
-          marks-to-rank curve, then map that rank to a personalised list of MBBS
-          colleges you can realistically expect an admission call from.
+          marks-to-rank curve from NEET 2025 (the most recent completed exam),
+          then map that rank to a personalised list of MBBS colleges you can
+          realistically expect an admission call from.
         </p>
         <p>
           We score your profile against closing All India Ranks for{" "}
@@ -494,7 +495,7 @@ function SeoContent() {
 const FAQS: { q: string; a: string }[] = [
   {
     q: "Is this a NEET Rank Predictor?",
-    a: "Yes. The EduNext NEET Predictor first converts your expected NEET 2025 marks to your All India Rank (AIR) using NTA's official marks-to-rank curve, then matches that AIR to college closing ranks. So it works as both a NEET Rank Predictor and a NEET College Predictor in a single tool — no need to use two separate calculators.",
+    a: "Yes. The EduNext NEET Predictor first converts your expected NEET 2026 marks to your All India Rank (AIR) using NTA's official marks-to-rank curve from NEET 2025, then matches that AIR to college closing ranks. So it works as both a NEET Rank Predictor and a NEET College Predictor in a single tool — no need to use two separate calculators.",
   },
   {
     q: "How do you predict colleges from NEET marks?",
@@ -572,7 +573,7 @@ function SchemaJsonLd() {
     operatingSystem: "Any",
     offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
     description:
-      "Free NEET 2025 rank and college predictor — matches your expected NEET marks against 437+ MBBS colleges across AIIMS, AIQ government, state quota, private and deemed institutions.",
+      "Free NEET 2026 rank and college predictor — matches your expected NEET marks against 437+ MBBS colleges across AIIMS, AIQ government, state quota, private and deemed institutions, using NEET 2025 closing ranks as reference.",
     creator: {
       "@type": "Organization",
       name: "EduNext",

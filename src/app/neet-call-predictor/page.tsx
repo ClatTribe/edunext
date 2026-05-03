@@ -4,10 +4,10 @@ import NeetCallPredictor from "../../../components/NeetCallPredictor/page";
 const PAGE_URL = "https://www.getedunext.com/neet-call-predictor";
 
 const TITLE =
-  "NEET Call Predictor 2025 — Free NEET Rank & College Predictor";
+  "NEET Call Predictor 2026 — Free NEET Rank & College Predictor";
 
 const DESCRIPTION =
-  "Predict your NEET 2025 colleges across 437+ MBBS institutions. Free NEET rank predictor + AI-powered college predictor with AIQ + state quota matching for AIIMS, govt, private & deemed colleges.";
+  "Predict your NEET 2026 colleges across 437+ MBBS institutions using NEET 2025 closing ranks as reference. Free NEET rank predictor + AI-powered college predictor with AIQ + state quota matching for AIIMS, govt, private & deemed colleges.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -16,7 +16,9 @@ export const metadata: Metadata = {
     "NEET Call Predictor",
     "NEET Rank Predictor",
     "NEET College Predictor",
+    "NEET 2026 college predictor",
     "NEET 2025 college predictor",
+    "NEET rank predictor 2026",
     "NEET rank predictor 2025",
     "MBBS college predictor",
     "NEET marks vs rank",
@@ -24,6 +26,7 @@ export const metadata: Metadata = {
     "NEET state quota predictor",
     "AIIMS predictor",
     "free NEET predictor",
+    "NEET 2026 cutoff",
     "NEET 2025 cutoff",
     "MBBS admission predictor India",
   ],
