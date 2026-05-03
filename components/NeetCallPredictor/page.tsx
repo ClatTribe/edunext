@@ -11,6 +11,9 @@ import {
   ChevronRight,
   IndianRupee,
   GraduationCap,
+  Download,
+  Share2,
+  Check,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import DefaultLayout from "@/app/defaultLayout";
@@ -690,6 +693,9 @@ function ResultsView({
           </div>
         </div>
 
+        {/* Action bar — Download PDF + Share */}
+        {matches.length > 0 && <ActionBar results={results} />}
+
         {/* No matches */}
         {matches.length === 0 ? (
           <div
@@ -1007,4 +1013,275 @@ function ScoreStat({
       <p className="text-3xl font-black" style={{ color: tone }}>{value}</p>
     </div>
   );
+}
+
+// ─── ACTION BAR (Download PDF + Share) ────────────────────────────────────────
+function ActionBar({ results }: { results: ResultsState }) {
+  const [pdfState, setPdfState] = useState<"idle" | "loading" | "done">("idle");
+  const [shareState, setShareState] = useState<"idle" | "copied">("idle");
+
+  async function handleDownload() {
+    setPdfState("loading");
+    try {
+      await downloadPdf(results);
+      setPdfState("done");
+      setTimeout(() => setPdfState("idle"), 2500);
+    } catch (err) {
+      console.error("PDF generation failed", err);
+      setPdfState("idle");
+      alert("Couldn't generate PDF. Please try again.");
+    }
+  }
+
+  async function handleShare() {
+    const copied = await shareResults(results);
+    if (copied) {
+      setShareState("copied");
+      setTimeout(() => setShareState("idle"), 2500);
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap gap-3 justify-center sm:justify-end mb-8">
+      <button
+        onClick={handleDownload}
+        disabled={pdfState === "loading"}
+        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
+        style={{
+          backgroundColor: "rgba(245,158,11,0.12)",
+          color: accentColor,
+          border: "1px solid rgba(245,158,11,0.35)",
+        }}
+      >
+        {pdfState === "done" ? (
+          <>
+            <Check size={16} /> Downloaded
+          </>
+        ) : pdfState === "loading" ? (
+          <>
+            <Download size={16} className="animate-pulse" /> Generating PDF…
+          </>
+        ) : (
+          <>
+            <Download size={16} /> Download PDF
+          </>
+        )}
+      </button>
+
+      <button
+        onClick={handleShare}
+        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+        style={{
+          backgroundColor: "rgba(245,158,11,0.12)",
+          color: accentColor,
+          border: "1px solid rgba(245,158,11,0.35)",
+        }}
+      >
+        {shareState === "copied" ? (
+          <>
+            <Check size={16} /> Copied to clipboard
+          </>
+        ) : (
+          <>
+            <Share2 size={16} /> Share Colleges
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// ─── PDF GENERATION ──────────────────────────────────────────────────────────
+async function downloadPdf(results: ResultsState) {
+  // Lazy-load jsPDF + autotable so they don't bloat initial bundle.
+  const { default: jsPDF } = await import("jspdf");
+  const autoTable = (await import("jspdf-autotable")).default;
+
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // Header bar
+  doc.setFillColor(245, 158, 11);
+  doc.rect(0, 0, pageWidth, 22, "F");
+  doc.setTextColor(255);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text("NEET Call Predictor", 14, 14);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text("getedunext.com / neet-call-predictor", pageWidth - 14, 14, { align: "right" });
+
+  // Student info
+  doc.setTextColor(20, 20, 20);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(results.name || "Student", 14, 33);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(80, 80, 80);
+  doc.text(
+    `${results.marks}/720  -  ${results.category.toUpperCase()}  -  ${results.state}  -  Expected AIR ~${formatAir(results.userAir)}`,
+    14,
+    39,
+  );
+
+  // Summary line
+  const counts = {
+    safe: results.matches.filter((m) => m.bucket === "safe").length,
+    moderate: results.matches.filter((m) => m.bucket === "moderate").length,
+    reach: results.matches.filter((m) => m.bucket === "reach").length,
+  };
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(20, 20, 20);
+  doc.text(
+    `Safe Bets: ${counts.safe}    Moderate Calls: ${counts.moderate}    Reach: ${counts.reach}    Total: ${results.matches.length}`,
+    14,
+    48,
+  );
+
+  // Tables for each bucket
+  const buckets: { key: Bucket; label: string; color: [number, number, number] }[] = [
+    { key: "safe", label: "Safe Bets", color: [34, 197, 94] },
+    { key: "moderate", label: "Moderate Calls", color: [251, 191, 36] },
+    { key: "reach", label: "Reach Calls", color: [249, 115, 22] },
+  ];
+
+  let cursorY = 56;
+  for (const b of buckets) {
+    const rows = results.matches.filter((m) => m.bucket === b.key);
+    if (rows.length === 0) continue;
+
+    // Section heading
+    if (cursorY > pageHeight - 40) {
+      doc.addPage();
+      cursorY = 20;
+    }
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...b.color);
+    doc.text(`${b.label} (${rows.length})`, 14, cursorY);
+    cursorY += 2;
+
+    autoTable(doc, {
+      startY: cursorY + 2,
+      head: [["#", "College", "Location", "Type", "Pool", "Closing AIR", "Fees"]],
+      body: rows.map((m, i) => [
+        i + 1,
+        m.college.name,
+        m.college.city ? `${m.college.city}, ${m.college.state}` : m.college.state,
+        m.college.type,
+        m.pool === "AIQ" ? "AIQ 15%" : "State 85%",
+        formatAir(m.cutoffAir),
+        m.college.fees ?? "-",
+      ]),
+      styles: { fontSize: 8, cellPadding: 1.5, overflow: "linebreak" },
+      headStyles: { fillColor: b.color, textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 248, 250] },
+      columnStyles: {
+        0: { cellWidth: 8 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 38 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 18 },
+        5: { cellWidth: 22 },
+        6: { cellWidth: 20 },
+      },
+      theme: "grid",
+      margin: { left: 14, right: 14 },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    cursorY = (doc as any).lastAutoTable.finalY + 8;
+  }
+
+  // Footer on every page
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pageCount = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text(
+      "Predictions based on NEET 2025 closing AIRs from MCC, NTA & state authorities. Indicative only - verify with mcc.nic.in.",
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: "center" },
+    );
+    doc.text(
+      `Page ${i} of ${pageCount}  -  EduNext (getedunext.com)`,
+      pageWidth / 2,
+      pageHeight - 6,
+      { align: "center" },
+    );
+  }
+
+  const safeName = (results.name || "results")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .toLowerCase()
+    .replace(/^-+|-+$/g, "");
+  doc.save(`neet-predictor-${safeName || "results"}.pdf`);
+}
+
+// ─── SHARE ────────────────────────────────────────────────────────────────────
+/** Returns true if the share fell back to clipboard (so we can show "copied" UI). */
+async function shareResults(results: ResultsState): Promise<boolean> {
+  const counts = {
+    safe: results.matches.filter((m) => m.bucket === "safe").length,
+    moderate: results.matches.filter((m) => m.bucket === "moderate").length,
+    reach: results.matches.filter((m) => m.bucket === "reach").length,
+  };
+  const top = results.matches
+    .slice(0, 3)
+    .map(
+      (m) =>
+        `• ${m.college.name} (${m.pool === "AIQ" ? "AIQ" : "State"}, ~AIR ${formatAir(m.cutoffAir)})`,
+    )
+    .join("\n");
+
+  const text = `🩺 My NEET 2026 College Predictions
+
+${results.name} • ${results.marks}/720 (${results.category.toUpperCase()}, ${results.state})
+Expected AIR: ~${formatAir(results.userAir)}
+
+📊 Safe: ${counts.safe} | Moderate: ${counts.moderate} | Reach: ${counts.reach}
+
+Top picks:
+${top}
+
+Try the free predictor:`;
+  const url = "https://www.getedunext.com/neet-call-predictor";
+
+  // 1. Try native share (mobile)
+  if (typeof navigator !== "undefined" && "share" in navigator) {
+    try {
+      await navigator.share({
+        title: "My NEET College Predictions",
+        text,
+        url,
+      });
+      return false;
+    } catch (err) {
+      const name = (err as { name?: string })?.name;
+      if (name === "AbortError") return false; // user cancelled
+      // fall through to clipboard
+    }
+  }
+
+  // 2. Clipboard fallback (desktop)
+  try {
+    await navigator.clipboard.writeText(`${text}\n${url}`);
+    return true;
+  } catch {
+    // 3. Last resort: WhatsApp share link
+    if (typeof window !== "undefined") {
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+    }
+    return false;
+  }
 }
