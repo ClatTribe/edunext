@@ -20,7 +20,7 @@ const primaryBg = '#020205'
 export default function CollegeLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const params = useParams()
-  const slug = params?.slug as string
+  const slug = params?.slug as string 
   const router = useRouter()
 
   const [college, setCollege] = useState<any>(null)
