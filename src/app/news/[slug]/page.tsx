@@ -15,13 +15,33 @@ export async function generateMetadata({
   const resolvedParams = await Promise.resolve(params);
   const article = await getNewsBySlug(resolvedParams.slug);
   if (!article) return { title: 'Article Not Found | EduNext' };
+
   return {
     title: `${article.title} | EduNext News`,
     description: article.summary,
+    alternates: {
+      canonical: `https://www.getedunext.com/news/${article.slug}`,
+    },
     openGraph: {
       title: article.title,
       description: article.summary,
+      url: `https://www.getedunext.com/news/${article.slug}`,
+      siteName: 'EduNext',
       type: 'article',
+      publishedTime: article.published_at,
+      images: [
+        {
+          url: article.image_url ?? "/default-og.jpg",
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.summary,
+      images: [article.image_url ?? "/default-og.jpg"],
     },
   };
 }
