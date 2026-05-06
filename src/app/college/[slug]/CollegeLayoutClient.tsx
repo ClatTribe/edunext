@@ -253,10 +253,12 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
           <aside className="w-full lg:w-[350px] shrink-0">
             {/* top offset = navbar height + sub-navbar height (~48px) + gap */}
             <div className="lg:sticky lg:top-[136px]">
-              <CollegeEnquiryForm 
-                collegeName={college.college_name} 
-                pageSource={`/college/${slug}`} 
-              />
+              <div className="hidden lg:block">
+                <CollegeEnquiryForm 
+                  collegeName={college.college_name} 
+                  pageSource={`/college/${slug}`} 
+                />
+              </div>
               <RelatedColleges
                 currentCollegeId={college.id}
                 currentLocation={college.location}

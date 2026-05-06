@@ -4,6 +4,7 @@ import Link from "next/link"
 import { supabase } from "../../../../lib/supabase"
 import { useParams, usePathname } from "next/navigation"
 import CollegeMatchCard from "../../../../components/CollegeMatchCard"
+import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
 import {
   Loader2, Eye, Target, Phone, Globe, GraduationCap,
   MapPin, ArrowUpRight, BarChart3, Wallet, Award,
@@ -346,6 +347,13 @@ const rawMicrosite = typeof college.microsite_data === 'string'
                 url={college?.url}
               />
             </div>
+          </div>
+          
+          <div className="block lg:hidden w-full">
+            <CollegeEnquiryForm 
+              collegeName={college.college_name} 
+              pageSource={`/college/${slug}`} 
+            />
           </div>
         </section>
       )}
