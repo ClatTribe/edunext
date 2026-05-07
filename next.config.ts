@@ -34,6 +34,17 @@ const nextConfig: NextConfig = {
         }
         return config;
     },
+
+    // Redirects for SEO & URL cleanups
+    async redirects() {
+        return [
+            {
+                source: '/college/:slug/course-&-fees',
+                destination: '/college/:slug/course-and-fees',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 export default nextConfig;

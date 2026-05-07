@@ -1,15 +1,15 @@
-"use client"
-import React, { useState, useEffect } from "react"
+import React from "react"
 import Link from "next/link"
 import { supabase } from "../../../../lib/supabase"
-import { useParams, usePathname } from "next/navigation"
-import CollegeMatchCard from "../../../../components/CollegeMatchCard"
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
 import {
   Loader2, Eye, Target, Phone, Globe, GraduationCap,
   MapPin, ArrowUpRight, BarChart3, Wallet, Award,
   Building2, Headset, ChevronRight, Sparkles
 } from "lucide-react"
+
+import ScrollHandler from "./ScrollHandler"
+import ProfileCheckWrapper from "./ProfileCheckWrapper"
 
 const accentColor = '#F59E0B'
 const secondaryBg = '#0F172B'
@@ -125,21 +125,6 @@ function ApplyCard({ collegeName, url }: { collegeName: string; url?: string }) 
             Apply at <span className="text-amber-500">{collegeName || "This College"}.</span>
           </h3>
         </div>
-
-        {/* Body */}
-        {/* <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-xs">
-          Connect with the official admissions desk for personalized counseling, direct application support, and real-time seat availability.
-        </p> */}
-
-        {/* Highlights */}
-        {/* <ul className="space-y-2">
-          {["Direct admission process", "Official fee structure", "Scholarship eligibility"].map((item, i) => (
-            <li key={i} className="flex items-center gap-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-              {item}
-            </li>
-          ))}
-        </ul> */}
       </div>
 
       {/* CTA Button */}
@@ -167,65 +152,18 @@ function ApplyCard({ collegeName, url }: { collegeName: string; url?: string }) 
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function CollegeOverviewPage() {
-  const params = useParams()
-  const pathname = usePathname()
-  const slug = params?.slug as string
+export default async function CollegeOverviewPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  
+  const { data: college } = await supabase
+    .from("college_microsites")
+    .select("*")
+    .eq("slug", slug)
+    .single()
 
-  const [college, setCollege] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [isProfileComplete, setIsProfileComplete] = useState(false)
-
-  useEffect(() => { fetchCollege() }, [slug])
-
-  // ─── Check if user has filled their profile ───
-  useEffect(() => {
-    const checkProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const { data: profile } = await supabase
-          .from("admit_profiles")
-          .select("name, degree, city")
-          .eq("user_id", user.id)
-          .single()
-        if (profile?.name && profile?.degree) {
-          setIsProfileComplete(true)
-        }
-      } catch {
-        // Not logged in or no profile — stays false
-      }
-    }
-    checkProfile()
-  }, [])
-
-  useEffect(() => {
-    const urlParts = pathname.split('/')
-    const section = urlParts[urlParts.length - 1]
-    if (section && section !== slug) {
-      setTimeout(() => {
-        document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 100)
-    }
-  }, [pathname, slug])
-
-  const fetchCollege = async () => {
-    try {
-      setLoading(true)
-      const { data } = await supabase.from("college_microsites").select("*").eq("slug", slug).single()
-      if (data) setCollege(data)
-    } catch (err) { console.error(err) }
-    finally { setLoading(false) }
-  }
-
-  if (loading) return (
-    <div className="flex justify-center py-12">
-      <Loader2 className="animate-spin h-10 w-10 text-amber-500" />
-    </div>
-  )
   if (!college) return null
 
-const rawMicrosite = typeof college.microsite_data === 'string'
+  const rawMicrosite = typeof college.microsite_data === 'string'
     ? JSON.parse(college.microsite_data)
     : (college.microsite_data || {})
 
@@ -244,10 +182,10 @@ const rawMicrosite = typeof college.microsite_data === 'string'
   const firstFeeTable = rawFees[0] || null
 
   const placementData: any[] = micrositeData?.placement || college?.placement || []
-  const allRows = placementData.flatMap(t => t.rows || [])
+  const allRows = placementData.flatMap((t: any) => t.rows || [])
   const collegeNameLower = college.college_name?.toLowerCase() || ""
 
-  const hpMatch = allRows.find(r =>
+  const hpMatch = allRows.find((r: any) =>
     (r[0]?.toString().toLowerCase().includes("highest package") ||
      r[0]?.toString().toLowerCase().includes(collegeNameLower)) &&
     !r[1]?.toString().toLowerCase().includes("salary") &&
@@ -255,14 +193,14 @@ const rawMicrosite = typeof college.microsite_data === 'string'
   )
   const finalHighest = hpMatch?.[1] || null
 
-  const apMatch = allRows.find(r =>
+  const apMatch = allRows.find((r: any) =>
     (r[0]?.toString().toLowerCase().includes("average package") ||
      r[0]?.toString().toLowerCase().includes("median package")) &&
     r[1] !== '—' && r[1] !== '-'
   )
   const finalAverage = apMatch?.[1] || null
 
-  const recTable = placementData.find(t =>
+  const recTable = placementData.find((t: any) =>
     t.heading?.toLowerCase().includes("recruiters") ||
     t.headers?.some((h:string) => h.toLowerCase().includes("companies"))
   )
@@ -297,6 +235,7 @@ const rawMicrosite = typeof college.microsite_data === 'string'
 
   return (
     <div className="space-y-16 max-w-7xl mx-auto px-4">
+      <ScrollHandler slug={slug} />
 
       {/* ── ABOUT + APPLY (parallel) ── */}
       {showAbout && (
@@ -359,10 +298,9 @@ const rawMicrosite = typeof college.microsite_data === 'string'
       )}
 
       {/* ── COLLEGE MATCH CARD ── */}
-      <CollegeMatchCard
+      <ProfileCheckWrapper
         college={college}
         micrositeData={micrositeData}
-        isProfileComplete={isProfileComplete}
       />
 
       {/* ── COURSES & FEES ── */}
@@ -387,7 +325,7 @@ const rawMicrosite = typeof college.microsite_data === 'string'
               <PreviewTable table={firstFeeTable} />
             </div>
           </div>
-          <ViewFullLink href={`${base}/course-&-fees`} />
+          <ViewFullLink href={`${base}/course-and-fees`} />
         </section>
       )}
 

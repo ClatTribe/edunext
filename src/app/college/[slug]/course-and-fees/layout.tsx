@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .single()
 
   const name = college?.college_name || "College"
-  const url = `https://www.getedunext.com/college/${slug}/course-&-fees`
+  const url = `https://www.getedunext.com/college/${slug}/course-and-fees`
 
   return {
     title: `${name} Courses & Fees Structure 2026`,

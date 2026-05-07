@@ -1,20 +1,11 @@
 "use client"
 import React, { useState, useEffect } from "react"
-import { supabase } from "../../../../../lib/supabase"
-import { useParams } from "next/navigation"
-import { Loader2, Wallet, BarChart3, ChevronDown, GraduationCap } from "lucide-react"
-
-const accentColor = '#F59E0B'
-const borderColor = 'rgba(245, 158, 11, 0.15)'
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
+import { BarChart3, ChevronDown, GraduationCap, Wallet } from "lucide-react"
 
 function cleanCell(val: any): string {
   if (val === null || val === undefined) return '—'
   return val.toString().replace(/Compare$/i, '').trim() || '—'
 }
-
-// ─── Unified Table Component ────────────────────────────────────────────────
 
 function ProperTable({ table }: { table: any }) {
   const headers: string[] = table.headers || []
@@ -138,59 +129,25 @@ function ProperTable({ table }: { table: any }) {
   )
 }
 
-// ─── Main Page Component ────────────────────────────────────────────────────
+interface CourseFeesClientProps {
+  rawFees: any[];
+  uniqueHeadings: string[];
+}
 
-export default function CoursesAndFeesPage() {
-  const params = useParams()
-  const slug = params?.slug as string
-  const [college, setCollege] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+export default function CourseFeesClient({ rawFees, uniqueHeadings }: CourseFeesClientProps) {
   const [selectedHeading, setSelectedHeading] = useState<string>("")
 
   useEffect(() => {
-    const fetchCollege = async () => {
-      try {
-        const { data } = await supabase.from("college_microsites").select("*").eq("slug", slug).single()
-        setCollege(data)
-        
-        const mData = typeof data?.microsite_data === 'string' ? JSON.parse(data.microsite_data) : data?.microsite_data
-        const rawFees = mData?.fees || data?.fees || []
-        if (rawFees.length > 0) {
-          setSelectedHeading(rawFees[0].heading?.trim() || "General Courses")
-        }
-      } finally {
-        setLoading(false)
-      }
+    if (uniqueHeadings.length > 0) {
+      setSelectedHeading(uniqueHeadings[0])
     }
-    fetchCollege()
-  }, [slug])
+  }, [uniqueHeadings])
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-40">
-      <Loader2 className="animate-spin h-12 w-12 text-amber-500" />
-    </div>
-  )
-
-  const micrositeData = typeof college?.microsite_data === 'string'
-    ? JSON.parse(college.microsite_data)
-    : college?.microsite_data
-
-  const rawFees: any[] = micrositeData?.fees || college?.fees || []
-  const uniqueHeadings = Array.from(new Set(rawFees.map(item => item.heading?.trim() || "General Courses")))
   const visibleTables = rawFees.filter(item => (item.heading?.trim() || "General Courses") === selectedHeading)
+  const borderColor = 'rgba(245, 158, 11, 0.15)'
 
   return (
-    <div className="space-y-12 max-w-7xl mx-auto px-4 py-12 pb-24">
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-[2px] w-12 bg-amber-500" />
-          <span className="text-xs font-black uppercase tracking-[0.4em] text-amber-500">Academic & Financials</span>
-        </div>
-        <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
-          Courses & <span className="text-amber-500">Fees.</span>
-        </h1>
-      </div>
-
+    <>
       {uniqueHeadings.length > 0 && (
         <div className="relative max-w-xl w-full group">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block ml-1">
@@ -262,6 +219,6 @@ export default function CoursesAndFeesPage() {
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }
