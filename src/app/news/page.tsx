@@ -3,8 +3,7 @@ export const dynamic = 'force-dynamic';
 import { getAllNews, NEWS_CATEGORIES, CATEGORY_COLORS } from '../lib/news';
 import NewsCard from './NewsCard';
 import Link from 'next/link';
-import Navbar from '../../../components/Navbar';
-import Footer from '../../../components/Footer';
+import DefaultLayout from '../defaultLayout';
 
 export const metadata = {
   title: 'Education News | EduNext',
@@ -24,9 +23,8 @@ export default async function NewsPage({
   );
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen w-full pt-16" style={{ backgroundColor: '#050818' }}>
+    <DefaultLayout>
+      <main className="min-h-screen w-full" style={{ backgroundColor: 'transparent' }}>
         <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-7xl">
           <header className="mb-8 sm:mb-10">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
@@ -83,7 +81,6 @@ export default async function NewsPage({
           )}
         </div>
       </main>
-      <Footer />
-    </>
+    </DefaultLayout>
   );
 }
