@@ -13,6 +13,7 @@ interface CollegeEnquiryFormProps {
 export default function CollegeEnquiryForm({ collegeName = 'BLOG', pageSource, title }: CollegeEnquiryFormProps) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [course, setCourse] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [fullUrl, setFullUrl] = useState(pageSource)
 
@@ -25,7 +26,7 @@ export default function CollegeEnquiryForm({ collegeName = 'BLOG', pageSource, t
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !phone) return
+    if (!name || !phone || !course) return
 
     setStatus('loading')
 
@@ -38,6 +39,7 @@ export default function CollegeEnquiryForm({ collegeName = 'BLOG', pageSource, t
             page_source: fullUrl,
             name,
             contact_number: phone,
+            course,
           }
         ])
 
@@ -46,6 +48,7 @@ export default function CollegeEnquiryForm({ collegeName = 'BLOG', pageSource, t
       setStatus('success')
       setName('')
       setPhone('')
+      setCourse('')
       
       // Optional: reset success message after some time
       setTimeout(() => setStatus('idle'), 5000)
@@ -94,6 +97,23 @@ export default function CollegeEnquiryForm({ collegeName = 'BLOG', pageSource, t
               placeholder="+91 XXXXX XXXXX"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Course</label>
+            <select
+              required
+              value={course}
+              onChange={(e) => setCourse(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+            >
+              <option value="" disabled className="bg-[#0a0a0f] text-slate-400">Select a course</option>
+              <option value="MBA" className="bg-[#0a0a0f] text-slate-200">MBA</option>
+              <option value="B.Tech" className="bg-[#0a0a0f] text-slate-200">B.Tech</option>
+              <option value="MBBS" className="bg-[#0a0a0f] text-slate-200">MBBS</option>
+              <option value="BBA" className="bg-[#0a0a0f] text-slate-200">BBA</option>
+              <option value="B.Sc" className="bg-[#0a0a0f] text-slate-200">B.Sc</option>
+              <option value="Other" className="bg-[#0a0a0f] text-slate-200">Other</option>
+            </select>
           </div>
 
           <button
