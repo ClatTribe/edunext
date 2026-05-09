@@ -119,6 +119,14 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
     link: "https://apply.alliance.edu.in/undergraduate-application-form-2026?utm_source=IPMcareer&utm_medium=Kanpur&utm_campaign=BBA2026",
     status: "Open",
   },
+      {
+      name: "Bennett University",
+      startDate: "To be announced",
+      endDate: "To be announced",
+      status: "Open",
+      link: "https://bit.ly/3Oxz2SR",
+      courses: "BBA + MBA (5-years)",
+    },
   {
   name: "Pimpri Chinchwad University (PCU)",
   startDate: "Currently Open",
@@ -824,14 +832,7 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
       link: "https://apply.alliance.edu.in/undergraduate-application-form-2026?utm_source=IPMcareer&utm_medium=Kanpur&utm_campaign=BBA2026",
       courses: "BBA (Hons.) & BCom (Hons)",
     },
-    {
-      name: "Bennett University",
-      startDate: "To be announced",
-      endDate: "To be announced",
-      status: "Coming Soon",
-      link: "https://www.bennett.edu.in/",
-      courses: "BBA + MBA (5-years)",
-    },
+
     {
       name: "Ashoka University",
       startDate: "Nov 2025",
