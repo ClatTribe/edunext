@@ -19,10 +19,10 @@ export async function GET(
     const from = chunkIndex * CHUNK_SIZE;
     const to = from + CHUNK_SIZE - 1;
 
-    // FIXED: Order by id instead of updated_at so chunks stay stable
+    // Fetch all necessary columns to determine page visibility correctly
     const { data: colleges, error } = await supabase
       .from('college_microsites')
-      .select('slug, updated_at, microsite_data')
+      .select('slug, updated_at, microsite_data, fees, admission, cutoff, placement, ranking, reviews, courses')
       .order('id', { ascending: true })
       .range(from, to);
 
@@ -44,23 +44,30 @@ export async function GET(
       });
     }
 
-    const urls = colleges.flatMap((college: {
-      slug: string;
-      updated_at?: string;
-      microsite_data?: any;
-    }) => {
-      const m = college.microsite_data || {};
+    const urls = colleges.flatMap((college: any) => {
+      // Safe parsing of microsite_data
+      const m = typeof college.microsite_data === 'string'
+        ? JSON.parse(college.microsite_data)
+        : (college.microsite_data || {});
+      
       const lastMod = new Date(college.updated_at || new Date()).toISOString();
 
+      // Check for data in both microsite_data and the main college record
       const activePaths = [
         { path: '', show: true },
-        { path: '/admission', show: !!m.admission },
+        { 
+          path: '/admission', 
+          show: !!(m.admission?.length || college.admission?.length || m.admission_section) 
+        },
         { path: '/contact', show: true },
-        { path: '/course-&-fees', show: !!(m.fees?.length || m.courses?.length) },
-        { path: '/cutoff', show: !!m.cutoff?.length },
-        { path: '/placement', show: !!m.placement?.length },
-        { path: '/ranking', show: !!m.ranking?.length },
-        { path: '/reviews', show: !!m.reviews?.length },
+        { 
+          path: '/course-and-fees', 
+          show: !!(m.fees?.length || college.fees?.length || m.courses?.length || college.courses?.length) 
+        },
+        { path: '/cutoff', show: !!(m.cutoff?.length || college.cutoff?.length) },
+        { path: '/placement', show: !!(m.placement?.length || college.placement?.length) },
+        { path: '/ranking', show: !!(m.ranking?.length || college.ranking?.length) },
+        { path: '/reviews', show: !!(m.reviews?.length || college.reviews?.length) },
       ].filter(item => item.show);
 
       return activePaths.map(({ path }) => {

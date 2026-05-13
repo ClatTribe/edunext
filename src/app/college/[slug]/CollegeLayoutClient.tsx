@@ -74,7 +74,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
     { name: 'Overview', path: '', icon: Home, show: true },
     {
       name: 'Courses & Fees',
-      path: '/course-&-fees',
+      path: '/course-and-fees',
       icon: BookOpen,
       show: getSubData('fees').length > 0 || getSubData('courses').length > 0
     },
