@@ -257,6 +257,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
                 <CollegeEnquiryForm 
                   collegeName={college.college_name} 
                   pageSource={`/college/${slug}`} 
+                  pdfUrl={college.pdf_url}
                 />
               </div>
               <RelatedColleges

@@ -292,6 +292,7 @@ export default async function CollegeOverviewPage({ params }: { params: Promise<
             <CollegeEnquiryForm 
               collegeName={college.college_name} 
               pageSource={`/college/${slug}`} 
+              pdfUrl={college.pdf_url}
             />
           </div>
         </section>
