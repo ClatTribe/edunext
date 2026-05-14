@@ -1,5 +1,6 @@
 ---
 title: "CBSE Class 10 Result 2026: Summer Study Plan for Class 9→10 Movers — Subject-Wise Goals, Daily Routine & Habit Hacks"
+date: "2026-05-13"
 lastModified: "2026-05-11"
 author: "Edu Next"
 excerpt: "CBSE Class 9 result is out — time to prep smart for Class 10 boards 2026. Get subject-wise goals, a daily routine & habit hacks. Start free on School Tribe by EduNext"
