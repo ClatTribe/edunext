@@ -1,22 +1,15 @@
 /**
- * ArticleRightSidebar — 186px fixed-width right rail on magazine article pages.
+ * ArticleRightSidebar — right rail on magazine article pages.
  *
  * Deploy to: components/magazine/ArticleRightSidebar.tsx
  *
- * Three sections:
- *   A) Table of Contents — scroll-spy via IntersectionObserver
- *   B) Free Counselling form — minimal name + phone + exam, posts to /api/magazine/lead
- *   C) Related Articles
+ * Width: 280px on lg, 320px on xl (matches /blogs sidebar pattern lg:w-80 xl:w-96-ish).
+ * Hidden below lg.
  *
- * Brand tokens:
- *   - bg            #050818
- *   - surface       #0f172a
- *   - card          #1a1f2e
- *   - border        #1e293b
- *   - amber CTA     #f59e0b
- *   - green active  #10b981
- *   - text-muted    #64748b
- *   - text-very-dim #334155
+ * Three sections:
+ *   A) Table of Contents — h2-only, scroll-spy via IntersectionObserver
+ *   B) Free Counselling form — name + phone + exam, posts to /api/magazine/lead
+ *   C) Related Articles
  */
 
 'use client';
@@ -64,17 +57,17 @@ export default function ArticleRightSidebar({
 }: Props) {
   const [activeId, setActiveId] = useState<string>('');
 
-  // Scroll-spy: mark TOC item active when its corresponding heading is in view
+  // Scroll-spy: highlight the TOC item whose heading is currently in view
   useEffect(() => {
     if (!toc || toc.length === 0) return;
-    const headings: HTMLElement[] = toc
+    const filteredToc = toc.filter((t) => t.level === 2);
+    const headings: HTMLElement[] = filteredToc
       .map((t) => document.getElementById(t.id))
       .filter((el): el is HTMLElement => el !== null);
     if (headings.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Among intersecting entries, pick the topmost
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -83,7 +76,7 @@ export default function ArticleRightSidebar({
         }
       },
       {
-        rootMargin: '0px 0px -70% 0px',
+        rootMargin: '0px 0px -65% 0px',
         threshold: [0, 1],
       }
     );
@@ -92,33 +85,28 @@ export default function ArticleRightSidebar({
     return () => observer.disconnect();
   }, [toc]);
 
+  const tocH2 = (toc || []).filter((t) => t.level === 2);
+
   return (
     <aside
-      className="hidden h-full shrink-0 overflow-y-auto lg:block"
+      className="hidden h-full shrink-0 overflow-y-auto lg:block lg:w-72 xl:w-80"
       style={{
-        width: 186,
         backgroundColor: '#050818',
         borderLeft: '1px solid #1e293b',
       }}
     >
-      <div className="flex flex-col gap-7 p-4">
-        {/* Section A — Table of Contents (level-2 only; h3s are usually
-            in-section subheads or FAQ questions, which would clutter the rail) */}
-        {toc && toc.filter((t) => t.level === 2).length > 0 && (
+      <div className="flex flex-col gap-8 px-5 py-6 xl:px-6">
+        {/* Section A — Table of Contents */}
+        {tocH2.length > 0 && (
           <nav>
             <div
-              className="mb-3 uppercase"
-              style={{
-                fontSize: 10,
-                letterSpacing: '0.08em',
-                color: '#334155',
-                fontWeight: 600,
-              }}
+              className="mb-4 text-xs font-bold uppercase tracking-wider"
+              style={{ color: '#475569' }}
             >
               On this page
             </div>
-            <ul className="flex flex-col" style={{ gap: 1 }}>
-              {toc.filter((t) => t.level === 2).map((item) => {
+            <ul className="flex flex-col" style={{ gap: 2 }}>
+              {tocH2.map((item) => {
                 const isActive = activeId === item.id;
                 return (
                   <li key={item.id}>
@@ -126,16 +114,16 @@ export default function ArticleRightSidebar({
                       href={`#${item.id}`}
                       style={{
                         display: 'block',
-                        padding: '5px 10px',
-                        fontSize: 11,
-                        lineHeight: 1.4,
-                        color: isActive ? '#10b981' : '#64748b',
+                        padding: '6px 12px',
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                        color: isActive ? '#10b981' : '#94a3b8',
                         borderLeft: isActive
                           ? '2px solid #10b981'
                           : '1px solid #1e293b',
-                        fontWeight: isActive ? 500 : 400,
+                        fontWeight: isActive ? 600 : 400,
                         textDecoration: 'none',
-                        marginLeft: item.level === 3 ? 8 : 0,
+                        transition: 'color 120ms ease',
                       }}
                     >
                       {item.text}
@@ -157,13 +145,8 @@ export default function ArticleRightSidebar({
         {related && related.length > 0 && (
           <section>
             <div
-              className="mb-3 uppercase"
-              style={{
-                fontSize: 10,
-                letterSpacing: '0.08em',
-                color: '#334155',
-                fontWeight: 600,
-              }}
+              className="mb-4 text-xs font-bold uppercase tracking-wider"
+              style={{ color: '#475569' }}
             >
               Related
             </div>
@@ -177,20 +160,16 @@ export default function ArticleRightSidebar({
                   >
                     <Link
                       href={`/magazine/${r.slug}`}
-                      className="block py-3"
+                      className="block py-4"
                       style={{ textDecoration: 'none' }}
                     >
                       <span
-                        className="mb-1.5 inline-block uppercase"
+                        className="mb-2 inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-wider"
                         style={{
-                          fontSize: 9,
-                          fontWeight: 600,
-                          letterSpacing: '0.05em',
                           color: tone.text,
                           backgroundColor: tone.bg,
                           border: `1px solid ${tone.border}`,
                           borderRadius: 4,
-                          padding: '2px 6px',
                           lineHeight: 1.3,
                         }}
                       >
@@ -198,10 +177,11 @@ export default function ArticleRightSidebar({
                       </span>
                       <div
                         style={{
-                          color: '#94a3b8',
-                          fontSize: 11,
+                          color: '#cbd5e1',
+                          fontSize: 14,
                           lineHeight: 1.5,
                           marginTop: 4,
+                          fontWeight: 500,
                         }}
                       >
                         {r.title}
@@ -272,22 +252,17 @@ function CounsellingCard({
         style={{
           backgroundColor: '#0f172a',
           border: '1px solid #1e293b',
-          borderRadius: 8,
-          padding: 14,
+          borderRadius: 10,
+          padding: 18,
         }}
       >
         <div
-          className="mb-1 uppercase"
-          style={{
-            color: '#10b981',
-            fontSize: 9,
-            fontWeight: 600,
-            letterSpacing: '0.05em',
-          }}
+          className="mb-2 text-xs font-bold uppercase tracking-wider"
+          style={{ color: '#10b981' }}
         >
           ✓ Sent
         </div>
-        <div style={{ color: '#e2e8f0', fontSize: 12, fontWeight: 500 }}>
+        <div className="text-sm font-semibold text-white">
           A counsellor will WhatsApp you in 24 hours.
         </div>
       </section>
@@ -299,69 +274,61 @@ function CounsellingCard({
       style={{
         backgroundColor: '#0f172a',
         border: '1px solid #1e293b',
-        borderRadius: 8,
-        padding: 14,
+        borderRadius: 10,
+        padding: 18,
       }}
     >
       <div
-        className="mb-1 uppercase"
-        style={{
-          color: '#10b981',
-          fontSize: 9,
-          fontWeight: 600,
-          letterSpacing: '0.05em',
-        }}
+        className="mb-2 text-xs font-bold uppercase tracking-wider"
+        style={{ color: '#10b981' }}
       >
         Free Counselling
       </div>
-      <div style={{ color: '#e2e8f0', fontSize: 12, fontWeight: 500 }}>
+      <div className="text-base font-semibold leading-snug text-white">
         Confused which college?
       </div>
-      <p style={{ color: '#475569', fontSize: 11, marginTop: 4, lineHeight: 1.5 }}>
+      <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
         Talk to a real counsellor. 15 min. No spam.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-3 flex flex-col gap-2">
+      <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-2.5">
         <input
           type="text"
-          placeholder="Name"
+          placeholder="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className="w-full text-sm text-white placeholder-slate-500"
           style={{
             backgroundColor: '#1a1f2e',
             border: '1px solid #1e293b',
-            color: '#e2e8f0',
             borderRadius: 6,
-            padding: '7px 9px',
-            fontSize: 11,
+            padding: '9px 11px',
             outline: 'none',
           }}
         />
         <input
           type="tel"
-          placeholder="Phone"
+          placeholder="Phone number"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          className="w-full text-sm text-white placeholder-slate-500"
           style={{
             backgroundColor: '#1a1f2e',
             border: '1px solid #1e293b',
-            color: '#e2e8f0',
             borderRadius: 6,
-            padding: '7px 9px',
-            fontSize: 11,
+            padding: '9px 11px',
             outline: 'none',
           }}
         />
         <select
           value={exam}
           onChange={(e) => setExam(e.target.value)}
+          className="w-full text-sm text-white"
           style={{
             backgroundColor: '#1a1f2e',
             border: '1px solid #1e293b',
-            color: '#e2e8f0',
             borderRadius: 6,
-            padding: '7px 9px',
-            fontSize: 11,
+            padding: '9px 11px',
             outline: 'none',
           }}
         >
@@ -371,17 +338,16 @@ function CounsellingCard({
             </option>
           ))}
         </select>
-        {error && <p style={{ color: '#f43f5e', fontSize: 10 }}>{error}</p>}
+        {error && <p className="text-xs text-rose-400">{error}</p>}
         <button
           type="submit"
           disabled={loading}
+          className="w-full text-sm font-semibold"
           style={{
             backgroundColor: '#f59e0b',
             color: '#050818',
-            fontWeight: 600,
             borderRadius: 6,
-            padding: '8px 10px',
-            fontSize: 11,
+            padding: '10px 12px',
             border: 'none',
             cursor: 'pointer',
             opacity: loading ? 0.6 : 1,
@@ -389,10 +355,7 @@ function CounsellingCard({
         >
           {loading ? 'Sending…' : 'Get Free Counselling'}
         </button>
-        <div
-          className="text-center"
-          style={{ color: '#334155', fontSize: 10, lineHeight: 1.5, marginTop: 2 }}
-        >
+        <div className="mt-1 text-center text-[11px] leading-relaxed text-slate-600">
           One human · One call · No selling
         </div>
       </form>
