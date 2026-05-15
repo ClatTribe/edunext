@@ -267,24 +267,65 @@ export function injectHeadingIds(html: string): string {
 }
 
 // =====================================================================
-// 7. Hero image fetch (Unsplash)
+// 7. Hero image fetch
 // =====================================================================
+// Strategy:
+//   1. If UNSPLASH_ACCESS_KEY is set, try Unsplash first (real photography).
+//   2. Otherwise (or on failure) fall back to Pollinations.ai — a free,
+//      no-auth AI image gen endpoint that returns 1200x630 hero-sized JPGs.
+//      The seed is derived from the query so the same article always gets
+//      the same image (idempotent).
+//
+// We always return a URL (never null) so the listing card + hero band
+// always have an image.
 export async function fetchHeroImage(query: string, accessKey?: string): Promise<string | null> {
-  if (!accessKey) {
-    // graceful fallback — return null and the UI will use a category-default
-    return null;
+  // 1. Unsplash (preferred when key available)
+  if (accessKey) {
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&content_filter=high`;
+    try {
+      const res = await fetch(url, {
+        headers: { Authorization: `Client-ID ${accessKey}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const u = data?.results?.[0]?.urls?.regular;
+        if (u) return u;
+      }
+    } catch {
+      // fall through to Pollinations
+    }
   }
-  const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&content_filter=high`;
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Client-ID ${accessKey}` },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.results?.[0]?.urls?.regular || null;
-  } catch {
-    return null;
+
+  // 2. Pollinations.ai fallback (always works, no key needed)
+  return buildPollinationsUrl(query);
+}
+
+/**
+ * Construct a Pollinations.ai image URL for the given query.
+ * Adds editorial-style modifiers so output looks magazine-grade.
+ * Seed is hash-derived so the same query is deterministic.
+ */
+export function buildPollinationsUrl(query: string): string {
+  const enhanced = `${query}, indian students, modern editorial photography, professional, dark navy background, no text, magazine cover quality, cinematic lighting`;
+  const seed = simpleHash(query) % 100000;
+  const params = new URLSearchParams({
+    width: '1200',
+    height: '630',
+    seed: String(seed),
+    nologo: 'true',
+    enhance: 'true',
+    model: 'flux',
+  });
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?${params.toString()}`;
+}
+
+/** djb2 string hash → unsigned 32-bit int */
+function simpleHash(s: string): number {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 33) ^ s.charCodeAt(i);
   }
+  return Math.abs(h | 0);
 }
 
 // =====================================================================
