@@ -192,13 +192,21 @@ export function humanize(html: string): { content: string; passed: boolean; repl
   let count = 0;
 
   for (const [pattern, replacement] of FORBIDDEN_PHRASES) {
-    out = out.replace(pattern, (match) => {
-      count++;
-      // preserve capitalisation of first char if match was capitalised
-      const isCap = match[0] === match[0]?.toUpperCase();
-      const r = typeof replacement === 'string' ? replacement : match;
-      return isCap ? r.charAt(0).toUpperCase() + r.slice(1) : r;
-    });
+    // Use String.replace with the replacement template directly so that
+    // backreferences ($1, $2, ...) get interpolated by the engine.
+    // We keep counting via a separate test pass.
+    const matches = out.match(pattern);
+    if (matches) count += matches.length;
+    if (replacement.includes('$')) {
+      // capture-group substitution — let JS handle it natively
+      out = out.replace(pattern, replacement);
+    } else {
+      // simple substitution — preserve capitalisation of first char if match was capitalised
+      out = out.replace(pattern, (match) => {
+        const isCap = match[0] === match[0]?.toUpperCase();
+        return isCap ? replacement.charAt(0).toUpperCase() + replacement.slice(1) : replacement;
+      });
+    }
   }
 
   // Cap em-dashes at 4 in the whole article — replace excess with comma
