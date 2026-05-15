@@ -122,7 +122,7 @@ Now write the article.`;
 export async function callGemini(
   prompt: string,
   apiKey: string,
-  model: string = 'gemini-2.0-flash-exp'
+  model: string = 'gemini-2.5-flash'
 ): Promise<{
   title: string;
   slug: string;
