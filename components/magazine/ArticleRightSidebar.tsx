@@ -102,8 +102,9 @@ export default function ArticleRightSidebar({
       }}
     >
       <div className="flex flex-col gap-7 p-4">
-        {/* Section A — Table of Contents */}
-        {toc && toc.length > 0 && (
+        {/* Section A — Table of Contents (level-2 only; h3s are usually
+            in-section subheads or FAQ questions, which would clutter the rail) */}
+        {toc && toc.filter((t) => t.level === 2).length > 0 && (
           <nav>
             <div
               className="mb-3 uppercase"
@@ -117,7 +118,7 @@ export default function ArticleRightSidebar({
               On this page
             </div>
             <ul className="flex flex-col" style={{ gap: 1 }}>
-              {toc.map((item) => {
+              {toc.filter((t) => t.level === 2).map((item) => {
                 const isActive = activeId === item.id;
                 return (
                   <li key={item.id}>

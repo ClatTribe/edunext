@@ -184,14 +184,17 @@ export default function MagazineArticleView({ article, related }: Props) {
               </p>
             </div>
 
-            {/* Body */}
+            {/* Body — Gemini already includes a "Frequently Asked Questions" section
+                inline, so we render the body verbatim and skip rendering faqs again
+                from the jsonb column to avoid duplication. The faqs jsonb is still
+                used by the page.tsx for the JSON-LD FAQ schema (SEO). */}
             <div
               className="magazine-body"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
 
-            {/* FAQs */}
-            {article.faqs && article.faqs.length > 0 && (
+            {/* (FAQ section intentionally omitted here — already in article body) */}
+            {false && article.faqs && article.faqs.length > 0 && (
               <section
                 className="mt-12 pt-8"
                 style={{ borderTop: '1px solid #1e293b' }}
