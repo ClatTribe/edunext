@@ -3,29 +3,31 @@
  *
  * Deploy to: src/app/magazine/[slug]/MagazineArticleView.tsx
  *
- * Wraps the article in DefaultLayout (which provides the global Sidebar +
- * auth context), then renders the hero, body, and right sidebar.
+ * Typography matches the existing /blogs/[slug] page exactly so the
+ * magazine feels like a first-class citizen of the EduNext site:
+ *
+ *   - Headings: Montserrat, font-bold, white
+ *   - Body: Tailwind Typography prose prose-lg prose-invert
+ *   - Links: amber
  *
  * Layout:
  *
  *   ┌─── DefaultLayout ────────────────────────────────────────────┐
  *   │ ┌────────┐ ┌─────────────────────────────────────────────┐  │
- *   │ │        │ │ ArticleHero                                 │  │
- *   │ │ Side-  │ ├──────────────────────────────────────┬──────┤  │
- *   │ │ bar    │ │ Article body                         │ Side │  │
- *   │ │        │ │ (TL;DR, paragraphs, headings,        │ bar  │  │
- *   │ │        │ │  FAQs, disclaimer)                   │ 186px│  │
+ *   │ │ Sidebar│ │ ArticleHero                                 │  │
+ *   │ │        │ ├──────────────────────────────────────┬──────┤  │
+ *   │ │        │ │ Body (prose prose-lg prose-invert)   │ Side │  │
+ *   │ │        │ │                                      │ rail │  │
+ *   │ │        │ │                                      │ 186px│  │
  *   │ └────────┘ └──────────────────────────────────────┴──────┘  │
  *   └──────────────────────────────────────────────────────────────┘
  */
 
 'use client';
 
-import Link from 'next/link';
 import DefaultLayout from '../../defaultLayout';
 import ArticleHero from '../../../../components/magazine/ArticleHero';
 import ArticleRightSidebar from '../../../../components/magazine/ArticleRightSidebar';
-import { categoryTone } from '../../../../components/magazine/categoryTone';
 
 interface TocItem {
   id: string;
@@ -68,7 +70,6 @@ interface Props {
 }
 
 export default function MagazineArticleView({ article, related }: Props) {
-  const tone = categoryTone(article.category);
   const initials = (article.author_name || 'EduNext')
     .split(' ')
     .map((p) => p[0])
@@ -79,10 +80,7 @@ export default function MagazineArticleView({ article, related }: Props) {
 
   return (
     <DefaultLayout>
-      <div
-        className="flex h-full"
-        style={{ backgroundColor: '#050818' }}
-      >
+      <div className="flex h-full" style={{ backgroundColor: '#050818' }}>
         {/* Article column */}
         <div className="flex-1 overflow-y-auto">
           <ArticleHero
@@ -93,45 +91,27 @@ export default function MagazineArticleView({ article, related }: Props) {
             publishedAt={article.published_at}
           />
 
-          <div
-            className="mx-auto px-8 py-10 sm:px-12 sm:py-12"
-            style={{ maxWidth: 760 }}
-          >
+          <article className="container mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-12">
             {/* Author + share row */}
-            <div
-              className="mb-8 flex items-center justify-between"
-              style={{ borderBottom: '1px solid #1e293b', paddingBottom: 18 }}
-            >
+            <div className="mb-8 flex items-center justify-between border-b border-slate-800 pb-6">
               <div className="flex items-center gap-3">
                 <div
-                  className="flex items-center justify-center"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold"
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
                     backgroundColor: 'rgba(16,185,129,0.12)',
                     border: '1px solid rgba(16,185,129,0.3)',
                     color: '#10b981',
-                    fontSize: 11,
-                    fontWeight: 600,
                   }}
                 >
                   {initials}
                 </div>
                 <div className="flex flex-col">
-                  <div
-                    style={{
-                      color: '#e2e8f0',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      lineHeight: 1.4,
-                    }}
-                  >
+                  <span className="text-sm font-semibold text-white md:text-base">
                     {article.author_name}
-                  </div>
-                  <div style={{ color: '#475569', fontSize: 10, lineHeight: 1.4 }}>
+                  </span>
+                  <span className="text-xs text-slate-500 md:text-sm">
                     EduNext Magazine
-                  </div>
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -151,127 +131,68 @@ export default function MagazineArticleView({ article, related }: Props) {
               </div>
             </div>
 
-            {/* TL;DR */}
+            {/* TL;DR callout */}
             <div
-              className="mb-8"
+              className="mb-10 rounded-r-lg border-l-4 px-5 py-4"
               style={{
                 backgroundColor: '#0f172a',
-                borderLeft: '2px solid #10b981',
-                padding: '12px 16px',
-                borderRadius: '0 6px 6px 0',
+                borderLeftColor: '#10b981',
               }}
             >
               <div
-                className="mb-1 uppercase"
-                style={{
-                  color: '#10b981',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
-                }}
+                className="mb-2 text-xs font-bold uppercase tracking-wider"
+                style={{ color: '#10b981' }}
               >
                 TL;DR
               </div>
-              <p
-                style={{
-                  color: '#94a3b8',
-                  fontSize: 12,
-                  lineHeight: 1.7,
-                  margin: 0,
-                }}
-              >
+              <p className="text-base leading-relaxed text-slate-300">
                 {article.summary}
               </p>
             </div>
 
-            {/* Body — Gemini already includes a "Frequently Asked Questions" section
-                inline, so we render the body verbatim and skip rendering faqs again
-                from the jsonb column to avoid duplication. The faqs jsonb is still
-                used by the page.tsx for the JSON-LD FAQ schema (SEO). */}
+            {/* Body — Tailwind Typography matches /blogs/[slug] page exactly */}
             <div
-              className="magazine-body"
+              className="
+                prose prose-lg prose-invert max-w-none
+                prose-headings:font-montserrat prose-headings:font-bold prose-headings:text-white prose-headings:mt-10 prose-headings:mb-4
+                prose-h1:text-3xl prose-h1:md:text-4xl
+                prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:border-b prose-h2:border-slate-700 prose-h2:pb-2 prose-h2:scroll-mt-24
+                prose-h3:text-xl prose-h3:md:text-2xl prose-h3:scroll-mt-24
+                prose-p:text-slate-300 prose-p:leading-relaxed prose-p:mb-5
+                prose-a:text-[#f59e0b] prose-a:no-underline prose-a:font-medium hover:prose-a:underline hover:prose-a:text-[#d97706]
+                prose-strong:text-white prose-strong:font-semibold
+                prose-em:text-slate-400
+                prose-ul:my-5 prose-ol:my-5 prose-ul:text-slate-300 prose-ol:text-slate-300
+                prose-li:text-slate-300 prose-li:leading-relaxed prose-li:my-2
+                prose-blockquote:border-l-4 prose-blockquote:border-[#10b981] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-slate-400 prose-blockquote:my-6
+                prose-code:text-[#f59e0b] prose-code:bg-[#0f172a] prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                prose-table:my-6 prose-table:w-full
+                prose-th:border prose-th:border-slate-800 prose-th:px-4 prose-th:py-3 prose-th:bg-[#0f172a] prose-th:text-white prose-th:font-semibold prose-th:text-left
+                prose-td:border prose-td:border-slate-800 prose-td:px-4 prose-td:py-3 prose-td:text-slate-300
+                prose-img:rounded-lg
+              "
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
 
-            {/* (FAQ section intentionally omitted here — already in article body) */}
-            {false && article.faqs && article.faqs.length > 0 && (
-              <section
-                className="mt-12 pt-8"
-                style={{ borderTop: '1px solid #1e293b' }}
-              >
-                <h2
-                  style={{
-                    color: '#e2e8f0',
-                    fontFamily: 'Georgia, "Times New Roman", serif',
-                    fontSize: 15,
-                    fontWeight: 500,
-                    marginBottom: 16,
-                  }}
-                >
-                  Frequently Asked Questions
-                </h2>
-                <div className="flex flex-col gap-2">
-                  {article.faqs.map((f, i) => (
-                    <details
-                      key={i}
-                      style={{
-                        backgroundColor: '#1a1f2e',
-                        border: '1px solid #1e293b',
-                        borderRadius: 6,
-                        padding: '10px 14px',
-                      }}
-                    >
-                      <summary
-                        style={{
-                          color: '#e2e8f0',
-                          fontSize: 12,
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          listStyle: 'none',
-                        }}
-                      >
-                        {f.question}
-                      </summary>
-                      <p
-                        style={{
-                          color: '#94a3b8',
-                          fontSize: 12,
-                          lineHeight: 1.7,
-                          marginTop: 8,
-                        }}
-                      >
-                        {f.answer}
-                      </p>
-                    </details>
-                  ))}
-                </div>
-              </section>
-            )}
-
             {/* Tags */}
             {article.tags && article.tags.length > 0 && (
-              <div
-                className="mt-10 flex flex-wrap gap-2 pt-6"
-                style={{ borderTop: '1px solid #1e293b' }}
-              >
+              <div className="mt-12 flex flex-wrap gap-2 border-t border-slate-800 pt-8">
                 {article.tags.map((tag) => (
                   <span
                     key={tag}
+                    className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider"
                     style={{
-                      backgroundColor: '#1a1f2e',
-                      border: '1px solid #1e293b',
-                      color: '#64748b',
-                      fontSize: 10,
-                      padding: '3px 8px',
-                      borderRadius: 4,
+                      backgroundColor: 'rgba(99,102,241,0.12)',
+                      color: '#a5b4fc',
+                      border: '1px solid rgba(99,102,241,0.3)',
                     }}
                   >
-                    #{tag}
+                    {tag}
                   </span>
                 ))}
               </div>
             )}
-          </div>
+          </article>
         </div>
 
         {/* Right rail */}
@@ -282,114 +203,12 @@ export default function MagazineArticleView({ article, related }: Props) {
           sourceCategory={article.category}
         />
       </div>
-
-      {/* Scoped body styles for the article HTML coming from Supabase */}
-      <style jsx global>{`
-        .magazine-body {
-          color: #94a3b8;
-          font-size: 13px;
-          line-height: 1.8;
-        }
-        .magazine-body p {
-          margin: 0 0 18px 0;
-          color: #94a3b8;
-        }
-        .magazine-body h2 {
-          color: #e2e8f0;
-          font-family: Georgia, "Times New Roman", serif;
-          font-size: 15px;
-          font-weight: 500;
-          line-height: 1.4;
-          margin: 36px 0 14px 0;
-          scroll-margin-top: 16px;
-        }
-        .magazine-body h2:first-child {
-          margin-top: 0;
-        }
-        .magazine-body h3 {
-          color: #e2e8f0;
-          font-family: Georgia, "Times New Roman", serif;
-          font-size: 13px;
-          font-weight: 500;
-          line-height: 1.4;
-          margin: 24px 0 10px 0;
-          scroll-margin-top: 16px;
-        }
-        .magazine-body strong {
-          color: #e2e8f0;
-          font-weight: 500;
-        }
-        .magazine-body em {
-          color: #64748b;
-          font-style: italic;
-        }
-        .magazine-body a {
-          color: #10b981;
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
-        .magazine-body a:hover {
-          color: #34d399;
-        }
-        .magazine-body ul,
-        .magazine-body ol {
-          margin: 14px 0 22px 0;
-          padding-left: 22px;
-        }
-        .magazine-body ul {
-          list-style: disc;
-        }
-        .magazine-body ol {
-          list-style: decimal;
-        }
-        .magazine-body li {
-          margin: 6px 0;
-          color: #94a3b8;
-          font-size: 13px;
-          line-height: 1.7;
-        }
-        .magazine-body blockquote {
-          border-left: 2px solid #10b981;
-          padding: 4px 0 4px 14px;
-          margin: 20px 0;
-          color: #64748b;
-          font-style: italic;
-        }
-        .magazine-body table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 22px 0;
-          border: 1px solid #1e293b;
-          border-radius: 6px;
-          overflow: hidden;
-          font-size: 12px;
-        }
-        .magazine-body th {
-          background: #1a1f2e;
-          color: #e2e8f0;
-          font-weight: 500;
-          padding: 10px 12px;
-          text-align: left;
-          border: 1px solid #1e293b;
-        }
-        .magazine-body td {
-          color: #94a3b8;
-          padding: 10px 12px;
-          border: 1px solid #1e293b;
-        }
-        .magazine-body details summary {
-          list-style: none;
-        }
-        .magazine-body details summary::-webkit-details-marker {
-          display: none;
-        }
-      `}</style>
     </DefaultLayout>
   );
 }
 
 // =====================================================================
-// Share icon
+// Share icon (matches blog visual size: 36px)
 // =====================================================================
 function ShareIcon({
   href,
@@ -406,20 +225,7 @@ function ShareIcon({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`Share on ${label}`}
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: '50%',
-        backgroundColor: 'rgba(255,255,255,0.04)',
-        border: '1px solid #1e293b',
-        color: '#64748b',
-        fontSize: 11,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textDecoration: 'none',
-        lineHeight: 1,
-      }}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-800 bg-white/5 text-sm text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
     >
       {children}
     </a>
@@ -436,20 +242,7 @@ function CopyLinkButton({ url }: { url: string }) {
         }
       }}
       aria-label="Copy link"
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: '50%',
-        backgroundColor: 'rgba(255,255,255,0.04)',
-        border: '1px solid #1e293b',
-        color: '#64748b',
-        fontSize: 11,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        lineHeight: 1,
-      }}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-800 bg-white/5 text-sm text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
     >
       ⌁
     </button>

@@ -3,15 +3,13 @@
  *
  * Deploy to: components/magazine/ArticleHero.tsx
  *
- * Pure presentational. Server-component safe (no hooks).
+ * Typography matches the existing /blogs/[slug] page:
+ *   - Title:    text-3xl sm:text-4xl md:text-5xl font-bold text-white  (Montserrat)
+ *   - Subtitle: text-base md:text-lg text-slate-400 italic
+ *   - Meta chips: text-xs slate-400
  *
- * Brand tokens (from getedunext.com live CSS — do not change):
- *   - Surface         #0f172a
- *   - Border          #1e293b
- *   - Title text      #ffffff
- *   - Subtitle text   #475569
- *   - Chip text       #64748b
- *   - Category map    Medical/Admissions=green, Engineering=indigo, Law/Management=amber
+ * Brand tokens preserved for the surface itself:
+ *   bg #0f172a, border-bottom 1px #1e293b
  */
 
 import { categoryTone } from './categoryTone';
@@ -43,21 +41,19 @@ export default function ArticleHero({
 
   return (
     <header
-      className="w-full px-8 py-10 sm:px-12 sm:py-14"
+      className="w-full"
       style={{
         backgroundColor: '#0f172a',
         borderBottom: '1px solid #1e293b',
       }}
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-4">
+      <div className="container mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14 md:py-16">
         {/* Top row: chips on the right */}
-        <div className="flex items-center justify-end gap-2">
+        <div className="mb-5 flex items-center justify-end gap-2 text-slate-400">
           {readTime ? (
             <span
-              className="px-3 py-1"
+              className="px-3 py-1 text-xs"
               style={{
-                fontSize: 10,
-                color: '#64748b',
                 backgroundColor: 'rgba(255,255,255,0.06)',
                 border: '1px solid #1e293b',
                 borderRadius: 20,
@@ -68,10 +64,8 @@ export default function ArticleHero({
             </span>
           ) : null}
           <span
-            className="px-3 py-1"
+            className="px-3 py-1 text-xs"
             style={{
-              fontSize: 10,
-              color: '#64748b',
               backgroundColor: 'rgba(255,255,255,0.06)',
               border: '1px solid #1e293b',
               borderRadius: 20,
@@ -84,48 +78,26 @@ export default function ArticleHero({
 
         {/* Category tag */}
         <span
-          className="self-start uppercase"
+          className="mb-5 inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider"
           style={{
-            fontSize: 9,
-            fontWeight: 600,
-            letterSpacing: '0.08em',
             color: tone.text,
             backgroundColor: tone.bg,
             border: `1px solid ${tone.border}`,
-            borderRadius: 4,
-            padding: '4px 8px',
-            lineHeight: 1.2,
+            borderRadius: 999,
+            lineHeight: 1.4,
           }}
         >
           {tone.label}
         </span>
 
         {/* Title */}
-        <h1
-          style={{
-            color: '#ffffff',
-            fontFamily: 'Georgia, "Times New Roman", serif',
-            fontSize: 21,
-            fontWeight: 500,
-            lineHeight: 1.35,
-            letterSpacing: '-0.01em',
-            margin: 0,
-          }}
-        >
+        <h1 className="font-montserrat text-3xl font-bold text-white sm:text-4xl md:text-5xl">
           {title}
         </h1>
 
         {/* Subtitle */}
         {subtitle ? (
-          <p
-            style={{
-              color: '#475569',
-              fontStyle: 'italic',
-              fontSize: 12,
-              lineHeight: 1.55,
-              margin: 0,
-            }}
-          >
+          <p className="mt-5 max-w-3xl text-base italic leading-relaxed text-slate-400 sm:text-lg">
             {subtitle}
           </p>
         ) : null}
