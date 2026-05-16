@@ -347,7 +347,7 @@ export async function generateMagazineArticle(
   const toc = extractTOC(contentWithIds);
 
   // fetch hero image
-  const hero = await fetchHeroImage(geminiOut.hero_image_query, config.unsplashAccessKey);
+  const hero = await fetchHeroImage(geminiOut.hero_image_query || 'indian students college campus', config.unsplashAccessKey);
 
   // assemble
   return {
