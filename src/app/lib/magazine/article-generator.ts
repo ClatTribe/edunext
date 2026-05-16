@@ -145,7 +145,7 @@ export async function callGemini(
         temperature: 0.85,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 32768,
         responseMimeType: 'application/json',
       },
     }),
