@@ -1,15 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const SYSTEM_PROMPT = `You are a highly analytical, data-driven AI assistant for EduNext.
-Your sole purpose is to answer questions about colleges using the database tool provided to you.
-You have access to a tool called 'get_college_details'. 
-Whenever a user asks about a specific college (e.g., fees, placements, location), you MUST use the tool to fetch the exact data.
-Do not guess or hallucinate any numbers or data. If the tool returns data, format it beautifully and concisely in your response.
-If the tool returns no data, explicitly state that you don't have that information in the database.
-Always be direct and professional.`;
+const SYSTEM_PROMPT = `You are EduNext Data Bot, a highly analytical AI assistant that fetches REAL college data from our live database.
 
-// Define the tools for Gemini
+Your role is to provide accurate, data-driven answers about colleges using the 'get_college_details' tool.
+
+CORE RULES:
+1. ALWAYS use the tool to fetch college data — NEVER guess numbers
+2. Format data beautifully with proper structure
+3. If tool returns no data, clearly state "I don't have that information in the database"
+4. Be direct, professional, and helpful
+
+RESPONSE FORMAT:
+— Keep responses concise (3-5 sentences)
+— Present data in clean, readable format
+— Use bullet points for multiple colleges
+— Highlight key stats: fees, placements, location
+
+TOOL USAGE:
+— When user asks about a college, immediately call 'get_college_details'
+— Extract college name from user's question
+— Present the fetched data in a structured way
+
+EXAMPLE RESPONSE:
+"Based on our database, here's what I found for IIT Bombay:
+
+📍 Location: Mumbai, Maharashtra
+💰 Total Fees: ₹8.5 Lakhs
+📊 Average Package: ₹20 LPA
+🎯 Highest Package: ₹1.8 Crore"`;
+
 const tools = [
   {
     functionDeclarations: [
@@ -31,8 +51,8 @@ const tools = [
   },
 ];
 
-async function callGemini(contents: any[], apiKey: string) {
-  const model = "gemini-2.0-flash-exp";
+async function callGemini(contents: any[], apiKey: string, systemPrompt: string) {
+  const model = "gemini-1.5-flash"; // Correct model name
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
@@ -41,11 +61,13 @@ async function callGemini(contents: any[], apiKey: string) {
       body: JSON.stringify({
         contents,
         systemInstruction: {
-          parts: [{ text: SYSTEM_PROMPT }],
+          parts: [{ text: systemPrompt }],
         },
         tools,
         generationConfig: {
-          temperature: 0.2,
+          temperature: 0.3,
+          topP: 0.95,
+          topK: 40,
           maxOutputTokens: 1024,
         },
       }),
@@ -72,42 +94,61 @@ export async function POST(request: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json({ error: "Supabase credentials not configured in backend" }, { status: 500 });
+      return NextResponse.json({ error: "Supabase credentials not configured" }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     const body = await request.json();
-    const { messages } = body;
+    const { messages, profileContext } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: "Messages array is required" }, { status: 400 });
     }
 
-    // Convert messages to Gemini format, excluding the initial assistant greeting
-    const geminiMessages: any[] = messages
-      .filter((msg: any) => {
-        // Skip empty messages
-        if (!msg.content || msg.content.trim() === '') return false;
-        
-        // Skip the initial assistant greeting (first message)
-        const isInitialGreeting = msg.role === 'assistant' && 
-          msg.content.includes("Hi! I'm the EduNext Data Bot");
-        
-        return !isInitialGreeting;
-      })
+    // Build dynamic system prompt with profile context
+    let dynamicPrompt = SYSTEM_PROMPT;
+    if (profileContext) {
+      const parts = [];
+      if (profileContext.examScore) parts.push(`Exam Score: ${profileContext.examScore}`);
+      if (profileContext.preferredBranch) parts.push(`Preferred Branch: ${profileContext.preferredBranch}`);
+      if (profileContext.budget) parts.push(`Budget: ${profileContext.budget}`);
+      if (profileContext.location) parts.push(`Preferred Location: ${profileContext.location}`);
+      
+      if (parts.length > 0) {
+        dynamicPrompt += `\n\nSTUDENT PROFILE (use this context for better recommendations):\n${parts.join('\n')}`;
+      }
+    }
+
+    // Filter and map messages to Gemini format
+    const geminiMessages = messages
+      .filter((msg: any) => msg.content && msg.content.trim() !== '')
       .map((msg: any) => ({
         role: msg.role === "assistant" ? "model" : "user",
         parts: [{ text: msg.content }],
       }));
 
-    // Validate we have at least one user message
-    if (geminiMessages.length === 0 || geminiMessages[geminiMessages.length - 1].role !== "user") {
-      return NextResponse.json({ error: "No valid user message found" }, { status: 400 });
+    // Ensure first message is from user
+    if (geminiMessages.length > 0 && geminiMessages[0].role !== "user") {
+      geminiMessages.shift();
+    }
+
+    // ✅ CRITICAL: Ensure alternating roles (Gemini API requirement)
+    const cleanedMessages = [];
+    let lastRole = "";
+    for (const msg of geminiMessages) {
+      if (msg.role !== lastRole) {
+        cleanedMessages.push(msg);
+        lastRole = msg.role;
+      }
+    }
+
+    if (cleanedMessages.length === 0) {
+      return NextResponse.json({ error: "No valid messages" }, { status: 400 });
     }
 
     // First call to Gemini
-    let data = await callGemini(geminiMessages, GEMINI_API_KEY);
+    let data = await callGemini(cleanedMessages, GEMINI_API_KEY, dynamicPrompt);
     let candidate = data.candidates?.[0];
 
     // Check if Gemini wants to call a function
@@ -116,6 +157,8 @@ export async function POST(request: NextRequest) {
       
       if (functionCall.name === "get_college_details") {
         const { college_name } = functionCall.args;
+        
+        console.log(`🔍 Searching database for: ${college_name}`);
         
         // Execute Supabase Query
         const { data: dbData, error } = await supabase
@@ -129,9 +172,9 @@ export async function POST(request: NextRequest) {
           console.error("Supabase Error:", error);
           queryResult = { error: "Failed to query database." };
         } else if (!dbData || dbData.length === 0) {
-          queryResult = { message: "No college found matching that name." };
+          queryResult = { message: `No college found matching "${college_name}". Try a different name.` };
         } else {
-          // Send simplified data back to avoid massive token usage
+          // Send simplified data
           queryResult = dbData.map(c => ({
             name: c.college_name,
             location: c.location,
@@ -139,15 +182,17 @@ export async function POST(request: NextRequest) {
             avgPackage: c.microsite_data?.placement?.[0]?.headers?.["Average package"] || c.microsite_data?.placement?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("average"))?.[1] || "N/A",
             highestPackage: c.microsite_data?.placement?.[0]?.headers?.["Highest package"] || c.microsite_data?.placement?.[0]?.rows?.find((r: any) => r[0]?.toLowerCase().includes("high"))?.[1] || "N/A",
           }));
+          
+          console.log(`✅ Found ${dbData.length} college(s)`);
         }
 
-        // Add function call and response to conversation history
-        geminiMessages.push({
+        // Add function call and response to conversation
+        cleanedMessages.push({
           role: "model",
           parts: [{ functionCall }],
         });
 
-        geminiMessages.push({
+        cleanedMessages.push({
           role: "user",
           parts: [{
             functionResponse: {
@@ -157,8 +202,8 @@ export async function POST(request: NextRequest) {
           }],
         });
 
-        // Make second call to Gemini with the function response
-        data = await callGemini(geminiMessages, GEMINI_API_KEY);
+        // Second call to Gemini with the function response
+        data = await callGemini(cleanedMessages, GEMINI_API_KEY, dynamicPrompt);
         candidate = data.candidates?.[0];
       }
     }
