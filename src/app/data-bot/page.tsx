@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, Database, Loader2, Sparkles } from 'lucide-react';
+import { Send, Mic, MicOff, Database, Loader2, Sparkles } from 'lucide-react';
 import DefaultLayout from '../defaultLayout';
 
 interface Message {
@@ -15,7 +15,9 @@ export default function DataBotPage() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -24,6 +26,60 @@ export default function DataBotPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'en-US';
+
+        recognitionRef.current.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+          
+          if (event.error === 'not-allowed') {
+            alert('Microphone access denied. Please allow microphone access in your browser settings.');
+          }
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const toggleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in your browser. Please try Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,16 +168,21 @@ export default function DataBotPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="E.g., What are the fees for NMIMS Mumbai? or Tell me placements of IIT Bombay."
+                placeholder={isListening ? "Listening..." : "E.g., What are the fees for NMIMS Mumbai?"}
                 className="flex-1 bg-[#1a233a] border border-indigo-500/30 text-white text-base rounded-full pl-6 pr-28 py-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-slate-500 shadow-inner"
               />
               <div className="absolute right-3 flex items-center gap-2">
                 <button
                   type="button"
-                  className="p-2.5 text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-500/10 rounded-full hover:bg-indigo-500/20"
-                  title="Voice feature coming soon"
+                  onClick={toggleVoiceInput}
+                  className={`p-2.5 transition-all rounded-full ${
+                    isListening 
+                      ? 'bg-red-500 text-white animate-pulse' 
+                      : 'text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20'
+                  }`}
+                  title={isListening ? "Stop recording" : "Start voice input"}
                 >
-                  <Mic size={20} />
+                  {isListening ? <MicOff size={20} /> : <Mic size={20} />}
                 </button>
                 <button
                   type="submit"
@@ -133,7 +194,9 @@ export default function DataBotPage() {
               </div>
             </form>
             <div className="text-center mt-3">
-              <p className="text-xs text-slate-500">Data Bot fetches exact data from the EduNext database. It does not guess.</p>
+              <p className="text-xs text-slate-500">
+                {isListening ? '🎤 Listening... Speak now!' : 'Data Bot fetches exact data from the EduNext database. Click the mic to speak!'}
+              </p>
             </div>
           </div>
         </div>

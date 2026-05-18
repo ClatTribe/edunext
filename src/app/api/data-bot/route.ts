@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-
-
 const SYSTEM_PROMPT = `You are a highly analytical, data-driven AI assistant for EduNext.
 Your sole purpose is to answer questions about colleges using the database tool provided to you.
 You have access to a tool called 'get_college_details'. 
@@ -34,7 +32,7 @@ const tools = [
 ];
 
 async function callGemini(contents: any[], apiKey: string) {
-  const model = "gemini-3.1-flash-live"; // Changed to match Medha AI model
+  const model = "gemini-2.0-flash-exp";
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
@@ -47,7 +45,7 @@ async function callGemini(contents: any[], apiKey: string) {
         },
         tools,
         generationConfig: {
-          temperature: 0.2, // Lower temperature for more factual responses
+          temperature: 0.2,
           maxOutputTokens: 1024,
         },
       }),
@@ -86,15 +84,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Messages array is required" }, { status: 400 });
     }
 
+    // Convert messages to Gemini format, excluding the initial assistant greeting
     const geminiMessages: any[] = messages
-      .filter((msg: any) => msg.content && msg.content.trim() !== '')
+      .filter((msg: any) => {
+        // Skip empty messages
+        if (!msg.content || msg.content.trim() === '') return false;
+        
+        // Skip the initial assistant greeting (first message)
+        const isInitialGreeting = msg.role === 'assistant' && 
+          msg.content.includes("Hi! I'm the EduNext Data Bot");
+        
+        return !isInitialGreeting;
+      })
       .map((msg: any) => ({
         role: msg.role === "assistant" ? "model" : "user",
         parts: [{ text: msg.content }],
       }));
 
-    if (geminiMessages.length === 0 || geminiMessages[0].role !== "user") {
-      return NextResponse.json({ error: "Invalid message format" }, { status: 400 });
+    // Validate we have at least one user message
+    if (geminiMessages.length === 0 || geminiMessages[geminiMessages.length - 1].role !== "user") {
+      return NextResponse.json({ error: "No valid user message found" }, { status: 400 });
     }
 
     // First call to Gemini
