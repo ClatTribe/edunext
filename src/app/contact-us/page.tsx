@@ -51,6 +51,14 @@ const ContactPage = () => {
       color: "from-red-600 to-red-700",
       link: "https://youtube.com/shorts/Mq8BNMVtW0Y?feature=shared",
     },
+    {
+      icon: <Mail className="text-white" size={24} />,
+      title: "Email Us",
+      value: "edunextweb@gmail.com",
+      label: "Reach out anytime",
+      color: "from-purple-500 to-purple-600",
+      link: "mailto:edunextweb@gmail.com",
+    },
   ];
 
   return (
@@ -82,18 +90,18 @@ const ContactPage = () => {
           </div>
 
           {/* Contact Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className="flex flex-wrap justify-center gap-6 mb-16">
             {contactMethods.map((method, idx) => (
               <motion.a
                 key={idx}
                 href={method.link}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={method.link.startsWith("http") ? "_blank" : undefined}
+                rel={method.link.startsWith("http") ? "noopener noreferrer" : undefined}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.1 }}
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className="group relative p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-amber-500/50 transition-all duration-300 overflow-hidden"
+                className="flex-1 min-w-[260px] max-w-[320px] group relative p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-amber-500/50 transition-all duration-300 overflow-hidden"
               >
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${method.color} flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-xl`}>
                   {method.icon}
@@ -108,40 +116,7 @@ const ContactPage = () => {
             ))}
           </div>
 
-          {/* Bottom Info Section */}
-          {/* <div className="grid md:grid-cols-2 gap-8">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white/5 border border-white/10 p-8 rounded-3xl flex items-center gap-6 group hover:bg-white/[0.07] transition-colors"
-            >
-              <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-                <Clock size={28} />
-              </div>
-              <div>
-                <h4 className="text-white font-bold text-lg">Response Time</h4>
-                <p className="text-gray-400">9:00 AM - 7:00 PM</p>
-                <p className="text-amber-500/70 text-sm font-medium">Average reply: Under 15 mins</p>
-              </div>
-            </motion.div>
 
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white/5 border border-white/10 p-8 rounded-3xl flex items-center gap-6 group hover:bg-white/[0.07] transition-colors"
-            >
-              <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-                <Mail size={28} />
-              </div>
-              <div>
-                <h4 className="text-white font-bold text-lg">Official Email</h4>
-                <p className="text-gray-400">contact@edunext.in</p>
-                <p className="text-gray-500 text-sm italic">No spam, just solutions.</p>
-              </div>
-            </motion.div>
-          </div> */}
         </div>
       </main>
 
