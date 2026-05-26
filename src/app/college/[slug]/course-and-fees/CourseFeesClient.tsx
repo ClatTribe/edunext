@@ -135,10 +135,10 @@ interface CourseFeesClientProps {
 }
 
 export default function CourseFeesClient({ rawFees, uniqueHeadings }: CourseFeesClientProps) {
-  const [selectedHeading, setSelectedHeading] = useState<string>("")
+  const [selectedHeading, setSelectedHeading] = useState<string>(uniqueHeadings.length > 0 ? uniqueHeadings[0] : "")
 
   useEffect(() => {
-    if (uniqueHeadings.length > 0) {
+    if (uniqueHeadings.length > 0 && !selectedHeading) {
       setSelectedHeading(uniqueHeadings[0])
     }
   }, [uniqueHeadings])
