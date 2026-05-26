@@ -2,6 +2,28 @@ import React from "react"
 import { supabase } from "../../../../../lib/supabase"
 import CourseFeesClient from "./CourseFeesClient"
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const { data: college } = await supabase.from("college_microsites").select("college_name, location").eq("slug", slug).single()
+  
+  if (!college) return { title: "Courses & Fees | EduNext" }
+
+  const name = college.college_name
+  const location = college.location
+
+  return {
+    title: `${name} Courses & Fees 2026`,
+    description: `Check out the detailed courses and fee structure for ${name}, ${location}.`,
+    alternates: {
+      canonical: `https://www.getedunext.com/college/${slug}/course-and-fees`
+    },
+    openGraph: {
+      title: `${name} Courses & Fees 2026`,
+      description: `Check out the detailed courses and fee structure for ${name}, ${location}.`,
+    }
+  }
+}
+
 export default async function CoursesAndFeesPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
