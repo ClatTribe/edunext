@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.getedunext.com'),
   title: "EduNext",
   description: "Find Your Perfect College, scholarships, and connect with admits",
   icons: {
