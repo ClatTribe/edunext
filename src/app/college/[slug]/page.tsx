@@ -108,6 +108,22 @@ function PreviewTable({ table }: { table: any }) {
 // ─── Apply Card ───────────────────────────────────────────────────────────────
 
 function ApplyCard({ collegeName, url }: { collegeName: string; url?: string }) {
+  let links: { label?: string; url: string }[] = [];
+  
+  if (url) {
+    try {
+      const parsed = JSON.parse(url);
+      if (Array.isArray(parsed)) {
+        links = parsed;
+      } else {
+        links = [{ label: "Apply Directly", url: url }];
+      }
+    } catch (e) {
+      // Normal single URL string fallback
+      links = [{ label: "Apply Directly", url: url }];
+    }
+  }
+
   return (
     <div className="group relative flex flex-col justify-between h-full rounded-[2rem] border border-white/5 bg-[#050818] overflow-hidden shadow-2xl transition-all duration-500 hover:border-amber-500/30 p-8">
       {/* Glow blob */}
@@ -128,18 +144,21 @@ function ApplyCard({ collegeName, url }: { collegeName: string; url?: string }) 
       </div>
 
       {/* CTA Button */}
-      <div className="relative z-10 mt-8">
-        {url ? (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2.5 w-full py-4 px-6 bg-amber-500 text-[#050818] rounded-2xl shadow-[0_0_24px_rgba(245,158,11,0.3)] hover:shadow-[0_0_36px_rgba(245,158,11,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all font-black text-xs uppercase tracking-widest group/btn"
-          >
-            <Sparkles size={14} className="group-hover/btn:rotate-12 transition-transform" />
-            Apply Directly
-            <ArrowUpRight size={14} />
-          </a>
+      <div className="relative z-10 mt-8 space-y-3">
+        {links.length > 0 ? (
+          links.map((link, idx) => (
+            <a
+              key={idx}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2.5 w-full py-4 px-6 bg-amber-500 text-[#050818] rounded-2xl shadow-[0_0_24px_rgba(245,158,11,0.3)] hover:shadow-[0_0_36px_rgba(245,158,11,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all font-black text-xs uppercase tracking-widest group/btn"
+            >
+              <Sparkles size={14} className="group-hover/btn:rotate-12 transition-transform shrink-0" />
+              <span className="truncate">{link.label || "Apply Directly"}</span>
+              <ArrowUpRight size={14} className="shrink-0" />
+            </a>
+          ))
         ) : (
           <div className="flex items-center justify-center gap-2.5 w-full py-4 px-6 rounded-2xl border border-amber-500/20 text-amber-500/40 font-black text-xs uppercase tracking-widest cursor-not-allowed">
             Website Not Available
