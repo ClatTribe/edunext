@@ -112,6 +112,13 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
       ],
     },
     {
+      name: "Imarticus School of Finance & Business",
+      startDate: "Currently Open",
+      endDate: "To be announced",
+      link: "https://apply-isfb.imarticus.org/?utm_source=outreach&utm_medium=channel-IPM&utm_campaign=UG-admission",
+      status: "Open",
+    },
+    {
       name: "UPES",
       startDate: "Currently Open",
       endDate: "Jun 10, 2026",

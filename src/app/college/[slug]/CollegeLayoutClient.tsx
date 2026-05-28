@@ -12,6 +12,7 @@ import RelatedColleges from "../../../../components/microsite/RelatedColleges"
 import MicrositeHero from "../../../../components/microsite/MicrositeHero"
 import Navbar from "../../../../components/Navbar"
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
+import JumbleWords from "../../../../components/microsite/JumbleWords"
 // import ReactMarkdown from 'react-markdown'
 
 // Total Black Aesthetic
@@ -251,8 +252,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
           </div>
 
           <aside className="w-full lg:w-[350px] shrink-0">
-            {/* top offset = navbar height + sub-navbar height (~48px) + gap */}
-            <div className="lg:sticky lg:top-[136px]">
+            <div>
               <div className="hidden lg:block">
                 <CollegeEnquiryForm 
                   collegeName={college.college_name} 
@@ -260,6 +260,7 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
                   pdfUrl={college.pdf_url}
                 />
               </div>
+              <JumbleWords />
               <RelatedColleges
                 currentCollegeId={college.id}
                 currentLocation={college.location}
