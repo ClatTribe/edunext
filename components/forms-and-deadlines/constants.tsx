@@ -654,6 +654,20 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
   // ━━━━━━━━━━ IPM ━━━━━━━━━━
   // Last updated: May 2026 | Source: IPM_Forms_Deadlines_2026.xlsx
   [ExamTab.IPM]: [
+
+        {
+      name: "Masters' Union",
+      startDate: "Currently Open",
+      endDate: "18th July 2026",
+      link: "https://mastersunion.org/",
+      status: "Open",
+      subLinks: [
+        { name: "Tech & Management", url: "https://mastersunion.org/ug-technology-and-business-management?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" },
+        { name: "Psychology & Marketing", url: "https://mastersunion.org/ug-psychology-and-marketing?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" },
+        { name: "Finance & Economics", url: "https://mastersunion.org/ug-finance-and-economics?utm_source=SIM&utm_medium=UG&utm_campaign=FnE" },
+        { name: "Data Science & AI", url: "https://mastersunion.org/ug-data-science-and-artificial-intelligence?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" }
+      ],
+    },
     {
       name: "IIM Indore (IPMAT)",
       startDate: "Feb 2, 2026",
@@ -694,13 +708,16 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
       link: "https://apps.iimshillong.ac.in/admission/",
       courses: "IPM (5-Years)",
     },
-    {
+            {
       name: "IIM Sambalpur (BS)",
       startDate: "Currently Open",
       endDate: "May 31, 2026",
+      link: "https://mastersunion.org/",
       status: "Open",
-      link: "https://registration.iimsambalpur.ac.in/portal/SignIn/MPPolicy",
-      courses: "B.S. Management & Public Policy (4-Years)",
+      subLinks: [
+        { name: "B.S. in Management and Public Policy Programme", url: "https://registration.iimsambalpur.ac.in/portal/SignIn/MPPolicy" },
+        { name: "B.S. in Data Science & AI", url: "https://registration.iimsambalpur.ac.in/portal/SignIn/DSAI" }
+      ],
     },
     {
       name: "IIM Ranchi (IPM)",
@@ -834,7 +851,7 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
     {
       name: "Alliance University",
       startDate: "Currently Open",
-      endDate: "May 12, 2026",
+      endDate: "May 30, 2026",
       status: "Open",
       link: "https://apply.alliance.edu.in/undergraduate-application-form-2026?utm_source=IPMcareer&utm_medium=Kanpur&utm_campaign=BBA2026",
       courses: "BBA (Hons.) & BCom (Hons)",
@@ -846,20 +863,6 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
       status: "Open",
       link: "https://registrations.iitp-cep.in/BBA-MBA",
       courses: "BBA (3-years)",
-    },
-    {
-      name: "Masters' Union",
-      startDate: "Currently Open",
-      endDate: "Jun 10, 2026",
-      status: "Open",
-      link: "https://mastersunion.org/ug-technology-and-business-management?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite",
-      courses: "UG Tech / Business / Finance / Psychology (4-Years)",
-      subLinks: [
-        { name: "Tech & Management", url: "https://mastersunion.org/ug-technology-and-business-management?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" },
-        { name: "Psychology & Marketing", url: "https://mastersunion.org/ug-psychology-and-marketing?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" },
-        { name: "Finance & Economics", url: "https://mastersunion.org/ug-finance-and-economics?utm_source=SIM&utm_medium=UG&utm_campaign=FnE" },
-        { name: "Data Science & AI", url: "https://mastersunion.org/ug-data-science-and-artificial-intelligence?utm_source=IPMOnline&utm_medium=Online&utm_campaign=Invite&utm_content=" },
-      ],
     },
     // Additional colleges
     {
@@ -887,11 +890,19 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
       courses: "BBA (3 Years)",
     },
     {
-      name: "UPES (BBA Programs)",
+      name: "UPES",
       startDate: "Currently Open",
-      endDate: "Mar 31, 2026",
-      status: "Closed",
+      endDate: "June 10, 2026",
+      status: "Open",
       link: "https://admission.upes.ac.in/Login?BCode=ysApp0gAXIDFHAhVkG75bw%3D%3D",
+      courses: "BBA Programs",
+    },
+    {
+      name: "Uttaranchal University (Doon)",
+      startDate: "Currently Open",
+      endDate: "June 10, 2026",
+      status: "Open",
+      link: "https://www.uudoon.in/admissions/index.php?utm_source=UU6LV3535&utm_medium=Consultant&utm_campaign=UU6LV3535",
       courses: "BBA Programs",
     },
   ],
