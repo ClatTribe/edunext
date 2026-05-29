@@ -35,6 +35,9 @@ export const metadata = {
   title: 'EduNext Magazine | Honest College & Exam Stories for Indian Students',
   description:
     'Daily long-form stories on JEE, NEET, CLAT, CAT and Indian college life. No spam calls. No paid rankings. Just honest deep-dives for students figuring it out.',
+  alternates: {
+    canonical: 'https://www.getedunext.com/magazine',
+  },
   openGraph: {
     title: 'EduNext Magazine',
     description: 'Daily long-form stories on JEE, NEET, CLAT, CAT and Indian college life.',

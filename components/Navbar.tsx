@@ -42,6 +42,7 @@ interface NavLink {
 const NAV_LINKS: Record<string, NavLink[]> = {
   edunext: [
     { label: "Home", href: "/" },
+    { label: "Magazine", href: "/magazine" },
     { label: "Blogs", href: "/blogs" },
     { label: "Contact Us", href: "/contact-us" },
     { label: "News", href: "/news" },
