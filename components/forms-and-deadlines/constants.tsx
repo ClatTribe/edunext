@@ -119,6 +119,13 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
       status: "Open",
     },
     {
+      name: "Uttaranchal University Dehradun",
+      startDate: "Currently Open",
+      endDate: "To be announced",
+      link: "https://www.uudoon.in/admissions/index.php?utm_source=UU6LV3535&amp;utm_medium=Consultant&amp;utm_campaign=UU6LV3535",
+      status: "Open",
+    },
+    {
       name: "UPES",
       startDate: "Currently Open",
       endDate: "Jun 10, 2026",
@@ -134,7 +141,7 @@ export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
     },
     {
       name: "Bennett University",
-      startDate: "To be announced",
+      startDate: "Currently Open",
       endDate: "To be announced",
       status: "Open",
       link: "https://bit.ly/3Oxz2SR",

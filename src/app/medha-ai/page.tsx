@@ -511,39 +511,39 @@ export default function MedhaAIDashboard() {
     const degree = (profileData?.target_degree || '').toLowerCase();
     if (degree === 'mba') {
       return [
-        { name: 'IIM Ahmedabad', category: 'AMBITIOUS', branch: 'Management' },
-        { name: 'IIM Bangalore', category: 'AMBITIOUS', branch: 'Management' },
-        { name: 'XLRI Jamshedpur', category: 'TARGET', branch: 'Management' },
+        { name: 'IIM Ahmedabad', category: 'AMBITIOUS', branch: 'Management', slug: 'iim-ahmedabad' },
+        { name: 'IIM Bangalore', category: 'AMBITIOUS', branch: 'Management', slug: 'iim-bangalore' },
+        { name: 'XLRI Jamshedpur', category: 'TARGET', branch: 'Management', slug: 'xlri-jamshedpur' },
       ];
     } else if (degree === 'b.tech') {
       return [
-        { name: 'IIT Bombay', category: 'AMBITIOUS', branch: 'Computer Science' },
-        { name: 'BITS Pilani', category: 'TARGET', branch: 'Electronics' },
-        { name: 'NIT Trichy', category: 'TARGET', branch: 'Mechanical' },
+        { name: 'IIT Bombay', category: 'AMBITIOUS', branch: 'Computer Science', slug: 'iit-bombay' },
+        { name: 'BITS Pilani', category: 'TARGET', branch: 'Electronics', slug: 'bits-pilani' },
+        { name: 'NIT Trichy', category: 'TARGET', branch: 'Mechanical', slug: 'nit-trichy' },
       ];
     } else if (degree === 'medical' || degree === 'mbbs') {
       return [
-        { name: 'AIIMS Delhi', category: 'AMBITIOUS', branch: 'Medicine' },
-        { name: 'CMC Vellore', category: 'TARGET', branch: 'Medicine' },
-        { name: 'JIPMER Puducherry', category: 'TARGET', branch: 'Medicine' },
+        { name: 'AIIMS Delhi', category: 'AMBITIOUS', branch: 'Medicine', slug: 'aiims-delhi' },
+        { name: 'CMC Vellore', category: 'TARGET', branch: 'Medicine', slug: 'cmc-vellore' },
+        { name: 'JIPMER Puducherry', category: 'TARGET', branch: 'Medicine', slug: 'jipmer-puducherry' },
       ];
     } else if (degree === 'law') {
       return [
-        { name: 'NLSIU Bangalore', category: 'AMBITIOUS', branch: 'Law' },
-        { name: 'NALSAR Hyderabad', category: 'TARGET', branch: 'Law' },
-        { name: 'NLU Delhi', category: 'TARGET', branch: 'Law' },
+        { name: 'NLSIU Bangalore', category: 'AMBITIOUS', branch: 'Law', slug: 'nlsiu-bangalore' },
+        { name: 'NALSAR Hyderabad', category: 'TARGET', branch: 'Law', slug: 'nalsar-hyderabad' },
+        { name: 'NLU Delhi', category: 'TARGET', branch: 'Law', slug: 'nlu-delhi' },
       ];
     } else if (degree === 'bba/bms') {
       return [
-        { name: 'IIM Indore (IPM)', category: 'AMBITIOUS', branch: 'Management' },
-        { name: 'NMIMS Mumbai', category: 'TARGET', branch: 'Management' },
-        { name: 'Christ University', category: 'TARGET', branch: 'Management' },
+        { name: 'IIM Indore (IPM)', category: 'AMBITIOUS', branch: 'Management', slug: 'iim-indore' },
+        { name: 'NMIMS Mumbai', category: 'TARGET', branch: 'Management', slug: 'nmims-mumbai' },
+        { name: 'Christ University', category: 'TARGET', branch: 'Management', slug: 'christ-university' },
       ];
     } else {
       return [
-        { name: 'Delhi University', category: 'AMBITIOUS', branch: profileData?.target_field || 'General' },
-        { name: 'JNU Delhi', category: 'TARGET', branch: profileData?.target_field || 'General' },
-        { name: 'BHU Varanasi', category: 'TARGET', branch: profileData?.target_field || 'General' },
+        { name: 'Delhi University', category: 'AMBITIOUS', branch: profileData?.target_field || 'General', slug: 'delhi-university' },
+        { name: 'JNU Delhi', category: 'TARGET', branch: profileData?.target_field || 'General', slug: 'jnu-delhi' },
+        { name: 'BHU Varanasi', category: 'TARGET', branch: profileData?.target_field || 'General', slug: 'bhu-varanasi' },
       ];
     }
   };
@@ -1593,6 +1593,11 @@ export default function MedhaAIDashboard() {
                     key={index}
                     style={glassEffect}
                     className="rounded-xl p-4 cursor-pointer transition-all duration-200 hover:border-opacity-100 group"
+                    onClick={() => {
+                      if (college.slug) {
+                        router.push(`/college/${college.slug}`);
+                      }
+                    }}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <School className="w-5 h-5" style={{ color: COLORS.primary }} />
