@@ -228,7 +228,7 @@ export default function MagazineArticleView({ article, related }: Props) {
                       className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover bg-slate-800 border border-slate-700 shrink-0" 
                     />
                     <div className="pr-0 sm:pr-24">
-                      <h4 className="text-white font-bold text-lg">Ashish Sharma</h4>
+                      <h4 className="text-white font-bold text-lg">Ashish Mishra</h4>
                       <div className="text-red-400 font-semibold text-xs mb-3 uppercase tracking-wider">Founder, EduNext</div>
                       <p className="text-slate-400 text-sm leading-relaxed">
                         Ashish Sir is a distinguished alumnus of IIIT and IIT Bombay. With five years of experience at Google and a strong entrepreneurial spirit, he brings deep technical expertise and innovative vision to advancing education technology.
