@@ -14,9 +14,8 @@
 
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
-import Link from 'next/link';
-import { categoryTone } from './categoryTone';
+import { useEffect, useState } from 'react';
+import JumbleWords from '../microsite/JumbleWords';
 
 interface TocItem {
   id: string;
@@ -38,16 +37,7 @@ interface Props {
   sourceCategory?: string;
 }
 
-const EXAMS = [
-  { value: '', label: 'Pick exam' },
-  { value: 'JEE', label: 'JEE' },
-  { value: 'NEET', label: 'NEET' },
-  { value: 'CLAT', label: 'CLAT' },
-  { value: 'CAT', label: 'CAT' },
-  { value: 'IPMAT', label: 'IPMAT' },
-  { value: 'CUET', label: 'CUET' },
-  { value: 'OTHER', label: 'Other' },
-];
+
 
 export default function ArticleRightSidebar({
   toc,
@@ -89,16 +79,18 @@ export default function ArticleRightSidebar({
 
   return (
     <aside
-      className="hidden h-full shrink-0 overflow-y-auto lg:block lg:w-72 xl:w-80"
+      className="shrink-0 w-full lg:w-72 xl:w-80"
       style={{
         backgroundColor: '#050818',
         borderLeft: '1px solid #1e293b',
       }}
     >
-      <div className="flex flex-col gap-8 px-5 py-6 xl:px-6">
+      <div className="flex flex-col gap-8 px-5 py-6 xl:px-6 h-full">
+        <JumbleWords compact={true} />
+        
         {/* Section A — Table of Contents */}
         {tocH2.length > 0 && (
-          <nav>
+          <nav className="lg:sticky lg:top-6">
             <div
               className="mb-4 text-xs font-bold uppercase tracking-wider"
               style={{ color: '#475569' }}
@@ -134,231 +126,9 @@ export default function ArticleRightSidebar({
             </ul>
           </nav>
         )}
-
-        {/* Section B — Free Counselling */}
-        <CounsellingCard
-          sourceSlug={sourceSlug}
-          sourceCategory={sourceCategory}
-        />
-
-        {/* Section C — Related Articles */}
-        {related && related.length > 0 && (
-          <section>
-            <div
-              className="mb-4 text-xs font-bold uppercase tracking-wider"
-              style={{ color: '#475569' }}
-            >
-              Related
-            </div>
-            <ul className="flex flex-col">
-              {related.map((r) => {
-                const tone = categoryTone(r.category);
-                return (
-                  <li
-                    key={r.id}
-                    style={{ borderBottom: '1px solid #1e293b' }}
-                  >
-                    <Link
-                      href={`/magazine/${r.slug}`}
-                      className="block py-4"
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <span
-                        className="mb-2 inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-wider"
-                        style={{
-                          color: tone.text,
-                          backgroundColor: tone.bg,
-                          border: `1px solid ${tone.border}`,
-                          borderRadius: 4,
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {tone.label}
-                      </span>
-                      <div
-                        style={{
-                          color: '#cbd5e1',
-                          fontSize: 14,
-                          lineHeight: 1.5,
-                          marginTop: 4,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {r.title}
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
       </div>
     </aside>
   );
 }
 
-// =====================================================================
-// Counselling card
-// =====================================================================
-function CounsellingCard({
-  sourceSlug,
-  sourceCategory,
-}: {
-  sourceSlug?: string;
-  sourceCategory?: string;
-}) {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [exam, setExam] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    if (name.trim().length < 2) return setError('Name?');
-    const cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.length < 10) return setError('Phone too short');
-    setLoading(true);
-    try {
-      const res = await fetch('/api/magazine/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          phone: cleanPhone,
-          exam: exam || null,
-          source_slug: sourceSlug || null,
-          source_category: sourceCategory || null,
-        }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || 'Submit failed');
-      }
-      setDone(true);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (done) {
-    return (
-      <section
-        style={{
-          backgroundColor: '#0f172a',
-          border: '1px solid #1e293b',
-          borderRadius: 10,
-          padding: 18,
-        }}
-      >
-        <div
-          className="mb-2 text-xs font-bold uppercase tracking-wider"
-          style={{ color: '#10b981' }}
-        >
-          ✓ Sent
-        </div>
-        <div className="text-sm font-semibold text-white">
-          A counsellor will WhatsApp you in 24 hours.
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section
-      style={{
-        backgroundColor: '#0f172a',
-        border: '1px solid #1e293b',
-        borderRadius: 10,
-        padding: 18,
-      }}
-    >
-      <div
-        className="mb-2 text-xs font-bold uppercase tracking-wider"
-        style={{ color: '#10b981' }}
-      >
-        Free Counselling
-      </div>
-      <div className="text-base font-semibold leading-snug text-white">
-        Confused which college?
-      </div>
-      <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
-        Talk to a real counsellor. 15 min. No spam.
-      </p>
-
-      <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-2.5">
-        <input
-          type="text"
-          placeholder="Your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full text-sm text-white placeholder-slate-500"
-          style={{
-            backgroundColor: '#1a1f2e',
-            border: '1px solid #1e293b',
-            borderRadius: 6,
-            padding: '9px 11px',
-            outline: 'none',
-          }}
-        />
-        <input
-          type="tel"
-          placeholder="Phone number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full text-sm text-white placeholder-slate-500"
-          style={{
-            backgroundColor: '#1a1f2e',
-            border: '1px solid #1e293b',
-            borderRadius: 6,
-            padding: '9px 11px',
-            outline: 'none',
-          }}
-        />
-        <select
-          value={exam}
-          onChange={(e) => setExam(e.target.value)}
-          className="w-full text-sm text-white"
-          style={{
-            backgroundColor: '#1a1f2e',
-            border: '1px solid #1e293b',
-            borderRadius: 6,
-            padding: '9px 11px',
-            outline: 'none',
-          }}
-        >
-          {EXAMS.map((ex) => (
-            <option key={ex.value} value={ex.value}>
-              {ex.label}
-            </option>
-          ))}
-        </select>
-        {error && <p className="text-xs text-rose-400">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full text-sm font-semibold"
-          style={{
-            backgroundColor: '#f59e0b',
-            color: '#050818',
-            borderRadius: 6,
-            padding: '10px 12px',
-            border: 'none',
-            cursor: 'pointer',
-            opacity: loading ? 0.6 : 1,
-          }}
-        >
-          {loading ? 'Sending…' : 'Get Free Counselling'}
-        </button>
-        <div className="mt-1 text-center text-[11px] leading-relaxed text-slate-600">
-          One human · One call · No selling
-        </div>
-      </form>
-    </section>
-  );
-}

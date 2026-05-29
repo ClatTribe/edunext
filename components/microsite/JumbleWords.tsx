@@ -68,7 +68,7 @@ function shuffleArray<T>(array: T[]): T[] {
   return newArr
 }
 
-export default function JumbleWords() {
+export default function JumbleWords({ compact = false }: { compact?: boolean } = {}) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [jumbledLetters, setJumbledLetters] = useState<{ letter: string; id: number }[]>([])
   const [selectedIndices, setSelectedIndices] = useState<number[]>([])
@@ -163,23 +163,23 @@ export default function JumbleWords() {
   }
 
   return (
-    <div className="w-full rounded-[2rem] border border-amber-500/20 bg-[#0F172B] overflow-hidden shadow-2xl relative mb-8">
+    <div className={`w-full ${compact ? 'rounded-2xl' : 'rounded-[2rem]'} border border-amber-500/20 bg-[#0F172B] overflow-hidden shadow-2xl relative mb-8`}>
       {/* Decorative gradients */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[80px] rounded-full -mr-32 -mt-32 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-500/5 blur-[60px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 p-5">
+      <div className={`relative z-10 ${compact ? 'p-4' : 'p-5'}`}>
         
         {/* Header Title */}
-        <div className="flex items-center justify-center gap-3 mb-5">
-          <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter">
+        <div className={`flex items-center justify-center gap-3 mb-5 ${compact ? 'flex-col sm:flex-col' : ''}`}>
+          <h3 className={`font-black text-white uppercase tracking-tighter ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
             Jumble
           </h3>
           <div className="flex gap-1">
             {["W", "O", "R", "D", "S"].map((l, i) => (
               <div 
                 key={i} 
-                className="w-6 h-7 sm:w-7 sm:h-8 flex items-center justify-center bg-amber-500 text-[#050818] rounded font-black text-sm sm:text-base shadow-sm"
+                className={`flex items-center justify-center bg-amber-500 text-[#050818] rounded font-black shadow-sm ${compact ? 'w-5 h-6 text-xs' : 'w-6 h-7 sm:w-7 sm:h-8 text-sm sm:text-base'}`}
               >
                 {l}
               </div>
@@ -196,7 +196,8 @@ export default function JumbleWords() {
             return (
               <div 
                 key={i}
-                className={`w-9 h-10 sm:w-10 sm:h-11 flex items-center justify-center rounded-lg border-2 text-base sm:text-lg font-black transition-all duration-300
+                className={`flex items-center justify-center rounded-lg border-2 font-black transition-all duration-300
+                  ${compact ? 'w-8 h-9 text-sm' : 'w-9 h-10 sm:w-10 sm:h-11 text-base sm:text-lg'}
                   ${isFilled 
                     ? isWrong 
                       ? 'bg-red-500/20 border-red-500 text-red-500'
@@ -222,7 +223,8 @@ export default function JumbleWords() {
                 key={item.id}
                 disabled={isSelected || isSolved}
                 onClick={() => handleSelectLetter(idx)}
-                className={`w-9 h-10 sm:w-10 sm:h-11 flex items-center justify-center rounded-lg text-base sm:text-lg font-black transition-all duration-300
+                className={`flex items-center justify-center rounded-lg font-black transition-all duration-300
+                  ${compact ? 'w-8 h-9 text-sm' : 'w-9 h-10 sm:w-10 sm:h-11 text-base sm:text-lg'}
                   ${isSelected 
                     ? 'bg-[#050818]/20 text-transparent border border-transparent scale-90 opacity-50' 
                     : 'bg-[#050818] text-white border border-white/10 hover:border-amber-500/50 hover:-translate-y-1 hover:shadow-[0_4px_12px_rgba(245,158,11,0.2)] shadow-md cursor-pointer'
@@ -244,7 +246,7 @@ export default function JumbleWords() {
         </div>
 
         {/* Actions / Success State */}
-        <div className="flex justify-center gap-4">
+        <div className={`flex justify-center ${compact ? 'flex-wrap gap-2' : 'gap-4'}`}>
           {isSolved ? (
             <div className="flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-2 text-green-500 font-bold">
@@ -264,16 +266,20 @@ export default function JumbleWords() {
               <button
                 onClick={handleUndo}
                 disabled={selectedIndices.length === 0}
-                className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-lg font-bold text-sm transition-all
-                  bg-[#050818] text-slate-300 border border-white/10 hover:border-white/20 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex items-center gap-1.5 py-2 rounded-lg font-bold transition-all
+                  bg-[#050818] text-slate-300 border border-white/10 hover:border-white/20 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed
+                  ${compact ? 'px-3 text-xs' : 'px-4 sm:px-5 text-sm'}
+                `}
               >
                 <Undo2 size={16} />
                 Undo
               </button>
               <button
                 onClick={handleShuffle}
-                className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-lg font-bold text-sm transition-all
-                  bg-[#050818] text-amber-500 border border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/5"
+                className={`flex items-center gap-1.5 py-2 rounded-lg font-bold transition-all
+                  bg-[#050818] text-amber-500 border border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/5
+                  ${compact ? 'px-3 text-xs' : 'px-4 sm:px-5 text-sm'}
+                `}
               >
                 <Shuffle size={16} />
                 Shuffle
@@ -281,8 +287,10 @@ export default function JumbleWords() {
               {hasWrongAttempt && (
                 <button
                   onClick={handleShowAnswer}
-                  className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-lg font-bold text-sm transition-all
-                    bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300"
+                  className={`flex items-center gap-1.5 py-2 rounded-lg font-bold transition-all
+                    bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300
+                    ${compact ? 'px-3 text-xs' : 'px-4 sm:px-5 text-sm'}
+                  `}
                 >
                   <Lightbulb size={16} />
                   Answer
