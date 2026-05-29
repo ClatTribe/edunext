@@ -74,6 +74,7 @@ export default function JumbleWords() {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([])
   const [isSolved, setIsSolved] = useState(false)
   const [isWrong, setIsWrong] = useState(false)
+  const [hasWrongAttempt, setHasWrongAttempt] = useState(false)
 
   // Initialize game
   const initGame = useCallback(() => {
@@ -94,6 +95,7 @@ export default function JumbleWords() {
     setSelectedIndices([])
     setIsSolved(false)
     setIsWrong(false)
+    setHasWrongAttempt(false)
   }, [])
 
   // Start the first game on mount
@@ -120,6 +122,7 @@ export default function JumbleWords() {
         setIsSolved(true)
       } else {
         setIsWrong(true)
+        setHasWrongAttempt(true)
       }
     }
   }
@@ -139,6 +142,24 @@ export default function JumbleWords() {
 
   const handleNext = () => {
     initGame()
+  }
+
+  const handleShowAnswer = () => {
+    const correctIndices: number[] = []
+    
+    // Find the indices in jumbledLetters that spell out the correct word
+    for (const char of currentWordObj.word) {
+      const idx = jumbledLetters.findIndex((item, index) => 
+        item.letter === char && !correctIndices.includes(index)
+      )
+      if (idx !== -1) {
+        correctIndices.push(idx)
+      }
+    }
+    
+    setSelectedIndices(correctIndices)
+    setIsSolved(true)
+    setIsWrong(false)
   }
 
   return (
@@ -257,6 +278,16 @@ export default function JumbleWords() {
                 <Shuffle size={16} />
                 Shuffle
               </button>
+              {hasWrongAttempt && (
+                <button
+                  onClick={handleShowAnswer}
+                  className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-lg font-bold text-sm transition-all
+                    bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300"
+                >
+                  <Lightbulb size={16} />
+                  Answer
+                </button>
+              )}
             </>
           )}
         </div>
