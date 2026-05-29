@@ -483,10 +483,32 @@ export default async function CollegeOverviewPage({ params }: { params: Promise<
                   <h3 className="text-base font-black text-white uppercase tracking-tight group-hover:text-amber-400">Digital Portal</h3>
                 </div>
                 <div className="relative z-10 px-6 md:px-8 py-5">
-                  <a href={college.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-slate-300 font-medium text-sm hover:text-amber-400">
-                    {college.url.replace('https://', '').replace('www.', '')}
-                    <ArrowUpRight size={14} className="text-amber-500" />
-                  </a>
+                  {(() => {
+                    let links: { label?: string; url: string }[] = [];
+                    try {
+                      const parsed = JSON.parse(college.url);
+                      if (Array.isArray(parsed)) links = parsed;
+                      else links = [{ label: "Apply Now", url: college.url }];
+                    } catch (e) {
+                      links = [{ label: "Apply Now", url: college.url }];
+                    }
+                    return (
+                      <div className="flex flex-col gap-3">
+                        {links.map((link, idx) => (
+                          <a 
+                            key={idx}
+                            href={link.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="inline-flex items-center justify-center gap-2 bg-amber-500 text-[#050818] font-black text-sm uppercase tracking-widest px-6 py-3.5 rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-amber-500/20"
+                          >
+                            {link.label || "Apply Now"}
+                            <ArrowUpRight size={16} />
+                          </a>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
