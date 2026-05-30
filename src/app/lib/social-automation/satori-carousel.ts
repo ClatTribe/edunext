@@ -22,7 +22,9 @@ export async function generateCarouselImages(
   let logoDataUri = '';
   try {
     const logoSvg = fs.readFileSync(logoPath, 'utf8');
-    logoDataUri = `data:image/svg+xml;base64,${Buffer.from(logoSvg).toString('base64')}`;
+    const logoResvg = new Resvg(logoSvg, { fitTo: { mode: 'width', value: 360 } });
+    const logoPng = logoResvg.render().asPng();
+    logoDataUri = `data:image/png;base64,${logoPng.toString('base64')}`;
   } catch (err) {
     console.error('Could not load logo SVG', err);
   }
@@ -137,12 +139,14 @@ export async function generateCarouselImages(
                   type: 'div',
                   props: {
                     style: {
-                      fontSize: slide.text.length > 80 ? '64px' : '76px',
+                      fontSize: slide.text.length > 250 ? '36px' : slide.text.length > 150 ? '48px' : slide.text.length > 80 ? '56px' : '76px',
                       fontWeight: 700,
-                      lineHeight: 1.3,
+                      lineHeight: 1.4,
                       color: slide.color,
                       textAlign: 'left',
                       display: 'flex',
+                      flexWrap: 'wrap',
+                      whiteSpace: 'pre-wrap',
                     },
                     children: slide.text
                   }

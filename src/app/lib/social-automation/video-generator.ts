@@ -10,10 +10,37 @@ import * as os from 'os';
  * but for 50-word scripts, it usually fits.
  */
 export async function generateTTS(text: string): Promise<string> {
-  
-  // For long scripts, getAudioUrl returns a single URL if it fits,
-  // or we can use getAllAudioBase64 for longer text.
-  try {
+  const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
+
+  if (elevenLabsKey) {
+    console.log('Using ElevenLabs TTS (Premium Voice)...');
+    const voiceId = 'pNInz6obpgDQGcFmaJgB'; // 'Adam' Voice ID
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'audio/mpeg',
+        'xi-api-key': elevenLabsKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return 'data:audio/mp3;base64,' + buffer.toString('base64');
+    
+  } else {
+    console.log('Falling back to free Google TTS...');
     const results = await googleTTS.getAllAudioBase64(text, {
       lang: 'en',
       slow: false,
@@ -21,15 +48,9 @@ export async function generateTTS(text: string): Promise<string> {
       splitPunct: ',.?',
     });
 
-    // Concatenate base64 chunks
-    const buffers = results.map((result) => Buffer.from(result.base64, 'base64'));
+    const buffers = results.map((r) => Buffer.from(r.base64, 'base64'));
     const finalBuffer = Buffer.concat(buffers);
-    
-    const dataUri = 'data:audio/mp3;base64,' + finalBuffer.toString('base64');
-    return dataUri;
-  } catch (err) {
-    console.error('TTS Error:', err);
-    throw new Error('Failed to generate TTS');
+    return 'data:audio/mp3;base64,' + finalBuffer.toString('base64');
   }
 }
 
@@ -40,6 +61,9 @@ export async function generateTTS(text: string): Promise<string> {
 export async function renderRemotionVideo(
   text: string, 
   audioUrl: string, 
+  logoDataUri: string = '',
+  bgmUrl: string = '',
+  dataPoints: any[] = [],
   outputDir: string = os.tmpdir()
 ): Promise<string> {
   // Dynamic import to avoid breaking standard Next.js pages
@@ -55,7 +79,7 @@ export async function renderRemotionVideo(
   const composition = await selectComposition({
     serveUrl: bundled,
     id: 'Reel',
-    inputProps: { text, audioUrl },
+    inputProps: { text, audioUrl, logoDataUri, bgmUrl, dataPoints },
   });
 
   const outputLocation = path.join(outputDir, 'reel_' + Date.now() + '.mp4');
@@ -65,7 +89,7 @@ export async function renderRemotionVideo(
     serveUrl: bundled,
     codec: 'h264',
     outputLocation,
-    inputProps: { text, audioUrl },
+    inputProps: { text, audioUrl, logoDataUri, bgmUrl, dataPoints },
   });
 
   return outputLocation;

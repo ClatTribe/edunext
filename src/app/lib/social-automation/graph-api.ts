@@ -59,3 +59,66 @@ export async function publishInstagramCarousel(
   console.log('Graph API: Successfully published! Post ID:', publishData.id);
   return publishData.id;
 }
+
+/**
+ * Publishes a Video Reel to Instagram using the official Graph API.
+ * 
+ * @param igUserId The Instagram Business Account ID
+ * @param accessToken The Meta Long-Lived Access Token
+ * @param videoUrl Public URL to the mp4 video (e.g. Supabase Storage URL)
+ * @param caption The caption for the post
+ */
+export async function publishInstagramReel(
+  igUserId: string,
+  accessToken: string,
+  videoUrl: string,
+  caption: string
+) {
+  // Step 1: Create Reel container
+  console.log('Graph API: Creating Reel container...');
+  const creationUrl = `https://graph.facebook.com/v19.0/${igUserId}/media?media_type=REELS&video_url=${encodeURIComponent(videoUrl)}&caption=${encodeURIComponent(caption)}&access_token=${accessToken}`;
+  
+  const creationRes = await fetch(creationUrl, { method: 'POST' });
+  const creationData = await creationRes.json();
+  
+  if (creationData.error) {
+    console.error('Error creating reel container:', creationData.error);
+    throw new Error('Graph API Error: ' + creationData.error.message);
+  }
+  
+  const creationId = creationData.id;
+
+  // Step 2: Wait for Meta to process the video
+  console.log('Graph API: Waiting for Meta to process the video...');
+  let isReady = false;
+  let attempts = 0;
+  while (!isReady && attempts < 15) {
+    await new Promise(res => setTimeout(res, 3000)); // wait 3 seconds
+    const statusRes = await fetch(`https://graph.facebook.com/v19.0/${creationId}?fields=status_code&access_token=${accessToken}`);
+    const statusData = await statusRes.json();
+    console.log('Status:', statusData.status_code);
+    if (statusData.status_code === 'FINISHED') {
+      isReady = true;
+    } else if (statusData.status_code === 'ERROR') {
+      throw new Error('Meta failed to process the video.');
+    }
+    attempts++;
+  }
+
+  if (!isReady) throw new Error('Video processing timed out on Meta side.');
+
+  // Step 3: Publish the reel
+  console.log('Graph API: Publishing Reel...');
+  const publishUrl = `https://graph.facebook.com/v19.0/${igUserId}/media_publish?creation_id=${creationId}&access_token=${accessToken}`;
+  
+  const publishRes = await fetch(publishUrl, { method: 'POST' });
+  const publishData = await publishRes.json();
+  
+  if (publishData.error) {
+    console.error('Error publishing reel:', publishData.error);
+    throw new Error('Graph API Error: ' + publishData.error.message);
+  }
+
+  console.log('Graph API: Successfully published REEL! Post ID:', publishData.id);
+  return publishData.id;
+}

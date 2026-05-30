@@ -30,9 +30,9 @@ Article Snippet: ${articleContent.slice(0, 3000)}...
 # REQUIREMENTS:
 
 ## 1. Carousel (3 Slides)
-- Slide 1 (Hook): A bold, punchy, curiosity-inducing headline (max 8 words).
-- Slide 2 (Value): The most important fact, data point, or takeaway from the article (max 20 words).
-- Slide 3 (CTA): "Read the full analysis at getedunext.com/magazine"
+- Slide 1 (Hook): A bold, punchy, curiosity-inducing headline (max 10 words).
+- Slide 2 (Deep Dive): A detailed breakdown of the core insights, facts, and statistics. Use text formatting to make it highly informative (30-50 words).
+- Slide 3 (Actionable Takeaway): A clear piece of advice or strategy for the student based on the article (20-30 words) ending with a strong CTA to read the full analysis at getedunext.com/magazine.
 
 ## 2. Instagram Post Caption
 - Write a highly engaging, well-formatted Instagram caption for this carousel.
