@@ -186,14 +186,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const location = college.location
 
   return {
-    title: `${name}: Fees, Admission 2026, Courses, Cutoff, Ranking, Placement`,
-    description: `${name} is an institute in ${location}. Read for details on ${name} Fees, Admission 2026, Courses, Cutoff, Ranking and Placement.`,
+    title: `${name} ${location} — Fees 2026, Admission, Courses, Cutoff & Placement`,
+    description: `Explore ${name} in ${location}: course fees 2026, admission process, available courses, cutoff marks, rankings, placement stats, and student reviews. Compare and apply for 2026 admissions.`,
     alternates: {
       canonical: `https://www.getedunext.com/college/${slug}`
     },
     openGraph: {
-      title: `${name}: Fees, Admission 2026, Courses, Cutoff, Ranking, Placement`,
-      description: `${name} is an institute in ${location}.`,
+      title: `${name} ${location} — Fees 2026, Admission, Courses, Cutoff & Placement`,
+      description: `Explore ${name} in ${location}: fees 2026, courses, cutoff, rankings, placements and student reviews.`,
     }
   }
 }

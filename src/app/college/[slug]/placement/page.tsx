@@ -12,14 +12,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const location = college.location
 
   return {
-    title: `${name} Placement 2026`,
-    description: `Explore the latest placement statistics, highest packages, and top recruiters for ${name}, ${location}.`,
+    title: `${name} Placement 2026 — Average Package, Top Recruiters & Branch-wise Salary`,
+    description: `${name} placement report 2026: average CTC, highest salary package, top recruiting companies, branch-wise placement stats, and internship data for the ${location} campus. Full report inside.`,
     alternates: {
       canonical: `https://www.getedunext.com/college/${slug}/placement`
     },
     openGraph: {
-      title: `${name} Placement 2026`,
-      description: `Explore the latest placement statistics, highest packages, and top recruiters for ${name}, ${location}.`,
+      title: `${name} Placement 2026 — Average Package, Top Recruiters & Branch-wise Salary`,
+      description: `${name} placement report 2026: average CTC, highest salary package, top recruiting companies, branch-wise placement stats, and internship data for the ${location} campus. Full report inside.`,
     }
   }
 }
