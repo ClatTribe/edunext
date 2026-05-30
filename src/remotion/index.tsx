@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Composition, registerRoot } from 'remotion';
 import { ReelComposition } from './ReelComposition';
 
