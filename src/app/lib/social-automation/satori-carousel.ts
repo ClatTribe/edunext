@@ -12,7 +12,7 @@ export async function generateCarouselImages(
 ): Promise<string[]> {
   
   // Use Inter font instead of Roboto
-  const fontUrl = 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYMZhrib2Bg-4.ttf';
+  const fontUrl = 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYMZhrib2Bg-4.ttf'; 
   const fontRes = await fetch(fontUrl);
   if (!fontRes.ok) throw new Error('Failed to fetch font: ' + fontRes.statusText);
   const fontData = await fontRes.arrayBuffer();
