@@ -12,14 +12,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const location = college.location
 
   return {
-    title: `${name} Cutoff 2026`,
-    description: `Check out the detailed cutoff marks and admission ranks for ${name}, ${location}.`,
+    title: `${name} Cutoff 2026 — Branch-wise Opening & Closing Ranks, Category Cutoffs`,
+    description: `Check ${name} cutoff 2026: branch-wise opening & closing ranks, category-wise (General/OBC/SC/ST) closing ranks, merit list, and admission eligibility in ${location}. Updated for 2026.`,
     alternates: {
       canonical: `https://www.getedunext.com/college/${slug}/cutoff`
     },
     openGraph: {
-      title: `${name} Cutoff 2026`,
-      description: `Check out the detailed cutoff marks and admission ranks for ${name}, ${location}.`,
+      title: `${name} Cutoff 2026 — Branch-wise Opening & Closing Ranks, Category Cutoffs`,
+      description: `Check ${name} cutoff 2026: branch-wise opening & closing ranks, category-wise (General/OBC/SC/ST) closing ranks, merit list, and admission eligibility in ${location}. Updated for 2026.`,
     }
   }
 }

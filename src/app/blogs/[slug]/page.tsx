@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
     const blog = await getBlogBySlug(slug);
 
     return {
-      title: `${blog.title} | EduNext`,
-      description: blog.excerpt || `Read ${blog.title}`,
+      title: blog.title,
+      description: blog.excerpt || `Read ${blog.title} — Complete guide on EduNext.`,
       alternates: {
         canonical: `https://www.getedunext.com/blogs/${slug}`,
       },

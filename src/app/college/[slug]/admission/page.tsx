@@ -12,14 +12,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const location = college.location
 
   return {
-    title: `${name} Admission 2026`,
-    description: `Get complete details on the admission process, dates, and eligibility for ${name}, ${location}.`,
+    title: `${name} Admission 2026 — Application Form, Eligibility, Dates & Process`,
+    description: `${name} admission 2026: application form dates, eligibility criteria, fees, entrance exams accepted, and step-by-step process. Apply now for 2026-27 academic year in ${location}.`,
     alternates: {
       canonical: `https://www.getedunext.com/college/${slug}/admission`
     },
     openGraph: {
-      title: `${name} Admission 2026`,
-      description: `Get complete details on the admission process, dates, and eligibility for ${name}, ${location}.`,
+      title: `${name} Admission 2026 — Application Form, Eligibility, Dates & Process`,
+      description: `${name} admission 2026: application form dates, eligibility criteria, fees, entrance exams accepted, and step-by-step process. Apply now for 2026-27 academic year in ${location}.`,
     }
   }
 }
