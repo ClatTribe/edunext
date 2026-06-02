@@ -1,85 +1,77 @@
-import * as googleTTS from 'google-tts-api';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { parseFile } from 'music-metadata';
+import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 
 /**
- * Downloads speech from google-tts-api. 
- * Since google tts has a 200 char limit per request, 
- * we split long text and download as multiple chunks if needed,
- * but for 50-word scripts, it usually fits.
+ * Generates speech using Microsoft Edge Neural TTS (Free, Premium Quality).
+ * Uses en-IN-NeerjaNeural for perfect Indian female accent.
  */
-export async function generateTTS(text: string): Promise<string> {
-  const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
+export async function generateTTS(text: string): Promise<{ audioUrl: string; durationInSeconds: number }> {
+  console.log('Using Free Premium Edge TTS (en-IN-NeerjaNeural)...');
+  
+  const tts = new MsEdgeTTS();
+  await tts.setMetadata('en-IN-NeerjaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
 
-  if (elevenLabsKey) {
-    console.log('Using ElevenLabs TTS (Premium Voice)...');
-    const voiceId = 'pNInz6obpgDQGcFmaJgB'; // 'Adam' Voice ID
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+  const { audioStream } = await tts.toStream(text);
+  const chunks: Buffer[] = [];
+  
+  for await (const chunk of audioStream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  
+  const finalBuffer = Buffer.concat(chunks);
+  
+  // Save temp file to measure exact length
+  const tempAudioPath = path.join(os.tmpdir(), `tts_${Date.now()}.mp3`);
+  fs.writeFileSync(tempAudioPath, finalBuffer);
+  
+  try {
+    const meta = await parseFile(tempAudioPath);
+    const durationInSeconds = meta.format.duration ?? 30;
+    console.log(`TTS Audio generated successfully. Exact duration: ${durationInSeconds.toFixed(2)} seconds.`);
     
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'xi-api-key': elevenLabsKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.statusText}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    return 'data:audio/mp3;base64,' + buffer.toString('base64');
-    
-  } else {
-    console.log('Falling back to free Google TTS...');
-    const results = await googleTTS.getAllAudioBase64(text, {
-      lang: 'en',
-      slow: false,
-      host: 'https://translate.google.com',
-      splitPunct: ',.?',
-    });
-
-    const buffers = results.map((r) => Buffer.from(r.base64, 'base64'));
-    const finalBuffer = Buffer.concat(buffers);
-    return 'data:audio/mp3;base64,' + finalBuffer.toString('base64');
+    return {
+      audioUrl: 'data:audio/mp3;base64,' + finalBuffer.toString('base64'),
+      durationInSeconds
+    };
+  } catch (err) {
+    console.error('Failed to calculate mp3 duration, falling back to estimate:', err);
+    // Rough estimate: 150 words per minute -> 2.5 words per second
+    const estimate = text.split(' ').length / 2.5;
+    return {
+      audioUrl: 'data:audio/mp3;base64,' + finalBuffer.toString('base64'),
+      durationInSeconds: estimate
+    };
   }
 }
 
 /**
  * Bundles and renders the Remotion video.
- * WARNING: Running this on Vercel requires ffmpeg-static and high memory limits.
  */
 export async function renderRemotionVideo(
   text: string, 
   audioUrl: string, 
+  audioDurationInSeconds: number, // <--- NEW PROP
+  imageKeywords: string[] = [],  // <--- NEW PROP
   logoDataUri: string = '',
   bgmUrl: string = '',
   dataPoints: any[] = [],
   outputDir: string = os.tmpdir()
 ): Promise<string> {
-  // Dynamic import to avoid breaking standard Next.js pages
   const { bundle } = await import('@remotion/bundler');
   const { renderMedia, selectComposition } = await import('@remotion/renderer');
   
   const bundled = await bundle({
     entryPoint: path.resolve(process.cwd(), 'src/remotion/index.tsx'),
-    // We use esbuild for speed on serverless
     webpackOverride: (config) => config,
   });
 
   const composition = await selectComposition({
     serveUrl: bundled,
     id: 'Reel',
-    inputProps: { text, audioUrl, logoDataUri, bgmUrl, dataPoints },
+    inputProps: { text, audioUrl, audioDurationInSeconds, imageKeywords, logoDataUri, bgmUrl, dataPoints },
   });
 
   const outputLocation = path.join(outputDir, 'reel_' + Date.now() + '.mp4');
@@ -89,7 +81,7 @@ export async function renderRemotionVideo(
     serveUrl: bundled,
     codec: 'h264',
     outputLocation,
-    inputProps: { text, audioUrl, logoDataUri, bgmUrl, dataPoints },
+    inputProps: { text, audioUrl, audioDurationInSeconds, imageKeywords, logoDataUri, bgmUrl, dataPoints },
   });
 
   return outputLocation;

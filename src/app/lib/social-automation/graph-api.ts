@@ -92,8 +92,8 @@ export async function publishInstagramReel(
   console.log('Graph API: Waiting for Meta to process the video...');
   let isReady = false;
   let attempts = 0;
-  while (!isReady && attempts < 15) {
-    await new Promise(res => setTimeout(res, 3000)); // wait 3 seconds
+  while (!isReady && attempts < 40) {
+    await new Promise(res => setTimeout(res, 5000)); // wait 5 seconds
     const statusRes = await fetch(`https://graph.facebook.com/v19.0/${creationId}?fields=status_code&access_token=${accessToken}`);
     const statusData = await statusRes.json();
     console.log('Status:', statusData.status_code);

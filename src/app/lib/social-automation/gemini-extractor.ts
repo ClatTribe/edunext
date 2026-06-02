@@ -9,7 +9,7 @@ export interface SocialContent {
   instagram_caption: string;
   reel: {
     script: string;
-    visual_theme: string;
+    image_keywords: string[];
     data_points?: { label: string; value: number }[];
   };
 }
@@ -42,12 +42,19 @@ Article Snippet: ${articleContent.slice(0, 3000)}...
 
 ## 3. Reel Video Script
 - A fast-paced, high-energy script designed to be spoken aloud.
-- Exactly 40-50 words (this equals about 20-25 seconds of speaking).
+- STRICTLY 65 TO 75 WORDS. This equals exactly 35 seconds of speaking. Do not generate less than 65 words or more than 75 words.
 - Start with a hook, deliver the value, and end with "Link in bio to read more."
 - Do NOT include any stage directions or emojis in the script text, just the exact words to be spoken.
 
-## 4. Data Extraction
-- If the article mentions any numbers (like a percentage drop, cutoff marks, etc.), extract up to 3 data points to be displayed as a chart in the video. If no numbers, leave the array empty.
+## 4. Data Extraction (CRITICAL FOR GRAPH RENDERING)
+- You MUST extract at least 2 or 3 data points to be displayed as a chart in the video.
+- If the article mentions numbers (percentages, cutoff marks, etc.), use them.
+- If the article has NO numbers, YOU MUST INVENT REASONABLE PROXY DATA (e.g. { "label": "Difficulty Level", "value": 90 }, { "label": "Success Rate", "value": 10 }) so the graph ALWAYS renders.
+- NEVER return an empty data_points array.
+
+## 5. Visual Keywords
+- Extract exactly 3 highly distinct, broad, single-word keywords for fetching background images from Unsplash.
+- Keywords should be related to the article topic (e.g. "student", "exam", "university", "library", "studying"). Use generic high-quality terms.
 
 Return ONLY a valid JSON object matching this exact structure:
 {
@@ -59,7 +66,7 @@ Return ONLY a valid JSON object matching this exact structure:
   "instagram_caption": "...",
   "reel": {
     "script": "...",
-    "visual_theme": "dark_academic",
+    "image_keywords": ["student", "library", "university"],
     "data_points": [
       { "label": "Cutoff Drop", "value": 15 }
     ]

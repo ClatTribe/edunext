@@ -11,7 +11,7 @@ export async function generateCarouselImages(
   outputDir: string = os.tmpdir()
 ): Promise<string[]> {
   
-  // Use Inter font instead of Roboto
+  // Use Inter font for a modern look
   const fontUrl = 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYMZhrib2Bg-4.ttf'; 
   const fontRes = await fetch(fontUrl);
   if (!fontRes.ok) throw new Error('Failed to fetch font: ' + fontRes.statusText);
@@ -26,20 +26,147 @@ export async function generateCarouselImages(
     const logoPng = logoResvg.render().asPng();
     logoDataUri = `data:image/png;base64,${logoPng.toString('base64')}`;
   } catch (err) {
-    console.error('Could not load logo SVG', err);
+    console.warn('Could not load logo SVG, falling back to text.');
   }
 
-  const slides = [
-    { text: hookText, subtitle: "Trending on EduNext", color: '#ffffff' },
-    { text: valueText, subtitle: "Key Insights", color: '#fef08a' },
-    { text: ctaText, subtitle: "Read More at getedunext.com", color: '#a5b4fc' }
-  ];
+  // Define EduNext theme colors
+  const theme = {
+    bgStart: '#0f172a', // Slate 900
+    bgEnd: '#1e1b4b',   // Indigo 950
+    primary: '#818cf8', // Indigo 400
+    secondary: '#38bdf8', // Sky 400
+    textMain: '#ffffff',
+    textMuted: '#94a3b8',
+    glassBg: 'rgba(30, 41, 59, 0.7)', // Slate 800 semi-transparent
+    glassBorder: 'rgba(148, 163, 184, 0.2)' // Slate 400 faint
+  };
 
   const filePaths: string[] = [];
+  const slidesContent = [hookText, valueText, ctaText];
 
-  for (let i = 0; i < slides.length; i++) {
-    const slide = slides[i];
+  for (let i = 0; i < 3; i++) {
+    const textContent = slidesContent[i] || 'EduNext Update';
     
+    // Slide 1: Big glowing hook
+    // Slide 2: Glassmorphic cards/table layout
+    // Slide 3: Standard CTA layout
+    
+    let slideLayout: any;
+
+    if (i === 0) {
+      // Slide 1: Big bold hook text (like "Am I ELIGIBLE?")
+      slideLayout = {
+        type: 'div',
+        props: {
+          style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', padding: '80px', textAlign: 'center' },
+          children: [
+            {
+              type: 'div',
+              props: {
+                style: { fontSize: '100px', fontWeight: 800, color: theme.textMain, lineHeight: 1.1, textShadow: '0 0 40px rgba(129, 140, 248, 0.5)' },
+                children: textContent
+              }
+            },
+            {
+              type: 'div',
+              props: {
+                style: { marginTop: '40px', fontSize: '32px', color: theme.textMuted, fontWeight: 500 },
+                children: 'Swipe to see the insights 👉'
+              }
+            }
+          ]
+        }
+      };
+    } else if (i === 1) {
+      // Slide 2: Glassmorphism list/table (like the "Marks Rule" screen)
+      // We'll split the value text into bullet points to simulate table rows
+      const points = textContent.split(/[\n-]/).filter(p => p.trim().length > 5).slice(0, 4); // Take up to 4 points
+      
+      slideLayout = {
+        type: 'div',
+        props: {
+          style: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%', padding: '60px' },
+          children: [
+            {
+              type: 'div',
+              props: {
+                style: { fontSize: '50px', fontWeight: 700, color: theme.primary, marginBottom: '40px' },
+                children: 'Key Details'
+              }
+            },
+            {
+              type: 'div',
+              props: {
+                style: { display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' },
+                children: points.map(point => ({
+                  type: 'div',
+                  props: {
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      backgroundColor: theme.glassBg,
+                      border: `2px solid ${theme.glassBorder}`,
+                      borderRadius: '24px',
+                      padding: '30px 40px',
+                      width: '100%',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                    },
+                    children: [
+                      {
+                        type: 'div',
+                        props: {
+                          style: { width: '16px', height: '16px', borderRadius: '8px', backgroundColor: theme.secondary, marginRight: '30px' }
+                        }
+                      },
+                      {
+                        type: 'div',
+                        props: {
+                          style: { fontSize: '36px', color: theme.textMain, fontWeight: 600, lineHeight: 1.4 },
+                          children: point.trim()
+                        }
+                      }
+                    ]
+                  }
+                }))
+              }
+            }
+          ]
+        }
+      };
+    } else {
+      // Slide 3: CTA
+      slideLayout = {
+        type: 'div',
+        props: {
+          style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', padding: '80px', textAlign: 'center' },
+          children: [
+            {
+              type: 'div',
+              props: {
+                style: { fontSize: '70px', fontWeight: 800, color: theme.primary, marginBottom: '40px' },
+                children: textContent
+              }
+            },
+            {
+              type: 'div',
+              props: {
+                style: {
+                  backgroundColor: theme.textMain,
+                  color: theme.bgStart,
+                  padding: '24px 60px',
+                  borderRadius: '100px',
+                  fontSize: '40px',
+                  fontWeight: 700,
+                  marginTop: '40px'
+                },
+                children: 'Visit getedunext.com'
+              }
+            }
+          ]
+        }
+      };
+    }
+
     const element = {
       type: 'div',
       props: {
@@ -48,143 +175,63 @@ export async function generateCarouselImages(
           flexDirection: 'column',
           width: '100%',
           height: '100%',
-          backgroundImage: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-          color: '#ffffff',
-          justifyContent: 'center',
-          alignItems: 'center',
+          backgroundImage: `linear-gradient(135deg, ${theme.bgStart} 0%, ${theme.bgEnd} 100%)`,
           fontFamily: '"Inter"',
-          padding: '60px',
         },
         children: [
-          // Background decorative circle 1
+          // Background Glows
           {
             type: 'div',
             props: {
               style: {
-                position: 'absolute',
-                top: '-20%',
-                right: '-10%',
-                width: '800px',
-                height: '800px',
-                borderRadius: '400px',
-                backgroundImage: 'linear-gradient(135deg, #4f46e5 0%, #c026d3 100%)',
-                opacity: 0.15,
+                position: 'absolute', top: '-10%', right: '-10%', width: '700px', height: '700px', borderRadius: '350px',
+                backgroundImage: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)', opacity: 0.2, filter: 'blur(80px)'
               }
             }
           },
-          // Background decorative circle 2
+          // Main Container for content
           {
             type: 'div',
             props: {
-              style: {
-                position: 'absolute',
-                bottom: '-20%',
-                left: '-10%',
-                width: '600px',
-                height: '600px',
-                borderRadius: '300px',
-                backgroundImage: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
-                opacity: 0.15,
-              }
+              style: { display: 'flex', flex: 1, position: 'relative' },
+              children: [slideLayout]
             }
           },
-          // Glass Card
+          // Header Overlay (Logo)
           {
             type: 'div',
             props: {
-              style: {
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                width: '900px',
-                height: '900px',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '2px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '48px',
-                padding: '80px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-              },
+              style: { position: 'absolute', top: '40px', left: '60px', display: 'flex', alignItems: 'center' },
               children: [
-                // Header (Logo + Subtitle)
                 {
                   type: 'div',
                   props: {
-                    style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
+                    style: { backgroundColor: 'rgba(255,255,255,0.1)', padding: '10px 24px', borderRadius: '100px', display: 'flex', alignItems: 'center' },
                     children: [
-                      {
-                        type: 'div',
-                        props: {
-                          style: { fontSize: '28px', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '2px' },
-                          children: slide.subtitle
-                        }
-                      },
-                      logoDataUri ? {
-                        type: 'img',
-                        props: {
-                          src: logoDataUri,
-                          style: { width: '180px', height: 'auto', opacity: 0.9 }
-                        }
-                      } : {
-                        type: 'div',
-                        props: {
-                          style: { fontSize: '48px', fontWeight: 800, color: '#818cf8', letterSpacing: '-1px' },
-                          children: 'EduNext.'
-                        }
-                      }
-                    ]
-                  }
-                },
-                // Main Content
-                {
-                  type: 'div',
-                  props: {
-                    style: {
-                      fontSize: slide.text.length > 250 ? '36px' : slide.text.length > 150 ? '48px' : slide.text.length > 80 ? '56px' : '76px',
-                      fontWeight: 700,
-                      lineHeight: 1.4,
-                      color: slide.color,
-                      textAlign: 'left',
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      whiteSpace: 'pre-wrap',
-                    },
-                    children: slide.text
-                  }
-                },
-                // Footer (Pagination)
-                {
-                  type: 'div',
-                  props: {
-                    style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
-                    children: [
-                      {
-                        type: 'div',
-                        props: {
-                          style: { display: 'flex', gap: '16px' },
-                          children: slides.map((_, idx) => ({
-                            type: 'div',
-                            props: {
-                              style: {
-                                width: i === idx ? '64px' : '24px',
-                                height: '12px',
-                                borderRadius: '6px',
-                                backgroundColor: i === idx ? '#818cf8' : 'rgba(255,255,255,0.2)',
-                              }
-                            }
-                          }))
-                        }
-                      },
-                      {
-                        type: 'div',
-                        props: {
-                          style: { fontSize: '32px', fontWeight: 500, color: '#94a3b8' },
-                          children: `0${i + 1} / 0${slides.length}`
-                        }
-                      }
+                      logoDataUri ? { type: 'img', props: { src: logoDataUri, style: { height: '30px', marginRight: '12px' } } } : null,
+                      { type: 'span', props: { style: { color: theme.textMain, fontSize: '24px', fontWeight: 600 }, children: 'EduNext' } }
                     ]
                   }
                 }
               ]
+            }
+          },
+          // Footer Overlay (Pagination)
+          {
+            type: 'div',
+            props: {
+              style: { position: 'absolute', bottom: '40px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '16px' },
+              children: [0, 1, 2].map((idx) => ({
+                type: 'div',
+                props: {
+                  style: {
+                    width: i === idx ? '60px' : '20px',
+                    height: '10px',
+                    borderRadius: '5px',
+                    backgroundColor: i === idx ? theme.primary : 'rgba(255,255,255,0.3)',
+                  }
+                }
+              }))
             }
           }
         ]
@@ -196,11 +243,13 @@ export async function generateCarouselImages(
       height: 1080,
       fonts: [
         { name: 'Inter', data: fontData, weight: 700, style: 'normal' },
+        { name: 'Inter', data: fontData, weight: 500, style: 'normal' },
+        { name: 'Inter', data: fontData, weight: 800, style: 'normal' }
       ],
     });
 
     const resvg = new Resvg(svg, {
-      background: 'rgba(15, 23, 42, 1)',
+      background: theme.bgStart,
       fitTo: { mode: 'width', value: 1080 },
     });
     

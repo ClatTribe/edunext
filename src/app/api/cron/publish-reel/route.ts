@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
 
       // 1. Generate Voice (TTS)
       console.log('Generating TTS Audio...');
-      const audioUrl = await generateTTS(script);
+      const { audioUrl, durationInSeconds } = await generateTTS(script);
 
       // 2. Load Logo for Video Watermark
       let logoDataUri = '';
@@ -104,7 +104,8 @@ export async function GET(request: NextRequest) {
       console.log('Rendering Remotion Video... (This might take a while)');
       const bgmUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'; // Free royalty-free lo-fi bgm
       const dataPoints = socialContent.reel.data_points || [];
-      const videoPath = await renderRemotionVideo(script, audioUrl, logoDataUri, bgmUrl, dataPoints);
+      const imageKeywords = socialContent.reel.image_keywords || ['education', 'student', 'exam'];
+      const videoPath = await renderRemotionVideo(script, audioUrl, durationInSeconds, imageKeywords, logoDataUri, bgmUrl, dataPoints);
       console.log('Video rendered locally at:', videoPath);
 
       if (META_ACCESS_TOKEN && IG_USER_ID) {
@@ -124,7 +125,7 @@ export async function GET(request: NextRequest) {
       if (YOUTUBE_REFRESH_TOKEN) {
         try {
           console.log('Publishing to YouTube Shorts...');
-          const ytTitle = socialContent.reel?.slide1_hook || article.title;
+          const ytTitle = article.title.length > 90 ? article.title.substring(0, 87) + '...' : article.title;
           const ytDescription = socialContent.instagram_caption || article.summary;
           await uploadToYouTubeShorts(videoPath, ytTitle, ytDescription, ['education', 'edunext', 'shorts']);
         } catch (ytError) {
