@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { extractSocialContent } from '../../../lib/social-automation/gemini-extractor';
 import { generateTTS, renderRemotionVideo } from '../../../lib/social-automation/video-generator';
 import { publishInstagramReel } from '../../../lib/social-automation/graph-api';
+import { uploadToYouTubeShorts } from '../../../lib/social-automation/youtube-api';
 
 /**
  * Uploads a local MP4 file to Supabase Storage and returns its public URL.
@@ -116,6 +117,21 @@ export async function GET(request: NextRequest) {
         await publishInstagramReel(IG_USER_ID, META_ACCESS_TOKEN, publicVideoUrl, caption);
       } else {
         console.log('Meta tokens not found in .env, skipping Graph API publish step.');
+      }
+
+      // 6. Publish to YouTube Shorts
+      const YOUTUBE_REFRESH_TOKEN = process.env.YOUTUBE_REFRESH_TOKEN;
+      if (YOUTUBE_REFRESH_TOKEN) {
+        try {
+          console.log('Publishing to YouTube Shorts...');
+          const ytTitle = socialContent.reel?.slide1_hook || article.title;
+          const ytDescription = socialContent.instagram_caption || article.summary;
+          await uploadToYouTubeShorts(videoPath, ytTitle, ytDescription, ['education', 'edunext', 'shorts']);
+        } catch (ytError) {
+          console.error('Error publishing to YouTube Shorts:', ytError);
+        }
+      } else {
+         console.log('Missing YouTube tokens. Skipping YouTube Shorts publish.');
       }
 
       console.log('Reel automation pipeline completed successfully!');
