@@ -20,11 +20,11 @@
     },
     {
       "path": "/api/cron/publish-social?secret=edunext-news-cron-2026",
-      "schedule": "0 8 * * *"
+      "schedule": "30 6 * * *"
     },
     {
       "path": "/api/cron/publish-reel?secret=edunext-news-cron-2026",
-      "schedule": "20 8 * * *"
+      "schedule": "45 6 * * *"
     },
     {
       "path": "/api/cron/publish-magazine?secret=edunext-news-cron-2026",

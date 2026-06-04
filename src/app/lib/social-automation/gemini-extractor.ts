@@ -1,4 +1,5 @@
 import { callGemini } from '../magazine/article-generator';
+import type { Scene } from './manual-content';
 
 export interface SocialContent {
   carousel: {
@@ -41,10 +42,15 @@ Article Snippet: ${articleContent.slice(0, 3000)}...
 - Include at least 8-10 trending and niche hashtags (e.g. #EduNext #CollegeAdmissions #JEE #NEET #Education).
 
 ## 3. Reel Video Script
-- A fast-paced, high-energy script designed to be spoken aloud.
-- STRICTLY 65 TO 75 WORDS. This equals exactly 35 seconds of speaking. Do not generate less than 65 words or more than 75 words.
-- Start with a hook, deliver the value, and end with "Link in bio to read more."
-- Do NOT include any stage directions or emojis in the script text, just the exact words to be spoken.
+- Write a highly conversational UGC-style script that mimics a student sharing a personal struggle and a breakthrough solution.
+- **CRITICAL FOR VOICE MODULATION**: The Tavus AI voice engine relies entirely on your punctuation to modulate pitch and tone. You MUST format the script like this:
+  1. **Pain Points (Low Pitch/Frustration)**: End struggle sentences with ellipses "..." so the voice drops low and sounds exhausted. Example: "Applying abroad nearly broke me..."
+  2. **Turning Point (High Pitch/Excitement)**: Use em-dashes "—" before a big reveal and exclamation marks "!" for high pitch energy. Example: "Then — I found EduNext!"
+  3. **Word Weightage (Stress/Emphasis)**: Put the most important, heavy-hitting words in ALL CAPS. The AI will stress these words with higher volume and pitch. Example: "NO spam calls, NO hidden fees."
+  4. **Empathy/Upward Inflection**: Use question marks "?" at the end of hooks. Example: "Okay, can we talk about this for a sec?" or "So if you're stuck?"
+- The narrative flow MUST be: Frustrated hook -> Rhythmic list of struggles -> Pause ("Then —") -> Excited brand reveal -> Upbeat list of solutions -> High energy Call to Action.
+- Do NOT include any stage directions or emojis. Just the exact text, punctuated heavily for maximum voice modulation.
+- STRICTLY 50 TO 60 WORDS (Targeting exactly 22 seconds).
 
 ## 4. Data Extraction (CRITICAL FOR GRAPH RENDERING)
 - You MUST extract at least 2 or 3 data points to be displayed as a chart in the video.
@@ -133,4 +139,59 @@ Return ONLY a valid JSON object matching this exact structure:
     console.error('Full Gemini Response:', JSON.stringify(data, null, 2));
     throw new Error('Failed to parse Gemini output as JSON');
   }
+}
+
+/**
+ * Claude-style SCENE generator. Turns the article into a fast, faceless, scene-based
+ * reel script (the same structure Claude authored by hand): short punchy scenes,
+ * ALL-CAPS emphasis, 3-4 reused backgrounds, one graph, checklists, brand-reveal outro.
+ */
+export async function generateScenesAI(
+  articleTitle: string,
+  articleSummary: string,
+  articleContent: string,
+  geminiApiKey: string
+): Promise<{ title: string; scenes: Scene[] }> {
+  const prompt = `You are an expert YouTube Shorts / Instagram Reels producer for EduNext, an Indian college-discovery platform.
+Convert this article into a FAST, PUNCHY, faceless scene-based reel script.
+
+Article Title: ${articleTitle}
+Summary: ${articleSummary}
+Snippet: ${articleContent.slice(0, 2500)}
+
+Return ONLY a JSON object of this exact shape:
+{
+  "title": "short catchy video title",
+  "scenes": [
+    { "narration": "string", "background_keyword": "string", "widget": null, "sfx": "whoosh" }
+  ]
+}
+
+RULES (follow exactly):
+- 9 to 10 scenes. Each "narration" is 4-9 words, CONVERSATIONAL and natural — like a real student talking, never robotic.
+- Put 1-2 key words in ALL CAPS in most scenes for emphasis (e.g. "Forget memorizing FORMULAS!").
+- Use commas, periods, "?" and "!" for natural pauses and emotion.
+- "background_keyword": a concrete stock-photo search term (e.g. "stressed student studying", "study desk laptop", "confident student"). Use only 3-4 DISTINCT keywords total and REUSE them across scenes (so the background changes only a few times).
+- "widget": null for most scenes. Include EXACTLY ONE scene with { "type": "graph", "dataPoints": [ { "label": "...", "value": 85 }, { "label": "...", "value": 15 } ] } (real numbers from the article, or reasonable proxy data). Include 1-2 scenes with { "type": "checklist", "items": ["...", "..."] }.
+- The LAST TWO scenes must be brand reveals: second-last widget { "type": "brand_reveal", "text": "EduNext" }; the LAST scene widget { "type": "brand_reveal", "text": "www.getedunext.com" } and also include "caption": "" on that last scene (hide its caption).
+- "sfx": rotate "whoosh" / "pop" / "ding"; use "ding" on reveals.
+- Open with a strong HOOK, build value in the middle, end with a CTA to visit the website.
+Return ONLY the JSON object, no markdown.`;
+
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + geminiApiKey;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.85, maxOutputTokens: 4096 } }),
+  });
+  if (!res.ok) throw new Error('Gemini scenes error ' + res.status + ': ' + (await res.text()));
+  const data = await res.json();
+  let text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini returned no scenes');
+  text = text.trim().replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  const first = text.indexOf('{'), last = text.lastIndexOf('}');
+  if (first > 0 || last < text.length - 1) text = text.slice(first, last + 1);
+  const parsed = JSON.parse(text);
+  return { title: parsed.title || articleTitle, scenes: parsed.scenes || [] };
 }

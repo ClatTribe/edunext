@@ -2,7 +2,8 @@ import { NextRequest, NextResponse, after } from 'next/server';
 import * as fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import { extractSocialContent } from '../../../lib/social-automation/gemini-extractor';
-import { generateCarouselImages } from '../../../lib/social-automation/satori-carousel';
+import { generateCarouselImages, generateCarousel } from '../../../lib/social-automation/satori-carousel';
+import { getManualContent } from '../../../lib/social-automation/manual-content';
 import { generateTTS, renderRemotionVideo } from '../../../lib/social-automation/video-generator';
 import { publishInstagramCarousel } from '../../../lib/social-automation/graph-api';
 
@@ -48,8 +49,56 @@ export async function GET(request: NextRequest) {
   }
 
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) {
-    return NextResponse.json({ error: 'Missing GEMINI_API_KEY' }, { status: 500 });
+  const useManual = process.env.USE_MANUAL_SCRIPT === 'true';
+  const preview = request.nextUrl.searchParams.get('preview') === 'true';
+  if (!GEMINI_API_KEY && !useManual) {
+    return NextResponse.json({ error: 'Missing GEMINI_API_KEY (or set USE_MANUAL_SCRIPT=true)' }, { status: 500 });
+  }
+
+  // Build the structured carousel content from manual content (or Gemini).
+  async function buildCarouselContent(article: any) {
+    const magazineUrl = `getedunext.com/magazine/${article.slug}`;
+    const mc = useManual ? getManualContent() : await extractSocialContent(article.title, article.summary, article.content, GEMINI_API_KEY!);
+    return {
+      topic: 'JEE Advanced',
+      hook: mc.carousel.slide1_hook,
+      dataTitle: 'By the numbers',
+      dataPoints: mc.reel.data_points || [],
+      pointsTitle: "Arohi's blueprint",
+      points: ['Deep concepts, not cramming', 'Active self-testing', 'Mental endurance'],
+      ctaTitle: "Read the full blueprint",
+      ctaUrl: magazineUrl,
+      _caption:
+        `JEE Advanced topper Arohi's REAL secret isn't what you think. 🧠\n\n` +
+        `Not formulas, not rank — deep concepts, active self-testing, and a strong mindset under pressure.\n\n` +
+        `📖 Read the full blueprint:\nhttps://www.${magazineUrl}\n\n` +
+        `#JEEAdvanced #JEE2026 #IITDreams #JEEPreparation #EduNext #CollegeAdmissions #EngineeringAspirants #StudySmart #IIT #ExamStrategy`,
+      _magazineUrl: `https://www.${magazineUrl}`,
+    };
+  }
+
+  // ---------------- PREVIEW: render the 4 slides, return URLs, NO posting ----------------
+  if (preview) {
+    try {
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+      const { data: articles } = await supabase
+        .from('edu_news').select('id, title, summary, content, slug')
+        .eq('is_magazine', true).order('published_at', { ascending: false }).limit(1);
+      if (!articles || articles.length === 0) {
+        return NextResponse.json({ error: 'No magazine article found.' }, { status: 404 });
+      }
+      const content = await buildCarouselContent(articles[0]);
+      console.log('Rendering 4-slide carousel preview...');
+      const paths = await generateCarousel(content);
+      const imageUrls = await uploadToSupabaseStorage(supabase, paths);
+      return NextResponse.json({
+        success: true, preview: true, slides: imageUrls.length,
+        images: imageUrls, magazine_url: content._magazineUrl,
+        note: 'Carousel preview (4 slides). NOT posted.',
+      });
+    } catch (e) {
+      return NextResponse.json({ success: false, error: (e as Error).message }, { status: 500 });
+    }
   }
 
   // Check for Meta tokens
@@ -82,30 +131,14 @@ export async function GET(request: NextRequest) {
       const article = articles[0];
       console.log('Processing article for social media: ' + article.title);
 
-      const socialContent = await extractSocialContent(
-        article.title, 
-        article.summary, 
-        article.content, 
-        GEMINI_API_KEY
-      );
-      console.log('Extracted social content:', socialContent);
-
-      const carouselPaths = await generateCarouselImages(
-        socialContent.carousel.slide1_hook,
-        socialContent.carousel.slide2_value,
-        socialContent.carousel.slide3_cta
-      );
-      console.log('Generated carousel images:', carouselPaths);
+      const content = await buildCarouselContent(article);
+      const carouselPaths = await generateCarousel(content);
+      console.log('Generated 4-slide carousel:', carouselPaths.length);
 
       if (META_ACCESS_TOKEN && IG_USER_ID) {
-        // Upload images to Supabase first to get public URLs
         const imageUrls = await uploadToSupabaseStorage(supabase, carouselPaths);
         console.log('Public image URLs:', imageUrls);
-
-        // Publish via Graph API
-        const caption = socialContent.instagram_caption;
-        
-        await publishInstagramCarousel(IG_USER_ID, META_ACCESS_TOKEN, imageUrls, caption);
+        await publishInstagramCarousel(IG_USER_ID, META_ACCESS_TOKEN, imageUrls, content._caption);
       } else {
         console.log('Meta tokens not found in .env, skipping Graph API publish step.');
       }
