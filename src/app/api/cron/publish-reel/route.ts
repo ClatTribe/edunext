@@ -73,10 +73,11 @@ async function uploadLocalVideo(supabase: any, filePath: string): Promise<string
  * export path (e.g. "\ROOT\edunext\..."), so we also try the real path under cwd.
  */
 function resolveFfmpeg(): string {
-  const exe = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
   const candidates = [
     typeof ffmpegPath === 'string' ? ffmpegPath : '',
-    path.join(process.cwd(), 'node_modules', 'ffmpeg-static', exe),
+    process.platform === 'win32'
+      ? path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg.exe')
+      : path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg'),
   ];
   for (const c of candidates) {
     try { if (c && fs.existsSync(c)) return c; } catch { /* ignore */ }
