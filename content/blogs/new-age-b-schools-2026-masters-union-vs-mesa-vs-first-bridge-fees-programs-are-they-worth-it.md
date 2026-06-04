@@ -157,19 +157,19 @@ Here's how to think about it honestly:
 
 ## Frequently Asked Questions
 
-**Are Masters' Union, Mesa, and First Bridge UGC-recognised?**
+> **Are Masters' Union, Mesa, and First Bridge UGC-recognised?**
 These are private institutions operating under various legal structures. Always verify accreditation, degree equivalence, and recognition status directly with the school before enrolling. UGC recognition status determines how your degree is treated by employers and for further studies.
 
-**Do these schools accept CAT scores?**
+> **Do these schools accept CAT scores?**
 No. All three run their own admission tests — MU-BAAT (Masters' Union), Mesa Admissions Test (Mesa), and their own screening (First Bridge). CAT/XAT scores are not required.
 
-**Can freshers apply?**
+> **Can freshers apply?**
 Masters' Union has a specific YLC cohort for freshers (24 months). Mesa's PGP prefers one year of work experience but it's not mandatory. First Bridge accepts freshers with strong profiles.
 
-**Which school has the best placement record?**
+> **Which school has the best placement record?**
 Masters' Union has the most established and publicly reported placement data (₹28.52 LPA average, 2024). Mesa and First Bridge are younger institutions still building their track record.
 
-**How do these compare to a Tier-2 IIM?**
+> **How do these compare to a Tier-2 IIM?**
 Tier-2 IIMs carry stronger brand recognition with traditional recruiters. These new-age schools are better suited for students targeting startup ecosystems, product roles, and non-traditional career paths.
 
 ---
