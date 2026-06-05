@@ -58,7 +58,7 @@ const SceneWidget: React.FC<{ widget: any; enter: number }> = ({ widget, enter }
   }
   // brand_reveal
   return (
-    <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', opacity: enter }}>
+    <AbsoluteFill style={{ justifyContent: 'flex-start', alignItems: 'center', paddingTop: '20%', opacity: enter }}>
       <div style={{ transform: `scale(${0.8 + enter * 0.2})`, background: 'rgba(255,255,255,0.97)', borderRadius: 36, padding: '36px 56px', boxShadow: '0 22px 50px rgba(0,0,0,0.45)', borderTop: `8px solid ${ACCENT}`, maxWidth: '88%' }}>
         <span style={{ fontFamily: FONT, fontWeight: 900, fontSize: 72, color: ACCENT2, letterSpacing: -2, wordBreak: 'break-word' }}>{widget.text}</span>
       </div>
@@ -76,6 +76,8 @@ const SceneClip: React.FC<{ scene: any; durFrames: number }> = ({ scene, durFram
   const wEnter = Math.min(spring({ frame: frame - 5, fps, config: { damping: 13, stiffness: 160 } }), 1);
 
   const capText: string = scene.caption !== undefined && scene.caption !== null ? scene.caption : scene.narration;
+  const words = capText ? capText.split(' ') : [];
+  const framesPerWord = words.length > 0 ? Math.max(3, (durFrames * 0.8) / words.length) : 0;
 
   return (
     <>
@@ -85,14 +87,32 @@ const SceneClip: React.FC<{ scene: any; durFrames: number }> = ({ scene, durFram
       {/* Widget pop-up (one per scene -> never clashes) */}
       <SceneWidget widget={scene.widget} enter={wEnter} />
 
-      {/* Caption — ALL-CAPS words bigger + accent. Hidden when caption === '' */}
-      {capText ? (
-        <AbsoluteFill style={{ justifyContent: 'flex-end', alignItems: 'center', paddingBottom: '19%' }}>
-          <div style={{ transform: `scale(${capScale})`, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 14, maxWidth: '90%', padding: '0 40px' }}>
-            {capText.split(' ').map((w: string, idx: number) => {
+      {/* Caption — Hormozi Style Word-by-Word Popup */}
+      {words.length > 0 ? (
+        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', paddingTop: '35%' }}>
+          <div style={{ transform: `scale(${capScale})`, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 24, maxWidth: '85%' }}>
+            {words.map((w: string, idx: number) => {
               const emph = /[A-Z]{3,}/.test(w.replace(/[^A-Za-z]/g, ''));
+              
+              // Word pops in at its designated time
+              const wordEnter = spring({ frame: frame - (idx * framesPerWord), fps, config: { damping: 12, stiffness: 220 } });
+              
+              if (wordEnter === 0) return null;
+
               return (
-                <span key={idx} style={{ fontFamily: FONT, fontSize: emph ? '84px' : '60px', fontWeight: 900, color: emph ? ACCENT : '#fff', letterSpacing: '-1px', textShadow: '0 4px 18px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.9)', display: 'inline-block' }}>
+                <span key={idx} style={{ 
+                  fontFamily: FONT, 
+                  fontSize: emph ? '110px' : '86px', 
+                  fontWeight: 900, 
+                  color: emph ? '#0f172a' : '#fff', 
+                  backgroundColor: emph ? '#FCD34D' : 'transparent', // Yellow neon marker
+                  padding: emph ? '4px 20px' : '0',
+                  borderRadius: '16px',
+                  letterSpacing: '-2px', 
+                  textShadow: emph ? 'none' : '0 6px 24px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.9)', 
+                  display: 'inline-block',
+                  transform: `scale(${wordEnter}) translateY(${(1 - wordEnter) * 30}px)`
+                }}>
                   {w}
                 </span>
               );

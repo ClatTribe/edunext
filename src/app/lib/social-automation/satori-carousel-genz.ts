@@ -206,40 +206,6 @@ function slideReddit(c: CarouselContent): any[] {
   ];
 }
 
-// Slide 2: Instagram Post Theme
-function slideInstagram(c: CarouselContent): any[] {
-  return [
-    txt({ fontSize: '36px', fontWeight: 800, color: '#F27A21', marginBottom: '60px', fontFamily: 'Montserrat' }, 'trending on instagram:'),
-    box({ flexDirection: 'column', width: '100%', alignItems: 'center' }, [
-      box({ background: T.white, borderRadius: '16px', width: '95%', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', overflow: 'hidden' }, [
-        // Header
-        box({ alignItems: 'center', padding: '24px', borderBottom: '1px solid #DBDBDB' }, [
-          box({ width: '60px', height: '60px', borderRadius: '30px', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', marginRight: '16px' }, []),
-          txt({ fontSize: '28px', color: '#262626', fontWeight: 700, flexGrow: 1 }, 'edunext_official'),
-          txt({ fontSize: '36px', color: '#262626', fontWeight: 700 }, '⋮')
-        ]),
-        // Image / Content Box
-        box({ background: '#FAFAFA', padding: '60px 40px', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }, [
-           txt({ fontSize: '48px', color: '#262626', fontWeight: 800, textAlign: 'center', lineHeight: 1.3 }, c.dataHook || 'Is your future safe from the latest leaks?')
-        ]),
-        // Footer Actions
-        box({ flexDirection: 'column', padding: '24px' }, [
-          box({ alignItems: 'center', marginBottom: '16px' }, [
-            txt({ fontSize: '42px', color: '#ED4956', marginRight: '24px' }, '❤️'),
-            txt({ fontSize: '42px', color: '#262626', marginRight: '24px' }, '💬'),
-            txt({ fontSize: '42px', color: '#262626' }, '↗️')
-          ]),
-          txt({ fontSize: '24px', color: '#262626', fontWeight: 700, marginBottom: '8px' }, '8,492 likes'),
-          box({ alignItems: 'baseline' }, [
-            txt({ fontSize: '24px', color: '#262626', fontWeight: 700, marginRight: '12px' }, 'edunext_official'),
-            txt({ fontSize: '24px', color: '#262626', fontWeight: 500, lineHeight: 1.4 }, c.dataBody || 'The truth about college admissions in 2026.')
-          ])
-        ])
-      ])
-    ])
-  ];
-}
-
 export async function generateCarousel(content: CarouselContent, outputDir: string = os.tmpdir()): Promise<string[]> {
   const fontUrlInter = 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYMZhrib2Bg-4.ttf';
   
@@ -252,7 +218,7 @@ export async function generateCarousel(content: CarouselContent, outputDir: stri
     { name: 'Montserrat', data: dataI, weight: 800 as any, style: 'normal' as const },
   ];
 
-  const appSlideTemplates = [slideWhatsApp(content), slideReddit(content), slideTwitter(content), slideInstagram(content)];
+  const appSlideTemplates = [slideWhatsApp(content), slideReddit(content), slideTwitter(content)];
   const randomAppSlide = appSlideTemplates[Math.floor(Math.random() * appSlideTemplates.length)];
 
   const slidesRaw = [

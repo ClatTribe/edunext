@@ -9,7 +9,7 @@ import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
  * Generates speech using Microsoft Edge Neural TTS (Free, Premium Quality).
  * Uses en-IN-NeerjaNeural for a natural Indian female accent.
  */
-export async function generateTTS(text: string, rate: string = '+18%'): Promise<{ audioUrl: string; durationInSeconds: number }> {
+export async function generateTTS(text: string, rate: string = '+35%'): Promise<{ audioUrl: string; durationInSeconds: number }> {
   console.log(`Using Free Premium Edge TTS (en-IN-NeerjaNeural, rate ${rate})...`);
 
   const tts = new MsEdgeTTS();
@@ -164,7 +164,16 @@ export async function renderSceneVideo(opts: {
   const inputProps = { scenes, imageUrls, sceneDurations, audioRelPath, audioDurationInSeconds: totalDuration };
   const composition = await selectComposition({ serveUrl: bundled, id: 'SceneReel', inputProps });
   const outputLocation = path.join(outputDir, 'scene_' + Date.now() + '.mp4');
-  await renderMedia({ composition, serveUrl: bundled, codec: 'h264', outputLocation, inputProps });
+  await renderMedia({ 
+    composition, 
+    serveUrl: bundled, 
+    codec: 'h264', 
+    outputLocation, 
+    inputProps,
+    timeoutInMilliseconds: 120000,
+    concurrency: 1,
+    chromiumOptions: { disableWebSecurity: true }
+  });
   return outputLocation;
 }
 
@@ -243,6 +252,9 @@ export async function renderRemotionVideo(opts: RenderReelOptions): Promise<stri
     ...(overlayOnly ? { proResProfile: '4444', pixelFormat: 'yuva444p10le', imageFormat: 'png' } : {}),
     outputLocation,
     inputProps,
+    timeoutInMilliseconds: 120000,
+    concurrency: 1,
+    chromiumOptions: { disableWebSecurity: true }
   });
 
   return outputLocation;

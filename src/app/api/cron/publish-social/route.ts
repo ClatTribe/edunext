@@ -69,11 +69,7 @@ export async function GET(request: NextRequest) {
       points: mc.carousel.slide3_cta.split('.').map(s => s.trim()).filter(s => s.length > 5).slice(0, 4),
       ctaTitle: "Read the full blueprint",
       ctaUrl: magazineUrl,
-      _caption:
-        `JEE Advanced topper Arohi's REAL secret isn't what you think. 🧠\n\n` +
-        `Not formulas, not rank — deep concepts, active self-testing, and a strong mindset under pressure.\n\n` +
-        `📖 Read the full blueprint:\nhttps://www.${magazineUrl}\n\n` +
-        `#JEEAdvanced #JEE2026 #IITDreams #JEEPreparation #EduNext #CollegeAdmissions #EngineeringAspirants #StudySmart #IIT #ExamStrategy`,
+      _caption: mc.instagram_caption,
       _magazineUrl: `https://www.${magazineUrl}`,
     };
   }

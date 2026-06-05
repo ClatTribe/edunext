@@ -24,18 +24,18 @@ export interface Scene {
 
 export function getManualScenes(): { title: string; scenes: Scene[] } {
   return {
-    title: 'JEE Advanced Topper Arohi — The Real Blueprint',
+    title: 'JEE Leaks: 45 Scams in 24 Years',
     scenes: [
-      { narration: 'JEE Advanced — the ULTIMATE beast.', background_keyword: 'stressed student studying late night', widget: null, sfx: 'whoosh' },
-      { narration: "Everyone obsessed over Arohi's RANK.", background_keyword: 'student solving complex problem', widget: null, sfx: 'pop' },
-      { narration: 'But she revealed something SHOCKING.', background_keyword: 'study desk books laptop', widget: null, sfx: 'whoosh' },
-      { narration: 'Forget memorizing FORMULAS!', background_keyword: 'confident young student', widget: { type: 'checklist', items: ['Concepts, not cramming'] }, sfx: 'pop' },
-      { narration: 'Here is the PROOF.', background_keyword: 'stressed student studying late night', widget: { type: 'graph', dataPoints: [{ label: 'Conceptual Focus', value: 85 }, { label: 'Rote Memorization', value: 15 }] }, sfx: 'ding' },
-      { narration: 'Her REAL secret? Three things.', background_keyword: 'student solving complex problem', widget: { type: 'checklist', items: ['Deep concepts', 'Active revision', 'Mental endurance'] }, sfx: 'pop' },
-      { narration: 'Solving under PRESSURE.', background_keyword: 'study desk books laptop', widget: null, sfx: 'whoosh' },
-      { narration: 'Stop chasing rank. Build the MINDSET.', background_keyword: 'confident young student', widget: null, sfx: 'ding' },
-      { narration: 'Want the full BLUEPRINT?', background_keyword: 'stressed student studying late night', widget: { type: 'brand_reveal', text: 'EduNext' }, sfx: 'whoosh' },
-      { narration: 'Just visit our website!', caption: '', background_keyword: 'confident young student', widget: { type: 'brand_reveal', text: 'www.getedunext.com' }, sfx: 'ding' },
+      { narration: 'The biggest lie told to Indian students?', background_keyword: 'frustrated student exam', widget: null, sfx: 'whoosh' },
+      { narration: 'That exams are always FAIR.', background_keyword: 'stressed student studying late night', widget: null, sfx: 'pop' },
+      { narration: 'Look at the JEE Leaks.', background_keyword: 'police investigation', widget: null, sfx: 'whoosh' },
+      { narration: 'FORTY-FIVE scams in twenty-four years!', background_keyword: 'court gavel', widget: { type: 'checklist', items: ['45 Major Scams', '24 Years of Leaks'] }, sfx: 'pop' },
+      { narration: 'The system is broken.', background_keyword: 'frustrated student exam', widget: { type: 'graph', dataPoints: [{ label: 'Fair Exams', value: 20 }, { label: 'Compromised', value: 80 }] }, sfx: 'ding' },
+      { narration: 'So what is YOUR future?', background_keyword: 'stressed parents', widget: { type: 'checklist', items: ['Uncertainty', 'Anxiety', 'Delayed Results'] }, sfx: 'pop' },
+      { narration: 'You need a BACKUP plan.', background_keyword: 'student solving complex problem', widget: null, sfx: 'whoosh' },
+      { narration: 'Do not rely on one exam.', background_keyword: 'confident young student', widget: null, sfx: 'ding' },
+      { narration: "We've mapped out the safest college alternatives for you.", background_keyword: 'study desk laptop', widget: { type: 'brand_reveal', text: 'EduNext' }, sfx: 'whoosh' },
+      { narration: 'Check out the full blueprint at getedunext.com today.', caption: '', background_keyword: 'confident young student', widget: { type: 'brand_reveal', text: 'getedunext.com' }, sfx: 'ding' },
     ],
   };
 }
@@ -43,27 +43,26 @@ export function getManualScenes(): { title: string; scenes: Scene[] } {
 export function getManualContent(): SocialContent {
   return {
     carousel: {
-      slide1_hook: 'Concepts beat rank — every single time.',
+      slide1_hook: '45 Scams in 24 Years: The JEE Reality.',
       slide2_value:
-        'JEE Advanced topper Arohi focused on deep concepts, active self-testing, and mental endurance — not rote memorization. The paper rewards how you think, not what you memorize.',
-      slide3_cta: 'Read the full analysis at getedunext.com/magazine',
+        'The Indian education system is facing a crisis of trust. With 45 major paper leaks and scams over the last two decades, students can no longer rely solely on a single entrance exam for their future.',
+      slide3_cta: 'Read the full investigation at getedunext.com/magazine',
     },
     instagram_caption:
-      "JEE Advanced topper Arohi cracked it without cramming. 🧠\n\n" +
-      '✅ Deep concepts over rote learning\n' +
-      '✅ Active self-testing, not passive reading\n' +
-      '✅ Mental endurance for the marathon\n\n' +
-      "The real blueprint isn't about rank — it's about how you think under pressure. " +
-      'Read the full breakdown 👉 getedunext.com/magazine\n\n' +
-      '#EduNext #JEEAdvanced #JEE2026 #IITDreams #JEEPreparation #CollegeAdmissions #EngineeringAspirants #StudySmart #IIT #ExamStrategy',
+      "The biggest lie told to Indian students is that exams are always fair. 🚨\n\n" +
+      '✅ 45 major scams in 24 years\n' +
+      '✅ Countless futures jeopardized\n' +
+      '✅ The urgent need for backup plans\n\n' +
+      "Don't put all your dreams into one compromised basket. Explore alternative admissions and secure your future. " +
+      'Read the full investigation 👉 getedunext.com/magazine\n\n' +
+      '#EduNext #JEEMains #JEELeaks #NEETScam #ExamScam #CollegeAdmissions #StudentFuture #EducationCrisis',
     reel: {
-      // Conversational + punctuation-rich (commas, ?, !, …) so the voice modulates naturally.
       script:
-        "So, JEE Advanced topper Arohi? She didn't win by memorizing formulas. Honestly, that's the trap most students fall into! She focused on deep concepts, active revision, and real problem-solving. JEE Advanced doesn't test what you remember… it tests how you think under pressure! So stop chasing rank, and start building the mindset. That's the real blueprint. Want the full breakdown? For more, head over to getedunext dot com.",
-      image_keywords: ['student', 'exam', 'study'],
+        "The biggest lie told to Indian students? That exams are always FAIR. Just look at the recent JEE Leaks. FORTY-FIVE scams in twenty-four years! The system is broken, and relying on one single exam is a massive risk. You need a solid BACKUP plan. Don't let a paper leak ruin your career. Want to know your alternative options? Head over to getedunext dot com.",
+      image_keywords: ['frustrated student', 'exam hall', 'police investigation'],
       data_points: [
-        { label: 'Conceptual Focus', value: 85 },
-        { label: 'Rote Memorization', value: 15 },
+        { label: 'Scams Reported', value: 45 },
+        { label: 'Years Tracked', value: 24 },
       ],
     },
   };

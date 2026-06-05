@@ -171,21 +171,45 @@ RULES (follow exactly):
 - 9 to 10 scenes. Each "narration" is 4-9 words, CONVERSATIONAL and natural — like a real student talking, never robotic.
 - Put 1-2 key words in ALL CAPS in most scenes for emphasis (e.g. "Forget memorizing FORMULAS!").
 - Use commas, periods, "?" and "!" for natural pauses and emotion.
-- "background_keyword": a concrete stock-photo search term (e.g. "stressed student studying", "study desk laptop", "confident student"). Use only 3-4 DISTINCT keywords total and REUSE them across scenes (so the background changes only a few times).
+- "background_keyword": a concrete stock-photo search term highly specific to the current article's exact topic (e.g. "exam hall", "laptop coding", "medical student", "court room"). Use only 3-4 DISTINCT keywords total and REUSE them across scenes. Avoid generic words.
 - "widget": null for most scenes. Include EXACTLY ONE scene with { "type": "graph", "dataPoints": [ { "label": "...", "value": 85 }, { "label": "...", "value": 15 } ] } (real numbers from the article, or reasonable proxy data). Include 1-2 scenes with { "type": "checklist", "items": ["...", "..."] }.
-- The LAST TWO scenes must be brand reveals: second-last widget { "type": "brand_reveal", "text": "EduNext" }; the LAST scene widget { "type": "brand_reveal", "text": "www.getedunext.com" } and also include "caption": "" on that last scene (hide its caption).
+- The LAST TWO scenes must be brand reveals: second-last widget { "type": "brand_reveal", "text": "EduNext" }; the LAST scene widget { "type": "brand_reveal", "text": "getedunext.com" } and also include "caption": "" on that last scene (hide its caption).
 - "sfx": rotate "whoosh" / "pop" / "ding"; use "ding" on reveals.
-- Open with a strong HOOK, build value in the middle, end with a CTA to visit the website.
+- Open with a strong HOOK, build value in the middle, and end with a smooth, conversational CTA (e.g. "We've mapped out the safest alternatives for you.", "Check out the full blueprint at getedunext.com today.").
 Return ONLY the JSON object, no markdown.`;
 
   const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + geminiApiKey;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.85, maxOutputTokens: 4096 } }),
-  });
-  if (!res.ok) throw new Error('Gemini scenes error ' + res.status + ': ' + (await res.text()));
+  
+  let res;
+  let retries = 0;
+  while (retries < 3) {
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.85, maxOutputTokens: 4096 } }),
+      });
+      if (res.ok) break;
+      if (res.status === 503 || res.status === 429) {
+        retries++;
+        console.log('Gemini scenes API 503/429. Retrying... (' + retries + '/3)');
+        await new Promise((resolve) => setTimeout(resolve, 3000 * retries));
+      } else {
+        break;
+      }
+    } catch (err) {
+      retries++;
+      console.log('Fetch error. Retrying... (' + retries + '/3)');
+      await new Promise((resolve) => setTimeout(resolve, 3000 * retries));
+    }
+  }
+
+  if (!res || !res.ok) {
+    const errText = res ? await res.text() : 'Network failure';
+    throw new Error('Gemini scenes error ' + (res?.status || 'Unknown') + ': ' + errText);
+  }
+
   const data = await res.json();
   let text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Gemini returned no scenes');
