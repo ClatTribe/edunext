@@ -160,7 +160,7 @@ export async function renderSceneVideo(opts: {
   const { scenes, imageUrls, sceneDurations, audioRelPath, totalDuration, outputDir = os.tmpdir() } = opts;
   const { bundle } = await import('@remotion/bundler');
   const { renderMedia, selectComposition } = await import('@remotion/renderer');
-  const bundled = await bundle({ entryPoint: path.resolve(process.cwd(), 'src/remotion/index.tsx'), webpackOverride: (c) => c });
+  const bundled = await bundle({ entryPoint: path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'src/remotion/index.tsx'), webpackOverride: (c) => c });
   const inputProps = { scenes, imageUrls, sceneDurations, audioRelPath, audioDurationInSeconds: totalDuration };
   const composition = await selectComposition({ serveUrl: bundled, id: 'SceneReel', inputProps });
   const outputLocation = path.join(outputDir, 'scene_' + Date.now() + '.mp4');
@@ -209,7 +209,7 @@ export async function renderRemotionVideo(opts: RenderReelOptions): Promise<stri
   const { renderMedia, selectComposition } = await import('@remotion/renderer');
 
   const bundled = await bundle({
-    entryPoint: path.resolve(process.cwd(), 'src/remotion/index.tsx'),
+    entryPoint: path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'src/remotion/index.tsx'),
     webpackOverride: (config) => config,
   });
 

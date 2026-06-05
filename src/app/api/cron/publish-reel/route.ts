@@ -76,8 +76,8 @@ function resolveFfmpeg(): string {
   const candidates = [
     typeof ffmpegPath === 'string' ? ffmpegPath : '',
     process.platform === 'win32'
-      ? path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg.exe')
-      : path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg'),
+      ? path.join(/*turbopackIgnore: true*/ process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg.exe')
+      : path.join(/*turbopackIgnore: true*/ process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg'),
   ];
   for (const c of candidates) {
     try { if (c && fs.existsSync(c)) return c; } catch { /* ignore */ }
@@ -181,7 +181,7 @@ async function prepareFaceVideo(
 
   // Write the re-encoded clip into public/temp-face so Remotion loads it as a
   // LOCAL staticFile. Remote (Supabase) URLs fail the compositor's frame seek.
-  const publicFaceDir = path.join(process.cwd(), 'public', 'temp-face');
+  const publicFaceDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'temp-face');
   fs.mkdirSync(publicFaceDir, { recursive: true });
   const fileName = `face_${Date.now()}.mp4`;
   const outAbs = path.join(publicFaceDir, fileName);
@@ -222,7 +222,7 @@ async function prepareFaceVideo(
  */
 async function compositeFaceAndOverlay(faceAbs: string, overlayAbs: string): Promise<string> {
   const out = path.join(os.tmpdir(), `final_${Date.now()}.mp4`);
-  const musicPath = path.join(process.cwd(), 'public', 'music.mp3');
+  const musicPath = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'music.mp3');
   const hasMusic = fs.existsSync(musicPath);
 
   // With music: mix the replica voice (0:a, full) + looped bg music (0.10, low). normalize=0
@@ -331,7 +331,7 @@ async function getSocialContent(article: any, geminiKey?: string) {
 
 function loadLogoDataUri(): string {
   try {
-    const logoSvg = fs.readFileSync(path.join(process.cwd(), 'public', 'whitelogo.svg'), 'utf8');
+    const logoSvg = fs.readFileSync(path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'whitelogo.svg'), 'utf8');
     return `data:image/svg+xml;base64,${Buffer.from(logoSvg).toString('base64')}`;
   } catch {
     return '';
@@ -342,7 +342,7 @@ function loadLogoDataUri(): string {
 async function saveNarrationAudio(dataUri: string): Promise<{ rel: string; abs: string }> {
   const b64 = dataUri.includes(',') ? dataUri.split(',')[1] : dataUri;
   const buf = Buffer.from(b64, 'base64');
-  const dir = path.join(process.cwd(), 'public', 'temp-audio');
+  const dir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'temp-audio');
   fs.mkdirSync(dir, { recursive: true });
   const name = `narr_${Date.now()}.mp3`;
   const abs = path.join(dir, name);
@@ -577,7 +577,7 @@ export async function GET(request: NextRequest) {
   if (previewBranded && mode === 'face') {
     try {
       // Persistent debug face (saved on a real run, reused for free layout testing).
-      const debugDir = path.join(process.cwd(), 'public', 'temp-face');
+      const debugDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'temp-face');
       const debugFace = path.join(debugDir, '_debug_last.mp4');
       const debugMeta = path.join(debugDir, '_debug_last.json');
 

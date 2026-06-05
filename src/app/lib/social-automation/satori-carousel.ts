@@ -124,7 +124,7 @@ export async function generateCarousel(content: CarouselContent, outputDir: stri
 
   let logo = '';
   try {
-    const logoSvg = fs.readFileSync(path.join(process.cwd(), 'public', 'whitelogo.svg'), 'utf8');
+    const logoSvg = fs.readFileSync(path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'whitelogo.svg'), 'utf8');
     const png = new Resvg(logoSvg, { fitTo: { mode: 'width', value: 500 } }).render().asPng();
     logo = `data:image/png;base64,${png.toString('base64')}`;
   } catch { /* text fallback */ }
