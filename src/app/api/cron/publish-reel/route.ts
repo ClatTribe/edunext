@@ -377,7 +377,8 @@ async function runScenePipeline(
   env: { unsplash?: string; meta?: string; ig?: string; yt?: string; gemini?: string },
   doPublish: boolean
 ): Promise<{ publicVideoUrl: string; seconds: number; sceneCount: number; published: { instagram: boolean; youtube: boolean }; magazineUrl: string }> {
-  const { scenes } = await getScenesContent(article, env.gemini);
+  const { title: ytTitle, scenes } = await getScenesContent(article, env.gemini);
+  const socialContent = await getSocialContent(article, env.gemini);
   const narrations = scenes.map((s) => s.narration);
   console.log(`Scene pipeline: ${scenes.length} scenes. Generating narration...`);
   const { audioUrl, sceneDurations, totalDuration } = await generateSceneAudio(narrations);
@@ -391,11 +392,7 @@ async function runScenePipeline(
   try { fs.unlinkSync(narr.abs); } catch { /* ignore */ }
 
   const magazineUrl = `https://www.getedunext.com/magazine/${article.slug}`;
-  const caption =
-    `JEE Advanced topper Arohi's REAL secret isn't what you think. 🧠\n\n` +
-    `Not formulas, not rank — deep concepts, active revision, and a strong mindset under pressure.\n\n` +
-    `📖 Read the full blueprint:\n${magazineUrl}\n\n` +
-    `#JEEAdvanced #JEE2026 #IITDreams #JEEPreparation #EduNext #CollegeAdmissions #EngineeringAspirants #StudySmart #IIT #ExamStrategy`;
+  const caption = socialContent.instagram_caption;
 
   const published = { instagram: false, youtube: false };
   if (doPublish) {
@@ -404,7 +401,7 @@ async function runScenePipeline(
       catch (e) { console.error('IG reel publish failed:', e); }
     } else { console.log('Skipping IG — token/user missing.'); }
     if (env.yt) {
-      try { await uploadToYouTubeShorts(videoPath, 'JEE Advanced Topper Arohi: The Real IIT Blueprint', caption, ['education', 'edunext', 'shorts', 'JEE', 'IIT']); published.youtube = true; }
+      try { await uploadToYouTubeShorts(videoPath, ytTitle.slice(0, 95), caption, ['education', 'edunext', 'shorts']); published.youtube = true; }
       catch (e) { console.error('YT short publish failed:', e); }
     } else { console.log('Skipping YouTube — refresh token missing.'); }
   }

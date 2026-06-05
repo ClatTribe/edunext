@@ -60,12 +60,13 @@ export async function GET(request: NextRequest) {
     const magazineUrl = `getedunext.com/magazine/${article.slug}`;
     const mc = useManual ? getManualContent() : await extractSocialContent(article.title, article.summary, article.content, GEMINI_API_KEY!);
     return {
-      topic: 'JEE Advanced',
+      topic: 'EduNext Insight',
       hook: mc.carousel.slide1_hook,
-      dataTitle: 'By the numbers',
-      dataPoints: mc.reel.data_points || [],
-      pointsTitle: "Arohi's blueprint",
-      points: ['Deep concepts, not cramming', 'Active self-testing', 'Mental endurance'],
+      dataTitle: 'KEY INSIGHT',
+      dataHook: mc.carousel.slide2_value.split('.')[0] + '.',
+      dataBody: mc.carousel.slide2_value.split('.').slice(1).join('.').trim() || mc.carousel.slide2_value,
+      pointsTitle: "Action Steps",
+      points: mc.carousel.slide3_cta.split('.').map(s => s.trim()).filter(s => s.length > 5).slice(0, 4),
       ctaTitle: "Read the full blueprint",
       ctaUrl: magazineUrl,
       _caption:
