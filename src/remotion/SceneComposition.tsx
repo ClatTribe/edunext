@@ -24,7 +24,7 @@ const SceneWidget: React.FC<{ widget: any; enter: number }> = ({ widget, enter }
   if (!widget) return null;
   if (widget.type === 'checklist') {
     return (
-      <div style={{ position: 'absolute', top: '16%', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, opacity: enter, transform: `translateY(${(1 - enter) * 30}px)` }}>
+      <div style={{ position: 'absolute', top: '10%', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, opacity: enter, transform: `translateY(${(1 - enter) * 30}px)` }}>
         {widget.items.map((it: string, i: number) => (
           <div key={i} style={{ background: 'rgba(255,255,255,0.95)', borderRadius: 999, padding: '12px 26px 12px 14px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 10px 24px rgba(0,0,0,0.3)' }}>
             <div style={{ width: 38, height: 38, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -39,7 +39,7 @@ const SceneWidget: React.FC<{ widget: any; enter: number }> = ({ widget, enter }
   if (widget.type === 'graph') {
     const dp = (widget.dataPoints || []).slice(0, 3);
     return (
-      <div style={{ position: 'absolute', top: '15%', left: 0, right: 0, display: 'flex', justifyContent: 'center', opacity: enter, transform: `translateY(${(1 - enter) * 30}px)` }}>
+      <div style={{ position: 'absolute', top: '10%', left: 0, right: 0, display: 'flex', justifyContent: 'center', opacity: enter, transform: `translateY(${(1 - enter) * 30}px)` }}>
         <div style={{ background: 'rgba(255,255,255,0.96)', borderRadius: 28, padding: '26px 42px', boxShadow: '0 16px 40px rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', gap: 44 }}>
           {dp.map((d: any, i: number) => {
             const v = Math.max(0, Math.min(100, Number(d.value) || 0));
@@ -58,7 +58,7 @@ const SceneWidget: React.FC<{ widget: any; enter: number }> = ({ widget, enter }
   }
   // brand_reveal
   return (
-    <AbsoluteFill style={{ justifyContent: 'flex-start', alignItems: 'center', paddingTop: '20%', opacity: enter }}>
+    <AbsoluteFill style={{ justifyContent: 'flex-start', alignItems: 'center', paddingTop: '15%', opacity: enter }}>
       <div style={{ transform: `scale(${0.8 + enter * 0.2})`, background: 'rgba(255,255,255,0.97)', borderRadius: 36, padding: '36px 56px', boxShadow: '0 22px 50px rgba(0,0,0,0.45)', borderTop: `8px solid ${ACCENT}`, maxWidth: '88%' }}>
         <span style={{ fontFamily: FONT, fontWeight: 900, fontSize: 72, color: ACCENT2, letterSpacing: -2, wordBreak: 'break-word' }}>{widget.text}</span>
       </div>
@@ -89,7 +89,7 @@ const SceneClip: React.FC<{ scene: any; durFrames: number }> = ({ scene, durFram
 
       {/* Caption — Hormozi Style Word-by-Word Popup */}
       {words.length > 0 ? (
-        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', paddingTop: '35%' }}>
+        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', paddingTop: '45%' }}>
           <div style={{ transform: `scale(${capScale})`, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 24, maxWidth: '85%' }}>
             {words.map((w: string, idx: number) => {
               const emph = /[A-Z]{3,}/.test(w.replace(/[^A-Za-z]/g, ''));
@@ -128,9 +128,9 @@ export const SceneComposition: React.FC<{
   scenes?: any[];
   imageUrls?: string[];
   sceneDurations?: number[];
-  audioRelPath?: string;
+  audioUrls?: string[];
   audioDurationInSeconds?: number;
-}> = ({ scenes = [], imageUrls = [], sceneDurations = [], audioRelPath = '', audioDurationInSeconds = 30 }) => {
+}> = ({ scenes = [], imageUrls = [], sceneDurations = [], audioUrls = [], audioDurationInSeconds = 30 }) => {
   const { fps } = useVideoConfig();
   const gframe = useCurrentFrame();
   const totalFrames = Math.max(1, Math.round(audioDurationInSeconds * fps));
@@ -139,35 +139,31 @@ export const SceneComposition: React.FC<{
   const starts = sceneDurations.map((d) => { const s = acc; acc += d; return Math.round(s * fps); });
   const clamp = { extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const };
 
-  // Group consecutive scenes that share a background into BLOCKS, so the bg only
-  // changes a few times (3-4) across the whole video instead of every scene.
-  const blocks: { img: string; start: number; end: number }[] = [];
+  // Group consecutive scenes that share a background into BLOCKS
+  const blocks: { img: string; startIdx: number; endIdx: number }[] = [];
   for (let i = 0; i < scenes.length; i++) {
-    const img = imageUrls[i] || '';
-    const sf = starts[i];
-    const ef = i < scenes.length - 1 ? starts[i + 1] : totalFrames;
-    if (blocks.length && blocks[blocks.length - 1].img === img) blocks[blocks.length - 1].end = ef;
-    else blocks.push({ img, start: sf, end: ef });
+    const img = imageUrls[i] || FALLBACK;
+    if (blocks.length && blocks[blocks.length - 1].img === img) blocks[blocks.length - 1].endIdx = i + 1;
+    else blocks.push({ img, startIdx: i, endIdx: i + 1 });
   }
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#111827' }}>
-      <Sequence from={0}>
-        {audioRelPath ? <Audio src={audioRelPath.startsWith('http') || audioRelPath.startsWith('file:') || audioRelPath.startsWith('data:') ? audioRelPath : staticFile(audioRelPath)} /> : null}
-        <Audio src={staticFile('music.mp3')} volume={0.08} />
-      </Sequence>
+      {/* low background music */}
+      <Audio src={staticFile('music.mp3')} volume={0.08} />
 
       {/* BACKGROUND BLOCKS — only change 3-4 times, cross-fade + slow Ken-Burns. */}
       {blocks.map((b, i) => {
-        const opIn = i === 0 ? 1 : interpolate(gframe, [b.start - 9, b.start + 9], [0, 1], clamp);
-        const opOut = i === blocks.length - 1 ? 1 : interpolate(gframe, [b.end - 9, b.end + 9], [1, 0], clamp);
-        const op = Math.min(opIn, opOut);
-        if (op <= 0) return null;
-        const zoom = interpolate(gframe, [b.start, b.end], [1.06, 1.2], clamp);
+        const blkStart = starts[b.startIdx];
+        const blkEnd = b.endIdx < starts.length ? starts[b.endIdx] : totalFrames;
+        const fade = interpolate(gframe, [blkStart, blkStart + 15, blkEnd - 15, blkEnd], [0, 1, 1, 0], clamp);
+        const scale = interpolate(gframe, [blkStart, blkEnd], [1.05, 1.15], clamp);
         return (
-          <AbsoluteFill key={i} style={{ opacity: op }}>
-            <Img src={b.img || FALLBACK} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: `scale(${zoom})` }} />
-          </AbsoluteFill>
+          <Sequence key={`bg-${i}`} from={blkStart} durationInFrames={blkEnd - blkStart}>
+            <AbsoluteFill style={{ opacity: fade }}>
+              <Img src={b.img} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: `scale(${scale})`, filter: 'brightness(0.65) saturate(1.1) contrast(1.1)' }} />
+            </AbsoluteFill>
+          </Sequence>
         );
       })}
 
@@ -181,6 +177,8 @@ export const SceneComposition: React.FC<{
         return (
           <Sequence key={i} from={starts[i]} durationInFrames={durF}>
             <SceneClip scene={sc} durFrames={durF} />
+            {/* Play exact audio for this scene synchronously! */}
+            {audioUrls[i] ? <Audio src={audioUrls[i]} /> : null}
           </Sequence>
         );
       })}

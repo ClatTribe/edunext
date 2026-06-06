@@ -40,6 +40,7 @@ import { uploadToYouTubeShorts } from '../../../lib/social-automation/youtube-ap
 import { generateTavusVideo, pollTavusVideo } from '../../../lib/social-automation/tavus-api';
 
 export const maxDuration = 300;
+export const dynamic = 'force-dynamic';
 
 const FACE_CAP = 10;                 // max Tavus face videos / month (free quota guard)
 const PRIMARY_WORDS = 70;            // faster Neerja (+18%) -> more words keep it ~22-26s
@@ -338,15 +339,16 @@ function loadLogoDataUri(): string {
   }
 }
 
-/** Write the narration data-URI to /tmp so Remotion can load it via file:// URL. */
+/** Write the narration data-URI to public/temp-audio so Remotion can load it via staticFile. */
 async function saveNarrationAudio(dataUri: string): Promise<{ rel: string; abs: string }> {
   const b64 = dataUri.includes(',') ? dataUri.split(',')[1] : dataUri;
   const buf = Buffer.from(b64, 'base64');
-  const dir = os.tmpdir();
+  const dir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'temp-audio');
+  fs.mkdirSync(dir, { recursive: true });
   const name = `narr_${Date.now()}.mp3`;
   const abs = path.join(dir, name);
   fs.writeFileSync(abs, buf);
-  return { rel: `file://${abs.replace(/\\/g, '/')}`, abs };
+  return { rel: `temp-audio/${name}`, abs };
 }
 
 /** One portrait stock image for a scene keyword (Unsplash), with a safe fallback. */
@@ -380,15 +382,30 @@ async function runScenePipeline(
   const socialContent = await getSocialContent(article, env.gemini);
   const narrations = scenes.map((s) => s.narration);
   console.log(`Scene pipeline: ${scenes.length} scenes. Generating narration...`);
-  const { audioUrl, sceneDurations, totalDuration } = await generateSceneAudio(narrations);
-  const narr = await saveNarrationAudio(audioUrl);
+  const { audioBuffers, sceneDurations, totalDuration } = await generateSceneAudio(narrations);
+  
+  // Upload audio chunks sequentially to avoid Supabase concurrent socket issues/0-byte files
+  const audioUrls: string[] = [];
+  for (let i = 0; i < audioBuffers.length; i++) {
+    const buf = audioBuffers[i];
+    if (!buf || buf.length === 0) {
+      console.warn(`Warning: Audio buffer for scene ${i} is empty!`);
+      audioUrls.push('');
+      continue;
+    }
+    const name = `scene_${Date.now()}_${i}.mp3`;
+    const { error } = await supabase.storage.from('social-media-temp').upload(name, buf, { contentType: 'audio/mpeg' });
+    if (error) console.error(`Error uploading scene ${i}:`, error.message);
+    const pubUrl = supabase.storage.from('social-media-temp').getPublicUrl(name).data.publicUrl;
+    audioUrls.push(pubUrl);
+  }
+
   const uniqueKw = Array.from(new Set(scenes.map((s) => s.background_keyword)));
   const uniqueImgs = await Promise.all(uniqueKw.map((k) => fetchOneUnsplash(k, env.unsplash)));
   const perBlock = Math.ceil(scenes.length / uniqueImgs.length);
   const imageUrls = scenes.map((_, i) => uniqueImgs[Math.min(Math.floor(i / perBlock), uniqueImgs.length - 1)]);
-  const videoPath = await renderSceneVideo({ scenes, imageUrls, sceneDurations, audioRelPath: narr.rel, totalDuration });
+  const videoPath = await renderSceneVideo({ scenes, imageUrls, sceneDurations, audioUrls, totalDuration });
   const publicVideoUrl = await uploadLocalVideo(supabase, videoPath);
-  try { fs.unlinkSync(narr.abs); } catch { /* ignore */ }
 
   const magazineUrl = `https://www.getedunext.com/magazine/${article.slug}`;
   const caption = socialContent.instagram_caption;
@@ -721,6 +738,10 @@ export async function GET(request: NextRequest) {
       if (META_ACCESS_TOKEN && IG_USER_ID) {
         const publicVideoUrl = await uploadLocalVideo(supabase, videoPath);
         console.log('Public video URL:', publicVideoUrl);
+        // Wait 8 seconds to allow Supabase CDN to fully propagate the video globally. 
+        // Meta instantly downloads it; if the CDN isn't ready, Meta's processing fails.
+        console.log('Waiting 8 seconds for CDN propagation before pinging Meta...');
+        await new Promise((res) => setTimeout(res, 8000));
         await publishInstagramReel(IG_USER_ID, META_ACCESS_TOKEN, publicVideoUrl, caption);
       } else {
         console.log('Meta tokens missing — skipping Instagram publish.');
@@ -746,8 +767,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    mode,
+    mode: sceneMode ? 'scene' : 'face',
     day_of_year: dayOfYear,
-    message: `Reel pipeline triggered in "${mode}" mode. Check logs for progress.`,
+    message: `Reel pipeline triggered in "${sceneMode ? 'scene' : 'face'}" mode. Check logs for progress.`,
   });
 }

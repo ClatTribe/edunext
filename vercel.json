@@ -23,7 +23,7 @@
       "schedule": "30 6 * * *"
     },
     {
-      "path": "/api/cron/publish-reel?secret=edunext-news-cron-2026",
+      "path": "/api/cron/publish-reel?secret=edunext-news-cron-2026&scene=true",
       "schedule": "45 6 * * *"
     },
     {

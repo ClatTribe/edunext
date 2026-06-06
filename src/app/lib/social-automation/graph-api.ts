@@ -117,7 +117,8 @@ export async function publishInstagramReel(
     if (statusData.status_code === 'FINISHED') {
       isReady = true;
     } else if (statusData.status_code === 'ERROR') {
-      throw new Error('Meta failed to process the video.');
+      console.error('Meta ERROR data:', JSON.stringify(statusData, null, 2));
+      throw new Error(`Meta failed to process the video. Status data: ${JSON.stringify(statusData)}`);
     }
     attempts++;
   }

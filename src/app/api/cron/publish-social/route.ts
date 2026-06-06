@@ -7,6 +7,9 @@ import { getManualContent } from '../../../lib/social-automation/manual-content'
 import { generateTTS, renderRemotionVideo } from '../../../lib/social-automation/video-generator';
 import { publishInstagramCarousel } from '../../../lib/social-automation/graph-api';
 
+export const maxDuration = 120;
+export const dynamic = 'force-dynamic';
+
 /**
  * Uploads local images to Supabase Storage and returns their public URLs.
  */

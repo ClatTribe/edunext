@@ -106,22 +106,19 @@ export async function generateModulatedTTS(text: string): Promise<{ audioUrl: st
  */
 export async function generateSceneAudio(
   narrations: string[]
-): Promise<{ audioUrl: string; sceneDurations: number[]; totalDuration: number }> {
+): Promise<{ audioBuffers: Buffer[]; sceneDurations: number[]; totalDuration: number }> {
   const N = narrations.length;
   const sign = (n: number) => (n >= 0 ? '+' : '') + Math.round(n) + '%';
-  const buffers: Buffer[] = [];
+  const audioBuffers: Buffer[] = [];
   const sceneDurations: number[] = [];
   let total = 0;
 
   for (let i = 0; i < N; i++) {
     const seg = narrations[i];
-    // CONSTANT pitch = one consistent voice throughout (no more "voice changes" feel).
-    // Emotion/modulation comes from punctuation pauses + a SUBTLE rate change only
-    // (slower = weightier). Pitch never changes, so it stays the same single voice.
     const pitch = '+0%';
-    let rate = 10; // lively, consistent narration pace
-    if (seg.includes('…') || seg.includes('...')) rate -= 8;            // thoughtful trailing -> slower
-    else if ((seg.match(/\b[A-Z]{3,}\b/g) || []).length > 0) rate -= 4; // ALL-CAPS weight -> slightly slower
+    let rate = 17; // lively but not too fast (between old 10 and new 25)
+    if (seg.includes('…') || seg.includes('...')) rate -= 8;
+    else if ((seg.match(/\b[A-Z]{3,}\b/g) || []).length > 0) rate -= 4;
 
     const tts = new MsEdgeTTS();
     await tts.setMetadata('en-IN-NeerjaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
@@ -129,9 +126,10 @@ export async function generateSceneAudio(
     const chunks: Buffer[] = [];
     for await (const chunk of audioStream) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     const segBuf = Buffer.concat(chunks);
-    buffers.push(segBuf);
+    
+    audioBuffers.push(segBuf);
 
-    let dur = seg.split(' ').length / 2.6;
+    let dur = seg.split(' ').length / 2.8; // estimated slightly faster
     try {
       const tmp = path.join(os.tmpdir(), `scn_${Date.now()}_${i}.mp3`);
       fs.writeFileSync(tmp, segBuf);
@@ -143,9 +141,8 @@ export async function generateSceneAudio(
     total += dur;
   }
 
-  const finalBuffer = Buffer.concat(buffers);
   console.log(`Scene audio: ${N} scenes, ~${total.toFixed(1)}s.`);
-  return { audioUrl: 'data:audio/mp3;base64,' + finalBuffer.toString('base64'), sceneDurations, totalDuration: total };
+  return { audioBuffers, sceneDurations, totalDuration: total };
 }
 
 /** Render the faceless SCENE composition (id "SceneReel") to an mp4. */
@@ -153,15 +150,15 @@ export async function renderSceneVideo(opts: {
   scenes: any[];
   imageUrls: string[];
   sceneDurations: number[];
-  audioRelPath: string;
+  audioUrls: string[];
   totalDuration: number;
   outputDir?: string;
 }): Promise<string> {
-  const { scenes, imageUrls, sceneDurations, audioRelPath, totalDuration, outputDir = os.tmpdir() } = opts;
+  const { scenes, imageUrls, sceneDurations, audioUrls, totalDuration, outputDir = os.tmpdir() } = opts;
   const { bundle } = await import('@remotion/bundler');
   const { renderMedia, selectComposition } = await import('@remotion/renderer');
   const bundled = await bundle({ entryPoint: path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'src/remotion/index.tsx'), webpackOverride: (c) => c });
-  const inputProps = { scenes, imageUrls, sceneDurations, audioRelPath, audioDurationInSeconds: totalDuration };
+  const inputProps = { scenes, imageUrls, sceneDurations, audioUrls, audioDurationInSeconds: totalDuration };
   const composition = await selectComposition({ serveUrl: bundled, id: 'SceneReel', inputProps });
   const outputLocation = path.join(outputDir, 'scene_' + Date.now() + '.mp4');
   await renderMedia({ 
