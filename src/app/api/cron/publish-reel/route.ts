@@ -338,16 +338,15 @@ function loadLogoDataUri(): string {
   }
 }
 
-/** Write the narration data-URI to public/temp-audio so Remotion can load it via staticFile. */
+/** Write the narration data-URI to /tmp so Remotion can load it via file:// URL. */
 async function saveNarrationAudio(dataUri: string): Promise<{ rel: string; abs: string }> {
   const b64 = dataUri.includes(',') ? dataUri.split(',')[1] : dataUri;
   const buf = Buffer.from(b64, 'base64');
-  const dir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'temp-audio');
-  fs.mkdirSync(dir, { recursive: true });
+  const dir = os.tmpdir();
   const name = `narr_${Date.now()}.mp3`;
   const abs = path.join(dir, name);
   fs.writeFileSync(abs, buf);
-  return { rel: `temp-audio/${name}`, abs };
+  return { rel: `file://${abs.replace(/\\/g, '/')}`, abs };
 }
 
 /** One portrait stock image for a scene keyword (Unsplash), with a safe fallback. */

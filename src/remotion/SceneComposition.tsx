@@ -151,10 +151,11 @@ export const SceneComposition: React.FC<{
   }
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#0b1020' }}>
-      {/* Narration + low background music */}
-      {audioRelPath ? <Audio src={audioRelPath.startsWith('http') ? audioRelPath : staticFile(audioRelPath)} /> : null}
-      <Audio src={staticFile('music.mp3')} volume={0.08} />
+    <AbsoluteFill style={{ backgroundColor: '#111827' }}>
+      <Sequence from={0}>
+        {audioRelPath ? <Audio src={audioRelPath.startsWith('http') || audioRelPath.startsWith('file:') || audioRelPath.startsWith('data:') ? audioRelPath : staticFile(audioRelPath)} /> : null}
+        <Audio src={staticFile('music.mp3')} volume={0.08} />
+      </Sequence>
 
       {/* BACKGROUND BLOCKS — only change 3-4 times, cross-fade + slow Ken-Burns. */}
       {blocks.map((b, i) => {
