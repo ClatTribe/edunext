@@ -43,19 +43,19 @@ export function getManualScenes(): { title: string; scenes: Scene[] } {
 export function getManualContent(): SocialContent {
   return {
     carousel: {
-      slide1_hook: '45 Scams in 24 Years: The JEE Reality.',
+      slide1_hook: 'Question Setters Won\'t Know Your Exam?',
       slide2_value:
-        'The Indian education system is facing a crisis of trust. With 45 major paper leaks and scams over the last two decades, students can no longer rely solely on a single entrance exam for their future.',
-      slide3_cta: 'Read the full investigation at getedunext.com/magazine',
+        'Following recent NEET controversies, a massive shake-up is proposed: question setters may no longer know if they are writing for NEET, JEE, or state exams. This destroys predictable question patterns.',
+      slide3_cta: 'Read the full survival guide at getedunext.com/magazine',
     },
     instagram_caption:
-      "The biggest lie told to Indian students is that exams are always fair. 🚨\n\n" +
-      '✅ 45 major scams in 24 years\n' +
-      '✅ Countless futures jeopardized\n' +
-      '✅ The urgent need for backup plans\n\n' +
-      "Don't put all your dreams into one compromised basket. Explore alternative admissions and secure your future. " +
-      'Read the full investigation 👉 getedunext.com/magazine\n\n' +
-      '#EduNext #JEEMains #JEELeaks #NEETScam #ExamScam #CollegeAdmissions #StudentFuture #EducationCrisis',
+      "The days of predicting exams using Previous Year Questions might be over. 🚨\n\n" +
+      "✅ Question setters won't know the target exam\n" +
+      "✅ Rote memorization will fail\n" +
+      "✅ Focus heavily on core scientific concepts\n\n" +
+      "Don't panic—adapt your preparation strategy now. " +
+      "Read our full guide on how to survive the new exam era 👉 getedunext.com/magazine\n\n" +
+      "#EduNext #NEET2026 #ExamUpdates #MedicalEntrance #StudentFuture #NTA",
     reel: {
       script:
         "The biggest lie told to Indian students? That exams are always FAIR. Just look at the recent JEE Leaks. FORTY-FIVE scams in twenty-four years! The system is broken, and relying on one single exam is a massive risk. You need a solid BACKUP plan. Don't let a paper leak ruin your career. Want to know your alternative options? Head over to getedunext dot com.",

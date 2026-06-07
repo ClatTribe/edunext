@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   const useManual = process.env.USE_MANUAL_SCRIPT === 'true';
   const preview = request.nextUrl.searchParams.get('preview') === 'true';
   if (!GEMINI_API_KEY && !useManual) {

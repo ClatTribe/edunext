@@ -485,7 +485,7 @@ export async function GET(request: NextRequest) {
   const sceneMode = request.nextUrl.searchParams.get('scene') === 'true' || process.env.SCENE_MODE === 'true'; // faceless scene reel
   const publish = request.nextUrl.searchParams.get('publish') === 'true'; // also post to IG Reel + YouTube Short
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   if (!GEMINI_API_KEY && process.env.USE_MANUAL_SCRIPT !== 'true') {
     return NextResponse.json({ error: 'Missing GEMINI_API_KEY (or set USE_MANUAL_SCRIPT=true)' }, { status: 500 });
   }
@@ -505,10 +505,6 @@ export async function GET(request: NextRequest) {
   // ----- decide mode -----
   const dayOfYear = Math.floor((Date.now() - Date.UTC(new Date().getUTCFullYear(), 0, 0)) / 86400000);
   
-  // TEMPORARY: Force Face mode for testing until the video is perfect.
-  let mode: 'face' | 'template' = 'face';
-
-  /*
   let mode: 'face' | 'template' =
     force === 'face' ? 'face' : force === 'template' ? 'template' : dayOfYear % 3 === 0 ? 'face' : 'template';
 
