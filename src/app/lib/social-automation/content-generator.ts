@@ -18,7 +18,15 @@ export async function getScenesContent(
     if (out.scenes && out.scenes.length >= 4) return out;
     console.warn('Gemini returned too few scenes — falling back to manual.');
   } catch (e) {
-    console.warn('Gemini scene generation failed, using manual:', (e as Error).message);
+    console.warn('Gemini scene generation failed, using dynamic fallback:', (e as Error).message);
   }
-  return getManualScenes();
+  return {
+    title: article.title,
+    scenes: [
+      { narration: `Did you hear about this? ${article.title}`, background_keyword: 'breaking news student', widget: null, sfx: 'whoosh' },
+      { narration: `${article.summary.substring(0, 150)}...`, background_keyword: 'reading studying focus', widget: null, sfx: 'pop' },
+      { narration: 'To read the full deep-dive analysis...', background_keyword: 'curious student', widget: null, sfx: 'whoosh' },
+      { narration: 'Head over to getedunext dot com today!', background_keyword: 'laptop desk', widget: { type: 'brand_reveal', text: 'getedunext.com' }, sfx: 'ding' },
+    ]
+  };
 }

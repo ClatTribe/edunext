@@ -61,7 +61,25 @@ export async function GET(request: NextRequest) {
   // Build the structured carousel content from manual content (or Gemini).
   async function buildCarouselContent(article: any) {
     const magazineUrl = `getedunext.com/magazine/${article.slug}`;
-    const mc = useManual ? getManualContent() : await extractSocialContent(article.title, article.summary, article.content, GEMINI_API_KEY!);
+    let mc;
+    if (useManual) {
+      mc = getManualContent();
+    } else {
+      try {
+        mc = await extractSocialContent(article.title, article.summary, article.content, GEMINI_API_KEY!);
+      } catch (e) {
+        console.warn('Gemini failed for social content, using dynamic fallback:', e);
+        mc = {
+          carousel: {
+            slide1_hook: `Latest: ${article.title.substring(0, 40)}...`,
+            slide2_value: article.summary,
+            slide3_cta: `Read the full story at getedunext.com/magazine`,
+          },
+          instagram_caption: `${article.title} 🚨\n\n${article.summary}\n\nRead the full deep-dive at 👉 getedunext.com/magazine\n\n#EduNext #LatestNews #Education`,
+          reel: { script: '' }
+        };
+      }
+    }
     return {
       topic: 'EduNext Insight',
       hook: mc.carousel.slide1_hook,

@@ -515,7 +515,7 @@ export async function GET(request: NextRequest) {
       mode = 'template';
     }
   }
-  */
+
   if (mode === 'face' && (!TAVUS_API_KEY || !TAVUS_REPLICA_ID)) {
     if (force === 'face') {
       return NextResponse.json({ error: 'Missing TAVUS_API_KEY or TAVUS_REPLICA_ID' }, { status: 500 });
