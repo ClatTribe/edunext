@@ -98,7 +98,11 @@ export async function GET(request: NextRequest) {
   // ---------------- PREVIEW: render the 4 slides, return URLs, NO posting ----------------
   if (preview) {
     try {
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { global: { fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }) } }
+      );
       const { data: articles } = await supabase
         .from('edu_news').select('id, title, summary, content, slug')
         .eq('is_magazine', true).order('published_at', { ascending: false }).limit(1);
@@ -131,7 +135,8 @@ export async function GET(request: NextRequest) {
     try {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { global: { fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }) } }
       );
 
       const { data: articles } = await supabase
