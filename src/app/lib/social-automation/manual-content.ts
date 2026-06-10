@@ -24,18 +24,14 @@ export interface Scene {
 
 export function getManualScenes(): { title: string; scenes: Scene[] } {
   return {
-    title: 'JEE Leaks: 45 Scams in 24 Years',
+    title: 'UGC Greenlights Foreign Campuses',
     scenes: [
-      { narration: 'The biggest lie told to Indian students?', background_keyword: 'frustrated student exam', widget: null, sfx: 'whoosh' },
-      { narration: 'That exams are always FAIR.', background_keyword: 'stressed student studying late night', widget: null, sfx: 'pop' },
-      { narration: 'Look at the JEE Leaks.', background_keyword: 'police investigation', widget: null, sfx: 'whoosh' },
-      { narration: 'FORTY-FIVE scams in twenty-four years!', background_keyword: 'court gavel', widget: { type: 'checklist', items: ['45 Major Scams', '24 Years of Leaks'] }, sfx: 'pop' },
-      { narration: 'The system is broken.', background_keyword: 'frustrated student exam', widget: { type: 'graph', dataPoints: [{ label: 'Fair Exams', value: 20 }, { label: 'Compromised', value: 80 }] }, sfx: 'ding' },
-      { narration: 'So what is YOUR future?', background_keyword: 'stressed parents', widget: { type: 'checklist', items: ['Uncertainty', 'Anxiety', 'Delayed Results'] }, sfx: 'pop' },
-      { narration: 'You need a BACKUP plan.', background_keyword: 'student solving complex problem', widget: null, sfx: 'whoosh' },
-      { narration: 'Do not rely on one exam.', background_keyword: 'confident young student', widget: null, sfx: 'ding' },
-      { narration: "We've mapped out the safest college alternatives for you.", background_keyword: 'study desk laptop', widget: { type: 'brand_reveal', text: 'EduNext' }, sfx: 'whoosh' },
-      { narration: 'Check out the full blueprint at getedunext.com today.', caption: '', background_keyword: 'confident young student', widget: { type: 'brand_reveal', text: 'getedunext.com' }, sfx: 'ding' },
+      { narration: 'Do you want an international degree but can\'t afford to move abroad?...', background_keyword: 'stressed student', widget: null, sfx: 'whoosh' },
+      { narration: 'Well, everything just changed! —', background_keyword: 'happy student', widget: null, sfx: 'pop' },
+      { narration: 'The UGC just gave the GREEN LIGHT for top foreign universities to open campuses right here in INDIA!', background_keyword: 'university campus', widget: null, sfx: 'whoosh' },
+      { narration: 'That means a global degree, world-class faculty, and MASSIVE savings on living costs.', background_keyword: 'money savings', widget: { type: 'checklist', items: ['Global Degree', 'Top Faculty', 'Save Money'] }, sfx: 'pop' },
+      { narration: 'Wondering which universities are coming?', background_keyword: 'thinking student', widget: null, sfx: 'ding' },
+      { narration: 'Check out the full blueprint at getedunext dot com today.', caption: '', background_keyword: 'laptop desk', widget: { type: 'brand_reveal', text: 'getedunext.com' }, sfx: 'whoosh' },
     ],
   };
 }
@@ -43,19 +39,18 @@ export function getManualScenes(): { title: string; scenes: Scene[] } {
 export function getManualContent(): SocialContent {
   return {
     carousel: {
-      slide1_hook: 'Question Setters Won\'t Know Your Exam?',
+      slide1_hook: 'Foreign Universities Now in India!',
       slide2_value:
-        'Following recent NEET controversies, a massive shake-up is proposed: question setters may no longer know if they are writing for NEET, JEE, or state exams. This destroys predictable question patterns.',
-      slide3_cta: 'Read the full survival guide at getedunext.com/magazine',
+        'The UGC has officially allowed top global universities to set up campuses in India. You can now get an international degree without leaving the country, saving massive costs on living and tuition.',
+      slide3_cta: 'See which universities are coming at getedunext.com/magazine',
     },
     instagram_caption:
-      "The days of predicting exams using Previous Year Questions might be over. 🚨\n\n" +
-      "✅ Question setters won't know the target exam\n" +
-      "✅ Rote memorization will fail\n" +
-      "✅ Focus heavily on core scientific concepts\n\n" +
-      "Don't panic—adapt your preparation strategy now. " +
-      "Read our full guide on how to survive the new exam era 👉 getedunext.com/magazine\n\n" +
-      "#EduNext #NEET2026 #ExamUpdates #MedicalEntrance #StudentFuture #NTA",
+      "Huge news for Indian students! 🌍🎓 The UGC has officially given the green light for top foreign universities to open campuses right here in India.\n\n" +
+      "✅ International degrees without leaving home\n" +
+      "✅ Massive savings on living costs\n" +
+      "✅ Global exposure & faculty\n\n" +
+      "Read our full guide to understand what this means for your future! 👉 getedunext.com/magazine\n\n" +
+      "#EduNext #StudyAbroad #UGC #HigherEducation #GlobalEd #StudentFuture",
     reel: {
       script:
         "The biggest lie told to Indian students? That exams are always FAIR. Just look at the recent JEE Leaks. FORTY-FIVE scams in twenty-four years! The system is broken, and relying on one single exam is a massive risk. You need a solid BACKUP plan. Don't let a paper leak ruin your career. Want to know your alternative options? Head over to getedunext dot com.",
