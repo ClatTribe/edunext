@@ -14,7 +14,7 @@ export async function getScenesContent(
     return getManualScenes();
   }
   try {
-    const out = await generateScenesAI(article.title, article.summary, article.content, geminiKey);
+    const out = await generateScenesAI(article.title, article.summary, article.content, geminiKey!);
     if (out.scenes && out.scenes.length >= 4) return out;
     console.warn('Gemini returned too few scenes — falling back to manual.');
   } catch (e) {
