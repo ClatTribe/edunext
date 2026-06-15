@@ -16,19 +16,19 @@
     },
     {
       "path": "/api/cron/fetch-news?secret=edunext-news-cron-2026",
-      "schedule": "30 23 * * *"
-    },
-    {
-      "path": "/api/cron/publish-magazine?secret=edunext-news-cron-2026",
-      "schedule": "45 23 * * *"
-    },
-    {
-      "path": "/api/cron/publish-social?secret=edunext-news-cron-2026",
       "schedule": "0 0 * * *"
     },
     {
+      "path": "/api/cron/publish-magazine?secret=edunext-news-cron-2026",
+      "schedule": "30 0 * * *"
+    },
+    {
+      "path": "/api/cron/publish-social?secret=edunext-news-cron-2026",
+      "schedule": "45 0 * * *"
+    },
+    {
       "path": "/api/cron/publish-reel?secret=edunext-news-cron-2026&scene=true&publish=true",
-      "schedule": "15 0 * * *"
+      "schedule": "0 1 * * *"
     }
   ]
 }

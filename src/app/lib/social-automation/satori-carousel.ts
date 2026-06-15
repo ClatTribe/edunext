@@ -81,7 +81,7 @@ function slideHook(c: CarouselContent): any[] {
     txt({ fontSize: '32px', fontWeight: 800, color: '#F27A21', marginBottom: '80px', fontFamily: 'Montserrat' }, `for every student following ${c.topic}:`.toLowerCase()),
     highlightedText(c.hook.toLowerCase(), T.hlAmber, { fontSize: '110px', lineHeight: 1.15, letterSpacing: '-3px' }),
     box({ flexGrow: 1 }, []), // spacer
-    txt({ fontSize: '36px', color: T.muted, fontWeight: 500, lineHeight: 1.5, maxWidth: '900px' }, 'the system is flawed, but there is a rule they never told you about.')
+    txt({ fontSize: '36px', color: T.muted, fontWeight: 500, lineHeight: 1.5, maxWidth: '900px' }, 'swipe to understand exactly what this means for your future.')
   ];
 }
 
@@ -123,9 +123,9 @@ function slideTwitter(c: CarouselContent): any[] {
 function slideStatement(c: CarouselContent): any[] {
   return [
     txt({ fontSize: '32px', fontWeight: 800, color: '#F27A21', marginBottom: '80px', fontFamily: 'Montserrat' }, 'the reality check:'.toLowerCase()),
-    highlightedText('don\'t put all your eggs in one compromised basket.', T.hlPink, { fontSize: '110px', lineHeight: 1.15, letterSpacing: '-3px' }),
+    highlightedText('adapt your strategy before it is too late.', T.hlPink, { fontSize: '110px', lineHeight: 1.15, letterSpacing: '-3px' }),
     box({ flexGrow: 1 }, []), // spacer
-    txt({ fontSize: '36px', color: T.muted, fontWeight: 500, lineHeight: 1.5, maxWidth: '900px' }, 'start building your profile and look for alternative entrances that test true aptitude.')
+    txt({ fontSize: '36px', color: T.muted, fontWeight: 500, lineHeight: 1.5, maxWidth: '900px' }, 'start building your profile using these new insights to stay ahead of the curve.')
   ];
 }
 

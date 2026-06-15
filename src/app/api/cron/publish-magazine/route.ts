@@ -49,47 +49,41 @@ const CRON_SECRET = process.env.CRON_SECRET || 'edunext-news-cron-2026';
 async function pickTodaysTopic(
   supabase: any
 ): Promise<{ topic: MagazineTopic; sourceType: 'news' | 'evergreen' }> {
-  // 1a. Look for fresh news (last 48h) that hasn't been turned into magazine yet
-  const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-  const { data: freshNews } = await supabase
-    .from('edu_news')
-    .select('id, title, slug, summary, category, tags, source_name, source_url')
-    .eq('is_magazine', false)
-    .gte('published_at', since)
-    .in('category', ['JEE / Engineering', 'NEET / Medical', 'CLAT / Law', 'MBA / CAT'])
-    .order('published_at', { ascending: false })
-    .limit(5);
-
-  if (freshNews && freshNews.length > 0) {
-    // Pick the most recent and convert to a MagazineTopic shape
-    const n = freshNews[0] as {
-      title: string;
-      slug: string;
-      summary: string;
-      category: string;
-      tags: string[];
-    };
-    return {
-      sourceType: 'news',
-      topic: {
-        topic_key: `news:${n.slug}`,
-        category: n.category as MagazineTopic['category'],
-        title_template: `Magazine deep-dive: ${n.title}`,
-        angle: `Take the news event "${n.summary}" and turn it into a forward-looking analysis with student impact, decision frameworks, and what comes next. Add depth that the news ticker version did not have.`,
-        target_keyword: (n.tags && n.tags[0]) || n.title.split(' ').slice(0, 4).join(' '),
-        intent: 'informational',
-        gen_z_hook: 'The news told you what happened. We tell you what to do about it.',
-        internal_links: ['/find-colleges', '/news', '/'],
-      },
-    };
-  }
-
-  // 1b. Evergreen fallback
+  // Fetch used keys FIRST to prevent duplicate magazines from the same news
   const { data: usedRows } = await supabase
     .from('magazine_topic_history')
     .select('topic_key');
   const usedKeys: Set<string> = new Set<string>((usedRows || []).map((r: { topic_key: string }) => r.topic_key));
 
+  // 1a. Look for the latest news that hasn't been turned into magazine yet
+  const { data: freshNews } = await supabase
+    .from('edu_news')
+    .select('id, title, slug, summary, category, tags, source_name, source_url')
+    .eq('is_magazine', false)
+    .order('published_at', { ascending: false })
+    .limit(20);
+
+  if (freshNews && freshNews.length > 0) {
+    // Find the first news item that isn't in usedKeys
+    const unusedNews = freshNews.find((n: any) => !usedKeys.has(`news:${n.slug}`));
+    if (unusedNews) {
+      return {
+        sourceType: 'news',
+        topic: {
+          topic_key: `news:${unusedNews.slug}`,
+          category: unusedNews.category as MagazineTopic['category'],
+          title_template: `Magazine deep-dive: ${unusedNews.title}`,
+          angle: `Take the news event "${unusedNews.summary}" and turn it into a forward-looking analysis with student impact, decision frameworks, and what comes next. Add depth that the news ticker version did not have.`,
+          target_keyword: (unusedNews.tags && unusedNews.tags[0]) || unusedNews.title.split(' ').slice(0, 4).join(' '),
+          intent: 'informational',
+          gen_z_hook: 'The news told you what happened. We tell you what to do about it.',
+          internal_links: ['/find-colleges', '/news', '/'],
+        },
+      };
+    }
+  }
+
+  // 1b. Evergreen fallback if all latest news is already used
   const dayOfYear = Math.floor(
     (Date.now() - Date.UTC(new Date().getUTCFullYear(), 0, 0)) / 86400000
   );
