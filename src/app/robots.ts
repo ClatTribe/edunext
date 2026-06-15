@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: [
       'https://www.getedunext.com/sitemap.xml',
       'https://www.getedunext.com/college-sitemaps/index.xml',
+      'https://www.getedunext.com/seo-sitemaps/index.xml',
     ],
   };
 }
