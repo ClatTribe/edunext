@@ -10,7 +10,7 @@ export async function getScenesContent(
   article: any,
   geminiKey?: string
 ): Promise<{ title: string; scenes: Scene[] }> {
-  if (true) { // Temporarily forced to true by AI
+  if (process.env.USE_MANUAL_SCRIPT === 'true') {
     return getManualScenes();
   }
   try {
