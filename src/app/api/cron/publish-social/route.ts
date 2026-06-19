@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   const useManual = process.env.USE_MANUAL_SCRIPT === 'true';
   const preview = request.nextUrl.searchParams.get('preview') === 'true';
+  const targetSlug = request.nextUrl.searchParams.get('slug');
   if (!GEMINI_API_KEY && !useManual) {
     return NextResponse.json({ error: 'Missing GEMINI_API_KEY (or set USE_MANUAL_SCRIPT=true)' }, { status: 500 });
   }
@@ -103,11 +104,15 @@ export async function GET(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         { global: { fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }) } }
       );
-      const { data: articles } = await supabase
-        .from('edu_news').select('id, title, summary, content, slug')
-        .eq('is_magazine', true).order('published_at', { ascending: false }).limit(1);
+      let query = supabase.from('edu_news').select('id, title, summary, content, slug').eq('is_magazine', true);
+      if (targetSlug) {
+        query = query.eq('slug', targetSlug);
+      } else {
+        query = query.order('published_at', { ascending: false }).limit(1);
+      }
+      const { data: articles } = await query;
       if (!articles || articles.length === 0) {
-        return NextResponse.json({ error: 'No magazine article found.' }, { status: 404 });
+        return NextResponse.json({ error: targetSlug ? `Article not found for slug: ${targetSlug}` : 'No magazine article found.' }, { status: 404 });
       }
       const content = await buildCarouselContent(articles[0]);
       console.log('Rendering 4-slide carousel preview...');
@@ -139,12 +144,13 @@ export async function GET(request: NextRequest) {
         { global: { fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }) } }
       );
 
-      const { data: articles } = await supabase
-        .from('edu_news')
-        .select('id, title, summary, content, slug')
-        .eq('is_magazine', true)
-        .order('published_at', { ascending: false })
-        .limit(1);
+      let query = supabase.from('edu_news').select('id, title, summary, content, slug').eq('is_magazine', true);
+      if (targetSlug) {
+        query = query.eq('slug', targetSlug);
+      } else {
+        query = query.order('published_at', { ascending: false }).limit(1);
+      }
+      const { data: articles } = await query;
 
       if (!articles || articles.length === 0) {
         console.log('No magazine articles found to process.');

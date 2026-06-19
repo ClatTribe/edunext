@@ -327,7 +327,16 @@ async function getSocialContent(article: any, geminiKey?: string) {
     console.log('Using MANUAL script (Gemini bypass).');
     return getManualContent();
   }
-  return extractSocialContent(article.title, article.summary, article.content, geminiKey!);
+  try {
+    return await extractSocialContent(article.title, article.summary, article.content, geminiKey!);
+  } catch (e) {
+    console.warn('Gemini failed for social content, using dynamic fallback:', (e as Error).message);
+    return {
+      carousel: { slide1_hook: '', slide2_value: '', slide3_cta: '' },
+      instagram_caption: `${article.title} 🚨\n\n${article.summary}\n\nRead the full deep-dive at 👉 getedunext.com/magazine\n\n#EduNext #LatestNews #Education`,
+      reel: { script: '', image_keywords: [], data_points: [] }
+    };
+  }
 }
 
 function loadLogoDataUri(): string {
@@ -484,6 +493,7 @@ export async function GET(request: NextRequest) {
   const reuseFace = request.nextUrl.searchParams.get('reuseface') === 'true'; // DEBUG: reuse last face, skip Tavus
   const sceneMode = request.nextUrl.searchParams.get('scene') === 'true' || process.env.SCENE_MODE === 'true'; // faceless scene reel
   const publish = request.nextUrl.searchParams.get('publish') === 'true'; // also post to IG Reel + YouTube Short
+  const targetSlug = request.nextUrl.searchParams.get('slug');
 
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   if (!GEMINI_API_KEY && process.env.USE_MANUAL_SCRIPT !== 'true') {
@@ -525,14 +535,16 @@ export async function GET(request: NextRequest) {
   }
 
   // ----- latest magazine article -----
-  const { data: articles } = await supabase
-    .from('edu_news')
-    .select('id, title, summary, content, slug')
-    .eq('is_magazine', true)
-    .order('published_at', { ascending: false })
-    .limit(1);
+  let query = supabase.from('edu_news').select('id, title, summary, content, slug').eq('is_magazine', true);
+  if (targetSlug) {
+    query = query.eq('slug', targetSlug);
+  } else {
+    query = query.order('published_at', { ascending: false }).limit(1);
+  }
+  const { data: articles } = await query;
+  
   if (!articles || articles.length === 0) {
-    return NextResponse.json({ error: 'No magazine article found.' }, { status: 404 });
+    return NextResponse.json({ error: targetSlug ? `Article not found for slug: ${targetSlug}` : 'No magazine article found.' }, { status: 404 });
   }
   const article = articles[0];
   const videoName = `EduNext Reel ${new Date().toISOString().slice(0, 10)}`;
@@ -671,6 +683,20 @@ export async function GET(request: NextRequest) {
     try {
       // SCENE MODE (faceless) — the daily automated path. Renders the scene reel
       // and posts it to Instagram Reel + YouTube Short, then stops (no face/Tavus).
+      let query = supabase.from('edu_news').select('id, title, summary, content, slug').eq('is_magazine', true);
+      if (targetSlug) {
+        query = query.eq('slug', targetSlug);
+      } else {
+        query = query.order('published_at', { ascending: false }).limit(1);
+      }
+      const { data: articles } = await query;
+      
+      if (!articles || articles.length === 0) {
+        console.log('No magazine articles found to process.');
+        return;
+      }
+      const article = articles[0];
+
       if (sceneMode) {
         const r = await runScenePipeline(
           supabase, article,
