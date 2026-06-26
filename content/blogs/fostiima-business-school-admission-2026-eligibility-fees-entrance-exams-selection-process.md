@@ -4,7 +4,7 @@ date: "2026-06-25"
 lastModified: "2026-06-25"
 author: "Edu Next"
 excerpt: "FOSTIIMA Business School admission 2026 — complete guide on eligibility, fees (₹11.5 lakh), entrance exams (CAT/XAT/CMAT/FEAT), selection process, placements & scholarships."
-coverImage: "https://res.cloudinary.com/duyo9pzxy/image/upload/v1782399868/FOSTIIMABusinessSchoolAdmission2026.pd_y1wg2c.jpg."
+coverImage: "https://res.cloudinary.com/duyo9pzxy/image/upload/v1782399868/FOSTIIMABusinessSchoolAdmission2026.pd_y1wg2c.jpg"
 tags: ["FOSTIIMA Business School","FOSTIIMA Admission 2026","Top MBA Colleges Delhi", "PGDM Admission Delhi 2026", "FOSTIIMA Fees 2026"]
 
 ---
