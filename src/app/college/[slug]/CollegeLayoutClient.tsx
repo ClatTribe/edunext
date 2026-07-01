@@ -1,67 +1,29 @@
 "use client"
-import React, { useState, useEffect, useRef } from "react"
+import React from "react"
 import Link from 'next/link'
 import { usePathname, useParams, useRouter } from 'next/navigation'
-import { supabase } from "../../../../lib/supabase"
 import {
   BookOpen, Building2, Phone, Home,
-  TrendingUp, BarChart3, Trophy, Star, Loader2,
-  ArrowLeft
+  TrendingUp, BarChart3, Trophy, Star
 } from "lucide-react"
 import RelatedColleges from "../../../../components/microsite/RelatedColleges"
 import MicrositeHero from "../../../../components/microsite/MicrositeHero"
 import Navbar from "../../../../components/Navbar"
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
 import JumbleWords from "../../../../components/microsite/JumbleWords"
-// import ReactMarkdown from 'react-markdown'
 
-// Total Black Aesthetic
 const primaryBg = '#020205'
 
-export default function CollegeLayout({ children }: { children: React.ReactNode }) {
+interface CollegeLayoutClientProps {
+  children: React.ReactNode
+  college: any
+}
+
+export default function CollegeLayoutClient({ children, college }: CollegeLayoutClientProps) {
   const pathname = usePathname()
   const params = useParams()
-  const slug = params?.slug as string 
+  const slug = params?.slug as string
   const router = useRouter()
-
-  const [college, setCollege] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-
-  // Scroll to top on mount so mobile always starts at the hero
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
-  useEffect(() => {
-    fetchCollege()
-  }, [slug])
-
-  const fetchCollege = async () => {
-    try {
-      setLoading(true)
-      const { data, error: supabaseError } = await supabase
-        .from("college_microsites")
-        .select("*")
-        .eq("slug", slug)
-        .single()
-
-      if (supabaseError) throw supabaseError
-      if (!data) throw new Error("College not found")
-      setCollege(data)
-    } catch (err) {
-      console.error(err instanceof Error ? err.message : "Failed to fetch college")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: primaryBg }}>
-        <Loader2 className="animate-spin h-10 w-10 text-amber-500" />
-      </div>
-    )
-  }
 
   const micrositeData = typeof college?.microsite_data === 'string'
     ? JSON.parse(college.microsite_data)
@@ -119,15 +81,11 @@ export default function CollegeLayout({ children }: { children: React.ReactNode 
 
   const navItems = allNavItems.filter(item => item.show)
 
-  // Redirect handling: If user manually navigates to a missing subpage
+  // Redirect if user manually navigates to a sub-page with no data
   const activeTab = allNavItems.find(item => item.path !== '' && pathname.endsWith(item.path))
   if (activeTab && !activeTab.show) {
     router.replace(`/college/${slug}`)
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: primaryBg }}>
-        <Loader2 className="animate-spin h-10 w-10 text-amber-500" />
-      </div>
-    )
+    return null
   }
 
   return (
