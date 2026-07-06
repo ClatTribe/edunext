@@ -171,7 +171,7 @@ RULES (follow exactly):
 - 9 to 10 scenes. Each "narration" is 4-9 words, CONVERSATIONAL and natural — like a real student talking, never robotic.
 - Put 1-2 key words in ALL CAPS in most scenes for emphasis (e.g. "Forget memorizing FORMULAS!").
 - Use commas, periods, "?" and "!" for natural pauses and emotion.
-- "background_keyword": a concrete stock-photo search term highly specific to the current article's exact topic (e.g. "exam hall", "laptop coding", "medical student", "court room"). Use only 3-4 DISTINCT keywords total and REUSE them across scenes. Avoid generic words.
+- "background_keyword": a concrete stock-photo search term highly specific to the exact line of narration for that scene (e.g. "exam hall", "stressed student", "celebration", "laptop coding"). Do NOT reuse keywords; make sure each scene has a unique visual that matches its specific dialogue. Avoid generic words.
 - "widget": null for most scenes. Include EXACTLY ONE scene with { "type": "graph", "dataPoints": [ { "label": "...", "value": 85 }, { "label": "...", "value": 15 } ] } (real numbers from the article, or reasonable proxy data). Include 1-2 scenes with { "type": "checklist", "items": ["...", "..."] }.
 - The LAST TWO scenes must be brand reveals: second-last widget { "type": "brand_reveal", "text": "EduNext" }; the LAST scene widget { "type": "brand_reveal", "text": "getedunext.com" } and also include "caption": "" on that last scene (hide its caption).
 - "sfx": rotate "whoosh" / "pop" / "ding"; use "ding" on reveals.

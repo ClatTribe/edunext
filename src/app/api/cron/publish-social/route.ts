@@ -63,23 +63,19 @@ export async function GET(request: NextRequest) {
   async function buildCarouselContent(article: any) {
     const magazineUrl = `getedunext.com/magazine/${article.slug}`;
     let mc;
-    if (useManual) {
-      mc = getManualContent();
-    } else {
-      try {
-        mc = await extractSocialContent(article.title, article.summary, article.content, GEMINI_API_KEY!);
-      } catch (e) {
-        console.warn('Gemini failed for social content, using dynamic fallback:', e);
-        mc = {
-          carousel: {
-            slide1_hook: `Latest: ${article.title.substring(0, 40)}...`,
-            slide2_value: article.summary,
-            slide3_cta: `Read the full story at getedunext.com/magazine`,
-          },
-          instagram_caption: `${article.title} 🚨\n\n${article.summary}\n\nRead the full deep-dive at 👉 getedunext.com/magazine\n\n#EduNext #LatestNews #Education`,
-          reel: { script: '' }
-        };
-      }
+    try {
+      mc = await extractSocialContent(article.title, article.summary, article.content, GEMINI_API_KEY!);
+    } catch (e) {
+      console.warn('Gemini failed for social content, using dynamic fallback:', e);
+      mc = {
+        carousel: {
+          slide1_hook: `Latest: ${article.title.substring(0, 40)}...`,
+          slide2_value: article.summary,
+          slide3_cta: `Read the full story at getedunext.com/magazine`,
+        },
+        instagram_caption: `${article.title} 🚨\n\n${article.summary}\n\nRead the full deep-dive at 👉 getedunext.com/magazine\n\n#EduNext #LatestNews #Education`,
+        reel: { script: '', image_keywords: [], data_points: [] }
+      };
     }
     return {
       topic: 'EduNext Insight',
@@ -144,7 +140,7 @@ export async function GET(request: NextRequest) {
         { global: { fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }) } }
       );
 
-      let query = supabase.from('edu_news').select('id, title, summary, content, slug').eq('is_magazine', true);
+      let query = supabase.from('edu_news').select('id, title, summary, content, slug, published_at').eq('is_magazine', true);
       if (targetSlug) {
         query = query.eq('slug', targetSlug);
       } else {
@@ -158,6 +154,16 @@ export async function GET(request: NextRequest) {
       }
 
       const article = articles[0];
+
+      if (!targetSlug && article.published_at) {
+        const publishedDate = new Date(article.published_at).getTime();
+        const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+        if (publishedDate < twentyFourHoursAgo) {
+          console.log(`Latest article '${article.slug}' is older than 24 hours. Skipping automatic social post.`);
+          return;
+        }
+      }
+
       console.log('Processing article for social media: ' + article.title);
 
       const content = await buildCarouselContent(article);

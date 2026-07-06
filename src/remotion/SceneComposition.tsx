@@ -156,8 +156,10 @@ export const SceneComposition: React.FC<{
       {blocks.map((b, i) => {
         const blkStart = starts[b.startIdx];
         const blkEnd = b.endIdx < starts.length ? starts[b.endIdx] : totalFrames;
-        const fade = interpolate(gframe, [blkStart, blkStart + 15, blkEnd - 15, blkEnd], [0, 1, 1, 0], clamp);
-        const scale = interpolate(gframe, [blkStart, blkEnd], [1.05, 1.15], clamp);
+        const dur = Math.max(0.1, blkEnd - blkStart);
+        const trans = Math.min(15, dur / 3);
+        const fade = interpolate(gframe, [blkStart, blkStart + trans, blkEnd - trans, blkEnd], [0, 1, 1, 0], clamp);
+        const scale = interpolate(gframe, [blkStart, Math.max(blkStart + 0.1, blkEnd)], [1.05, 1.15], clamp);
         return (
           <Sequence key={`bg-${i}`} from={blkStart} durationInFrames={blkEnd - blkStart}>
             <AbsoluteFill style={{ opacity: fade }}>

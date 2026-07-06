@@ -10,9 +10,6 @@ export async function getScenesContent(
   article: any,
   geminiKey?: string
 ): Promise<{ title: string; scenes: Scene[] }> {
-  if (process.env.USE_MANUAL_SCRIPT === 'true') {
-    return getManualScenes();
-  }
   try {
     const out = await generateScenesAI(article.title, article.summary, article.content, geminiKey!);
     if (out.scenes && out.scenes.length >= 4) return out;

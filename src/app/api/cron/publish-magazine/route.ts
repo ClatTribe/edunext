@@ -47,7 +47,8 @@ const CRON_SECRET = process.env.CRON_SECRET || 'edunext-news-cron-2026';
 // 1. Topic selection — news first, evergreen fallback
 // =====================================================================
 async function pickTodaysTopic(
-  supabase: any
+  supabase: any,
+  targetSlug?: string | null
 ): Promise<{ topic: MagazineTopic; sourceType: 'news' | 'evergreen' }> {
   // Fetch used keys FIRST to prevent duplicate magazines from the same news
   const { data: usedRows } = await supabase
@@ -56,16 +57,17 @@ async function pickTodaysTopic(
   const usedKeys: Set<string> = new Set<string>((usedRows || []).map((r: { topic_key: string }) => r.topic_key));
 
   // 1a. Look for the latest news that hasn't been turned into magazine yet
-  const { data: freshNews } = await supabase
-    .from('edu_news')
-    .select('id, title, slug, summary, category, tags, source_name, source_url')
-    .eq('is_magazine', false)
-    .order('published_at', { ascending: false })
-    .limit(20);
+  let query = supabase.from('edu_news').select('id, title, slug, summary, category, tags, source_name, source_url').eq('is_magazine', false);
+  if (targetSlug) {
+    query = query.eq('slug', targetSlug);
+  } else {
+    query = query.order('published_at', { ascending: false }).limit(20);
+  }
+  const { data: freshNews } = await query;
 
   if (freshNews && freshNews.length > 0) {
-    // Find the first news item that isn't in usedKeys
-    const unusedNews = freshNews.find((n: any) => !usedKeys.has(`news:${n.slug}`));
+    // If a targetSlug was requested, bypass the usedKeys check
+    const unusedNews = targetSlug ? freshNews[0] : freshNews.find((n: any) => !usedKeys.has(`news:${n.slug}`));
     if (unusedNews) {
       return {
         sourceType: 'news',
@@ -149,8 +151,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const targetSlug = request.nextUrl.searchParams.get('slug');
+
+  // 1. Pick a topic (force targetSlug if provided, else use latest unused news/evergreen)
   try {
-    const { topic, sourceType } = await pickTodaysTopic(supabase);
+    const { topic, sourceType } = await pickTodaysTopic(supabase, targetSlug);
     if (dryRun) {
       return NextResponse.json({
         success: true,

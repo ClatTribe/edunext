@@ -286,13 +286,17 @@ async function fetchUnsplashImages(keywords: string[], accessKey?: string): Prom
   for (const kw of keywords.slice(0, 4)) {
     try {
       const res = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(kw)}&per_page=2&orientation=portrait`,
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(kw)}&per_page=15&orientation=portrait`,
         { headers: { Authorization: `Client-ID ${accessKey}` } }
       );
       const data = await res.json();
-      (data.results || []).forEach((r: any) => {
-        if (r?.urls?.regular) urls.push(r.urls.regular);
-      });
+      if (data.results && data.results.length > 0) {
+        // Pick 2 random unique images from the top 15 results
+        const shuffled = [...data.results].sort(() => 0.5 - Math.random()).slice(0, 2);
+        shuffled.forEach((r: any) => {
+          if (r?.urls?.regular) urls.push(r.urls.regular);
+        });
+      }
     } catch (e) {
       console.warn('Unsplash fetch failed for', kw, e);
     }
@@ -366,11 +370,16 @@ async function fetchOneUnsplash(keyword: string, accessKey?: string): Promise<st
   if (!accessKey) return FALLBACK;
   try {
     const res = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(keyword)}&per_page=1&orientation=portrait`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(keyword)}&per_page=15&orientation=portrait`,
       { headers: { Authorization: `Client-ID ${accessKey}` } }
     );
     const data = await res.json();
-    return data?.results?.[0]?.urls?.regular || FALLBACK;
+    if (data?.results?.length > 0) {
+      // Pick a random image from the top 15 to ensure visual diversity
+      const randIdx = Math.floor(Math.random() * data.results.length);
+      return data.results[randIdx].urls?.regular || FALLBACK;
+    }
+    return FALLBACK;
   } catch {
     return FALLBACK;
   }
@@ -409,10 +418,7 @@ async function runScenePipeline(
     audioUrls.push(pubUrl);
   }
 
-  const uniqueKw = Array.from(new Set(scenes.map((s) => s.background_keyword)));
-  const uniqueImgs = await Promise.all(uniqueKw.map((k) => fetchOneUnsplash(k, env.unsplash)));
-  const perBlock = Math.ceil(scenes.length / uniqueImgs.length);
-  const imageUrls = scenes.map((_, i) => uniqueImgs[Math.min(Math.floor(i / perBlock), uniqueImgs.length - 1)]);
+  const imageUrls = await Promise.all(scenes.map((s) => fetchOneUnsplash(s.background_keyword, env.unsplash)));
   const videoPath = await renderSceneVideo({ scenes, imageUrls, sceneDurations, audioUrls, totalDuration });
   const publicVideoUrl = await uploadLocalVideo(supabase, videoPath);
 
@@ -683,7 +689,7 @@ export async function GET(request: NextRequest) {
     try {
       // SCENE MODE (faceless) — the daily automated path. Renders the scene reel
       // and posts it to Instagram Reel + YouTube Short, then stops (no face/Tavus).
-      let query = supabase.from('edu_news').select('id, title, summary, content, slug').eq('is_magazine', true);
+      let query = supabase.from('edu_news').select('id, title, summary, content, slug, published_at').eq('is_magazine', true);
       if (targetSlug) {
         query = query.eq('slug', targetSlug);
       } else {
@@ -696,6 +702,15 @@ export async function GET(request: NextRequest) {
         return;
       }
       const article = articles[0];
+
+      if (!targetSlug && article.published_at) {
+        const publishedDate = new Date(article.published_at).getTime();
+        const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+        if (publishedDate < twentyFourHoursAgo) {
+          console.log(`Latest article '${article.slug}' is older than 24 hours. Skipping automatic reel post.`);
+          return;
+        }
+      }
 
       if (sceneMode) {
         const r = await runScenePipeline(
