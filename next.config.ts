@@ -7,9 +7,17 @@ const nextConfig: NextConfig = {
         },
     },
 
+    outputFileTracingExcludes: {
+        '**/*': [
+            '*.jsonl',
+            '*.jsonl*',
+            'colleges-data.json',
+        ],
+    },
+
     // Turbopack config (required for Next.js 16 when webpack config is present)
     turbopack: {},
-    serverExternalPackages: ["sharp"],
+    serverExternalPackages: ["sharp", "@remotion/bundler", "@remotion/renderer", "instagram-private-api", "@resvg/resvg-js"],
 
     // Add images configuration for Cloudinary
     images: {

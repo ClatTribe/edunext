@@ -2,7 +2,7 @@ import { supabase } from '../../../../lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 const baseUrl = 'https://www.getedunext.com';
-const CHUNK_SIZE = 1000;
+const CHUNK_SIZE = 500;
 
 export async function GET(
   request: NextRequest,
@@ -19,10 +19,13 @@ export async function GET(
     const from = chunkIndex * CHUNK_SIZE;
     const to = from + CHUNK_SIZE - 1;
 
-    // Fetch all necessary columns to determine page visibility correctly
+    // Lightweight select: only the columns needed to build URLs + decide which
+    // high-value subpages to include. (microsite_data is intentionally NOT
+    // fetched — it is a huge blob and caused 500s / timeouts; its data is
+    // already duplicated in these top-level columns.)
     const { data: colleges, error } = await supabase
       .from('college_microsites')
-      .select('slug, updated_at, microsite_data, fees, admission, cutoff, placement, ranking, reviews, courses')
+      .select('slug, updated_at, fees, courses, admission, cutoff, placement')
       .order('id', { ascending: true })
       .range(from, to);
 
@@ -31,7 +34,7 @@ export async function GET(
       return new NextResponse(`Supabase error: ${error.message}`, { status: 500 });
     }
 
-    // FIXED: Return empty valid sitemap instead of 404
+    // Return empty valid sitemap instead of 404 for out-of-range chunks
     if (!colleges || colleges.length === 0) {
       const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -45,29 +48,16 @@ export async function GET(
     }
 
     const urls = colleges.flatMap((college: any) => {
-      // Safe parsing of microsite_data
-      const m = typeof college.microsite_data === 'string'
-        ? JSON.parse(college.microsite_data)
-        : (college.microsite_data || {});
-      
       const lastMod = new Date(college.updated_at || new Date()).toISOString();
 
-      // Check for data in both microsite_data and the main college record
+      // Only the main page + high-value subpages (where data exists).
+      // ranking / reviews / contact are intentionally excluded (thin / low value).
       const activePaths = [
         { path: '', show: true },
-        { 
-          path: '/admission', 
-          show: !!(m.admission?.length || college.admission?.length || m.admission_section) 
-        },
-        { path: '/contact', show: true },
-        { 
-          path: '/course-and-fees', 
-          show: !!(m.fees?.length || college.fees?.length || m.courses?.length || college.courses?.length) 
-        },
-        { path: '/cutoff', show: !!(m.cutoff?.length || college.cutoff?.length) },
-        { path: '/placement', show: !!(m.placement?.length || college.placement?.length) },
-        { path: '/ranking', show: !!(m.ranking?.length || college.ranking?.length) },
-        { path: '/reviews', show: !!(m.reviews?.length || college.reviews?.length) },
+        { path: '/course-and-fees', show: !!(college.fees?.length || college.courses?.length) },
+        { path: '/admission', show: !!college.admission?.length },
+        { path: '/cutoff', show: !!college.cutoff?.length },
+        { path: '/placement', show: !!college.placement?.length },
       ].filter(item => item.show);
 
       return activePaths.map(({ path }) => {

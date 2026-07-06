@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabase } from '../../../../lib/supabase';
 
 const baseUrl = 'https://www.getedunext.com';
-const CHUNK_SIZE = 1000;
+const CHUNK_SIZE = 500;
 
 export async function GET() {
   try {
