@@ -4,6 +4,8 @@ import type { Metadata } from "next"
 import { supabase } from "../../../../lib/supabase"
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
 import BestCollegesList, { type BestCollegeItem } from "../../../../components/microsite/BestCollegesList"
+import InlinePredictor from "../../../../components/microsite/InlinePredictor"
+import DynamicROICalculator from "../../../../components/microsite/DynamicROICalculator"
 import BestCollegesFaq from "../../../../components/microsite/BestCollegesFaq"
 import { resolveCategory, sortByRanking, rankLabelFor } from "../../../../lib/collegeRanking"
 import {
@@ -79,6 +81,8 @@ export default async function BestCollegesPage(
     rating: c.rating,
     review_count: c.review_count,
     rankLabel: rankLabelFor(c, category),
+    avg_package: c.card_detail?.avg_package ?? null,
+    fees: c.card_detail?.fees ?? null,
   }))
 
   const topNames = ranked.map((c) => c.college_name).filter(Boolean)
@@ -149,6 +153,19 @@ export default async function BestCollegesPage(
               Top {p.course ?? ""} colleges {p.city ? `in ${p.city}` : ""}
             </h2>
           </div>
+
+          {ranked.length > 0 && (
+            <div className="mb-8 flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:grid md:grid-cols-2 md:overflow-visible md:pb-0 md:snap-none">
+              {p.exam && (
+                <div className="w-[85vw] sm:w-[400px] shrink-0 snap-start md:w-auto">
+                  <InlinePredictor exam={p.exam} />
+                </div>
+              )}
+              <div className="w-[85vw] sm:w-[400px] shrink-0 snap-start md:w-auto">
+                <DynamicROICalculator colleges={ranked} />
+              </div>
+            </div>
+          )}
 
           {ranked.length === 0 ? (
             <div className="rounded-2xl border bg-[#0F172B] p-8 text-slate-400 text-sm" style={{ borderColor }}>
