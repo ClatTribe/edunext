@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import BlogSidebar from '../BlogSidebar';
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
+import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm";
 
 interface BlogPageProps {
   params: Promise<{
@@ -172,6 +173,14 @@ export default async function BlogPage({ params }: BlogPageProps) {
                 )}
 
               </header>
+
+              {/* College Enquiry Form - Mobile Only */}
+              <div className="block lg:hidden mb-8">
+                <CollegeEnquiryForm
+                  pageSource={`/blogs/${slug}`}
+                  title={<span className="text-amber-400 text-xl font-bold">Blog</span>}
+                />
+              </div>
 
               {/* AUDIO PLAYER */}
               {blog.audioUrl && (

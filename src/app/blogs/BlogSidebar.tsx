@@ -78,10 +78,12 @@ export default function BlogSidebar({ latestBlogs, currentSlug, currentTitle }: 
 
   return (
     <aside className="w-full">
-      <CollegeEnquiryForm
-        pageSource={`/blogs/${currentSlug}`}
-        title={<span className="text-amber-400 text-xl font-bold">Blog</span>}
-      />
+      <div className="hidden lg:block">
+        <CollegeEnquiryForm
+          pageSource={`/blogs/${currentSlug}`}
+          title={<span className="text-amber-400 text-xl font-bold">Blog</span>}
+        />
+      </div>
 
       {/* Combined Box - Latest Blogs and Share Section */}
       <div
