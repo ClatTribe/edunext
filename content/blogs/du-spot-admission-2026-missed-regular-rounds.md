@@ -4,7 +4,7 @@ date: "2026-07-14"
 lastModified: "2026-07-14"
 author: "Edu Next"
 excerpt: "Missed all CSAS UG rounds at Delhi University? Here's how DU Spot Admission 2026 works, who's eligible, and how to grab a vacant seat before it's gone."
-coverImage: "https://res.cloudinary.com/duyo9pzxy/image/upload/v1782988142/DesignandArchitectureColleges2026.pd_ymzqzh.jpg"
+coverImage: "https://res.cloudinary.com/duyo9pzxy/image/upload/v1784029430/DUSpotAdmission2026.pd_jmmqc8.jpg"
 tags: ["DU spot admission 2026","DU CSAS 2026","Delhi University admission", "CUET UG 2026", "DU vacant seats"]
 
 ---
