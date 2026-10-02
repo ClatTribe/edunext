@@ -32,7 +32,7 @@ export enum ExamTab {
   CUET = "CUET",
   // NEET = "NEET",
   IPM = "IPM",
-  // MBA = "MBA",
+  MBA = "MBA",
   LAW = "LAW",
 }
 
@@ -49,7 +49,7 @@ export const EXAM_TABS: TabMeta[] = [
   { id: ExamTab.CUET, label: "CUET", slug: "cuet", iconKey: "BookOpen" },
   // { id: ExamTab.NEET, label: "NEET / Medical", slug: "neet", iconKey: "HeartPulse" },
   { id: ExamTab.IPM, label: "IPM", slug: "ipm", iconKey: "Briefcase" },
-  // { id: ExamTab.MBA, label: "MBA", slug: "mba", iconKey: "TrendingUp" },
+  { id: ExamTab.MBA, label: "MBA / PGDM", slug: "mba", iconKey: "TrendingUp" },
   { id: ExamTab.LAW, label: "CLAT", slug: "law", iconKey: "Scale" },
 ];
 
@@ -62,6 +62,13 @@ export interface TabSEO {
 }
 
 export const TAB_SEO: Record<ExamTab, TabSEO> = {
+  [ExamTab.MBA]: {
+    title: "MBA Application Forms 2027 | PGDM Last Dates for CAT, XAT, SNAP, NMAT – EduNext",
+    description:
+      "Every MBA and PGDM application form for the 2027-29 batch in one place: last dates, official apply links and exams accepted for SPJIMR, IMI, K J Somaiya, IMT, BIMTECH, Great Lakes, Symbiosis (SNAP), NMIMS (NMAT) and more.",
+    keywords:
+      "MBA application form 2027, PGDM admission 2027-29, MBA form last date, CAT 2026 colleges, SNAP 2026 registration, NMAT 2026, XAT 2027 colleges, MBA forms open now, EduNext",
+  },
   [ExamTab.JEE]: {
     title: "B.Tech Forms & Deadlines 2026 | JEE Main, Advanced, BITSAT Registration Dates – EduNext",
     description:
@@ -95,6 +102,30 @@ export const TAB_SEO: Record<ExamTab, TabSEO> = {
 // ─── Forms Data (grouped by tab) ────────────────────────────────────────
 
 export const FORMS_BY_TAB: Record<ExamTab, ExamFormEntry[]> = {
+  // ━━━━━━━━━━ MBA / PGDM (2027-29 batch) ━━━━━━━━━━
+  // Dates verified on official sites on 2 Oct 2026. "To be announced" = form open, no closing date published.
+  [ExamTab.MBA]: [
+    { name: "NMIMS MBA (via NMAT)", startDate: "Currently Open", endDate: "Oct 10, 2026", link: "https://nmat.nmims.edu/", status: "Open", courses: "MBA 2027 intake, Mumbai / Bengaluru / Navi Mumbai / Hyderabad / Indore | Accepts: NMAT" },
+    { name: "SNAP 2026 (SIBM, SCMHRD, SIIB and Symbiosis institutes)", startDate: "Currently Open", endDate: "Nov 25, 2026", link: "https://www.snaptest.org/", status: "Open", courses: "MBA 2027-29 | Tests on 13, 19 and 26 Dec 2026 | Accepts: SNAP" },
+    { name: "SPJIMR Mumbai", startDate: "Currently Open", endDate: "Nov 27, 2026", link: "https://pgdmadmissions.spjimr.org/", status: "Open", courses: "PGDM & PGDM (BM) 2027-29 | Accepts: CAT 2026 / GMAT" },
+    { name: "IMI New Delhi", startDate: "Currently Open", endDate: "Dec 19, 2026", link: "https://admission.imi.edu/delhi/", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT 2026 / XAT 2027 / GMAT" },
+    { name: "K J Somaiya Institute of Management, Mumbai", startDate: "Currently Open", endDate: "Jan 20, 2027", link: "https://applykjsim.somaiya.edu/", status: "Open", courses: "MBA 2027-29 | Accepts: CAT 2026 / XAT 2027 / GMAT / NMAT / CMAT 2027" },
+    { name: "Christ University, Bengaluru (MBA)", startDate: "Currently Open", endDate: "Jan 24, 2027", link: "https://christuniversity.in/admission/2027-mba-admission-process", status: "Open", courses: "MBA 2027 | Session I deadline" },
+    { name: "IMT Ghaziabad", startDate: "Currently Open", endDate: "To be announced", link: "https://admissions.imt.edu", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT 2026 / XAT 2027 / GMAT" },
+    { name: "BIMTECH, Greater Noida", startDate: "Currently Open", endDate: "To be announced", link: "https://online.admissions.bimtech.ac.in/", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT 2026 / XAT 2027 / GMAT / CMAT 2027" },
+    { name: "LBSIM, New Delhi", startDate: "Currently Open", endDate: "To be announced", link: "https://forms.lbsim.ac.in/pgdm-application-form-2027", status: "Open", courses: "PGDM 2027-29 | Lower application fee till 15 Nov 2026 | Accepts: CAT / XAT / GMAT" },
+    { name: "Great Lakes Institute of Management, Gurgaon", startDate: "Currently Open", endDate: "To be announced", link: "https://application.greatlakes.edu.in/pgdm", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT / XAT / GMAT" },
+    { name: "Asia Pacific Institute of Management, New Delhi", startDate: "Currently Open", endDate: "To be announced", link: "https://pgdm.asiapacific.edu/", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT / XAT / CMAT / MAT / GMAT / ATMA" },
+    { name: "NDIM, New Delhi", startDate: "Currently Open", endDate: "To be announced", link: "https://admissions.ndimdelhi.org/", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT / XAT / CMAT / MAT / ATMA / GMAT" },
+    { name: "Kirloskar Institute of Management, Pune", startDate: "Currently Open", endDate: "To be announced", link: "https://kim.edu.in/admission/", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT / XAT / CMAT / MAT / ATMA / GMAT / NMAT / MH-CET" },
+    { name: "JAGSoM, Bengaluru", startDate: "Currently Open", endDate: "To be announced", link: "https://admissions.jagsom.edu.in/", status: "Open", courses: "PGDM 2027-29 | Accepts: CAT / XAT / CMAT / GMAT / MAT" },
+    { name: "Alliance School of Business, Bengaluru", startDate: "Currently Open", endDate: "To be announced", link: "https://apply.alliance.edu.in/", status: "Open", courses: "MBA 2027" },
+    { name: "PES University, Bengaluru (MBA)", startDate: "Currently Open", endDate: "To be announced", link: "https://admissions.pes.edu/", status: "Open", courses: "MBA | Accepts: PES test / MAT / CAT / CMAT / ATMA / NMAT / GMAT" },
+    { name: "Jaipuria Institute of Management, Noida", startDate: "Currently Open", endDate: "To be announced", link: "https://apply.jaipuria.ac.in/", status: "Open", courses: "PGDM 2027-29" },
+    { name: "MDI Gurgaon", startDate: "Expected Oct-Nov 2026", endDate: "Last year: Nov 28, 2025", link: "https://admissions.mdi.ac.in", status: "Coming Soon", courses: "PGDM 2027-29 | Accepts: CAT 2026" },
+    { name: "FORE School of Management, New Delhi", startDate: "To be announced", endDate: "To be announced", link: "https://www.fsm.ac.in/admissions-in-pgdm", status: "Coming Soon", courses: "PGDM 2027-29 | Accepts: CAT / XAT / GMAT" },
+  ],
+
   // ━━━━━━━━━━ JEE / ENGINEERING ━━━━━━━━━━
   [ExamTab.JEE]: [
 
