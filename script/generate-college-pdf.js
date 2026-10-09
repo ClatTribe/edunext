@@ -562,6 +562,8 @@ async function uploadPDF(filePath, fileName) {
     const { data: { publicUrl } } = supabase.storage
       .from('college-pdfs')
       .getPublicUrl(`brochures/${fileName}`);
+    // Auto-delete local PDF after successful upload (no junk left in project)
+    try { fs.unlinkSync(filePath); } catch (e) {}
     return publicUrl;
   } catch (err) {
     console.error('Upload error:', err.message);
@@ -575,6 +577,32 @@ async function run() {
   ensurePDFDirectory();
 
   let success = 0, errors = 0, totalProcessed = 0;
+
+  // ── SELECTED IDS MODE:  node script/generate-college-pdf.js --ids=1,2,3 ──
+  const idsArg = (process.argv.find(a => a.startsWith('--ids=')) || '').replace('--ids=', '');
+  if (idsArg) {
+    const ids = idsArg.split(',').map(x => x.trim()).filter(Boolean);
+    console.log(`SELECTED IDS MODE: ${ids.length} ids\n`);
+    const { data: colleges, error } = await supabase
+      .from('college_microsites').select('*').in('id', ids);
+    if (error) throw error;
+    for (const college of (colleges || [])) {
+      try {
+        console.log(`${college.id} ${college.college_name}`);
+        const { filePath, fileName } = await generatePDF(college);
+        const url = await uploadPDF(filePath, fileName);
+        if (!url) { errors++; continue; }
+        const { error: upErr } = await supabase
+          .from('college_microsites')
+          .update({ pdf_url: url, updated_at: new Date().toISOString() })
+          .eq('id', college.id);
+        if (upErr) { console.log('  DB update failed:', upErr.message); errors++; }
+        else { console.log('  Saved:', url); success++; }
+      } catch (err) { console.error(`  Error: ${err.message}`); errors++; }
+    }
+    console.log(`\nDone — Success: ${success}, Errors: ${errors}`);
+    return;
+  }
 
   // ── TEST MODE ──────────────────────────────────────────────────
   if (TEST_MODE) {

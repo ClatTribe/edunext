@@ -39,7 +39,7 @@ export default function CollegeLayoutClient({ children, college }: CollegeLayout
       name: 'Courses & Fees',
       path: '/course-and-fees',
       icon: BookOpen,
-      show: getSubData('fees').length > 0 || getSubData('courses').length > 0
+      show: getSubData('fees').length > 0 || (Array.isArray(getSubData('courses')) && getSubData('courses').length > 0)
     },
     {
       name: 'Admission',

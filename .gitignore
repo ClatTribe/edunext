@@ -45,3 +45,4 @@ next-env.d.ts
 /public/temp-face/
 
 /public/temp-audio/
+db-cleanup-*/

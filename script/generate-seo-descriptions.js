@@ -1,70 +1,10 @@
-<<<<<<< Updated upstream
-const { createClient } = require('@supabase/supabase-js');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-// ===== SUPABASE DIRECT INIT =====
-const SUPABASE_URL = 'https://tnlbukkknbujenxjjmym.supabase.co';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRubGJ1a2trbmJ1amVueGpqbXltIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTU3NjQzMiwiZXhwIjoyMDc3MTUyNDMyfQ.o5rLyz0L6OB5ng9eRt-GPE7cvLhKIFeqzZDpG2iSn3k';
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-// ===== CONFIGURATION =====
-const API_KEYS = [
-  'AIzaSyA7v-XBIkslGlkA8d9UfOf-4ZqmaYhh-Pg'
-];
-let currentKeyIndex = 0;
-let genAI = new GoogleGenerativeAI(API_KEYS[currentKeyIndex]);
-let model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-// ===== BATCH CONFIGURATION =====
-const BATCH_SIZE = 10;                  // Process 10 colleges per batch
-const BATCH_START_OFFSET = 0;        // Starting row number
-const BATCH_END_OFFSET = 19161;         // Ending row number
-// UNCOMMENT TO TEST WITH SPECIFIC COLLEGE IDs
-// const TARGET_COLLEGE_IDS = [34624];
-const TARGET_COLLEGE_IDS = null;
-// Delay between API calls (in ms) to avoid rate limiting
-const DELAY_MS = 5000;
-// ===== HELPER FUNCTIONS =====
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-// Switch to next API key
-function switchToNextAPIKey() {
-  currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-  console.log(`🔄 Switching to API Key ${currentKeyIndex + 1}/${API_KEYS.length}`);
-  genAI = new GoogleGenerativeAI(API_KEYS[currentKeyIndex]);
-  model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-}
-// Extract key data from college object
-function extractCollegeData(college) {
-  const micrositeData = typeof college?.microsite_data === 'string'
-    ? JSON.parse(college.microsite_data)
-    : (college?.microsite_data || {});
-  // Get fees
-  let fees = null;
-  if (college.card_detail?.fees) {
-    fees = college.card_detail.fees;
-  } else if (micrositeData.fees?.[0]?.rows) {
-    const totalFeesRow = micrositeData.fees[0].rows.find(r =>
-      r[0]?.toLowerCase().includes('total') || r[0]?.toLowerCase().includes('tuition')
-    );
-    fees = totalFeesRow?.[1];
-  }
-  // Get placements
-  let avgPackage = null;
-  let highestPackage = null;
-  if (micrositeData.placement?.[0]?.rows) {
-    const avgRow = micrositeData.placement[0].rows.find(r => r[0]?.toLowerCase().includes('average'));
-    const highRow = micrositeData.placement[0].rows.find(r => r[0]?.toLowerCase().includes('highest'));
-    avgPackage = avgRow?.[1];
-    highestPackage = highRow?.[1];
-  }
-  // Get courses
-=======
 const { supabase } = require('../src/app/lib/supabase-admin.js');
 const fs = require('fs');
 const path = require('path');
 
-// ===================================================================
+// ====
 // ⚙️  MODE CONFIGURATION
-// ===================================================================
+// ====
 
 const MODE = 'batch';
 // 'single' → test one college by ID
@@ -77,15 +17,15 @@ const BATCH_END_OFFSET   = 19161;
 const COLLEGES_PER_BATCH = 50;
 const DELAY_MS           = 100;
 
-// ===================================================================
+// ====
 // 📅 DYNAMIC YEAR — always current, never hardcoded
-// ===================================================================
+// ====
 const CURRENT_YEAR      = new Date().getFullYear();
 const ADMISSION_YEAR    = `${CURRENT_YEAR}-${String(CURRENT_YEAR + 1).slice(-2)}`; // "2026-27"
 
-// ===================================================================
+// ====
 // 📂 PROGRESS TRACKING
-// ===================================================================
+// ====
 
 const PROGRESS_FILE = path.join(__dirname, 'seo_progress.json');
 
@@ -114,9 +54,9 @@ function saveProgress(offset, totalProcessed, totalSuccess, totalErrors) {
   } catch (err) { console.error('⚠️  Failed to save progress:', err.message); }
 }
 
-// ===================================================================
+// ====
 // 🧹 VALIDATION HELPERS
-// ===================================================================
+// ====
 
 function safeJSON(val) {
   if (!val) return {};
@@ -201,18 +141,33 @@ function cleanText(str, maxLen = 280) {
   return cleaned.substring(0, maxLen);
 }
 
-// ===================================================================
+// ====
 // 🔍 DATA EXTRACTION — all columns, strict validation
-// ===================================================================
+// ====
 
 function extractAllData(college) {
   const ms = safeJSON(college.microsite_data);
   const cd = safeJSON(college.card_detail);
 
   const name     = (college.college_name || college.name || '').trim();
-  const location = (college.location || college.city || '').trim();
-  const city     = location.split(',')[0]?.trim() || location;
-  const state    = location.split(',')[1]?.trim() || '';
+  // Clean location/city/state. If no location field, derive a real city from the
+  // street address (never a building number like "#45"). Fallback: state, else "India".
+  let location = (college.location || college.city || '').trim();
+  let city = '', state = '';
+  if (location) {
+    city  = location.split(',')[0]?.trim() || location;
+    state = location.split(',')[1]?.trim() || '';
+  } else {
+    const addr = (college.address && college.address.streetAddress) || '';
+    let a = String(addr).replace(/\s+/g, ' ').replace(/,?\s*india\s*$/i, '').trim();
+    const toks = a.split(',').map(t => t.trim()).filter(Boolean);
+    const bad = /^#|\broad\b|\bstreet\b|\bmarg\b|\bpost\s*office\b|\bp\.?\s*o\.?\b|^\d|\bno\.?\b|\bsr\.?\s*no\b|\bnear\b|\bopp\b|\bdist\b|\bcolony\b|\bblock\b|\bphase\b|\bsector\b|\bhwy\b|\bhighway\b/i;
+    const cand = toks.filter(t => !bad.test(t)).map(t => t.replace(/\d+/g, '').replace(/\s+/g, ' ').trim()).filter(Boolean);
+    city = cand.length ? cand[cand.length - 1] : '';
+    location = city;
+  }
+  if (!city)     { city = state || 'India'; }
+  if (!location) { location = state || city || 'India'; }
 
   // ── Identity ──────────────────────────────────────────────────
   const ownership   = cleanText(college.ownership    || cd.ownership    || ms.ownership,   50) || null;
@@ -256,7 +211,6 @@ function extractAllData(college) {
 
   // ── Courses ───────────────────────────────────────────────────
   // Source 1: microsite fees table col 0 = course names (most reliable)
->>>>>>> Stashed changes
   let courses = [];
   if (Array.isArray(ms.fees)) {
     for (const section of ms.fees) {
@@ -267,23 +221,9 @@ function extractAllData(college) {
       if (names.length) { courses = names; break; }
     }
   }
-<<<<<<< Updated upstream
+
   const coursesText = courses.length > 0 ? courses.slice(0, 5).join(', ') : 'Various programs';
-  // Get ranking
-  let ranking = null;
-  if (micrositeData.ranking?.[0]?.rows?.[0]) {
-    ranking = `${micrositeData.ranking[0].rows[0][0]} Rank ${micrositeData.ranking[0].rows[0][2]}`;
-  }
-  // Get admission info
-  let admissionExams = null;
-  if (micrositeData.admission?.[0]?.rows) {
-    const examRow = micrositeData.admission[0].rows.find(r =>
-      r[4]?.toLowerCase().includes('cat') ||
-      r[4]?.toLowerCase().includes('exam')
-    );
-    admissionExams = examRow?.[4];
-  }
-=======
+
   // Source 2: top-level / card_detail courses
   if (!courses.length) {
     const raw = college.courses || cd.courses || ms.courses;
@@ -384,7 +324,7 @@ function extractAllData(college) {
   // ── About ─────────────────────────────────────────────────────
   const about = cleanText(ms.about || college.about || cd.about);
 
->>>>>>> Stashed changes
+
   return {
     name, location, city, state,
     ownership, collegeType, estYear, affiliation, approvedBy,
@@ -395,7 +335,7 @@ function extractAllData(college) {
     rankings, admissionExams, facilitiesText, scholarships, about
   };
 }
-<<<<<<< Updated upstream
+
 // Generate SEO description using Gemini with retry logic
 async function generateSEODescription(collegeData, retryCount = 0) {
   const prompt = `You are an expert SEO content writer for an education platform. Create a compelling, SEO-optimized description for the following college.
@@ -441,11 +381,13 @@ Write ONLY the description, no explanations or meta-commentary.`;
     // All keys failed
     console.error('❌ All API keys failed for this request');
     return null;
-=======
+  }
+}
 
-// ===================================================================
+
+// ====
 // ✍️  5 SEO TEMPLATES — varied structure, no broken data
-// ===================================================================
+// ====
 
 // Pick template index deterministically based on college name
 // so same college always gets same template (not random on each run)
@@ -504,7 +446,7 @@ function template0(d) {
     p1 += `Dedicated to nurturing future leaders, ${d.name} offers ${countPart} including **${courseList(d)}**. `;
   } else {
     p1 += `${d.name} is committed to delivering quality education and nurturing future leaders in ${d.city}. `;
->>>>>>> Stashed changes
+
   }
   parts.push(p1.trim());
 
@@ -531,7 +473,6 @@ function template0(d) {
 
   return parts.filter(Boolean).join('\n\n');
 }
-<<<<<<< Updated upstream
 // ===== MAIN FUNCTION =====
 async function generateDescriptions() {
   try {
@@ -652,7 +593,9 @@ async function generateDescriptions() {
   } catch (err) {
     console.error('❌ Fatal Error:', err.message);
     process.exit(1);
-=======
+  }
+}
+
 
 // ── Template 1: Achievement / Rankings-first style ─────────────────
 function template1(d) {
@@ -817,9 +760,9 @@ function template4(d) {
   return parts.filter(Boolean).join('\n\n');
 }
 
-// ===================================================================
+// ====
 // 🎯 MAIN BUILD FUNCTION
-// ===================================================================
+// ====
 
 function buildSEODescription(d) {
   if (!d.name) return null;
@@ -828,9 +771,9 @@ function buildSEODescription(d) {
   return templates[idx](d);
 }
 
-// ===================================================================
+// ====
 // 💾 DB UPDATE
-// ===================================================================
+// ====
 
 async function updateCollege(college) {
   const data = extractAllData(college);
@@ -843,9 +786,9 @@ async function updateCollege(college) {
   return { desc, error };
 }
 
-// ===================================================================
+// ====
 // 🔬 SINGLE COLLEGE MODE
-// ===================================================================
+// ====
 
 async function runSingleMode() {
   console.log(`\n🔬 SINGLE MODE — College ID: ${SINGLE_COLLEGE_ID}`);
@@ -898,9 +841,9 @@ async function runSingleMode() {
   });
 }
 
-// ===================================================================
+// ====
 // 🚀 BATCH MODE
-// ===================================================================
+// ====
 
 async function runBatchMode() {
   const progress     = loadProgress();
@@ -960,7 +903,7 @@ async function runBatchMode() {
 
     if (colleges.length < COLLEGES_PER_BATCH || offset > BATCH_END_OFFSET) break;
     if (DELAY_MS > 0) await new Promise(r => setTimeout(r, DELAY_MS));
->>>>>>> Stashed changes
+
   }
 
   console.log('\n' + '='.repeat(60));
@@ -971,31 +914,67 @@ async function runBatchMode() {
   console.log(`  📁 Processed : ${totalProcessed}`);
   console.log('='.repeat(60));
 }
-<<<<<<< Updated upstream
-// ===== RUN SCRIPT =====
-generateDescriptions()
-  .then(() => {
-    console.log('\n✨ Description generation completed!');
-    process.exit(0);
-  })
-  .catch(err => {
-    console.error(err);
-    process.exit(1);
-  });
-=======
 
-// ===================================================================
+// ===== OLD GEMINI RUNNER DISABLED (used undefined API_KEYS). The template-based main() below is the active entry point. =====
+
+
+// ====
 // 🎬 ENTRY POINT
-// ===================================================================
+// ====
 
 async function main() {
   console.log('\n' + '🎓'.repeat(30));
   console.log(`   SEO DESCRIPTION GENERATOR — ${CURRENT_YEAR}`);
   console.log('🎓'.repeat(30) + '\n');
+  // --ids=1,2,3  -> regenerate description for just those ids (no prompt), uses buildSEODescription
+  const idsArg = (process.argv.find(a => a.startsWith('--ids=')) || '').replace('--ids=', '');
+  if (idsArg) {
+    const ids = idsArg.split(',').map(x => x.trim()).filter(Boolean);
+    console.log(`\n🎯 SELECTED MODE — ${ids.length} ids\n`);
+    const { data: colleges, error } = await supabase
+      .from('college_microsites').select('*').in('id', ids);
+    if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
+    const DRY = process.argv.includes('--dry');
+    let ok = 0, fail = 0;
+    for (const college of colleges) {
+      if (DRY) {
+        const d = extractAllData(college);
+        const desc = buildSEODescription(d);
+        console.log(`\n===== [${college.id}] ${college.college_name} | city="${d.city}" location="${d.location}" =====`);
+        console.log(desc);
+        ok++;
+        continue;
+      }
+      const { desc, error: ue } = await updateCollege(college);
+      if (ue || !desc) { fail++; console.log(`  ❌ ${college.id} ${college.college_name}`); }
+      else { ok++; console.log(`  ✅ ${college.id} ${college.college_name} (${desc.split(/\s+/).length}w)`); }
+    }
+    console.log(`\n${DRY?'DRY preview':'Done. updated'} ${ok}, failed ${fail}`);
+    process.exit(0);
+  }
+  // --all  -> regenerate description for EVERY college (template-based, no network). Resumable-ish (just re-run).
+  if (process.argv.includes('--all')) {
+    console.log('\n🌐 ALL MODE — regenerating descriptions for every college\n');
+    let off = 0, page = 500, ok = 0, fail = 0;
+    while (true) {
+      const { data: colleges, error } = await supabase
+        .from('college_microsites').select('*').order('id', { ascending: true }).range(off, off + page - 1);
+      if (error) { console.error('Fetch error:', error.message); process.exit(1); }
+      if (!colleges || !colleges.length) break;
+      for (const college of colleges) {
+        const { desc, error: ue } = await updateCollege(college);
+        if (ue || !desc) fail++; else ok++;
+      }
+      console.log(`  ..${off + colleges.length} done (ok ${ok}, fail ${fail})`);
+      if (colleges.length < page) break;
+      off += page;
+    }
+    console.log(`\nALL done. updated ${ok}, failed ${fail}`);
+    process.exit(0);
+  }
   if      (MODE === 'single') await runSingleMode();
   else if (MODE === 'batch')  { await runBatchMode(); process.exit(0); }
   else { console.error('❌ Invalid MODE'); process.exit(1); }
 }
 
 main().catch(err => { console.error('❌ Fatal:', err.message); process.exit(1); });
->>>>>>> Stashed changes
