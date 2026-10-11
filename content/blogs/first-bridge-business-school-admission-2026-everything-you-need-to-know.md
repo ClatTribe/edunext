@@ -4,7 +4,7 @@ date: "2026-05-07"
 lastModified: "2026-05-07"
 author: "Edu Next"
 excerpt: "Explore First Bridge Business School Admission 2026 — eligibility, fees, entrance exams, admission process & placements. Apply now via EduNext!"
-coverImage: "https://res.cloudinary.com/db14ukba7/image/upload/v1778171147/FirstBridgeBusinessSchoolAdmission2026.pd_qp7x2s.jpg"
+coverImage: "https://res.cloudinary.com/duyo9pzxy/image/upload/v1791710169/FirstBridgeBusinessSchoolAdmission2026.pd_otxlei.jpg"
 tags: ["First Bridge Business School Admission 2026","First Bridge Business School MBA 2026", "First Bridge Business School fees structure 2026", "First Bridge Business School PGDM admission"]
 
 ---
