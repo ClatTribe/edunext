@@ -51,6 +51,11 @@ const nextConfig: NextConfig = {
                 destination: '/college/:slug/course-and-fees',
                 permanent: true,
             },
+            {
+                source: '/blogs/is-an-online-mba-worth-it-in-india-in-2026',
+                destination: '/blogs/is-an-online-mba-worth-it-in-india-in-2027',
+                permanent: true,
+            },
         ];
     },
 };

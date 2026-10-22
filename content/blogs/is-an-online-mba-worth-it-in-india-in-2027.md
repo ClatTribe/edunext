@@ -1,5 +1,5 @@
 ---
-title: "Is an Online MBA Worth It in India in 2027? Career Benefits, Fees, and ROI Explained"
+title: "Is an Online MBA Worth It in India in 2027?"
 date: "2026-10-21"
 lastModified: "2026-10-21"
 author: "EDUNEXT"
