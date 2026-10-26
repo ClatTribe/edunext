@@ -26,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/cat-college-predictor`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/cat-percentile-predictor`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/iim-cutoff`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/cat-admit-card`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     ...[50, 60, 65, 70, 75, 80, 85, 90, 95].map((p) => ({
       url: `${baseUrl}/mba-colleges-by-cat-percentile/${p}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8,
     })),
