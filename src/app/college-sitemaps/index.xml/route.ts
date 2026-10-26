@@ -6,18 +6,22 @@ const CHUNK_SIZE = 500;
 
 export async function GET() {
   try {
-    // Get total count of colleges to dynamically generate the correct number of sitemaps
+    // Count colleges to decide how many sitemap chunks to list.
+    // 'planned' uses Postgres statistics (instant) instead of counting every row,
+    // which was timing out and returning "Error:" to Google.
     const { count, error } = await supabase
       .from('college_microsites')
-      .select('*', { count: 'exact', head: true });
+      .select('id', { count: 'planned', head: true });
 
     if (error) {
-      console.error('Error fetching college count for sitemap:', error);
-      return new NextResponse(`Error: ${error.message}`, { status: 500 });
+      console.error('College count failed for sitemap index, using fallback:', error);
     }
 
+    // Fallback: if the count fails, still return a valid index. Chunks past the
+    // last college return an empty (valid) urlset, so over-listing is harmless.
+    const FALLBACK_PAGES = 100;
     const totalColleges = count || 0;
-    const totalPages = Math.ceil(totalColleges / CHUNK_SIZE) || 1; // At least 1 page
+    const totalPages = totalColleges > 0 ? Math.ceil(totalColleges / CHUNK_SIZE) + 1 : FALLBACK_PAGES;
 
     const sitemaps = Array.from({ length: totalPages }, (_, i) => {
       return `
