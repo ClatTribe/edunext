@@ -22,6 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/forms-and-deadlines/cuet`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/forms-and-deadlines/law`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/forms-and-deadlines/ipm`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/forms-and-deadlines/mba`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/cat-college-predictor`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/cat-percentile-predictor`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    ...[50, 60, 65, 70, 75, 80, 85, 90, 95].map((p) => ({
+      url: `${baseUrl}/mba-colleges-by-cat-percentile/${p}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8,
+    })),
     {
       url: `${baseUrl}/college/first-bridge-business-school-gurgaon`,
       lastModified: new Date(),

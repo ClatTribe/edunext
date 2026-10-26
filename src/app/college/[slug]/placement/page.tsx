@@ -1,5 +1,6 @@
 import React from "react"
 import { supabase } from "../../../../../lib/supabase"
+import { mbaMeta, cleanLocation } from "../../../../../lib/collegeSeo"
 import PlacementClient from "./PlacementClient"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -9,17 +10,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "Placement | EduNext" }
 
   const name = college.college_name
-  const location = college.location
+  const mba = mbaMeta("placement", slug, name, college.location)
+  if (mba) return mba
+  const location = cleanLocation(college.location)
 
   return {
     title: `${name} Placement 2026 — Average Package, Top Recruiters & Branch-wise Salary`,
-    description: `${name} placement report 2026: average CTC, highest salary package, top recruiting companies, branch-wise placement stats, and internship data for the ${location} campus. Full report inside.`,
+    description: `${name} placement report 2026: average CTC, highest salary package, top recruiting companies, branch-wise placement stats, and internship data${location ? ` for the ${location} campus` : ""}. Full report inside.`,
     alternates: {
       canonical: `https://www.getedunext.com/college/${slug}/placement`
     },
     openGraph: {
       title: `${name} Placement 2026 — Average Package, Top Recruiters & Branch-wise Salary`,
-      description: `${name} placement report 2026: average CTC, highest salary package, top recruiting companies, branch-wise placement stats, and internship data for the ${location} campus. Full report inside.`,
+      description: `${name} placement report 2026: average CTC, highest salary package, top recruiting companies, branch-wise placement stats, and internship data${location ? ` for the ${location} campus` : ""}. Full report inside.`,
     }
   }
 }

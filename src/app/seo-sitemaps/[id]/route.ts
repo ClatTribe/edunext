@@ -1,5 +1,6 @@
 import { supabase } from '../../../../lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
+import { isMismatchedPage } from '../../../../lib/bestCollegesContent';
 
 const baseUrl = 'https://www.getedunext.com';
 const CHUNK_SIZE = 1000;
@@ -23,7 +24,7 @@ export async function GET(
 
     const { data: pages, error } = await supabase
       .from('seo_pages')
-      .select('slug, updated_at')
+      .select('slug, updated_at, exam_slug, course_slug')
       .eq('qualifies', true)
       .eq('is_published', true)
       .order('id', { ascending: true })
@@ -47,7 +48,7 @@ export async function GET(
       });
     }
 
-    const urls = pages.map((pg: any) => {
+    const urls = pages.filter((pg: any) => !isMismatchedPage(pg)).map((pg: any) => {
       const safeSlug = String(pg.slug).replace(/&/g, '&amp;');
       const lastMod = new Date(pg.updated_at || new Date()).toISOString();
       return `
