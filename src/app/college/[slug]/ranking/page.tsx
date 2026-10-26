@@ -1,5 +1,6 @@
 import React from "react"
 import { supabase } from "../../../../../lib/supabase"
+import { mbaMeta, cleanLocation } from "../../../../../lib/collegeSeo"
 import RankingClient from "./RankingClient"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -9,17 +10,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "Ranking | EduNext" }
 
   const name = college.college_name
-  const location = college.location
+  const mba = mbaMeta("ranking", slug, name, college.location)
+  if (mba) return mba
+  const location = cleanLocation(college.location)
 
   return {
     title: `${name} Ranking 2026`,
-    description: `Check out the national and international rankings and recognition for ${name}, ${location}.`,
+    description: `Check out the national and international rankings and recognition for ${name}${location ? `, ${location}` : ""}.`,
     alternates: {
       canonical: `https://www.getedunext.com/college/${slug}/ranking`
     },
     openGraph: {
       title: `${name} Ranking 2026`,
-      description: `Check out the national and international rankings and recognition for ${name}, ${location}.`,
+      description: `Check out the national and international rankings and recognition for ${name}${location ? `, ${location}` : ""}.`,
     }
   }
 }

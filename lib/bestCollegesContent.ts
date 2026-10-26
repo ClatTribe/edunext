@@ -5,6 +5,33 @@
 export const SITE = "https://www.getedunext.com"
 export const YEAR = 2026
 
+// MBA/PGDM pages target the 2027-29 batch (CAT 2026 is on 29 Nov 2026)
+const MBA_COURSE_SLUGS = new Set(["mba", "pgdm", "executive-mba", "online-mba"])
+export function isMbaPage(p: Pick<PageRow, "course_slug" | "exam_slug">): boolean {
+  return MBA_COURSE_SLUGS.has(p.course_slug ?? "") || MBA_EXAMS.has(p.exam_slug ?? "")
+}
+const yearFor = (p: PageRow) => (isMbaPage(p) ? YEAR + 1 : YEAR)
+const sessionFor = (p: PageRow) => (isMbaPage(p) ? `${YEAR + 1}-${String(YEAR + 3).slice(2)}` : `${YEAR}-${String(YEAR + 1).slice(2)}`)
+
+// Exam/course combinations that do not exist in real admissions
+// (e.g. "MBBS colleges accepting CAT", "MBA colleges accepting NEET").
+// These pages are noindexed and left out of the sitemap so they stop
+// diluting the MBA pages that matter.
+const MBA_EXAMS = new Set(["cat", "xat", "cmat", "mat", "snap", "nmat", "gmat", "mah-cet", "mah-mba-cet", "atma", "kmat", "micat", "iift"])
+const MBA_COURSES = new Set(["mba", "pgdm", "executive-mba", "online-mba", "phd"])
+const UG_OR_NON_MBA_EXAMS = new Set([
+  "neet", "neet-pg", "jee-main", "jee-advanced", "tnea", "kcet", "ap-eapcet", "ts-eamcet", "wbjee",
+  "nata", "keam", "gujcet", "jeecup", "comedk", "bitsat", "clat", "ailet", "uceed", "nift",
+])
+export function isMismatchedPage(p: Pick<PageRow, "course_slug" | "exam_slug">): boolean {
+  const exam = p.exam_slug ?? ""
+  const course = p.course_slug ?? ""
+  if (!exam || !course) return false
+  if (MBA_EXAMS.has(exam)) return !MBA_COURSES.has(course)
+  if (MBA_COURSE_SLUGS.has(course)) return UG_OR_NON_MBA_EXAMS.has(exam)
+  return false
+}
+
 export type PageRow = {
   slug: string
   tier: number
@@ -35,6 +62,7 @@ export type Faq = { q: string; a: string }
 
 export function headingText(p: PageRow): string {
   const { exam, city, course } = p
+  const YEAR = yearFor(p)
   if (course && city && exam) return `Best ${course} Colleges in ${city} Accepting ${exam} ${YEAR}`
   if (course && city) return `Best ${course} Colleges in ${city} ${YEAR}`
   if (course && exam) return `Best ${course} Colleges Accepting ${exam} ${YEAR}`
@@ -65,13 +93,14 @@ export function metaDescription(p: PageRow): string {
   const what = p.course ? `${p.course} colleges` : "colleges"
   const where = p.city ? ` in ${p.city}` : ""
   const exam = p.exam ? ` accepting ${p.exam}` : ""
-  return `Explore ${p.college_count}+ ${what}${where}${exam}. Compare fees, cutoffs, rankings, placements & reviews. Apply for ${YEAR}-27 admissions on EduNext.`
+  return `Explore ${p.college_count}+ ${what}${where}${exam}. Compare fees, cutoffs, rankings, placements & reviews. Apply for ${sessionFor(p)} admissions on EduNext.`
 }
 
 // Rich, page-specific intro (changes with course / city / exam combination)
 export function introText(p: PageRow): string {
   if (p.custom_intro) return p.custom_intro
   const { course, city, exam } = p
+  const YEAR = yearFor(p)
   const what = course ? `${course} colleges` : "colleges"
   const where = city ? ` in ${city}` : ""
   const examAccept = exam ? ` accepting ${exam}` : ""
@@ -89,7 +118,7 @@ export function introText(p: PageRow): string {
   const listLine = `We have curated ${p.college_count} verified ${what}${where}${examAccept}, ranked using NIRF, EduNext and other trusted rankings so the strongest institutes show up first.`
 
   const cutoffs = exam ? `${exam} cutoffs` : "entrance cutoffs"
-  const valueLine = `For each one you can compare total fees, eligibility, ${cutoffs}, placement records and real student reviews — and apply for ${YEAR}-27 admissions with zero spam calls.`
+  const valueLine = `For each one you can compare total fees, eligibility, ${cutoffs}, placement records and real student reviews — and apply for ${sessionFor(p)} admissions with zero spam calls.`
 
   return `${hook} ${listLine} ${valueLine}`
 }

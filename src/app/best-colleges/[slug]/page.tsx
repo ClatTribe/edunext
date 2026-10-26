@@ -10,7 +10,7 @@ import BestCollegesFaq from "../../../../components/microsite/BestCollegesFaq"
 import { resolveCategory, sortByRanking, rankLabelFor } from "../../../../lib/collegeRanking"
 import {
   SITE, YEAR, type PageRow, type College,
-  headingText, relatedLabel, metaTitle, metaDescription, introText, overviewSection, buildFaqs,
+  headingText, relatedLabel, metaTitle, isMismatchedPage, metaDescription, introText, overviewSection, buildFaqs,
 } from "../../../../lib/bestCollegesContent"
 import { Star, ChevronRight, GraduationCap, Building2, Sparkles } from "lucide-react"
 
@@ -40,10 +40,10 @@ async function getRelated(p: PageRow): Promise<PageRow[]> {
   if (p.exam_slug) ors.push(`exam_slug.eq.${p.exam_slug}`)
   if (ors.length === 0) return []
   const { data } = await supabase
-    .from("seo_pages").select("slug,exam,city,course,page_type,college_count")
+    .from("seo_pages").select("slug,exam,city,course,page_type,college_count,exam_slug,course_slug")
     .eq("qualifies", true).eq("is_published", true).neq("slug", p.slug)
     .or(ors.join(",")).order("college_count", { ascending: false }).limit(12)
-  return (data as PageRow[]) ?? []
+  return ((data as PageRow[]) ?? []).filter((r) => !isMismatchedPage(r))
 }
 
 export async function generateMetadata(
@@ -59,7 +59,8 @@ export async function generateMetadata(
     title, description,
     alternates: { canonical },
     openGraph: { title, description, url: canonical, type: "website" },
-    robots: { index: true, follow: true },
+    // Nonsense exam/course combos (e.g. MBBS via CAT) stay reachable but out of the index
+    robots: isMismatchedPage(p) ? { index: false, follow: true } : { index: true, follow: true },
   }
 }
 

@@ -1,6 +1,7 @@
 import React from "react"
 import Link from "next/link"
 import { supabase } from "../../../../lib/supabase"
+import { mbaMeta, cleanLocation } from "../../../../lib/collegeSeo"
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
 import {
   Loader2, Eye, Target, Phone, Globe, GraduationCap,
@@ -183,17 +184,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "College | EduNext" }
 
   const name = college.college_name
-  const location = college.location
+  const mba = mbaMeta("overview", slug, name, college.location)
+  if (mba) return mba
+  const location = cleanLocation(college.location)
+  const nameLoc = location ? `${name} ${location}` : name
 
   return {
-    title: `${name} ${location} — Fees 2026, Admission, Courses, Cutoff & Placement`,
-    description: `Explore ${name} in ${location}: course fees 2026, admission process, available courses, cutoff marks, rankings, placement stats, and student reviews. Compare and apply for 2026 admissions.`,
+    title: `${nameLoc} — Fees 2026, Admission, Courses, Cutoff & Placement`,
+    description: `Explore ${nameLoc}: course fees 2026, admission process, available courses, cutoff marks, rankings, placement stats, and student reviews. Compare and apply for 2026 admissions.`,
     alternates: {
       canonical: `https://www.getedunext.com/college/${slug}`
     },
     openGraph: {
-      title: `${name} ${location} — Fees 2026, Admission, Courses, Cutoff & Placement`,
-      description: `Explore ${name} in ${location}: fees 2026, courses, cutoff, rankings, placements and student reviews.`,
+      title: `${nameLoc} — Fees 2026, Admission, Courses, Cutoff & Placement`,
+      description: `Explore ${nameLoc}: fees 2026, courses, cutoff, rankings, placements and student reviews.`,
     }
   }
 }
