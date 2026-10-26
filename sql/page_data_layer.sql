@@ -56,16 +56,31 @@ as $$
   cross join p
   where
     -- CITY filter (only if this page has a city)
+    -- (Oct 2026) city aliases: the Delhi page also covers "New Delhi", Gurgaon covers "Gurugram",
+    -- Bangalore covers "Bengaluru". Exact-slug pages (e.g. new-delhi) keep matching exactly.
     (p.city_slug is null
-       or trim(both '-' from regexp_replace(
-            lower(nullif(trim(split_part(cm.location, ',', 2)), '')),
-            '[^a-z0-9]+','-','g')) = p.city_slug)
+       or (select loc = p.city_slug
+                  or (p.city_slug = 'delhi'     and loc = 'new-delhi')
+                  or (p.city_slug = 'gurgaon'   and loc = 'gurugram')
+                  or (p.city_slug = 'bangalore' and loc = 'bengaluru')
+           from (select trim(both '-' from regexp_replace(
+                   lower(nullif(trim(split_part(cm.location, ',', 2)), '')),
+                   '[^a-z0-9]+','-','g')) as loc) l))
     -- EXAM filter (only if this page has an exam)
     and (p.exam_slug is null or exists (
           select 1
           from unnest(string_to_array(lower((cm.card_detail::jsonb)->>'entrance_exam'), ',')) as t(tok)
           join exam_map em on trim(t.tok) = em.raw
           where em.slug = p.exam_slug))
+    -- (Oct 2026) management-exam pages without a course (e.g. cat-colleges-in-delhi) only list
+    -- colleges that offer an MBA. Before this they listed any college whose exam list mentioned CAT
+    -- (medical, architecture, acting schools).
+    and (p.course_slug is not null or p.exam_slug is null or p.exam_slug not in ('cat','cmat') or exists (
+          select 1
+          from jsonb_array_elements_text(
+                case when jsonb_typeof((cm.card_detail::jsonb)->'courses') = 'array'
+                     then (cm.card_detail::jsonb)->'courses' else '[]'::jsonb end) as rc(raw)
+          where lower(trim(rc.raw)) in ('mba','pgdm')))
     -- COURSE filter (only if this page has a course)
     and (p.course_slug is null or exists (
           select 1
