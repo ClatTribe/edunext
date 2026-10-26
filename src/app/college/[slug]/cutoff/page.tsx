@@ -59,6 +59,12 @@ export default async function CutoffPage({ params }: { params: Promise<{ slug: s
           <Link href="/cat-college-predictor" className="text-amber-400 underline">colleges you can get at your percentile</Link>
           <span className="text-slate-400"> · </span>
           <Link href="/forms-and-deadlines/mba" className="text-amber-400 underline">MBA forms open now</Link>
+          {slug.startsWith("iim-") && (
+            <>
+              <span className="text-slate-400"> · </span>
+              <Link href="/iim-cutoff" className="text-amber-400 underline">compare all 22 IIM cutoffs</Link>
+            </>
+          )}
         </div>
       )}
       <CutoffClient cutoffData={cutoffData} uniqueHeadings={uniqueHeadings} />
