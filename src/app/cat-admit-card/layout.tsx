@@ -1,11 +1,12 @@
-import Navbar from "../../../components/Navbar"
+import DefaultLayout from "../defaultLayout"
 
+// Same dashboard layout as the CAT predictors, so the sidebar (Our Tools) shows on this page
 export default function CatAdmitCardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen text-slate-300" style={{ backgroundColor: "#020205" }}>
-      <Navbar />
-      <div className="h-16 sm:h-[72px] lg:h-20" />
-      {children}
-    </div>
+    <DefaultLayout>
+      <div className="min-h-screen text-slate-300 mt-[72px] md:mt-0" style={{ backgroundColor: "#020205" }}>
+        {children}
+      </div>
+    </DefaultLayout>
   )
 }

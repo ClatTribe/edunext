@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   User,
   BookOpen,
@@ -21,6 +21,8 @@ import {
   School,
   ExternalLink,
   CalendarClock,
+  Target,
+  Ticket,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -35,6 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const navScrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -90,6 +93,16 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
       icon: TrendingUp,
       label: "CAT Percentile Predictor",
       path: "/cat-percentile-predictor",
+    },
+    {
+      icon: Target,
+      label: "IIM Cutoff 2026",
+      path: "/iim-cutoff",
+    },
+    {
+      icon: Ticket,
+      label: "CAT Admit Card 2026",
+      path: "/cat-admit-card",
     },
     {
       icon: SearchCheck,
@@ -150,18 +163,26 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   }, []);
 
   useEffect(() => {
+    // Open "Our Tools" on any tool page (list comes from toolOptions, so new tools work automatically)
     const isAtTool = [
-      "/cat-percentile-predictor",
-      "/cat-college-predictor",
-      "/xat-score-calculator-2026",
-      "/jee-tool",
-      "/exams-and-deadline",
-      "/study-material",
+      ...toolOptions.map((tool) => tool.path),
       "/forms-and-deadlines",
     ].includes(pathname);
-    if (isAtTool) {
-      setIsToolsOpen(true);
-    }
+    if (!isAtTool) return;
+    setIsToolsOpen(true);
+
+    // The Tools section sits below Explore, so scroll the sidebar to the open tool once the section has expanded
+    const timer = window.setTimeout(() => {
+      const container = navScrollRef.current;
+      const active = container?.querySelector<HTMLElement>('[data-active="true"]');
+      if (!container || !active) return;
+      const offset = active.getBoundingClientRect().top - container.getBoundingClientRect().top;
+      container.scrollTo({
+        top: container.scrollTop + offset - container.clientHeight / 2 + active.clientHeight / 2,
+        behavior: "smooth",
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
   }, [pathname]);
 
   useEffect(() => {
@@ -181,6 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
   }> = ({ item }) => (
     <button
       onClick={() => handleNavClick(item.path)}
+      data-active={isActive(item.path) ? "true" : undefined}
       className={`flex items-center gap-3 p-2.5 w-full text-left rounded-lg transition-all duration-200 group ${
         isActive(item.path) ? "shadow-lg" : "hover:bg-white/5"
       }`}
@@ -344,7 +366,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
           </div>
 
           {/* Scrollable Navigation */}
-          <div className="flex-1 overflow-y-auto px-4 pb-4 scrollbar-hide">
+          <div ref={navScrollRef} className="flex-1 overflow-y-auto px-4 pb-4 scrollbar-hide">
             <nav className="space-y-2">
               {/* Main Navigation */}
               {navItems.main.map((item) => (

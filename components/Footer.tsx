@@ -98,6 +98,22 @@ const Footer: React.FC = () => {
                   CAT Percentile Predictor
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/iim-cutoff"
+                  className="hover:text-white transition-colors"
+                >
+                  IIM Cutoff 2026
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/cat-admit-card"
+                  className="hover:text-white transition-colors"
+                >
+                  CAT Admit Card 2026
+                </Link>
+              </li>
             </ul>
           </div>
 
