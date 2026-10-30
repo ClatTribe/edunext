@@ -96,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onSignOut }) => {
     },
     {
       icon: Target,
-      label: "IIM Cutoff 2026",
+      label: "IIM Cutoff 2026", 
       path: "/iim-cutoff",
     },
     {
