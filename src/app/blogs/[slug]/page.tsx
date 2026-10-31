@@ -8,6 +8,7 @@ import Footer from "../../../../components/Footer";
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm";
 import Link from 'next/link';
 import { isMbaBlog, linkBSchools, MBA_BLOGS, MBA_HUBS } from '../../../../lib/mbaLinks';
+import CatScoreCta from '../../../../components/CatScoreCta';
 
 interface BlogPageProps {
   params: Promise<{
@@ -228,6 +229,8 @@ export default async function BlogPage({ params }: BlogPageProps) {
                 />
               </div>
 
+              {mba && <CatScoreCta placement="blog-top" className="mb-8" />}
+
               {/* AUDIO PLAYER */}
               {blog.audioUrl && (
                 <div className="mb-8 p-4 rounded-lg border border-[rgba(245,158,11,0.15)] bg-[#0F172B]">
@@ -290,6 +293,8 @@ export default async function BlogPage({ params }: BlogPageProps) {
                   </ul>
                 </nav>
               )}
+
+              {mba && <CatScoreCta placement="blog-bottom" className="mt-10" />}
 
               {mba && (
                 <nav aria-label="More MBA guides" className="mt-6 p-6 rounded-xl border border-[rgba(245,158,11,0.15)] bg-[#0F172B]">

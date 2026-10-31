@@ -2,6 +2,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import IimCutoffTable from "./IimCutoffTable"
 import { IIM_CUTOFFS, IIM_CUTOFF_UPDATED } from "../../../lib/iimCutoffs"
+import CatScoreCta from "../../../components/CatScoreCta"
 
 const URL = "https://www.getedunext.com/iim-cutoff"
 export const revalidate = 86400
@@ -77,6 +78,8 @@ export default function IimCutoffPage() {
         Numbers come from each IIM&apos;s own admission policy for the CAT 2025 cycle, or CAT 2026 where the IIM has already published it.
         Choose your category to compare all 22 IIMs.
       </p>
+
+      <CatScoreCta placement="iim-cutoff" className="mt-6" />
 
       <div className="mt-6 grid sm:grid-cols-3 gap-3">
         <div className="rounded-xl border border-slate-800 p-4">

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { CAT_CUTOFFS } from "../../../../lib/catCutoffs"
+import CatScoreCta from "../../../../components/CatScoreCta"
 
 const SITE = "https://www.getedunext.com"
 const PERCENTILES = [50, 60, 65, 70, 75, 80, 85, 90, 95] as const
@@ -77,6 +78,8 @@ export default async function PercentilePage({ params }: { params: Promise<{ per
         We list {safe.length} realistic options and {stretch.length} stretch options just above {p} percentile. Cutoffs shift every year
         and many schools also weigh sectional scores, academics and work experience, so use this as a shortlist, not a guarantee.
       </p>
+
+      <CatScoreCta placement="mba-colleges-by-percentile" className="mt-6" />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {PERCENTILES.map((q) => (

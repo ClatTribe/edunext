@@ -8,6 +8,7 @@ import { isManagementCollege } from "../../lib/collegeSeo"
 import { getCollege, getSimilarBSchools } from "../../lib/collegeData"
 import { buildMbaFaqs, examList, getMbaFacts, CAT_2026_DATE, type MbaFacts, type MbaSection } from "../../lib/mbaFacts"
 import { MBA_BLOGS, MBA_HUBS } from "../../lib/mbaLinks"
+import CatScoreCta, { catCalculatorUrl } from "../CatScoreCta"
 
 const SITE = "https://www.getedunext.com"
 
@@ -86,6 +87,7 @@ export async function MbaHeading({ slug, section }: { slug: string; section: Mba
     <header className="mb-6 space-y-2">
       <h1 className="text-2xl md:text-3xl font-black text-white leading-tight">{mbaHeading(f, section)}</h1>
       <p className="text-sm md:text-base text-slate-400 leading-relaxed">{intro(f, section)}</p>
+      <CatScoreCta variant="inline" placement={`bschool-${section}-top`} />
     </header>
   )
 }
@@ -135,6 +137,8 @@ export default async function MbaSeoBlock({ slug, section }: { slug: string; sec
 
   return (
     <section aria-label={`${f.name} MBA quick facts`} className="mt-12 space-y-8 text-slate-300">
+      <CatScoreCta placement={`bschool-${section}`} />
+
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c") }} />
 
       {rows.length >= 2 && (
@@ -185,6 +189,7 @@ export default async function MbaSeoBlock({ slug, section }: { slug: string; sec
       <nav aria-label="MBA 2027 tools and guides" className="rounded-2xl border border-white/5 bg-[#0F172B] p-6">
         <h2 className="text-xl font-bold text-white mb-4">CAT 2026 and MBA 2027 tools</h2>
         <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <li><a href={catCalculatorUrl(`bschool-${section}-tools`)} target="_blank" rel="nofollow noopener" className="text-amber-400 hover:underline">CAT 2026 score calculator (response sheet)</a></li>
           {MBA_HUBS.map((l) => (
             <li key={l.href}><Link href={l.href} className="text-amber-400 hover:underline">{l.label}</Link></li>
           ))}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import FormsPageClient from "../../../../components/forms-and-deadlines/FormsPageClient";
 import { ExamTab, TAB_SEO } from "../../../../components/forms-and-deadlines/constants";
+import CatScoreCta from "../../../../components/CatScoreCta"
 
 const seo = TAB_SEO[ExamTab.MBA];
 const URL = "https://www.getedunext.com/forms-and-deadlines/mba";
@@ -43,6 +44,8 @@ export default function MBAFormsPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <FormsPageClient examTab={ExamTab.MBA} examLabel="MBA" />
+
+      <CatScoreCta placement="mba-forms-hub" className="mt-12 max-w-4xl" />
 
       <section className="mt-12 max-w-4xl text-slate-300 leading-relaxed">
         <h2 className="text-xl sm:text-2xl font-bold text-amber-400 mb-3">MBA application forms 2027: how to plan your applications</h2>

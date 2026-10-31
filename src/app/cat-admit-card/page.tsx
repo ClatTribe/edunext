@@ -1,5 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
+import CatScoreCta from "../../../components/CatScoreCta"
 
 const URL = "https://www.getedunext.com/cat-admit-card"
 export const revalidate = 86400
@@ -117,6 +118,8 @@ export default function CatAdmitCardPage() {
         conducted by {CAT.convener} as a computer-based test in three slots across {CAT.cities} cities. Here is how to download your admit card,
         what to check on it, and what to carry on exam day.
       </p>
+
+      <CatScoreCta placement="cat-admit-card" className="mt-6" />
 
       <div className="mt-6 grid sm:grid-cols-3 gap-3">
         <div className="rounded-xl border border-amber-400/40 bg-amber-400/5 p-4">

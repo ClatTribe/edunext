@@ -13,6 +13,7 @@ import {
   Puzzle,
   RotateCcw 
 } from 'lucide-react';
+import CatScoreCta from "../../../components/CatScoreCta";
 
 // Color scheme matching the college compare page
 const accentColor = '#F59E0B';
@@ -95,6 +96,8 @@ const Carpercentile: React.FC = () => {
       <div className="flex-1 min-h-screen p-6 mt-[72px] sm:mt-0" style={{ backgroundColor: primaryBg }}>
         <main className="max-w-6xl mx-auto space-y-8">
           
+          <CatScoreCta placement="cat-percentile-predictor" />
+
           {/* Header Section */}
           <div className="mb-8">
             <div className="flex items-center justify-between">

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { supabase } from "../../../../lib/supabase"
 import { getPartner, getFormRow, isLive } from "../../../../lib/mbaForms"
+import CatScoreCta from "../../../../components/CatScoreCta"
 
 const SITE = "https://www.getedunext.com"
 export const revalidate = 3600
@@ -54,6 +55,7 @@ export default async function MbaFormPage({ params }: { params: Promise<{ slug: 
       </p>
       <h1 className="mt-2 text-3xl md:text-4xl font-bold text-white">{p.school}</h1>
       <p className="text-slate-400">{p.city === p.region ? p.city : `${p.city}, ${p.region}`}</p>
+      <CatScoreCta variant="inline" placement="mba-form-school" className="mt-3" />
 
       {live ? (
         <>
