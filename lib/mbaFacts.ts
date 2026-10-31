@@ -94,11 +94,26 @@ function safeJson(s: string) {
   }
 }
 
+// Big MBA cities, for locations stored as a street address without a state name.
+const CITY_STATE: [string, string][] = [
+  ["Mumbai", "Maharashtra"], ["Navi Mumbai", "Maharashtra"], ["Thane", "Maharashtra"], ["Pune", "Maharashtra"], ["Nagpur", "Maharashtra"], ["Nashik", "Maharashtra"],
+  ["Hyderabad", "Telangana"], ["Secunderabad", "Telangana"], ["Bangalore", "Karnataka"], ["Bengaluru", "Karnataka"], ["Mysore", "Karnataka"], ["Manipal", "Karnataka"],
+  ["Chennai", "Tamil Nadu"], ["Coimbatore", "Tamil Nadu"], ["Trichy", "Tamil Nadu"], ["Kochi", "Kerala"], ["Kozhikode", "Kerala"], ["Thiruvananthapuram", "Kerala"],
+  ["New Delhi", "Delhi"], ["Noida", "Uttar Pradesh"], ["Greater Noida", "Uttar Pradesh"], ["Ghaziabad", "Uttar Pradesh"], ["Lucknow", "Uttar Pradesh"], ["Varanasi", "Uttar Pradesh"],
+  ["Gurgaon", "Haryana"], ["Gurugram", "Haryana"], ["Faridabad", "Haryana"], ["Ahmedabad", "Gujarat"], ["Gandhinagar", "Gujarat"], ["Vadodara", "Gujarat"],
+  ["Jaipur", "Rajasthan"], ["Udaipur", "Rajasthan"], ["Indore", "Madhya Pradesh"], ["Bhopal", "Madhya Pradesh"], ["Kolkata", "West Bengal"], ["Bhubaneswar", "Odisha"],
+  ["Jamshedpur", "Jharkhand"], ["Ranchi", "Jharkhand"], ["Chandigarh", "Chandigarh"], ["Dehradun", "Uttarakhand"], ["Goa", "Goa"], ["Visakhapatnam", "Andhra Pradesh"],
+]
+
 export function splitLocation(location: unknown): { city: string; state: string } {
   const loc = cleanLocation(location)
-  const state = STATES.find((s) => new RegExp(`\\b${s}\\b`, "i").test(loc)) || ""
+  let state = STATES.find((s) => new RegExp(`\\b${s}\\b`, "i").test(loc)) || ""
   const parts = loc.split(",").map((p) => p.trim()).filter(Boolean)
-  const city = parts.find((p) => p.toLowerCase() !== state.toLowerCase() && p.length < 40) || ""
+  let city = parts.find((p) => p.toLowerCase() !== state.toLowerCase() && p.length < 40 && !/\d/.test(p)) || ""
+  // Street addresses ("Survey Number 292, ... Near Hyderabad India"): find a known city instead.
+  const known = CITY_STATE.find(([c]) => new RegExp(`\\b${c}\\b`, "i").test(loc))
+  if (known && (!city || parts.length > 3 || /\d/.test(loc))) city = known[0]
+  if (!state && known) state = known[1]
   return { city, state }
 }
 
@@ -118,6 +133,15 @@ function detectCourse(raw: string): string {
   return "MBA"
 }
 
+const SECONDARY = /\b(EPGP|PGPX|PGPEX|EPGD|PGPMAX|IPM|executive|online|distance|weekend|part[\s-]?time|working|blended|hybrid)\b/i
+function courseOf(label: string): string {
+  if (/\bM\.?\s?M\.?\s?S\b/i.test(label)) return "MMS"
+  if (/\bPGDM|PGDBM|PGDBA\b/i.test(label)) return "PGDM"
+  if (/\bPGP\b/i.test(label)) return "MBA (PGP)"
+  if (/\bMBA\b/i.test(label)) return "MBA"
+  return ""
+}
+
 const FLAGSHIP = /\b(MBA|PGDM|M\.?M\.?S|PGP|PGDBM|PGDBA|PGPM|EPGP)\b/i
 
 export function getMbaFacts(college: any): MbaFacts {
@@ -127,17 +151,19 @@ export function getMbaFacts(college: any): MbaFacts {
 
   // Fees: first flagship-course row with a money value.
   let fee: MbaFacts["fee"]
+  const feeCandidates: { course: string; value: string; rank: number }[] = []
   for (const t of tables(college, micro, "fees")) {
     for (const r of rowsOf(t)) {
       if (!FLAGSHIP.test(r[0] || "")) continue
       const v = r.slice(1).find((c) => MONEY.test(c) && /\d/.test(c))
-      if (v) {
-        fee = { course: r[0].replace(/\s+/g, " ").slice(0, 60), value: dedupeRange(v) }
-        break
-      }
+      if (!v) continue
+      // Executive, online, part-time and integrated (IPM) programmes are not the flagship fee.
+      const rank = SECONDARY.test(r[0]) ? 1 : 0
+      feeCandidates.push({ course: r[0].replace(/\s+/g, " ").slice(0, 60), value: dedupeRange(v), rank })
     }
-    if (fee) break
   }
+  feeCandidates.sort((a, b) => a.rank - b.rank)
+  if (feeCandidates[0]) fee = { course: feeCandidates[0].course, value: feeCandidates[0].value }
 
   // Placement: rows labelled highest / average / median with a money value.
   let highest: string | undefined, average: string | undefined, median: string | undefined, placementLabel: string | undefined
@@ -154,7 +180,7 @@ export function getMbaFacts(college: any): MbaFacts {
       else if (/median/.test(k) && !median) median = clean(v)
     }
   }
-  if (placementLabel && /metric|particular|parameter|statistic/i.test(placementLabel)) placementLabel = undefined
+  if (placementLabel && (/metric|particular|parameter|statistic|value|detail|data|figure|amount|package|ctc|salary/i.test(placementLabel) || !/[A-Za-z]{2}|\d{4}/.test(placementLabel))) placementLabel = undefined
 
   const recTable = placement.find((t) => /recruit|compan/i.test(`${t.heading} ${JSON.stringify(t.headers || "")}`))
   const recruiters = recTable
@@ -184,7 +210,7 @@ export function getMbaFacts(college: any): MbaFacts {
     name,
     slug,
     exams: iim && !exams.includes("CAT") ? ["CAT", ...exams] : exams,
-    course: detectCourse(allText),
+    course: fee ? courseOf(fee.course) || detectCourse(allText) : detectCourse(allText),
     fee,
     highest,
     average,
