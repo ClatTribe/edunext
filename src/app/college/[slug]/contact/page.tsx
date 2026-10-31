@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../../lib/collegeData"
 import { supabase } from "../../../../../lib/supabase"
 import ContactClient from "./ContactClient"
 
@@ -36,6 +38,10 @@ export default async function ContactPage({ params }: { params: Promise<{ slug: 
   if (!college) return null
 
   return (
+    <>
+      <MbaHeading slug={slug} section="contact" />
     <ContactClient college={college} />
+      <MbaSeoBlock slug={slug} section="contact" />
+    </>
   )
 }

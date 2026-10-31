@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../../lib/collegeData"
 import { supabase } from "../../../../../lib/supabase"
 import ReviewsClient from "./ReviewsClient"
 
@@ -43,6 +45,10 @@ export default async function ReviewsPage({ params }: { params: Promise<{ slug: 
   const aggregateRating = reviewsData?.aggregate_rating
 
   return (
+    <>
+      <MbaHeading slug={slug} section="reviews" />
     <ReviewsClient aggregateRating={aggregateRating} />
+      <MbaSeoBlock slug={slug} section="reviews" />
+    </>
   )
 }

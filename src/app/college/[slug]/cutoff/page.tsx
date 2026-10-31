@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../../lib/collegeData"
 import { supabase } from "../../../../../lib/supabase"
 import { mbaMeta, cleanLocation } from "../../../../../lib/collegeSeo"
 import CutoffClient from "./CutoffClient"
@@ -12,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "Cutoff | EduNext" }
 
   const name = college.college_name
-  const mba = mbaMeta("cutoff", slug, name, college.location)
+  const mba = mbaMeta("cutoff", slug, name, college.location, (await getMbaMetaFacts(slug)) || undefined)
   if (mba) return mba
   const location = cleanLocation(college.location)
 
@@ -51,6 +53,8 @@ export default async function CutoffPage({ params }: { params: Promise<{ slug: s
 
   return (
     <>
+      <MbaHeading slug={slug} section="cutoff" />
+    <>
       {isBSchool && (
         <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/5 p-4 text-sm text-slate-300">
           <span className="font-semibold text-white">CAT 2026 (29 Nov): </span>
@@ -68,6 +72,8 @@ export default async function CutoffPage({ params }: { params: Promise<{ slug: s
         </div>
       )}
       <CutoffClient cutoffData={cutoffData} uniqueHeadings={uniqueHeadings} />
+    </>
+      <MbaSeoBlock slug={slug} section="cutoff" />
     </>
   )
 }

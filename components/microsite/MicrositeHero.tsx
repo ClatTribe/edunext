@@ -22,6 +22,8 @@ interface MicrositeHeroProps {
   video?: string | string[]
   podcast?: string
   slug?: string
+  /** B-school pages render their own section H1, so the hero name is not a heading there. */
+  isBSchool?: boolean
 }
 
 const primaryBg = '#060818'
@@ -196,7 +198,10 @@ export default function MicrositeHero({
   video,
   podcast,
   slug,
+  isBSchool = false,
 }: MicrositeHeroProps) {
+  const NameTag = isBSchool ? 'p' : 'h1'
+  const admissionsLabel = isBSchool ? 'MBA Admissions 2027-29' : 'Admissions Open 2026'
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   const [user, setUser] = useState<any>(null)
@@ -429,11 +434,11 @@ export default function MicrositeHero({
 
         {/* ── College info ─────────────────────────────────────── */}
         <div className="px-4 pt-4 pb-6">
-          <h1 className="text-3xl font-extrabold leading-tight tracking-tight">
+          <NameTag className="text-3xl font-extrabold leading-tight tracking-tight">
             <span className="bg-gradient-to-t from-slate-400 via-slate-200 to-white bg-clip-text text-transparent">
               {collegeName}
             </span>
-          </h1>
+          </NameTag>
 
           {details.length > 0 && (
             <p className="text-sm font-semibold text-slate-400 mt-1 leading-snug">
@@ -453,7 +458,7 @@ export default function MicrositeHero({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Admissions Open 2026</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">{admissionsLabel}</span>
             </div>
           </div>
 
@@ -587,15 +592,15 @@ export default function MicrositeHero({
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500">Admissions Open 2026</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500">{admissionsLabel}</span>
                 </div>
               </div>
 
-              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.08] tracking-tight mb-4">
+              <NameTag className="text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.08] tracking-tight mb-4">
                 <span className="bg-gradient-to-t from-slate-500 via-slate-300 to-white bg-clip-text text-transparent">
                   {collegeName}
                 </span>
-              </h1>
+              </NameTag>
 
               {details.length > 0 && (
                 <p className="text-xl lg:text-2xl xl:text-3xl font-bold text-slate-400 mb-6 leading-snug">

@@ -1,7 +1,7 @@
 ---
 title: "XAT Response Sheet 2026: Download Link, Check Answers & Calculate Score"
-date: "2026-1-02"
-lastModified: "2026-1-02"
+date: "2026-01-02"
+lastModified: "2026-01-02"
 author: "EduNext"
 excerpt: "Download XAT 2026 response sheet from xatonline.in. Check your marked answers, calculate expected score with answer key, and estimate percentile for XLRI admissions."
 coverImage: "https://res.cloudinary.com/daetdadtt/image/upload/v1767353457/WhatsApp_Image_2026-01-02_at_16.09.28_m1uaxj.jpg"

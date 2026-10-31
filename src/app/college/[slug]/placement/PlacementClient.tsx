@@ -188,9 +188,9 @@ export default function PlacementClient({ placementData, uniqueHeadings }: Place
           <div className="h-[1.5px] w-8 bg-amber-500" />
           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-500">Industry Relations</span>
         </div>
-        <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
+        <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
           Placement <span className="text-amber-500">Metrics.</span>
-        </h1>
+        </h2>
       </div>
 
       {uniqueHeadings.length > 0 && (
