@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../../lib/collegeData"
 import { supabase } from "../../../../../lib/supabase"
 import { mbaMeta, cleanLocation } from "../../../../../lib/collegeSeo"
 import CourseFeesClient from "./CourseFeesClient"
@@ -10,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "Courses & Fees | EduNext" }
 
   const name = college.college_name
-  const mba = mbaMeta("course-and-fees", slug, name, college.location)
+  const mba = mbaMeta("course-and-fees", slug, name, college.location, (await getMbaMetaFacts(slug)) || undefined)
   if (mba) return mba
   const location = cleanLocation(college.location)
 
@@ -46,18 +48,22 @@ export default async function CoursesAndFeesPage({ params }: { params: Promise<{
   const uniqueHeadings = Array.from(new Set(rawFees.map(item => item.heading?.trim() || "General Courses")))
 
   return (
+    <>
+      <MbaHeading slug={slug} section="course-and-fees" />
     <div className="space-y-12 max-w-7xl mx-auto px-4 py-12 pb-24">
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <div className="h-[2px] w-12 bg-amber-500" />
           <span className="text-xs font-black uppercase tracking-[0.4em] text-amber-500">Academic & Financials</span>
         </div>
-        <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
           Courses & <span className="text-amber-500">Fees.</span>
-        </h1>
+        </h2>
       </div>
 
       <CourseFeesClient rawFees={rawFees} uniqueHeadings={uniqueHeadings} />
     </div>
+      <MbaSeoBlock slug={slug} section="course-and-fees" />
+    </>
   )
 }

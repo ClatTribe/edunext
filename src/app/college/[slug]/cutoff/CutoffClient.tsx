@@ -178,9 +178,9 @@ export default function CutoffClient({ cutoffData, uniqueHeadings }: CutoffClien
           <div className="h-[1.5px] w-8 bg-amber-500" />
           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-500">Official Data</span>
         </div>
-        <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
+        <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight">
           Admission <span className="text-amber-500">Thresholds.</span>
-        </h1>
+        </h2>
       </div>
 
       {uniqueHeadings.length > 0 && (

@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../../lib/collegeData"
 import { supabase } from "../../../../../lib/supabase"
 import AdmissionClient from "./AdmissionClient"
 import Link from "next/link"
@@ -14,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const name = college.college_name
   const location = cleanLocation(college.location)
 
-  const mba = mbaMeta("admission", slug, name, college.location)
+  const mba = mbaMeta("admission", slug, name, college.location, (await getMbaMetaFacts(slug)) || undefined)
   if (mba) return mba
 
   return {
@@ -52,6 +54,8 @@ export default async function AdmissionPage({ params }: { params: Promise<{ slug
 
   return (
     <>
+      <MbaHeading slug={slug} section="admission" />
+    <>
       {partner && (
         <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/5 p-4 text-sm">
           <span className="font-semibold text-white">{college.college_name} application form 2027-29: </span>
@@ -61,6 +65,8 @@ export default async function AdmissionPage({ params }: { params: Promise<{ slug
         </div>
       )}
       <AdmissionClient admissionData={admissionData} uniqueHeadings={uniqueHeadings} />
+    </>
+      <MbaSeoBlock slug={slug} section="admission" />
     </>
   )
 }

@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../../lib/collegeData"
 import { supabase } from "../../../../../lib/supabase"
 import { mbaMeta, cleanLocation } from "../../../../../lib/collegeSeo"
 import PlacementClient from "./PlacementClient"
@@ -10,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "Placement | EduNext" }
 
   const name = college.college_name
-  const mba = mbaMeta("placement", slug, name, college.location)
+  const mba = mbaMeta("placement", slug, name, college.location, (await getMbaMetaFacts(slug)) || undefined)
   if (mba) return mba
   const location = cleanLocation(college.location)
 
@@ -46,6 +48,10 @@ export default async function PlacementPage({ params }: { params: Promise<{ slug
   const uniqueHeadings = Array.from(new Set(placementData.map(item => item.heading?.trim() || "General Stats")))
 
   return (
+    <>
+      <MbaHeading slug={slug} section="placement" />
     <PlacementClient placementData={placementData} uniqueHeadings={uniqueHeadings} />
+      <MbaSeoBlock slug={slug} section="placement" />
+    </>
   )
 }

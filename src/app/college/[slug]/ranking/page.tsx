@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../../lib/collegeData"
 import { supabase } from "../../../../../lib/supabase"
 import { mbaMeta, cleanLocation } from "../../../../../lib/collegeSeo"
 import RankingClient from "./RankingClient"
@@ -10,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "Ranking | EduNext" }
 
   const name = college.college_name
-  const mba = mbaMeta("ranking", slug, name, college.location)
+  const mba = mbaMeta("ranking", slug, name, college.location, (await getMbaMetaFacts(slug)) || undefined)
   if (mba) return mba
   const location = cleanLocation(college.location)
 
@@ -46,6 +48,10 @@ export default async function RankingPage({ params }: { params: Promise<{ slug: 
   const uniqueHeadings = Array.from(new Set(rankingData.map(item => item.heading?.trim() || "General Recognition")))
 
   return (
+    <>
+      <MbaHeading slug={slug} section="ranking" />
     <RankingClient rankingData={rankingData} uniqueHeadings={uniqueHeadings} />
+      <MbaSeoBlock slug={slug} section="ranking" />
+    </>
   )
 }

@@ -11,6 +11,7 @@ import MicrositeHero from "../../../../components/microsite/MicrositeHero"
 import Navbar from "../../../../components/Navbar"
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm"
 import JumbleWords from "../../../../components/microsite/JumbleWords"
+import { isManagementCollege } from "../../../../lib/collegeSeo"
 
 const primaryBg = '#020205'
 
@@ -24,6 +25,8 @@ export default function CollegeLayoutClient({ children, college }: CollegeLayout
   const params = useParams()
   const slug = params?.slug as string
   const router = useRouter()
+  const isBSchool = isManagementCollege(slug || '', college?.college_name)
+  const isOverview = pathname === `/college/${slug}`
 
   const micrositeData = typeof college?.microsite_data === 'string'
     ? JSON.parse(college.microsite_data)
@@ -102,6 +105,7 @@ export default function CollegeLayoutClient({ children, college }: CollegeLayout
         <MicrositeHero
           collegeId={college.id}               
           slug={slug}                            
+          isBSchool={isBSchool}
           collegeName={college.college_name}
           location={college.location}
           image={college.image}
@@ -148,7 +152,8 @@ export default function CollegeLayoutClient({ children, college }: CollegeLayout
             <main className="w-full">
   {children}
   
-{college.description && (
+{/* B-schools: the generic description appears on the overview only, not repeated on every sub-page */}
+{college.description && (!isBSchool || isOverview) && (
   <div className="mt-12">
     <div className="p-8 rounded-xl border border-amber-500/10 bg-[#0a0a0f] shadow-[0_0_30px_rgba(245,158,11,0.15),0_0_60px_rgba(59,130,246,0.1)]">
       {/* Header */}

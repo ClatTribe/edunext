@@ -6,6 +6,8 @@ import BlogSidebar from '../BlogSidebar';
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
 import CollegeEnquiryForm from "../../../../components/microsite/CollegeEnquiryForm";
+import Link from 'next/link';
+import { isMbaBlog, linkBSchools, MBA_BLOGS, MBA_HUBS } from '../../../../lib/mbaLinks';
 
 interface BlogPageProps {
   params: Promise<{
@@ -72,6 +74,46 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
   const allBlogs = await getAllBlogs();
 
+  // The page already renders blog.title as the H1; drop a leading markdown H1 so there is only one.
+  let contentHtml = blog.content.replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/i, '');
+
+  // MBA cluster: link B-school mentions to their microsites and add related MBA links.
+  const mba = isMbaBlog(slug, blog.tags);
+  let schoolsInPost: { name: string; slug: string }[] = [];
+  if (mba) {
+    const linked = linkBSchools(contentHtml);
+    contentHtml = linked.html;
+    schoolsInPost = linked.found;
+  }
+
+  const pageUrl = `https://www.getedunext.com/blogs/${slug}`;
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BlogPosting',
+        '@id': `${pageUrl}#article`,
+        headline: blog.title,
+        description: blog.excerpt,
+        image: blog.coverImage ? [blog.coverImage] : undefined,
+        datePublished: blog.date,
+        dateModified: blog.lastModified ?? blog.date,
+        author: { '@type': blog.author && blog.author !== 'EduNext' ? 'Person' : 'Organization', name: blog.author || 'EduNext' },
+        publisher: { '@type': 'Organization', name: 'EduNext', url: 'https://www.getedunext.com' },
+        mainEntityOfPage: pageUrl,
+        keywords: blog.tags?.join(', ') || undefined,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.getedunext.com' },
+          { '@type': 'ListItem', position: 2, name: 'Blogs', item: 'https://www.getedunext.com/blogs' },
+          { '@type': 'ListItem', position: 3, name: blog.title, item: pageUrl },
+        ],
+      },
+    ],
+  };
+
   const latestBlogs = allBlogs
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .filter((b) => b.slug !== slug);
@@ -79,6 +121,10 @@ export default async function BlogPage({ params }: BlogPageProps) {
   return (
     <>
       <Navbar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
 
       <div
         className="min-h-screen w-full pt-12"
@@ -225,8 +271,38 @@ export default async function BlogPage({ params }: BlogPageProps) {
                 prose-tr:border-b prose-tr:border-[rgba(245,158,11,0.1)]
                 [&_table]:overflow-x-auto [&_table]:block
                 [&_tbody_tr:hover]:bg-[rgba(245,158,11,0.05)]"
-                dangerouslySetInnerHTML={{ __html: blog.content }}
+                dangerouslySetInnerHTML={{ __html: contentHtml }}
               />
+
+              {mba && schoolsInPost.length > 0 && (
+                <nav aria-label="B-schools in this article" className="mt-10 p-6 rounded-xl border border-[rgba(245,158,11,0.15)] bg-[#0F172B]">
+                  <h2 className="text-xl font-bold text-white mb-4">B-schools in this article: cutoff, fees and placements</h2>
+                  <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                    {schoolsInPost.map((c) => (
+                      <li key={c.slug} className="text-slate-400">
+                        <Link href={`/college/${c.slug}`} className="text-[#F59E0B] font-medium hover:underline">{c.name}</Link>
+                        {' · '}
+                        <Link href={`/college/${c.slug}/cutoff`} className="hover:text-[#F59E0B]">cutoff</Link>
+                        {' · '}
+                        <Link href={`/college/${c.slug}/placement`} className="hover:text-[#F59E0B]">placements</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
+
+              {mba && (
+                <nav aria-label="More MBA guides" className="mt-6 p-6 rounded-xl border border-[rgba(245,158,11,0.15)] bg-[#0F172B]">
+                  <h2 className="text-xl font-bold text-white mb-4">More CAT 2026 and MBA 2027 guides</h2>
+                  <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                    {[...MBA_HUBS, ...MBA_BLOGS.filter((b) => b.href !== `/blogs/${slug}`)].slice(0, 12).map((l) => (
+                      <li key={l.href}>
+                        <Link href={l.href} className="text-[#F59E0B] hover:underline">{l.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
 
             </article>
 

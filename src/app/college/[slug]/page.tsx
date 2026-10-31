@@ -1,4 +1,6 @@
 import React from "react"
+import MbaSeoBlock, { MbaHeading } from "../../../../components/microsite/MbaSeoBlock"
+import { getMbaMetaFacts } from "../../../../lib/collegeData"
 import Link from "next/link"
 import { supabase } from "../../../../lib/supabase"
 import { mbaMeta, cleanLocation } from "../../../../lib/collegeSeo"
@@ -184,7 +186,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!college) return { title: "College | EduNext" }
 
   const name = college.college_name
-  const mba = mbaMeta("overview", slug, name, college.location)
+  const mba = mbaMeta("overview", slug, name, college.location, (await getMbaMetaFacts(slug)) || undefined)
   if (mba) return mba
   const location = cleanLocation(college.location)
   const nameLoc = location ? `${name} ${location}` : name
@@ -286,6 +288,7 @@ export default async function CollegeOverviewPage({ params }: { params: Promise<
   return (
     <div className="space-y-16 max-w-7xl mx-auto px-4">
       <ScrollHandler slug={slug} />
+      <MbaHeading slug={slug} section="overview" />
 
       {/* ── ABOUT + APPLY (parallel) ── */}
       {showAbout && (
@@ -519,6 +522,7 @@ export default async function CollegeOverviewPage({ params }: { params: Promise<
           </div>
         </section>
       )}
+      <MbaSeoBlock slug={slug} section="overview" />
     </div>
   )
 }

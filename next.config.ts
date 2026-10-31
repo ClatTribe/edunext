@@ -52,6 +52,12 @@ const nextConfig: NextConfig = {
                 permanent: true,
             },
             {
+                // Duplicate XAT post merged into the newer, longer version
+                source: '/blogs/xat-response-sheet-2026-download-calculate-score',
+                destination: '/blogs/xat-response-sheet-2026-download-link-calculate-score',
+                permanent: true,
+            },
+            {
                 source: '/blogs/is-an-online-mba-worth-it-in-india-in-2026',
                 destination: '/blogs/is-an-online-mba-worth-it-in-india-in-2027',
                 permanent: true,
